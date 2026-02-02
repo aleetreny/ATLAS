@@ -358,33 +358,7 @@ plt.grid(True, linestyle='--', alpha=0.7)
 # plt.show()
 
 # %% [markdown]
-# ## 7. Sensitivity Analysis: The Huber "Knob"
-#
-# The `delta` (epsilon) parameter in Huber regression controls the threshold between "Standard MSE" and "Robust MAE".
-# *   Small Delta ($\delta \to 0$): Becomes MAE (Median Regression). Very robust but unstable on clean data.
-# *   Large Delta ($\delta \to \infty$): Becomes MSE (OLS). Very stable but not robust.
-
-# %%
-deltas = [1.0, 1.5, 3.0, 100.0]
-# Note: Sklearn's HuberRegressor requires epsilon > 1.0 (it creates a small parabolic region around 0).
-# Effect:
-# - Low Delta (1.5): Treats almost everything as Large Error (Linear Penalty). Ignores outliers strongly.
-# - High Delta (100.0): Treats almost everything as Small Error (Quadratic Penalty). Acts like OLS.
-
-colors = sns.color_palette("flare", len(deltas))
-
-for i, d in enumerate(deltas):
-    # Using Sklearn optimized Huber for visualization
-    h = HuberRegressor(epsilon=d)
-    h.fit(X, y)
-    plt.plot(X_range, h.predict(X_range), color=colors[i], linewidth=2.5, label=f'Delta={d}')
-
-plt.title("Huber Sensitivity: From Robust (1.0) to OLS (100.0)", fontsize=18)
-plt.legend()
-# plt.show()
-
-# %% [markdown]
-# ## 8. The Verdict: Decision Matrix
+# ## 7. The Verdict: Decision Matrix
 #
 # Based on our Stress Test (`history`), we can draw objective conclusions:
 #
