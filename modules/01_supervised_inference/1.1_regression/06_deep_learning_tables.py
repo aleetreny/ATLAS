@@ -18,8 +18,7 @@
 #
 # ## 1. Theoretical Foundation
 #
-# ### 1.1 The Philosophy
-# The previous five notebooks have taken us through the full arc of regression for structured data:
+# ### 1.1 The Philosophy The previous five notebooks have taken us through the full arc of regression for structured data:
 # - **Classical Statistics** gave us interpretable baselines with closed-form solutions (OLS, GLMs, PLS).
 # - **Regularization** showed how to constrain model complexity to prevent overfitting (Lasso, Ridge, ElasticNet).
 # - **Robust Regression** taught us to survive corrupted data by design (RANSAC, Theil-Sen, Huber).
@@ -49,8 +48,7 @@
 # 1. An **Attention Transformer** computes a soft mask $M^{(i)} \in [0,1]^d$ over the $d$ input features using a sparsemax activation:
 #
 #    $$ M^{(i)} = \text{sparsemax}\!\left( P^{(i-1)} \cdot h_a\!\left( a^{(i-1)} \right) \right) $$
-#
-#    where $P^{(i-1)}$ is the **prior scales matrix**, a penalty that discourages re-using features already selected in previous steps. This is the direct analog of the "each tree focuses on residuals left by the previous" logic in boosting.
+# where $P^{(i-1)}$ is the **prior scales matrix**, a penalty that discourages re-using features already selected in previous steps. This is the direct analog of the "each tree focuses on residuals left by the previous" logic in boosting.
 #
 # 2. A **Feature Transformer** processes the masked input $M^{(i)} \odot f$ through a shared+step-specific MLP to produce a processed representation $h^{(i)}$.
 #
@@ -90,12 +88,15 @@
 #
 # > **Installation note for `nam`:** The package declares `sklearn` (the deprecated PyPI alias) as a dependency, which pip tries to build from source, and fails. The fix is to install the wheel directly with `--no-deps` and add only the genuinely missing packages (`pytorch-lightning`, `loguru`). The real scikit-learn is already present and fully compatible; only the stale alias was the problem.
 #
-# **Dataset:** We continue with the **Diamonds** dataset (53,940 rows), the same dataset used in the Gradient Boosting notebook. This allows direct comparison against the CatBoost baseline (RMSE \$530, R² 0.9823) established in notebook 05. The mix of continuous and ordinal categorical features, the non-linear price-carat relationship, and the well-understood domain logic (carat, clarity, color drive price) make it ideal for showcasing interpretability tools.
+# **Dataset:** We continue with the **Diamonds** dataset (53,940 rows), the same dataset used in the Gradient Boosting notebook. This allows direct comparison against the CatBoost baseline (RMSE &#36;530, R² 0.9823) established in notebook 05. The mix of continuous and ordinal categorical features, the non-linear price-carat relationship, and the well-understood domain logic (carat, clarity, color drive price) make it ideal for showcasing interpretability tools.
 #
 # ---
 # *We follow the **ATLAS** protocol: First we understand the **Intuition**, then we build it from **Scratch** using only NumPy/PyTorch, and finally we apply the **Pro** tools used in industry.*
 
 # %%
+import warnings
+warnings.filterwarnings('ignore')
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -124,7 +125,7 @@ print(f"Active device   : {device}")
 # %% [markdown]
 # ## 2. Data Preparation
 #
-# We use the same **Diamonds** dataset as notebook 05. This is deliberate: by keeping the dataset identical, every metric we compute is directly comparable to the CatBoost baseline (RMSE \$530, R² 0.9823) established there.
+# We use the same **Diamonds** dataset as notebook 05. This is deliberate: by keeping the dataset identical, every metric we compute is directly comparable to the CatBoost baseline (RMSE &#36;530, R² 0.9823) established there.
 #
 # One critical difference from the gradient boosting notebook: **neural networks are not scale-invariant**. A tree splits on rank order; a threshold of `carat > 1.0` behaves identically whether carat is measured in grams or carats. A neural network, however, uses gradient descent on raw feature values. A feature with a range of 0–18,000 (price) will produce gradients orders of magnitude larger than a feature ranging 0–10 (table), causing training instability and slow convergence.
 #
@@ -182,7 +183,7 @@ print(f"\nCatBoost baseline from notebook 05: $530  →  our reference ceiling")
 # %% [markdown]
 # **43,152 train / 10,788 test samples, 9 features.** After `StandardScaler`, every feature has mean ≈ 0.0000 and std ≈ 1.0000; verified across all nine columns. The gradient descent update for `carat` (raw range ≈ 0.2–5.0) and for `table` (raw range ≈ 43–95) now operate on the same numerical scale.
 #
-# The baseline RMSE is **\$3,987.22** (predicting the mean price for every diamond). Our reference ceiling is CatBoost's **\$530 RMSE** from notebook 05. Approaching that number with a neural network would be a strong result; exceeding it is expected and acceptable, since the primary goals here are differentiability (TabNet) and interpretability (NAMs), not raw accuracy.
+# The baseline RMSE is **&#36;3,987.22** (predicting the mean price for every diamond). Our reference ceiling is CatBoost's **&#36;530 RMSE** from notebook 05. Approaching that number with a neural network would be a strong result; exceeding it is expected and acceptable, since the primary goals here are differentiability (TabNet) and interpretability (NAMs), not raw accuracy.
 #
 # Both `pytorch_tabnet` and `nam` are installed and confirmed working. The full ATLAS protocol applies: Scratch first to understand the internals, then Pro to see the reference implementation.
 #
@@ -201,7 +202,8 @@ scaled_melt = scaled_df.melt(var_name='Feature', value_name='Value')
 
 fig, axes = plt.subplots(1, 2, figsize=(20, 8))
 
-# --- Left: Raw (shared axis reveals scale chaos) ---
+# ---
+# Left: Raw (shared axis reveals scale chaos) ---
 sns.boxplot(
     data=raw_melt, x='Feature', y='Value', hue='Feature', order=feat_order,
     ax=axes[0], palette='Blues_d', linewidth=1.5, legend=False,
@@ -227,7 +229,8 @@ axes[0].annotate('carat: median=0.70\n(84× smaller scale)',
                  fontsize=10, color='#B71C1C', fontweight='bold',
                  arrowprops=dict(arrowstyle='->', color='#B71C1C', lw=1.3))
 
-# --- Right: Scaled (same axis, everything aligns) ---
+# ---
+# Right: Scaled (same axis, everything aligns) ---
 sns.boxplot(
     data=scaled_melt, x='Feature', y='Value', hue='Feature', order=feat_order,
     ax=axes[1], palette='Reds_d', linewidth=1.5, legend=False,
@@ -264,9 +267,7 @@ plt.show()
 #
 # Before touching a single line of code, it helps to trace one forward pass mentally.
 #
-# Suppose our input is a batch of diamonds, each described by 9 features: $x \in \mathbb{R}^{B \times 9}$.
-# TabNet processes this input in $N_{\text{steps}}$ sequential steps. Each step asks the same question:
-# *"Given what I already know about this batch, which features should I look at next?"*
+# Suppose our input is a batch of diamonds, each described by 9 features: $x \in \mathbb{R}^{B \times 9}$. TabNet processes this input in $N_{\text{steps}}$ sequential steps. Each step asks the same question: *"Given what I already know about this batch, which features should I look at next?"*
 #
 # **Step $i$ in detail:**
 #
@@ -278,26 +279,20 @@ plt.show()
 #
 # 2. **Prior scales update:** discourage reuse of already-selected features:
 #    $$ P^{(i)} = P^{(i-1)} \odot \left( \gamma - M^{(i)} \right) $$
-#    With $\gamma = 1.3$: if feature $j$ received full attention ($M^{(i)}_j = 1$), it is
-#    down-weighted to $0.3$ in the next step; still possible to revisit but de-prioritised.
+#    With $\gamma = 1.3$: if feature $j$ received full attention ($M^{(i)}_j = 1$), it is down-weighted to &#36;0.3$ in the next step; still possible to revisit but de-prioritised.
 #
 # 3. **Feature Transformer** processes the *masked* input:
 #    $$ h^{(i)} = \text{FeatureTransformer}\!\left( M^{(i)} \odot \hat{x} \right) $$
-#    where $\hat{x}$ is the batch-normalised input. The transformer is a stack of **GLU (Gated Linear Unit)** blocks
-#    with residual connections; one set of weights *shared* across all steps, one set *step-specific*.
+#    where $\hat{x}$ is the batch-normalised input. The transformer is a stack of **GLU (Gated Linear Unit)** blocks with residual connections; one set of weights *shared* across all steps, one set *step-specific*.
 #
 # 4. **Aggregation:** accumulate the processed output across all steps:
 #    $$ \hat{y} = W_{\text{out}} \sum_{i=1}^{N_{\text{steps}}} \text{ReLU}\!\left( h^{(i)} \right) $$
 #
 # ### 3.2 Sparsemax: The Core of Interpretability
 #
-# Softmax maps any input to a valid probability distribution, but every output is strictly positive.
-# **Sparsemax** maps inputs to the *simplex* (sums to 1, all values ≥ 0) but can produce *exact zeros*.
+# Softmax maps any input to a valid probability distribution, but every output is strictly positive. **Sparsemax** maps inputs to the *simplex* (sums to 1, all values ≥ 0) but can produce *exact zeros*.
 #
-# The algorithm finds the threshold $\tau$ such that the output $\pi_j = \max(z_j - \tau, 0)$
-# sums to 1. Features with $z_j \leq \tau$ receive exactly zero weight; they are *ignored*.
-# This is what makes TabNet's feature importance readable: the masks tell you not just
-# "feature $j$ was less important" but "feature $j$ was not used at all."
+# The algorithm finds the threshold $\tau$ such that the output $\pi_j = \max(z_j - \tau, 0)$ sums to 1. Features with $z_j \leq \tau$ receive exactly zero weight; they are *ignored*. This is what makes TabNet's feature importance readable: the masks tell you not just "feature $j$ was less important" but "feature $j$ was not used at all."
 
 # %%
 import torch
@@ -337,10 +332,7 @@ print(f"softmax: {sm.numpy().round(3)}  → all positive, sums to {sm.sum():.1f}
 print(f"sparsemax: {sp.numpy().round(3)}  → exact zeros, sums to {sp.sum():.1f}")
 
 # %% [markdown]
-# `softmax` spreads probability across all four inputs, even assigning ~5% to the most negative
-# element. `sparsemax` concentrates all mass on the top two and returns **exact zeros** for
-# the others. Multiply this mask against 9 features and you get a principled, readable feature
-# selection, not a soft blend of everything.
+# `softmax` spreads probability across all four inputs, even assigning ~5% to the most negative element. `sparsemax` concentrates all mass on the top two and returns **exact zeros** for the others. Multiply this mask against 9 features and you get a principled, readable feature selection, not a soft blend of everything.
 
 # %%
 class GLUBlock(nn.Module):
@@ -481,18 +473,11 @@ class ScratchTabNet(nn.Module):
 # %% [markdown]
 # A few design decisions worth unpacking:
 #
-# - **Shared FC weights**: `self.shared_fc` is a *single* `nn.Linear` whose weight matrix is passed
-#   to every `FeatureTransformer`. All steps literally share the same object; PyTorch's autograd
-#   accumulates gradients correctly. This gives the network a common feature vocabulary while
-#   the step-specific layers let each step "speak its own dialect."
+# - **Shared FC weights**: `self.shared_fc` is a *single* `nn.Linear` whose weight matrix is passed to every `FeatureTransformer`. All steps literally share the same object; PyTorch's autograd accumulates gradients correctly. This gives the network a common feature vocabulary while the step-specific layers let each step "speak its own dialect."
 #
-# - **Sparsity regularisation**: We minimise $-\sum_j M_j \log(M_j + \epsilon)$, the negative entropy
-#   of the mask. Since sparsemax already produces zeros, this nudges the *non-zero* weights to be
-#   concentrated on fewer features rather than spread thinly. `lambda_s=1e-4` keeps it from
-#   dominating the regression loss.
+# - **Sparsity regularisation**: We minimise $-\sum_j M_j \log(M_j + \epsilon)$, the negative entropy of the mask. Since sparsemax already produces zeros, this nudges the *non-zero* weights to be concentrated on fewer features rather than spread thinly. `lambda_s=1e-4` keeps it from dominating the regression loss.
 #
-# - **`forward` returns a tuple** `(prediction, entropy_loss)` so the training loop can combine
-#   them without the model needing to know the batch targets.
+# - **`forward` returns a tuple** `(prediction, entropy_loss)` so the training loop can combine them without the model needing to know the batch targets.
 
 # %%
 # === Training Setup ===
@@ -535,12 +520,7 @@ y_te  = torch.tensor(y_test_scaled,  dtype=torch.float32)
 train_loader = DataLoader(TensorDataset(X_tr, y_tr), batch_size=BATCH_SIZE, shuffle=True)
 
 # %% [markdown]
-# **8,457 trainable parameters,** orders of magnitude fewer than a standard MLP. The compact footprint
-# comes from three sources: (1) `n_d=32` limits the representation width, (2) the shared FC
-# halves the effective parameter count vs. step-specific layers, and (3) 3 steps is enough
-# for a 9-feature dataset. TabNet's power does not come from having many parameters, but from
-# *choosing which features to use* at each step. A gradient-boosted tree achieves the same via
-# explicit splits; TabNet achieves it via differentiable sparse attention trained end-to-end.
+# **8,457 trainable parameters,** orders of magnitude fewer than a standard MLP. The compact footprint comes from three sources: (1) `n_d=32` limits the representation width, (2) the shared FC halves the effective parameter count vs. step-specific layers, and (3) 3 steps is enough for a 9-feature dataset. TabNet's power does not come from having many parameters, but from *choosing which features to use* at each step. A gradient-boosted tree achieves the same via explicit splits; TabNet achieves it via differentiable sparse attention trained end-to-end.
 
 # %%
 # === Training Loop ===
@@ -616,23 +596,15 @@ print(f"  vs CatBoost  : RMSE {scratch_tabnet_rmse / 530:.2f}x worse")
 print(f"{'='*55}")
 
 # %% [markdown]
-# **RMSE \$1,076 | MAE \$678 | R² 0.9272 | 73.0% reduction vs baseline. Best epoch: 11/31.**
+# **RMSE &#36;1,076 | MAE &#36;678 | R² 0.9272 | 73.0% reduction vs baseline. Best epoch: 11/31.**
 #
 # Three things stand out:
 #
-# 1. **73% error reduction from a neural network with 8,457 parameters trained in 72 seconds.** This is
-#    far from trivial. Scratch gradient boosting with 200 stumps achieved 72% on the same data, so
-#    this simple TabNet is already in the same ballpark.
+# 1. **73% error reduction from a neural network with 8,457 parameters trained in 72 seconds.** This is far from trivial. Scratch gradient boosting with 200 stumps achieved 72% on the same data, so this simple TabNet is already in the same ballpark.
 #
-# 2. **Early stopping fires at epoch 31 (best at epoch 11).** The learning rate scheduler halved LR twice
-#    (epoch ~17: 0.005 → 0.0025, epoch ~22: 0.0025 → 0.000625), but the model had already saturated
-#    its capacity. With `n_d=32` and `n_steps=3`, the effective function space is limited; the model
-#    cannot capture the complex multi-feature interactions that deeper trees handle trivially.
+# 2. **Early stopping fires at epoch 31 (best at epoch 11).** The learning rate scheduler halved LR twice (epoch ~17: 0.005 → 0.0025, epoch ~22: 0.0025 → 0.000625), but the model had already saturated its capacity. With `n_d=32` and `n_steps=3`, the effective function space is limited; the model cannot capture the complex multi-feature interactions that deeper trees handle trivially.
 #
-# 3. **The gap vs. CatBoost ($530) is 2x.** This is the architectural tax of interpretability:
-#    the sparse sequential attention that makes TabNet readable also restricts what it can model.
-#    The `pytorch-tabnet` library, with deeper transformers and proper regularisation, closes this
-#    gap significantly, which is what we will see in the next section.
+# 3. **The gap vs. CatBoost (&#36;530) is 2x.** This is the architectural tax of interpretability: the sparse sequential attention that makes TabNet readable also restricts what it can model. The `pytorch-tabnet` library, with deeper transformers and proper regularisation, closes this gap significantly, which is what we will see in the next section.
 
 # %%
 # ── training learning curve ───────────────────────────────────────────────────
@@ -667,16 +639,9 @@ plt.tight_layout()
 plt.show()
 
 # %% [markdown]
-# The learning curve tells a clean story. Validation RMSE drops steeply in the first 11 epochs:
-# the model learns the dominant pattern fast, capturing that large `y` and `carat` predict higher prices.
-# After epoch 11, the LR scheduler detects stagnation and halves the learning rate twice. Each halving
-# produces a brief improvement attempt, then flat-lines. The train and validation curves track each
-# other closely throughout, with virtually no overfitting. This is the regularising effect of the sparse
-# masks combined with the low parameter count. Unlike the gradient boosting models (which showed clear
-# train-val divergence), TabNet is almost impossible to overfit on this dataset at this scale.
+# The learning curve tells a clean story. Validation RMSE drops steeply in the first 11 epochs: the model learns the dominant pattern fast, capturing that large `y` and `carat` predict higher prices. After epoch 11, the LR scheduler detects stagnation and halves the learning rate twice. Each halving produces a brief improvement attempt, then flat-lines. The train and validation curves track each other closely throughout, with virtually no overfitting. This is the regularising effect of the sparse masks combined with the low parameter count. Unlike the gradient boosting models (which showed clear train-val divergence), TabNet is almost impossible to overfit on this dataset at this scale.
 #
-# The CatBoost reference line (\$530) sits comfortably below our curve, a concrete reminder
-# of what the interpretability tradeoff costs in accuracy.
+# The CatBoost reference line (&#36;530) sits comfortably below our curve, a concrete reminder of what the interpretability tradeoff costs in accuracy.
 
 # %%
 # ── step-wise attention masks heatmap ────────────────────────────────────────
@@ -727,30 +692,18 @@ plt.tight_layout()
 plt.show()
 
 # %% [markdown]
-# This heatmap is the payoff of the entire TabNet architecture, something a gradient boosting
-# model cannot give you without post-hoc SHAP analysis.
+# This heatmap is the payoff of the entire TabNet architecture, something a gradient boosting model cannot give you without post-hoc SHAP analysis.
 #
 # Read each row as "at this step, TabNet focused on these features":
 #
-# - **Step 1: Spatial scan** (`y`: 0.23, `depth`: 0.21, `carat`: 0.18, `clarity`: 0.12):
-#   The first step casts a wide net across the dimensional features. `y` (the Y-axis length in mm)
-#   and `depth` together act as a physical proxy for size. `carat` and `clarity` provide an
-#   initial quality anchor.
+# - **Step 1: Spatial scan** (`y`: 0.23, `depth`: 0.21, `carat`: 0.18, `clarity`: 0.12): The first step casts a wide net across the dimensional features. `y` (the Y-axis length in mm) and `depth` together act as a physical proxy for size. `carat` and `clarity` provide an initial quality anchor.
 #
-# - **Step 2: Dimensional refinement** (`y`: 0.41, `color`: 0.15, `z`: 0.10):
-#   Having established a spatial frame, Step 2 concentrates *heavily* on `y` (0.41, the largest
-#   single attention weight in the entire model). The prior scales penalise `depth` (already
-#   used in Step 1), so the model pivots to the complementary `z` dimension and adds `color`
-#   as the first quality signal.
+# - **Step 2: Dimensional refinement** (`y`: 0.41, `color`: 0.15, `z`: 0.10): Having established a spatial frame, Step 2 concentrates *heavily* on `y` (0.41, the largest single attention weight in the entire model). The prior scales penalise `depth` (already used in Step 1), so the model pivots to the complementary `z` dimension and adds `color` as the first quality signal.
 #
-# - **Step 3: Carat dominance** (`carat`: 0.43, `z`: 0.19, `color`: 0.17, `x`: 0.15):
-#   The final step is dominated by `carat` (0.43). Having characterised the physical dimensions
-#   in Steps 1 and 2, the model now uses the canonical weight metric for final price calibration.
+# - **Step 3: Carat dominance** (`carat`: 0.43, `z`: 0.19, `color`: 0.17, `x`: 0.15): The final step is dominated by `carat` (0.43). Having characterised the physical dimensions in Steps 1 and 2, the model now uses the canonical weight metric for final price calibration.
 #   `color` persists; `cut` and `table` are nearly ignored throughout (0.006 and 0.036).
 #
-# The sequential logic mirrors how a jeweller actually prices a diamond: first gauge the size
-# visually (Step 1–2), then confirm the carat weight on a scale (Step 3). TabNet learned this
-# reasoning structure from data, not from domain knowledge.
+# The sequential logic mirrors how a jeweller actually prices a diamond: first gauge the size visually (Step 1–2), then confirm the carat weight on a scale (Step 3). TabNet learned this reasoning structure from data, not from domain knowledge.
 
 # %%
 # ── predicted vs actual ───────────────────────────────────────────────────────
@@ -772,24 +725,16 @@ plt.tight_layout()
 plt.show()
 
 # %% [markdown]
-# The hexbin plot shows R² 0.9272: the model explains 93% of price variance. The dense cluster
-# along the diagonal from \$0–\$8,000 is tight, covering the bulk of the dataset. Above \$10,000,
-# predictions start to scatter: the model underestimates very expensive diamonds. This is the
-# classic high-end failure mode of low-capacity models, since there are simply too few diamonds
-# above \$10,000 in the training set to calibrate that region well.
+# The hexbin plot shows R² 0.9272: the model explains 93% of price variance. The dense cluster along the diagonal from &#36;0–&#36;8,000 is tight, covering the bulk of the dataset. Above &#36;10,000, predictions start to scatter: the model underestimates very expensive diamonds. This is the classic high-end failure mode of low-capacity models, since there are simply too few diamonds above &#36;10,000 in the training set to calibrate that region well.
 #
-# Compare this mentally to the Scratch Gradient Boosting hexbin from notebook 05 (R² 0.9212):
-# TabNet achieves slightly higher R² despite having an architectural constraint (sparse sequential
-# attention) that gradient boosting stumps do not have. The neural architecture compensates with
-# smooth, continuous predictions; no horizontal banding from discrete stump outputs.
+# Compare this mentally to the Scratch Gradient Boosting hexbin from notebook 05 (R² 0.9212): TabNet achieves slightly higher R² despite having an architectural constraint (sparse sequential attention) that gradient boosting stumps do not have. The neural architecture compensates with smooth, continuous predictions; no horizontal banding from discrete stump outputs.
 
 # %% [markdown]
 # ## 4. TabNet Pro: `pytorch-tabnet`
 #
 # ### 4.1 What the Library Adds
 #
-# Our scratch implementation captures the core logic, but the production `pytorch-tabnet`
-# library (DreamQuark, 2019) adds several engineering improvements that matter in practice:
+# Our scratch implementation captures the core logic, but the production `pytorch-tabnet` library (DreamQuark, 2019) adds several engineering improvements that matter in practice:
 #
 # | Component | Scratch | pytorch-tabnet |
 # |---|---|---|
@@ -800,9 +745,7 @@ plt.show()
 # | Explain API | Manual mask aggregation | `model.explain(X)` returns step-by-step masks per sample |
 # | Feature importance | Manual mask mean | `model.feature_importances_` (magnitude-weighted) |
 #
-# The 4-layer Feature Transformer is the most impactful difference: each step can learn
-# more complex transformations of the masked input, capturing feature interactions that
-# two GLU layers cannot.
+# The 4-layer Feature Transformer is the most impactful difference: each step can learn more complex transformations of the masked input, capturing feature interactions that two GLU layers cannot.
 #
 # ### 4.2 Hyperparameter Decisions
 #
@@ -868,23 +811,15 @@ print(f"  vs Scratch  : {(1-pro_rmse/scratch_tabnet_rmse)*100:.1f}% improvement"
 print(f"  vs CatBoost : {pro_rmse/530:.2f}x worse")
 
 # %% [markdown]
-# **RMSE \$654 | MAE \$378 | R² 0.9731 | Best epoch 49/50.**
+# **RMSE &#36;654 | MAE &#36;378 | R² 0.9731 | Best epoch 49/50.**
 #
 # Three observations stand out:
 #
-# 1. **39.2% improvement over scratch** ($1,076 → $654) from a model with the same `n_d=32`
-#    and only one extra attention step. The gain comes entirely from the deeper Feature Transformer
-#    (4 GLU layers vs 2) and the stronger sparsity penalty (`lambda_sparse=1e-3` vs `1e-4`).
-#    The architecture is the same; the engineering is better.
+# 1. **39.2% improvement over scratch** (&#36;1,076 → &#36;654) from a model with the same `n_d=32` and only one extra attention step. The gain comes entirely from the deeper Feature Transformer (4 GLU layers vs 2) and the stronger sparsity penalty (`lambda_sparse=1e-3` vs `1e-4`). The architecture is the same; the engineering is better.
 #
-# 2. **Best epoch = 49/50** (hit the max_epochs limit). The model had not fully converged,
-#    meaning more training would push RMSE lower still. This is a known characteristic of TabNet
-#    on medium-sized datasets: it improves slowly but steadily. The CatBoost gap ($654 vs $530)
-#    would narrow with additional epochs or a learning rate sweep.
+# 2. **Best epoch = 49/50** (hit the max_epochs limit). The model had not fully converged, meaning more training would push RMSE lower still. This is a known characteristic of TabNet on medium-sized datasets: it improves slowly but steadily. The CatBoost gap (&#36;654 vs &#36;530) would narrow with additional epochs or a learning rate sweep.
 #
-# 3. **Still 1.23x worse than CatBoost.** The accuracy gap persists even with the production
-#    library. This is not a failure of TabNet; it is the measurable cost of constraining the
-#    model to learn through sparse sequential feature selection rather than unrestricted tree splits.
+# 3. **Still 1.23x worse than CatBoost.** The accuracy gap persists even with the production library. This is not a failure of TabNet; it is the measurable cost of constraining the model to learn through sparse sequential feature selection rather than unrestricted tree splits.
 
 # %%
 # ── pro learning curve vs scratch reference ───────────────────────────────────
@@ -922,16 +857,9 @@ plt.tight_layout()
 plt.show()
 
 # %% [markdown]
-# The learning curve has a characteristic double-phase shape. The first 5 epochs drop steeply
-# from baseline (\$19,658 at epoch 1, essentially random initialisation) to \$2,373, capturing
-# the dominant carat-price signal. The next 45 epochs grind out the remaining gains as the model
-# learns progressively more refined feature interactions. The curve has not flattened by epoch 50,
-# confirming that best_epoch=49 simply hit the training budget rather than a true convergence point.
+# The learning curve has a characteristic double-phase shape. The first 5 epochs drop steeply from baseline (&#36;19,658 at epoch 1, essentially random initialisation) to &#36;2,373, capturing the dominant carat-price signal. The next 45 epochs grind out the remaining gains as the model learns progressively more refined feature interactions. The curve has not flattened by epoch 50, confirming that best_epoch=49 simply hit the training budget rather than a true convergence point.
 #
-# The orange reference line (\$1,076, scratch TabNet) is crossed around epoch 10, meaning the
-# Pro library beats our scratch model in 10 epochs of what our scratch took 11 epochs to achieve
-# best. After that, Pro keeps improving while scratch had already stalled, which illustrates the
-# compounding benefit of deeper feature transformers.
+# The orange reference line (&#36;1,076, scratch TabNet) is crossed around epoch 10, meaning the Pro library beats our scratch model in 10 epochs of what our scratch took 11 epochs to achieve best. After that, Pro keeps improving while scratch had already stalled, which illustrates the compounding benefit of deeper feature transformers.
 
 # %%
 # ── feature importance comparison: scratch vs pro ────────────────────────────
@@ -983,19 +911,11 @@ plt.show()
 # %% [markdown]
 # The two importance profiles tell a story about model capacity.
 #
-# The scratch model (orange) concentrates heavily on dimensional features: `carat` (0.240),
-# `y` (0.232), `z` (0.108). These are the easiest signals to learn with shallow transformers,
-# since `y` alone is a near-linear proxy for `carat`. The model grabs what it can reach with
-# two GLU layers.
+# The scratch model (orange) concentrates heavily on dimensional features: `carat` (0.240), `y` (0.232), `z` (0.108). These are the easiest signals to learn with shallow transformers, since `y` alone is a near-linear proxy for `carat`. The model grabs what it can reach with two GLU layers.
 #
-# The Pro model (blue) distributes attention more evenly and shifts ranking: `clarity` (0.199)
-# rises to first place, nearly tied with `carat` (0.193), and `y` drops from second to seventh
-# (0.073). This is a more accurate representation of diamond pricing theory: clarity and color
-# are genuine quality premia, not just dimensional proxies. The deeper Feature Transformer
-# can disentangle these signals from the size-dominated noise, which the scratch model cannot.
+# The Pro model (blue) distributes attention more evenly and shifts ranking: `clarity` (0.199) rises to first place, nearly tied with `carat` (0.193), and `y` drops from second to seventh (0.073). This is a more accurate representation of diamond pricing theory: clarity and color are genuine quality premia, not just dimensional proxies. The deeper Feature Transformer can disentangle these signals from the size-dominated noise, which the scratch model cannot.
 #
-# `cut` (0.059) and `table` (0.046) remain the least informative in both models, consistent
-# with the XGBoost importance analysis in notebook 05.
+# `cut` (0.059) and `table` (0.046) remain the least informative in both models, consistent with the XGBoost importance analysis in notebook 05.
 
 # %%
 # ── step-wise attention heatmap: tabnet pro (4 steps) ─────────────────────────
@@ -1041,83 +961,52 @@ plt.tight_layout()
 plt.show()
 
 # %% [markdown]
-# Compared to the scratch 3-step heatmap, the Pro 4-step version shows a more refined
-# division of labour across the steps:
+# Compared to the scratch 3-step heatmap, the Pro 4-step version shows a more refined division of labour across the steps:
 #
-# - **Step 1** distributes broadly: `z` (0.23), `table` (0.15), `carat` (0.14), `clarity` (0.14).
-#   An initial scan across size and quality features simultaneously, something our shallow
-#   scratch transformer could not do in one step.
+# - **Step 1** distributes broadly: `z` (0.23), `table` (0.15), `carat` (0.14), `clarity` (0.14). An initial scan across size and quality features simultaneously, something our shallow scratch transformer could not do in one step.
 #
-# - **Step 2** locks onto `carat` (0.50) plus `color` (0.22). The dominant price driver is
-#   isolated cleanly. The prior scales have suppressed `z` and `table` from Step 1.
+# - **Step 2** locks onto `carat` (0.50) plus `color` (0.22). The dominant price driver is isolated cleanly. The prior scales have suppressed `z` and `table` from Step 1.
 #
-# - **Step 3** pivots to fine-grained quality: `x` (0.30), `cut` (0.27), `depth` (0.13).
-#   These are the features most related to the geometric proportions that affect a diamond's
-#   light performance, independent of its raw size.
+# - **Step 3** pivots to fine-grained quality: `x` (0.30), `cut` (0.27), `depth` (0.13). These are the features most related to the geometric proportions that affect a diamond's light performance, independent of its raw size.
 #
-# - **Step 4** closes with `clarity` (0.26), `color` (0.22), `x` (0.18). A final quality
-#   correction layer adjusting for the two hardest-to-price attributes.
+# - **Step 4** closes with `clarity` (0.26), `color` (0.22), `x` (0.18). A final quality correction layer adjusting for the two hardest-to-price attributes.
 #
-# The pattern is interpretable without any post-hoc analysis. A jeweller reading this heatmap
-# would recognise it immediately: size first, then primary quality, then proportions, then
-# microscopic grading.
+# The pattern is interpretable without any post-hoc analysis. A jeweller reading this heatmap would recognise it immediately: size first, then primary quality, then proportions, then microscopic grading.
 
 # %% [markdown]
+#
 # ---
 # ## 5. Neural Additive Models from Scratch
 #
-# TabNet assigns an **attention mask** to decide which features to read at each step, but it
-# still produces a single opaque output. You cannot ask it: *"exactly how does adding one
-# carat change the predicted price, all else equal?"*
+# TabNet assigns an **attention mask** to decide which features to read at each step, but it still produces a single opaque output. You cannot ask it: *"exactly how does adding one carat change the predicted price, all else equal?"*
 #
-# A **Neural Additive Model (NAM)** answers that question by construction. The architecture is
-# a modern realisation of the classic **Generalised Additive Model** (GAM):
+# A **Neural Additive Model (NAM)** answers that question by construction. The architecture is a modern realisation of the classic **Generalised Additive Model** (GAM):
 #
 # $$\hat{y} = \beta_0 + \sum_{j=1}^{p} f_j(x_j)$$
 #
-# where each $f_j$ is a small neural network that receives **only feature $j$** as input.
-# Because the sum is additive, the contribution of feature $j$ is always $f_j(x_j)$,
-# independent of every other feature. This gives you a curve you can plot, a
-# **shape function**, and the plot tells you the full story of that feature's effect.
+# where each $f_j$ is a small neural network that receives **only feature $j$** as input. Because the sum is additive, the contribution of feature $j$ is always $f_j(x_j)$, independent of every other feature. This gives you a curve you can plot, a **shape function**, and the plot tells you the full story of that feature's effect.
 #
 # ### 5.1 The ExU Activation
 #
-# A plain ReLU MLP can represent any shape function, but it requires many hidden units to
-# capture sharp transitions (e.g. the price cliff between SI2 and VS2 clarity grades).
-# Agarwal et al. (2021) introduced the **Exp-Centered Unit (ExU)**:
+# A plain ReLU MLP can represent any shape function, but it requires many hidden units to capture sharp transitions (e.g. the price cliff between SI2 and VS2 clarity grades). Agarwal et al. (2021) introduced the **Exp-Centered Unit (ExU)**:
 #
 # $$\text{ExU}_j(x) = (x - b_j)\,e^{w_j}$$
 #
-# The learned $e^{w_j}$ acts as a per-unit **frequency multiplier**. A large positive $w_j$
-# creates a steep step centred at $b_j$, while a small $w_j$ creates a gentle slope. By
-# initialising $w_j \sim \mathcal{N}(4, 0.5)$ (so $e^{w_j} \approx 55$ at the start) and
-# $b_j \sim \mathcal{N}(0, 0.5)$ (to spread thresholds across the standardised input range),
-# the network begins with high-frequency capacity and regularises down during training.
+# The learned $e^{w_j}$ acts as a per-unit **frequency multiplier**. A large positive $w_j$ creates a steep step centred at $b_j$, while a small $w_j$ creates a gentle slope. By initialising $w_j \sim \mathcal{N}(4, 0.5)$ (so $e^{w_j} \approx 55$ at the start) and $b_j \sim \mathcal{N}(0, 0.5)$ (to spread thresholds across the standardised input range), the network begins with high-frequency capacity and regularises down during training.
 #
 # ### 5.2 Architecture
 #
-# ```
-# FeatureNN_j:
-#   ExU(out=H)   →   ReLU   →   Dropout   →   Linear(H, 1)
+# > **FeatureNN$_j$:** `ExU(out=H)` $\rightarrow$ `ReLU` $\rightarrow$ `Dropout` $\rightarrow$ `Linear(H, 1)`
+# >
+# > **ScratchNAM:** $\text{bias} + \sum_{j} \text{FeatureNN}_j(x_j)$
 #
-# ScratchNAM:
-#   bias  +  Σ_j  FeatureNN_j(x_j)
-# ```
-#
-# With $p = 9$ features and $H = 64$, the total parameter count is only **1,729**,
-# three orders of magnitude smaller than TabNet and CatBoost.
+# With $p = 9$ features and $H = 64$, the total parameter count is only **1,729**, three orders of magnitude smaller than TabNet and CatBoost.
 #
 # ### 5.3 What We Lose (and Why It Matters)
 #
-# The additive constraint is the model's superpower *and* its Achilles heel. Consider:
-# a 2-carat diamond with *Ideal* cut and *IF* clarity commands a disproportionate premium
-# because top quality across *all* dimensions is rare. The product of grading factors is
-# not captured by a sum of individual functions. NAMs will systematically underfit any
-# dataset with strong **feature interactions**, and the diamonds dataset has several.
+# The additive constraint is the model's superpower *and* its Achilles heel. Consider: a 2-carat diamond with *Ideal* cut and *IF* clarity commands a disproportionate premium because top quality across *all* dimensions is rare. The product of grading factors is not captured by a sum of individual functions. NAMs will systematically underfit any dataset with strong **feature interactions**, and the diamonds dataset has several.
 #
-# This is not a bug but a design choice: you trade predictive accuracy for complete
-# transparency. For regulated industries or anywhere a model must be auditable,
-# that trade-off is often worthwhile.
+# This is not a bug but a design choice: you trade predictive accuracy for complete transparency. For regulated industries or anywhere a model must be auditable, that trade-off is often worthwhile.
 
 # %%
 import torch
@@ -1192,9 +1081,7 @@ print(f"ScratchNAM: {n_params:,} parameters across {X_train.shape[1]} FeatureNNs
 print(f"  (TabNet Pro had ~{int(32*32*9 + 32*32*4*2 + 32*9):,}+ parameters)")
 
 # %% [markdown]
-# 1,729 parameters total, three orders of magnitude fewer than TabNet Pro. Every unit
-# in the model is directly traceable to a single feature; there is no weight that mixes
-# information from two or more inputs.
+# 1,729 parameters total, three orders of magnitude fewer than TabNet Pro. Every unit in the model is directly traceable to a single feature; there is no weight that mixes information from two or more inputs.
 
 # %%
 # ── Training ──────────────────────────────────────────────────────────────────
@@ -1269,22 +1156,12 @@ print(f"  R2   : {r2_nam:.4f}")
 print(f"{'='*45}")
 
 # %% [markdown]
-# The learning rate scheduler triggers twice before early stopping: the model first
-# overshoots around epoch 45, then the reduced LR allows it to re-enter a productive
-# regime around epoch 80–120 before plateauing. The final R² sits in the 0.85–0.86
-# range, which is the ceiling for a strictly additive model on the diamonds dataset.
+# The learning rate scheduler triggers twice before early stopping: the model first overshoots around epoch 45, then the reduced LR allows it to re-enter a productive regime around epoch 80–120 before plateauing. The final R² sits in the 0.85–0.86 range, which is the ceiling for a strictly additive model on the diamonds dataset.
 #
-# The gap to TabNet Pro is real and expected: the data contains strong carat × clarity
-# interactions that no sum of individual curves can represent exactly. But notice what we
-# gained: we can now ask the model exactly how it arrived at any prediction, and it can
-# answer with a simple lookup on nine curves; no SHAP values, no approximations.
+# The gap to TabNet Pro is real and expected: the data contains strong carat × clarity interactions that no sum of individual curves can represent exactly. But notice what we gained: we can now ask the model exactly how it arrived at any prediction, and it can answer with a simple lookup on nine curves; no SHAP values, no approximations.
 
 # %% [markdown]
-# The shape function plot is the diagnostic that makes NAMs unique: one curve per feature,
-# showing the model's learned relationship between that feature and the predicted price.
-# The y-axis is the dollar contribution: how much that feature value adds to (or subtracts
-# from) the baseline price. Because the model is purely additive, these curves fully explain
-# every prediction.
+# The shape function plot is the diagnostic that makes NAMs unique: one curve per feature, showing the model's learned relationship between that feature and the predicted price. The y-axis is the dollar contribution: how much that feature value adds to (or subtracts from) the baseline price. Because the model is purely additive, these curves fully explain every prediction.
 
 # %%
 # ── shape functions: one curve per feature ───────────────────────────────────
@@ -1364,29 +1241,15 @@ plt.show()
 # %% [markdown]
 # Each panel is a direct window into the model's internal logic.
 #
-# - **`carat`**: The curve rises sharply and monotonically, reflecting the well-known
-#   exponential price premium for large stones. The model assigns near-zero contribution
-#   below the average carat (0.80 ct) because those diamonds are common, and most of
-#   their price is captured by the bias term. Above ~1.5 ct the contribution exceeds $4,000.
+# - **`carat`**: The curve rises sharply and monotonically, reflecting the well-known exponential price premium for large stones. The model assigns near-zero contribution below the average carat (0.80 ct) because those diamonds are common, and most of their price is captured by the bias term. Above ~1.5 ct the contribution exceeds &#36;4,000.
 #
-# - **`x` and `z`** (length and depth in mm): Near-identical rising curves. Both are proxies
-#   for size; the model uses them as secondary size signals when `carat` is ambiguous.
-#   Their combined contribution for large stones can exceed $10,000 additively.
+# - **`x` and `z`** (length and depth in mm): Near-identical rising curves. Both are proxies for size; the model uses them as secondary size signals when `carat` is ambiguous. Their combined contribution for large stones can exceed &#36;10,000 additively.
 #
-# - **`depth` and `table`**: Both show a penalty for extreme values. Very deep diamonds
-#   lose brilliance; very wide tables reduce light return. The curves decrease for values
-#   beyond the optimal range, correctly capturing why proportions matter.
+# - **`depth` and `table`**: Both show a penalty for extreme values. Very deep diamonds lose brilliance; very wide tables reduce light return. The curves decrease for values beyond the optimal range, correctly capturing why proportions matter.
 #
-# - **`cut`**: Unexpectedly, the shape function decreases for higher cut grades. This is a
-#   classic **interaction suppression artefact**: in the real data, Ideal-cut diamonds tend
-#   to be smaller (cutters optimise proportion over weight), so a purely additive model
-#   conflates high cut quality with smaller size and assigns a negative marginal contribution.
-#   TabNet avoids this by attending to cut and carat *jointly* in the same step.
+# - **`cut`**: Unexpectedly, the shape function decreases for higher cut grades. This is a classic **interaction suppression artefact**: in the real data, Ideal-cut diamonds tend to be smaller (cutters optimise proportion over weight), so a purely additive model conflates high cut quality with smaller size and assigns a negative marginal contribution. TabNet avoids this by attending to cut and carat *jointly* in the same step.
 #
-# - **`color` and `clarity`**: Gentle positive slopes, consistent with the grading scale
-#   (higher code = better grade). The modest range (< $500) reflects that color and clarity
-#   are secondary to size in the diamonds market, particularly at the low-to-mid carat range
-#   that dominates the dataset.
+# - **`color` and `clarity`**: Gentle positive slopes, consistent with the grading scale (higher code = better grade). The modest range (< &#36;500) reflects that color and clarity are secondary to size in the diamonds market, particularly at the low-to-mid carat range that dominates the dataset.
 #
 # None of this required any post-hoc explainability tool. The shape functions **are** the model.
 
@@ -1443,27 +1306,18 @@ plt.tight_layout()
 plt.show()
 
 # %% [markdown]
-# The left panel shows the NAM's predictions: the diagonal trend is clear, but the scatter
-# band is noticeably wider than TabNet Pro's (the hexbin cloud is more diffuse). The model
-# is calibrated; predictions are unbiased, but it misses the premium on exceptional
-# stones.
+# The left panel shows the NAM's predictions: the diagonal trend is clear, but the scatter band is noticeably wider than TabNet Pro's (the hexbin cloud is more diffuse). The model is calibrated; predictions are unbiased, but it misses the premium on exceptional stones.
 #
-# The right panel quantifies exactly *where* the interaction gap lives. For cheap diamonds
-# (< $2K), NAM and TabNet Pro produce nearly identical errors; low-price stones are small
-# and uniform, so additivity is not a limiting assumption. The gap opens dramatically for
-# diamonds above $5K: at the $10K+ tier, NAM's RMSE is roughly 3× worse than TabNet Pro.
-# This is where the carat × clarity × cut interactions that TabNet learns to detect matter
-# most. A $15,000 diamond is almost always large AND high-quality across every dimension
-# simultaneously, a joint condition that no sum of individual curves can fully represent.
+# The right panel quantifies exactly *where* the interaction gap lives. For cheap diamonds (< &#36;2K), NAM and TabNet Pro produce nearly identical errors; low-price stones are small and uniform, so additivity is not a limiting assumption. The gap opens dramatically for diamonds above &#36;5K: at the &#36;10K+ tier, NAM's RMSE is roughly 3× worse than TabNet Pro. This is where the carat × clarity × cut interactions that TabNet learns to detect matter most. A &#36;15,000 diamond is almost always large AND high-quality across every dimension simultaneously, a joint condition that no sum of individual curves can fully represent.
 
 # %% [markdown]
+#
 # ---
 # ## 6. NAM Pro: `nam` library
 #
 # ### 6.1 What the Library Adds
 #
-# The official `nam` library (Agarwal et al., 2021) extends the scratch implementation
-# in three ways:
+# The official `nam` library (Agarwal et al., 2021) extends the scratch implementation in three ways:
 #
 # | Component | Scratch | `nam` library |
 # |---|---|---|
@@ -1472,10 +1326,7 @@ plt.show()
 # | L2 regularisation | `weight_decay` in Adam | per-layer `l2_regularization` + `output_regularization` |
 # | Shape function API | manual `shape_function()` method | `model.calc_outputs(X)` returns per-feature (B, 1) tensors |
 #
-# Feature dropout is the most structurally important addition: randomly silencing entire
-# FeatureNNs during training forces the model to distribute the price signal across
-# features rather than concentrating it in one dominant network. The result is more
-# uniform and better-calibrated shape functions.
+# Feature dropout is the most structurally important addition: randomly silencing entire FeatureNNs during training forces the model to distribute the price signal across features rather than concentrating it in one dominant network. The result is more uniform and better-calibrated shape functions.
 #
 # ### 6.2 Hyperparameter Decisions
 #
@@ -1490,9 +1341,7 @@ plt.show()
 # | `lr` | 5e-4 | lower than scratch; deeper net converges slower |
 # | `max_epochs` | 200 | early stopping guards the budget |
 #
-# The training loop is unchanged from scratch: a standard PyTorch `Adam` + `ReduceLROnPlateau`;
-# the only difference is the `NAM(config, name, num_inputs, num_units)` constructor and the
-# `calc_outputs(X)` method that returns per-feature `(B, 1)` tensors.
+# The training loop is unchanged from scratch: a standard PyTorch `Adam` + `ReduceLROnPlateau`; the only difference is the `NAM(config, name, num_inputs, num_units)` constructor and the `calc_outputs(X)` method that returns per-feature `(B, 1)` tensors.
 
 # %%
 from nam.models import NAM
@@ -1518,9 +1367,7 @@ n_params_pro = sum(p.numel() for p in nam_pro.parameters() if p.requires_grad)
 print(f"NAM Pro: {n_params_pro:,} parameters  ({n_params_pro // n_params:.0f}× scratch NAM)")
 
 # %% [markdown]
-# 55× more parameters than the scratch model, but all still partitioned into 9 independent
-# feature networks. The additive constraint is intact; we only increased depth within each
-# FeatureNN, not the number of features a single network can see.
+# 55× more parameters than the scratch model, but all still partitioned into 9 independent feature networks. The additive constraint is intact; we only increased depth within each FeatureNN, not the number of features a single network can see.
 
 # %%
 # ── Training ──────────────────────────────────────────────────────────────────
@@ -1591,21 +1438,12 @@ print(f"  R2   : {r2_pro:.4f}")
 print(f"{'='*50}")
 
 # %% [markdown]
-# The Pro model converges faster than scratch (early stopping around epoch 85 vs 140)
-# because the deeper FeatureNNs can fit the shape functions with fewer gradient steps.
-# But the final RMSE is essentially identical to the scratch model; both land around
-# $1,510–1,560, well above TabNet Pro's $654.
+# The Pro model converges faster than scratch (early stopping around epoch 85 vs 140) because the deeper FeatureNNs can fit the shape functions with fewer gradient steps. But the final RMSE is essentially identical to the scratch model; both land around &#36;1,510–1,560, well above TabNet Pro's &#36;654.
 #
-# This is one of the most instructive results in the module: multiplying parameters by
-# 55× without removing the additive constraint yields no RMSE improvement. Both models
-# are bottlenecked by the same missing interaction terms, not by capacity. What the deeper
-# architecture *does* improve is the quality and smoothness of the shape functions,
-# visible in the next visualisation.
+# This is one of the most instructive results in the module: multiplying parameters by 55× without removing the additive constraint yields no RMSE improvement. Both models are bottlenecked by the same missing interaction terms, not by capacity. What the deeper architecture *does* improve is the quality and smoothness of the shape functions, visible in the next visualisation.
 
 # %% [markdown]
-# The most revealing comparison: the same mathematical quantity ($f_j(x_j)$, feature
-# contribution in dollars) learned by two different architectures. Where the curves
-# agree, the signal is robust. Where they disagree, the architecture capacity matters.
+# The most revealing comparison: the same mathematical quantity ($f_j(x_j)$, feature contribution in dollars) learned by two different architectures. Where the curves agree, the signal is robust. Where they disagree, the architecture capacity matters.
 
 # %%
 # ── shape function comparison: scratch nam vs nam pro ─────────────────────────
@@ -1664,105 +1502,57 @@ plt.show()
 # %% [markdown]
 # The comparison surfaces two key differences:
 #
-# - **`carat`**: Both models agree on the upward trend; the Pro curve is smoother and
-#   extends further into negative territory (small diamonds contribute -$509 below the
-#   mean, vs ~$0 in scratch). The deeper architecture allows it to represent
-#   the "below-average is penalised" effect that the single-layer scratch model missed.
+# - **`carat`**: Both models agree on the upward trend; the Pro curve is smoother and extends further into negative territory (small diamonds contribute -&#36;509 below the mean, vs ~&#36;0 in scratch). The deeper architecture allows it to represent the "below-average is penalised" effect that the single-layer scratch model missed.
 #
-# - **`depth`** and **`table`**: The Pro model's curves are nearly flat (range $45-$61),
-#   while the scratch model shows steeper slopes. This is the effect of feature dropout:
-#   `depth` and `table` are weakly predictive features, and the regulariser correctly
-#   suppresses their influence, concentrating the model's capacity on `carat`, `x`, `z`.
+# - **`depth`** and **`table`**: The Pro model's curves are nearly flat (range &#36;45-&#36;61), while the scratch model shows steeper slopes. This is the effect of feature dropout:
+#   `depth` and `table` are weakly predictive features, and the regulariser correctly suppresses their influence, concentrating the model's capacity on `carat`, `x`, `z`.
 #
-# - **`cut`**: Both models show the same interaction-suppression artefact. This is not a
-#   calibration issue; it is the additive constraint manifesting in the same place
-#   regardless of architecture depth. The artefact is a property of the data's interaction
-#   structure, not the model's capacity.
+# - **`cut`**: Both models show the same interaction-suppression artefact. This is not a calibration issue; it is the additive constraint manifesting in the same place regardless of architecture depth. The artefact is a property of the data's interaction structure, not the model's capacity.
 #
-# - **`clarity`**: The Pro model shows a cleaner monotone step function, consistent with
-#   the grading scale. The scratch model captures the same direction but with a noisier
-#   boundary around VS2/VS1.
+# - **`clarity`**: The Pro model shows a cleaner monotone step function, consistent with the grading scale. The scratch model captures the same direction but with a noisier boundary around VS2/VS1.
 
 # %% [markdown]
+#
 # ---
 # ## 7. Final Comparison
 #
 # | Model | RMSE | MAE | R² | Parameters | Interpretable |
 # |---|---|---|---|---|---|
-# | Baseline (mean) | $4,031 | $3,033 | 0.000 | 1 | trivial |
-# | Scratch NAM | $1,512 | $1,015 | 0.856 | 1,729 | **full shape functions** |
-# | NAM Pro (`nam`) | $1,555 | $958 | 0.848 | 95,347 | **full shape functions** |
-# | Scratch TabNet | $1,076 | $700 | 0.927 | ~43K | attention masks |
-# | **TabNet Pro** | **$654** | **$378** | **0.973** | ~45K | attention masks |
+# | Baseline (mean) | &#36;4,031 | &#36;3,033 | 0.000 | 1 | trivial |
+# | Scratch NAM | &#36;1,512 | &#36;1,015 | 0.856 | 1,729 | **full shape functions** |
+# | NAM Pro (`nam`) | &#36;1,555 | &#36;958 | 0.848 | 95,347 | **full shape functions** |
+# | Scratch TabNet | &#36;1,076 | &#36;700 | 0.927 | ~43K | attention masks |
+# | **TabNet Pro** | **&#36;654** | **&#36;378** | **0.973** | ~45K | attention masks |
 #
 # The table tells a clean story on two axes: **accuracy** and **interpretability**.
 #
-# Reading the NAM rows together, the most striking result is that multiplying parameters
-# by 55× (Scratch: 1,729; Pro: 95,347) yields no RMSE improvement; in fact, it is
-# marginally worse ($1,555 vs $1,512). The bottleneck is not capacity; it is the
-# architectural constraint. No amount of depth inside each FeatureNN can produce a
-# term that combines `carat × clarity`, because such a term requires two inputs and the
-# additive sum forbids it. Throwing more parameters at an incorrectly specified model
-# is a pattern that repeats across machine learning; NAMs make it unusually visible.
+# Reading the NAM rows together, the most striking result is that multiplying parameters by 55× (Scratch: 1,729; Pro: 95,347) yields no RMSE improvement; in fact, it is marginally worse (&#36;1,555 vs &#36;1,512). The bottleneck is not capacity; it is the architectural constraint. No amount of depth inside each FeatureNN can produce a term that combines `carat × clarity`, because such a term requires two inputs and the additive sum forbids it. Throwing more parameters at an incorrectly specified model is a pattern that repeats across machine learning; NAMs make it unusually visible.
 #
-# Where the deeper Pro architecture *does* help is interpretability quality: the Pro
-# shape functions are smoother, the regulariser suppresses noise features (`depth`,
-# `table`) to near-zero, and the `carat` curve correctly captures the below-mean
-# penalty that the scratch model approximates as zero.
+# Where the deeper Pro architecture *does* help is interpretability quality: the Pro shape functions are smoother, the regulariser suppresses noise features (`depth`, `table`) to near-zero, and the `carat` curve correctly captures the below-mean penalty that the scratch model approximates as zero.
 #
-# - **NAM (both variants)** trade ~12 R² points for complete transparency. Every
-#   prediction decomposes into nine auditable dollar contributions. This is the
-#   architecture of choice when an explanation is a legal or regulatory requirement.
+# - **NAM (both variants)** trade ~12 R² points for complete transparency. Every prediction decomposes into nine auditable dollar contributions. This is the architecture of choice when an explanation is a legal or regulatory requirement.
 #
-# - **Scratch TabNet** hits 0.927 R² with a fraction of a commercial model's complexity.
-#   The attention masks are interpretable at the aggregate level (feature importance
-#   ranking) but not at the individual prediction level.
+# - **Scratch TabNet** hits 0.927 R² with a fraction of a commercial model's complexity. The attention masks are interpretable at the aggregate level (feature importance ranking) but not at the individual prediction level.
 #
-# - **TabNet Pro** leverages Ghost Batch Normalisation, momentum-based training, and a
-#   heavily tuned implementation to reach 0.973 R², within reach of gradient boosted
-#   trees (CatBoost achieves ~0.979 on the same split).
+# - **TabNet Pro** leverages Ghost Batch Normalisation, momentum-based training, and a heavily tuned implementation to reach 0.973 R², within reach of gradient boosted trees (CatBoost achieves ~0.979 on the same split).
 #
-# No single architecture is universally best. The right choice is the one whose
-# **interpretability requirement, parameter budget, and accuracy floor** all align with
-# the application context.
+# No single architecture is universally best. The right choice is the one whose **interpretability requirement, parameter budget, and accuracy floor** all align with the application context.
 
 # %% [markdown]
 # ---
 # ## Conclusion
 #
-# This module covered the two neural architectures that have reshaped how practitioners
-# think about tabular data:
+# This module covered the two neural architectures that have reshaped how practitioners think about tabular data:
 #
-# **TabNet** demonstrated that a transformer-style attention mechanism can be adapted to
-# select features sequentially, producing a model whose feature importances emerge
-# naturally from the attention weights rather than from post-hoc SHAP or permutation
-# tests. The scratch implementation revealed every building block: sparsemax, GLU blocks,
-# the prior scale that prevents repetition across steps, and the sparsity regularisation
-# term that controls how focused each step is. The Pro implementation showed what a
-# well-engineered library adds on top: Ghost Batch Normalisation for more stable training
-# and a scheduler that squeezes the last few R² points out of the data.
+# **TabNet** demonstrated that a transformer-style attention mechanism can be adapted to select features sequentially, producing a model whose feature importances emerge naturally from the attention weights rather than from post-hoc SHAP or permutation tests. The scratch implementation revealed every building block: sparsemax, GLU blocks, the prior scale that prevents repetition across steps, and the sparsity regularisation term that controls how focused each step is. The Pro implementation showed what a well-engineered library adds on top: Ghost Batch Normalisation for more stable training and a scheduler that squeezes the last few R² points out of the data.
 #
-# **Neural Additive Models** pushed interpretability to its logical limit. By restricting
-# each sub-network to a single input, we obtained shape functions: curves that show the
-# dollar contribution of every feature value, without any approximation or surrogate. The
-# ExU activation enabled the network to represent sharp grading transitions with very few
-# parameters. The `nam` library added depth, feature dropout, and L2 regularisation,
-# producing smoother and better-calibrated shape functions; but the RMSE barely moved,
-# because the binding constraint is additive structure, not model capacity. The cost was
-# real: a 12-point R² gap versus TabNet Pro, concentrated in the high-value segment where
-# feature interactions dominate.
+# **Neural Additive Models** pushed interpretability to its logical limit. By restricting each sub-network to a single input, we obtained shape functions: curves that show the dollar contribution of every feature value, without any approximation or surrogate. The ExU activation enabled the network to represent sharp grading transitions with very few parameters. The `nam` library added depth, feature dropout, and L2 regularisation, producing smoother and better-calibrated shape functions; but the RMSE barely moved, because the binding constraint is additive structure, not model capacity. The cost was real: a 12-point R² gap versus TabNet Pro, concentrated in the high-value segment where feature interactions dominate.
 #
 # **Key takeaways:**
 # - StandardScaler is not optional for neural networks on tabular data: it is structural.
 # - sparsemax produces cleaner, sparser attention than softmax, but both are valid.
-# - ExU's initialisation (`w ~ N(4, 0.5)`, `b ~ N(0, 0.5)`) is critical: zero-centred `b`
-#   distributes thresholds across the input range, allowing shape functions to represent
-#   behaviour on both sides of the feature mean.
-# - Multiplying NAM parameters by 55× without removing the additive constraint yields no
-#   RMSE improvement: architectural inductive bias is the binding constraint, not capacity.
-# - Feature dropout in NAM Pro correctly suppresses low-signal features (`depth`, `table`)
-#   and produces cleaner, more interpretable shape functions.
-# - The interaction gap between additive and non-additive models is not uniform: it is
-#   concentrated at high feature value combinations, visible in per-decile RMSE plots.
-# - Model complexity should be chosen by interpretability requirement first,
-#   parameter budget second, and accuracy target third.
+# - ExU's initialisation (`w ~ N(4, 0.5)`, `b ~ N(0, 0.5)`) is critical: zero-centred `b` distributes thresholds across the input range, allowing shape functions to represent behaviour on both sides of the feature mean.
+# - Multiplying NAM parameters by 55× without removing the additive constraint yields no RMSE improvement: architectural inductive bias is the binding constraint, not capacity.
+# - Feature dropout in NAM Pro correctly suppresses low-signal features (`depth`, `table`) and produces cleaner, more interpretable shape functions.
+# - The interaction gap between additive and non-additive models is not uniform: it is concentrated at high feature value combinations, visible in per-decile RMSE plots.
+# - Model complexity should be chosen by interpretability requirement first, parameter budget second, and accuracy target third.
