@@ -104,7 +104,7 @@ print("\nBasic Statistics:")
 df.describe()
 
 # %% [markdown]
-# **53,940 rows, 10 columns.** Three categorical features (`cut`, `color`, `clarity`) stored as `object`, and seven numeric columns. Notice the target variable `price`: its mean (&#36;3,933) and standard deviation (&#36;3,989) are nearly identical, signaling extreme right-skew. The minimum price is &#36;326 while the max reaches &#36;18,823. The physical dimensions (`x`, `y`, `z`) contain zeros, which are likely measurement errors, but tree-based models handle these naturally without imputation.
+# **53,940 rows, 10 columns.** Three categorical features (`cut`, `color`, `clarity`) stored as `object`, and seven numeric columns. Notice the target variable `price`: its mean (\$3,933) and standard deviation (\$3,989) are nearly identical, signaling extreme right-skew. The minimum price is \$326 while the max reaches \$18,823. The physical dimensions (`x`, `y`, `z`) contain zeros, which are likely measurement errors, but tree-based models handle these naturally without imputation.
 
 # %%
 # Ordinal encoding (natural order matters for these features)
@@ -132,7 +132,7 @@ print(f"Baseline RMSE (Mean Prediction): ${baseline_rmse:,.2f}")
 # %% [markdown]
 # **43,152 training / 10,788 test samples.** The ordinal encoding preserves the natural hierarchy of each categorical variable (e.g., Fair=0 < Ideal=4 for cut). This matters: unlike one-hot encoding, it tells the tree that `Ideal > Premium > Very Good`, which reduces the number of splits needed.
 #
-# The **Baseline RMSE is &#36;3,987** (simply predicting the mean price for every diamond). This is our floor. Any model worth its compute must beat this significantly. Given the high variance in the data, we expect gradient boosting to cut this error by 80-90%.
+# The **Baseline RMSE is \$3,987** (simply predicting the mean price for every diamond). This is our floor. Any model worth its compute must beat this significantly. Given the high variance in the data, we expect gradient boosting to cut this error by 80-90%.
 
 # %%
 # Visualize the core challenge: non-linear heteroscedasticity
@@ -164,8 +164,8 @@ plt.show()
 # %% [markdown]
 # Three key observations from the plots:
 #
-# 1. **Price Distribution** is heavily right-skewed. The bulk of diamonds cluster below &#36;2,500, with a long tail reaching &#36;18,823. This is typical of luxury goods and suggests that log-transforming the target could help linear models, but boosting handles skewed targets natively.
-# 2. **Price vs. Carat** reveals a clearly **exponential** relationship with expanding variance (heteroscedasticity). At 0.5 carats, prices are tight (&#36;500-&#36;2,000). At 2 carats, the same plot spans &#36;5,000-&#36;18,000. A linear model would systematically under-predict expensive diamonds and over-predict cheap ones. Decision trees, by partitioning the space recursively, adapt to this local variance naturally.
+# 1. **Price Distribution** is heavily right-skewed. The bulk of diamonds cluster below \$2,500, with a long tail reaching \$18,823. This is typical of luxury goods and suggests that log-transforming the target could help linear models, but boosting handles skewed targets natively.
+# 2. **Price vs. Carat** reveals a clearly **exponential** relationship with expanding variance (heteroscedasticity). At 0.5 carats, prices are tight (\$500-\$2,000). At 2 carats, the same plot spans \$5,000-\$18,000. A linear model would systematically under-predict expensive diamonds and over-predict cheap ones. Decision trees, by partitioning the space recursively, adapt to this local variance naturally.
 # 3. **Price by Clarity** shows a surprising pattern: the median price *decreases* from lower clarity (I1, SI2) to higher clarity (VVS1, IF). This is **Simpson's Paradox** in action: larger diamonds (higher carat, higher price) tend to have lower clarity grades. Clarity alone is a misleading predictor. Gradient Boosting captures these confounded interactions through its tree structure without any manual feature engineering.
 
 # %% [markdown]
@@ -296,7 +296,7 @@ print(f"Scratch GB (200 stumps) - RMSE: ${scratch_rmse:,.2f} | R2: {scratch_r2:.
 print(f"Improvement over baseline: {(1 - scratch_rmse / baseline_rmse) * 100:.1f}%")
 
 # %% [markdown]
-# **RMSE: &#36;1,119 | R2: 0.9212 | 71.9% improvement over baseline.** Even with the simplest possible weak learner (single-split stumps), gradient boosting explains 92% of the variance in diamond prices and cuts the prediction error from &#36;3,987 to &#36;1,119. Not bad for an algorithm built entirely from NumPy with no hyperparameter tuning. Deeper trees would improve this further, but the point is clear: the *boosting loop itself* is what creates the power, not the individual trees.
+# **RMSE: \$1,119 | R2: 0.9212 | 71.9% improvement over baseline.** Even with the simplest possible weak learner (single-split stumps), gradient boosting explains 92% of the variance in diamond prices and cuts the prediction error from \$3,987 to \$1,119. Not bad for an algorithm built entirely from NumPy with no hyperparameter tuning. Deeper trees would improve this further, but the point is clear: the *boosting loop itself* is what creates the power, not the individual trees.
 
 # %%
 # === VISUALIZATION 1: Learning Curve ===
@@ -332,8 +332,8 @@ plt.show()
 # %% [markdown]
 # The learning curve reveals the core dynamics of gradient boosting:
 #
-# - **Rapid initial descent:** The first 10 rounds drop validation RMSE from &#36;3,987 to &#36;2,394; a 40% error reduction. Each new stump corrects the biggest remaining systematic error (e.g., "carat > 1 implies higher price").
-# - **Diminishing returns:** By round 50, RMSE reaches &#36;1,374. The next 150 rounds squeeze out only another &#36;255. Each new stump captures smaller and smaller residual patterns.
+# - **Rapid initial descent:** The first 10 rounds drop validation RMSE from \$3,987 to \$2,394; a 40% error reduction. Each new stump corrects the biggest remaining systematic error (e.g., "carat > 1 implies higher price").
+# - **Diminishing returns:** By round 50, RMSE reaches \$1,374. The next 150 rounds squeeze out only another \$255. Each new stump captures smaller and smaller residual patterns.
 # - **No overfitting:** The best round is 200 (the last one), and the train/validation curves stay nearly overlapping. With stumps (depth=1), overfitting is almost impossible. The model is too simple to memorize noise. This is why the learning rate matters: it keeps each correction small, forcing the ensemble to build consensus across many trees.
 #
 # With deeper trees (depth 4-8), we would see the validation curve eventually diverge upward from the training curve. That is the classic bias-variance tradeoff in action.
@@ -368,10 +368,10 @@ plt.show()
 # %% [markdown]
 # This is the visual proof of how boosting works. Watch the residual distribution evolve:
 #
-# - **After 1 tree (RMSE: &#36;3,752):** Residuals are wide and bimodal. The single stump can only split the data into two groups, leaving massive errors for most diamonds.
-# - **After 10 trees (RMSE: &#36;2,394):** The distribution tightens noticeably. The ensemble has learned the major structural patterns (carat being the dominant price driver). A 36% error drop in just 9 additional stumps.
-# - **After 50 trees (RMSE: &#36;1,374):** Most residuals cluster tightly around zero. The tails are shrinking as more specific interactions (carat x clarity, color x cut) get captured.
-# - **After 200 trees (RMSE: &#36;1,119):** A sharp, concentrated distribution. The remaining errors are the "hard cases" where diamond price depends on factors not in our features (brand, certification, market conditions).
+# - **After 1 tree (RMSE: \$3,752):** Residuals are wide and bimodal. The single stump can only split the data into two groups, leaving massive errors for most diamonds.
+# - **After 10 trees (RMSE: \$2,394):** The distribution tightens noticeably. The ensemble has learned the major structural patterns (carat being the dominant price driver). A 36% error drop in just 9 additional stumps.
+# - **After 50 trees (RMSE: \$1,374):** Most residuals cluster tightly around zero. The tails are shrinking as more specific interactions (carat x clarity, color x cut) get captured.
+# - **After 200 trees (RMSE: \$1,119):** A sharp, concentrated distribution. The remaining errors are the "hard cases" where diamond price depends on factors not in our features (brand, certification, market conditions).
 #
 # Each successive tree is literally "eating" the tails of the residual distribution. This is gradient descent in function space.
 
@@ -401,11 +401,11 @@ plt.show()
 # %% [markdown]
 # The hexbin plot shows density of predictions vs. actuals (R2 = 0.9212). Points on the orange dashed line are perfect predictions.
 #
-# - The **dense cluster** along the diagonal at lower prices (&#36;0-&#36;5,000) shows the model handles the bulk of the data well. This is where most of the 53,940 diamonds live.
-# - At **higher prices** (&#36;10,000+), predictions spread further from the diagonal. This is expected: fewer training examples exist in this range, and the heteroscedasticity we observed earlier means there is genuinely more randomness at high carats.
+# - The **dense cluster** along the diagonal at lower prices (\$0-\$5,000) shows the model handles the bulk of the data well. This is where most of the 53,940 diamonds live.
+# - At **higher prices** (\$10,000+), predictions spread further from the diagonal. This is expected: fewer training examples exist in this range, and the heteroscedasticity we observed earlier means there is genuinely more randomness at high carats.
 # - The **horizontal banding** is characteristic of stumps: each stump can only output two values per tree, so the ensemble produces a limited number of distinct prediction levels. Deeper trees would smooth this out considerably.
 #
-# For a from-scratch model using only single-split trees, &#36;1,119 RMSE and 92% R2 is a strong result. Next, we will see how the industry libraries (XGBoost, LightGBM, CatBoost) improve on this by using deeper trees, regularization, and optimized splitting algorithms.
+# For a from-scratch model using only single-split trees, \$1,119 RMSE and 92% R2 is a strong result. Next, we will see how the industry libraries (XGBoost, LightGBM, CatBoost) improve on this by using deeper trees, regularization, and optimized splitting algorithms.
 
 # %% [markdown]
 # ## 4. XGBoost: The Revolution
@@ -476,7 +476,7 @@ print(f"  vs Scratch: {(1 - xgb_rmse / scratch_rmse) * 100:.1f}% RMSE reduction"
 print(f"  vs Baseline: {(1 - xgb_rmse / baseline_rmse) * 100:.1f}% RMSE reduction")
 
 # %% [markdown]
-# **RMSE: &#36;543 | MAE: &#36;271 | R2: 0.9814 | 86.4% improvement over baseline.** The leap from scratch to XGBoost is dramatic: a 51% RMSE reduction (&#36;1,119 to &#36;543) and R2 jumping from 0.92 to 0.98. XGBoost now explains 98% of the variance in diamond prices. The median prediction error (MAE &#36;271) means XGBoost is typically within &#36;271 of the actual price, remarkable for a dataset spanning &#36;326 to &#36;18,823. Training took ~7 seconds for 500 trees on 43K rows, orders of magnitude faster than our scratch implementation.
+# **RMSE: \$543 | MAE: \$271 | R2: 0.9814 | 86.4% improvement over baseline.** The leap from scratch to XGBoost is dramatic: a 51% RMSE reduction (\$1,119 to \$543) and R2 jumping from 0.92 to 0.98. XGBoost now explains 98% of the variance in diamond prices. The median prediction error (MAE \$271) means XGBoost is typically within \$271 of the actual price, remarkable for a dataset spanning \$326 to \$18,823. Training took ~7 seconds for 500 trees on 43K rows, orders of magnitude faster than our scratch implementation.
 #
 # The sources of improvement over scratch: (1) deeper trees (depth=6 vs depth=1) capture complex feature interactions in a single tree, (2) row/column subsampling (80% each) adds stochastic regularization, (3) L1/L2 penalties on leaf weights prevent individual trees from overfitting, and (4) second-order gradient information gives more precise split decisions.
 
@@ -517,11 +517,11 @@ plt.show()
 # %% [markdown]
 # The XGBoost learning curve tells a different story from our scratch implementation:
 #
-# - **Even faster convergence:** By round 25, XGBoost already beats our 200-stump scratch model (&#36;1,119). Deeper trees capture more information per round.
-# - **Classic overfitting signal:** Unlike the scratch model, here the train and validation curves visibly diverge. Train RMSE keeps dropping toward &#36;300, but validation RMSE bottoms out at **&#36;532 (round 142)** and then plateaus/creeps up. This is the regularization-overfitting tradeoff in action.
+# - **Even faster convergence:** By round 25, XGBoost already beats our 200-stump scratch model (\$1,119). Deeper trees capture more information per round.
+# - **Classic overfitting signal:** Unlike the scratch model, here the train and validation curves visibly diverge. Train RMSE keeps dropping toward \$300, but validation RMSE bottoms out at **\$532 (round 142)** and then plateaus/creeps up. This is the regularization-overfitting tradeoff in action.
 # - **Early stopping opportunity:** The best validation RMSE is at round 142, not 500. The last 358 trees are wasted compute (or slightly harmful). In production, we would use `early_stopping_rounds` to halt training automatically when validation error stops improving.
 #
-# The purple reference line shows our scratch model at &#36;1,119. XGBoost cuts through it in just ~25 rounds.
+# The purple reference line shows our scratch model at \$1,119. XGBoost cuts through it in just ~25 rounds.
 
 # %%
 # === VISUALIZATION 5: Feature Importance ===
@@ -602,7 +602,7 @@ plt.show()
 # Side-by-side comparison makes the improvement unmistakable:
 #
 # - **Left (Scratch):** The horizontal banding from stumps is clearly visible. Predictions cluster in discrete bands, and high-price diamonds show significant scatter.
-# - **Right (XGBoost):** The predictions form a tight, continuous band along the diagonal. The hexbin density is concentrated on the perfect-prediction line across the entire price range. Even at &#36;15,000+, XGBoost stays close to the diagonal.
+# - **Right (XGBoost):** The predictions form a tight, continuous band along the diagonal. The hexbin density is concentrated on the perfect-prediction line across the entire price range. Even at \$15,000+, XGBoost stays close to the diagonal.
 #
 # The R2 jump from 0.9212 to 0.9814 means XGBoost explains an additional 6% of variance, but that 6% was the hardest 6%: the non-linear interactions, the high-price tail, and the categorical feature effects that stumps could not capture.
 
@@ -683,7 +683,7 @@ print(f"  vs XGBoost RMSE: {(1 - lgb_rmse / xgb_rmse) * 100:+.1f}%")
 print(f"  Speedup vs XGBoost: {xgb_time / lgb_time:.1f}x")
 
 # %% [markdown]
-# LightGBM achieves RMSE &#36;548, R2 0.9811, MAE &#36;268, essentially matching XGBoost (&#36;543 RMSE) within 1%. The accuracy difference is negligible for practical purposes.
+# LightGBM achieves RMSE \$548, R2 0.9811, MAE \$268, essentially matching XGBoost (\$543 RMSE) within 1%. The accuracy difference is negligible for practical purposes.
 #
 # The surprise here is **training time**: LightGBM took 22.8s vs XGBoost's 7.3s, making it ~3x *slower* on this dataset. This is counterintuitive since LightGBM is famous for speed. The explanation: at 54K rows, the dataset is too small for histogram-based splitting to pay off. The overhead of building histograms, GOSS sampling, and EFB bundling exceeds the savings. LightGBM's speed advantage emerges at 100K+ rows, becoming dramatic at millions of rows. On a dataset this size, XGBoost's optimized exact splitting is simply faster.
 #
@@ -725,9 +725,9 @@ plt.tight_layout()
 plt.show()
 
 # %% [markdown]
-# LightGBM's learning curve reveals a familiar pattern: best validation RMSE of &#36;530 at round 86, with gradual overfitting pushing the final RMSE to &#36;548 by round 500. The train-validation gap is wider than XGBoost's (train RMSE drops to &#36;315 vs validation &#36;548), suggesting that leaf-wise growth's flexibility allows more aggressive fitting of the training data.
+# LightGBM's learning curve reveals a familiar pattern: best validation RMSE of \$530 at round 86, with gradual overfitting pushing the final RMSE to \$548 by round 500. The train-validation gap is wider than XGBoost's (train RMSE drops to \$315 vs validation \$548), suggesting that leaf-wise growth's flexibility allows more aggressive fitting of the training data.
 #
-# Both reference lines (XGBoost at &#36;543, Scratch at &#36;1,119) show that LightGBM's optimal point (round 86) slightly beats XGBoost's optimal (round 142, &#36;532). The fact that both libraries converge to nearly identical validation performance confirms that with similar hyperparameters and sufficient iterations, the choice of splitting strategy (exact vs histogram) has minimal impact on accuracy; it mainly affects training speed.
+# Both reference lines (XGBoost at \$543, Scratch at \$1,119) show that LightGBM's optimal point (round 86) slightly beats XGBoost's optimal (round 142, \$532). The fact that both libraries converge to nearly identical validation performance confirms that with similar hyperparameters and sufficient iterations, the choice of splitting strategy (exact vs histogram) has minimal impact on accuracy; it mainly affects training speed.
 
 # %%
 # === VISUALIZATION 8: Speed Comparison ===
@@ -764,7 +764,7 @@ plt.tight_layout()
 plt.show()
 
 # %% [markdown]
-# The bar charts tell a clear story: accuracy is virtually identical (&#36;543 vs &#36;548 RMSE, a 0.8% difference), but XGBoost is 3.1x faster on this 54K-row dataset. This is an important lesson in engineering: library benchmarks on millions of rows do not translate to small-to-medium datasets.
+# The bar charts tell a clear story: accuracy is virtually identical (\$543 vs \$548 RMSE, a 0.8% difference), but XGBoost is 3.1x faster on this 54K-row dataset. This is an important lesson in engineering: library benchmarks on millions of rows do not translate to small-to-medium datasets.
 #
 # When to pick LightGBM over XGBoost: (1) datasets with 100K+ rows where histogram speedup dominates, (2) very high-dimensional data where EFB feature bundling helps, (3) when you need native categorical handling (which we are not using here). On this diamonds dataset, XGBoost wins the speed contest handily.
 
@@ -801,7 +801,7 @@ plt.tight_layout()
 plt.show()
 
 # %% [markdown]
-# The hexbin plots are nearly indistinguishable; both models produce a tight, continuous band along the diagonal from &#36;0 to &#36;18,000+. The density patterns are almost identical, confirming that both XGBoost and LightGBM have learned essentially the same function. Minor differences may exist in the high-price tail (&#36;15,000+), but they are invisible at this resolution.
+# The hexbin plots are nearly indistinguishable; both models produce a tight, continuous band along the diagonal from \$0 to \$18,000+. The density patterns are almost identical, confirming that both XGBoost and LightGBM have learned essentially the same function. Minor differences may exist in the high-price tail (\$15,000+), but they are invisible at this resolution.
 #
 # This visual equivalence aligns with the numbers: R2 0.9814 (XGBoost) vs 0.9811 (LightGBM). For this dataset, the choice between XGBoost and LightGBM is a speed question, not an accuracy question.
 
@@ -875,7 +875,7 @@ print(f"  vs XGBoost:  {(1 - cat_rmse / xgb_rmse) * 100:+.1f}%")
 print(f"  vs LightGBM: {(1 - cat_rmse / lgb_rmse) * 100:+.1f}%")
 
 # %% [markdown]
-# CatBoost delivers RMSE &#36;530, R2 0.9823, MAE &#36;282, the best accuracy of the three libraries, beating XGBoost (&#36;543) by 2.4% and LightGBM (&#36;548) by 3.2%. Even more impressive: it trained in just 5.2 seconds, making it the fastest model as well.
+# CatBoost delivers RMSE \$530, R2 0.9823, MAE \$282, the best accuracy of the three libraries, beating XGBoost (\$543) by 2.4% and LightGBM (\$548) by 3.2%. Even more impressive: it trained in just 5.2 seconds, making it the fastest model as well.
 #
 # Why does CatBoost win here? Two factors: (1) **ordered boosting** reduces overfitting on this medium-sized dataset, allowing the model to extract more signal before the train-validation gap opens up. (2) **Oblivious trees** act as a structural regularizer; the symmetric constraint prevents the tree from over-specializing on specific subgroups, forcing it to learn more generalizable splits.
 #
@@ -912,9 +912,9 @@ plt.tight_layout()
 plt.show()
 
 # %% [markdown]
-# CatBoost's learning curve is the most disciplined of the three libraries. The train-validation gap stays narrow throughout: train RMSE settles at &#36;455 vs validation &#36;530, a much tighter gap than LightGBM's (&#36;315 vs &#36;548). The validation curve barely increases after round 300, confirming that ordered boosting and symmetric trees provide strong implicit regularization.
+# CatBoost's learning curve is the most disciplined of the three libraries. The train-validation gap stays narrow throughout: train RMSE settles at \$455 vs validation \$530, a much tighter gap than LightGBM's (\$315 vs \$548). The validation curve barely increases after round 300, confirming that ordered boosting and symmetric trees provide strong implicit regularization.
 #
-# Both reference lines (XGBoost at &#36;543, LightGBM at &#36;548) sit above CatBoost's validation curve for the entire second half of training. CatBoost achieves its best at round 492, nearly the full 500 iterations, meaning it could potentially benefit from even more rounds, whereas XGBoost and LightGBM were already overfitting long before round 500.
+# Both reference lines (XGBoost at \$543, LightGBM at \$548) sit above CatBoost's validation curve for the entire second half of training. CatBoost achieves its best at round 492, nearly the full 500 iterations, meaning it could potentially benefit from even more rounds, whereas XGBoost and LightGBM were already overfitting long before round 500.
 
 # %%
 # === VISUALIZATION 11: Three-Library Predicted vs Actual ===
@@ -945,7 +945,7 @@ plt.tight_layout()
 plt.show()
 
 # %% [markdown]
-# All three libraries produce visually similar hexbin patterns; tight bands along the diagonal from &#36;0 to &#36;18,000+. At this resolution, the differences are subtle, but they exist: CatBoost (right) has slightly tighter concentration in the &#36;5,000-&#36;10,000 range, where the bulk of prediction errors occur.
+# All three libraries produce visually similar hexbin patterns; tight bands along the diagonal from \$0 to \$18,000+. At this resolution, the differences are subtle, but they exist: CatBoost (right) has slightly tighter concentration in the \$5,000-\$10,000 range, where the bulk of prediction errors occur.
 #
 # The numbers confirm: CatBoost R2 0.9823 > XGBoost 0.9814 > LightGBM 0.9811. The margin is small (0.1% R2 difference), but CatBoost achieves this with the fastest training time (5.2s) and the least overfitting. On this dataset, CatBoost is the Pareto-optimal choice: best accuracy, best speed, most stable learning curve.
 
@@ -977,11 +977,11 @@ print(results.to_string(index=False, float_format=lambda x: f'{x:.2f}'))
 #
 # | Model | RMSE | R2 | Time | RMSE Reduction |
 # |---|---|---|---|---|
-# | Baseline (Mean) | &#36;3,987 | 0.00 | N/A | 0% |
-# | Scratch GB (200 stumps) | &#36;1,119 | 0.9212 | N/A | 71.9% |
-# | XGBoost (500 trees) | &#36;543 | 0.9814 | 7.3s | 86.4% |
-# | LightGBM (500 trees) | &#36;548 | 0.9811 | 22.8s | 86.3% |
-# | **CatBoost (500 trees)** | **&#36;530** | **0.9823** | **5.2s** | **86.7%** |
+# | Baseline (Mean) | \$3,987 | 0.00 | N/A | 0% |
+# | Scratch GB (200 stumps) | \$1,119 | 0.9212 | N/A | 71.9% |
+# | XGBoost (500 trees) | \$543 | 0.9814 | 7.3s | 86.4% |
+# | LightGBM (500 trees) | \$548 | 0.9811 | 22.8s | 86.3% |
+# | **CatBoost (500 trees)** | **\$530** | **0.9823** | **5.2s** | **86.7%** |
 #
 # The first big jump (baseline to scratch: 72% RMSE reduction) comes from the algorithm itself; even 200 stumps with learning rate 0.1 capture the bulk of the signal. The second jump (scratch to libraries: another 14-15 percentage points) comes from engineering: deeper trees, regularization, second-order gradients, and optimized splitting.
 
@@ -1049,7 +1049,7 @@ plt.show()
 # %% [markdown]
 # The four-panel dashboard summarizes everything:
 #
-# - **RMSE (top-left):** The dramatic drop from Scratch (&#36;1,119) to the three libraries (&#36;530-548) is immediately visible.
+# - **RMSE (top-left):** The dramatic drop from Scratch (\$1,119) to the three libraries (\$530-548) is immediately visible.
 # - **R2 (top-right):** Zoomed to the 0.90-1.00 range, we see the Scratch model at 0.9212 and the three libraries clustered tightly around 0.98. CatBoost's 0.9823 leads by a small but consistent margin.
 # - **Training time (bottom-left):** CatBoost (5.2s) and XGBoost (7.3s) are practical for rapid iteration. LightGBM's 22.8s on this small dataset is a reminder that "fastest library" depends on data size.
 # - **Learning curves (bottom-right):** The overlay reveals distinct overfitting behaviors. XGBoost and LightGBM reach their best validation RMSE early (rounds 142 and 86) then slowly degrade. CatBoost's validation curve is remarkably flat from round 200 onward, sitting below both competitors.
