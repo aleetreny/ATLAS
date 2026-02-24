@@ -88,7 +88,7 @@
 #
 # > **Installation note for `nam`:** The package declares `sklearn` (the deprecated PyPI alias) as a dependency, which pip tries to build from source, and fails. The fix is to install the wheel directly with `--no-deps` and add only the genuinely missing packages (`pytorch-lightning`, `loguru`). The real scikit-learn is already present and fully compatible; only the stale alias was the problem.
 #
-# **Dataset:** We continue with the **Diamonds** dataset (53,940 rows), the same dataset used in the Gradient Boosting notebook. This allows direct comparison against the CatBoost baseline (RMSE \$530, R² 0.9823) established in notebook 05. The mix of continuous and ordinal categorical features, the non-linear price-carat relationship, and the well-understood domain logic (carat, clarity, color drive price) make it ideal for showcasing interpretability tools.
+# **Dataset:** We continue with the **Diamonds** dataset (53,940 rows), the same dataset used in the Gradient Boosting notebook. This allows direct comparison against the CatBoost baseline (RMSE USD 530, R² 0.9823) established in notebook 05. The mix of continuous and ordinal categorical features, the non-linear price-carat relationship, and the well-understood domain logic (carat, clarity, color drive price) make it ideal for showcasing interpretability tools.
 #
 # ---
 # *We follow the **ATLAS** protocol: First we understand the **Intuition**, then we build it from **Scratch** using only NumPy/PyTorch, and finally we apply the **Pro** tools used in industry.*
@@ -125,7 +125,7 @@ print(f"Active device   : {device}")
 # %% [markdown]
 # ## 2. Data Preparation
 #
-# We use the same **Diamonds** dataset as notebook 05. This is deliberate: by keeping the dataset identical, every metric we compute is directly comparable to the CatBoost baseline (RMSE \$530, R² 0.9823) established there.
+# We use the same **Diamonds** dataset as notebook 05. This is deliberate: by keeping the dataset identical, every metric we compute is directly comparable to the CatBoost baseline (RMSE USD 530, R² 0.9823) established there.
 #
 # One critical difference from the gradient boosting notebook: **neural networks are not scale-invariant**. A tree splits on rank order; a threshold of `carat > 1.0` behaves identically whether carat is measured in grams or carats. A neural network, however, uses gradient descent on raw feature values. A feature with a range of 0–18,000 (price) will produce gradients orders of magnitude larger than a feature ranging 0–10 (table), causing training instability and slow convergence.
 #
@@ -178,12 +178,12 @@ for lib, role in libs.items():
         __import__(lib); print(f"  {lib}: OK  →  {role}")
     except ImportError:
         print(f"  {lib}: NOT FOUND  →  {role}")
-print(f"\nCatBoost baseline from notebook 05: $530  →  our reference ceiling")
+print(f"\nCatBoost baseline from notebook 05: USD 530  →  our reference ceiling")
 
 # %% [markdown]
 # **43,152 train / 10,788 test samples, 9 features.** After `StandardScaler`, every feature has mean ≈ 0.0000 and std ≈ 1.0000; verified across all nine columns. The gradient descent update for `carat` (raw range ≈ 0.2–5.0) and for `table` (raw range ≈ 43–95) now operate on the same numerical scale.
 #
-# The baseline RMSE is **\$3,987.22** (predicting the mean price for every diamond). Our reference ceiling is CatBoost's **\$530 RMSE** from notebook 05. Approaching that number with a neural network would be a strong result; exceeding it is expected and acceptable, since the primary goals here are differentiability (TabNet) and interpretability (NAMs), not raw accuracy.
+# The baseline RMSE is **USD 3,987.22** (predicting the mean price for every diamond). Our reference ceiling is CatBoost's **USD 530 RMSE** from notebook 05. Approaching that number with a neural network would be a strong result; exceeding it is expected and acceptable, since the primary goals here are differentiability (TabNet) and interpretability (NAMs), not raw accuracy.
 #
 # Both `pytorch_tabnet` and `nam` are installed and confirmed working. The full ATLAS protocol applies: Scratch first to understand the internals, then Pro to see the reference implementation.
 #
@@ -596,7 +596,7 @@ print(f"  vs CatBoost  : RMSE {scratch_tabnet_rmse / 530:.2f}x worse")
 print(f"{'='*55}")
 
 # %% [markdown]
-# **RMSE \$1,076 | MAE \$678 | R² 0.9272 | 73.0% reduction vs baseline. Best epoch: 11/31.**
+# **RMSE USD 1,076 | MAE USD 678 | R² 0.9272 | 73.0% reduction vs baseline. Best epoch: 11/31.**
 #
 # Three things stand out:
 #
@@ -604,7 +604,7 @@ print(f"{'='*55}")
 #
 # 2. **Early stopping fires at epoch 31 (best at epoch 11).** The learning rate scheduler halved LR twice (epoch ~17: 0.005 → 0.0025, epoch ~22: 0.0025 → 0.000625), but the model had already saturated its capacity. With `n_d=32` and `n_steps=3`, the effective function space is limited; the model cannot capture the complex multi-feature interactions that deeper trees handle trivially.
 #
-# 3. **The gap vs. CatBoost (\$530) is 2x.** This is the architectural tax of interpretability: the sparse sequential attention that makes TabNet readable also restricts what it can model. The `pytorch-tabnet` library, with deeper transformers and proper regularisation, closes this gap significantly, which is what we will see in the next section.
+# 3. **The gap vs. CatBoost (USD 530) is 2x.** This is the architectural tax of interpretability: the sparse sequential attention that makes TabNet readable also restricts what it can model. The `pytorch-tabnet` library, with deeper transformers and proper regularisation, closes this gap significantly, which is what we will see in the next section.
 
 # %%
 # ── training learning curve ───────────────────────────────────────────────────
@@ -628,7 +628,7 @@ ax.axhline(y=baseline_rmse, color='gray', linestyle=':', alpha=0.5, linewidth=1.
 ax.text(2, baseline_rmse + 60, f'Baseline: ${baseline_rmse:,.0f}', fontsize=11, color='gray')
 
 ax.axhline(y=530, color='#9C27B0', linestyle='--', alpha=0.45, linewidth=1.5)
-ax.text(2, 530 + 60, 'CatBoost (nb 05): $530', fontsize=11, color='#9C27B0')
+ax.text(2, 530 + 60, 'CatBoost (nb 05): USD 530', fontsize=11, color='#9C27B0')
 
 ax.set_xlabel('Epoch')
 ax.set_ylabel('RMSE ($)')
@@ -641,7 +641,7 @@ plt.show()
 # %% [markdown]
 # The learning curve tells a clean story. Validation RMSE drops steeply in the first 11 epochs: the model learns the dominant pattern fast, capturing that large `y` and `carat` predict higher prices. After epoch 11, the LR scheduler detects stagnation and halves the learning rate twice. Each halving produces a brief improvement attempt, then flat-lines. The train and validation curves track each other closely throughout, with virtually no overfitting. This is the regularising effect of the sparse masks combined with the low parameter count. Unlike the gradient boosting models (which showed clear train-val divergence), TabNet is almost impossible to overfit on this dataset at this scale.
 #
-# The CatBoost reference line (\$530) sits comfortably below our curve, a concrete reminder of what the interpretability tradeoff costs in accuracy.
+# The CatBoost reference line (USD 530) sits comfortably below our curve, a concrete reminder of what the interpretability tradeoff costs in accuracy.
 
 # %%
 # ── step-wise attention masks heatmap ────────────────────────────────────────
@@ -725,7 +725,7 @@ plt.tight_layout()
 plt.show()
 
 # %% [markdown]
-# The hexbin plot shows R² 0.9272: the model explains 93% of price variance. The dense cluster along the diagonal from \$0–\$8,000 is tight, covering the bulk of the dataset. Above \$10,000, predictions start to scatter: the model underestimates very expensive diamonds. This is the classic high-end failure mode of low-capacity models, since there are simply too few diamonds above \$10,000 in the training set to calibrate that region well.
+# The hexbin plot shows R² 0.9272: the model explains 93% of price variance. The dense cluster along the diagonal from USD 0–USD 8,000 is tight, covering the bulk of the dataset. Above USD 10,000, predictions start to scatter: the model underestimates very expensive diamonds. This is the classic high-end failure mode of low-capacity models, since there are simply too few diamonds above USD 10,000 in the training set to calibrate that region well.
 #
 # Compare this mentally to the Scratch Gradient Boosting hexbin from notebook 05 (R² 0.9212): TabNet achieves slightly higher R² despite having an architectural constraint (sparse sequential attention) that gradient boosting stumps do not have. The neural architecture compensates with smooth, continuous predictions; no horizontal banding from discrete stump outputs.
 
@@ -811,13 +811,13 @@ print(f"  vs Scratch  : {(1-pro_rmse/scratch_tabnet_rmse)*100:.1f}% improvement"
 print(f"  vs CatBoost : {pro_rmse/530:.2f}x worse")
 
 # %% [markdown]
-# **RMSE \$654 | MAE \$378 | R² 0.9731 | Best epoch 49/50.**
+# **RMSE USD 654 | MAE USD 378 | R² 0.9731 | Best epoch 49/50.**
 #
 # Three observations stand out:
 #
-# 1. **39.2% improvement over scratch** (\$1,076 → \$654) from a model with the same `n_d=32` and only one extra attention step. The gain comes entirely from the deeper Feature Transformer (4 GLU layers vs 2) and the stronger sparsity penalty (`lambda_sparse=1e-3` vs `1e-4`). The architecture is the same; the engineering is better.
+# 1. **39.2% improvement over scratch** (USD 1,076 → USD 654) from a model with the same `n_d=32` and only one extra attention step. The gain comes entirely from the deeper Feature Transformer (4 GLU layers vs 2) and the stronger sparsity penalty (`lambda_sparse=1e-3` vs `1e-4`). The architecture is the same; the engineering is better.
 #
-# 2. **Best epoch = 49/50** (hit the max_epochs limit). The model had not fully converged, meaning more training would push RMSE lower still. This is a known characteristic of TabNet on medium-sized datasets: it improves slowly but steadily. The CatBoost gap (\$654 vs \$530) would narrow with additional epochs or a learning rate sweep.
+# 2. **Best epoch = 49/50** (hit the max_epochs limit). The model had not fully converged, meaning more training would push RMSE lower still. This is a known characteristic of TabNet on medium-sized datasets: it improves slowly but steadily. The CatBoost gap (USD 654 vs USD 530) would narrow with additional epochs or a learning rate sweep.
 #
 # 3. **Still 1.23x worse than CatBoost.** The accuracy gap persists even with the production library. This is not a failure of TabNet; it is the measurable cost of constraining the model to learn through sparse sequential feature selection rather than unrestricted tree splits.
 
@@ -834,7 +834,7 @@ ax.plot(epochs_pro, val_hist_dollars, color='#2196F3', linewidth=2.5,
 ax.axhline(scratch_tabnet_rmse, color='#FF9800', linestyle='--',
            alpha=0.7, linewidth=1.8, label=f'Scratch TabNet best: ${scratch_tabnet_rmse:,.0f}')
 ax.axhline(530, color='#9C27B0', linestyle='--',
-           alpha=0.5, linewidth=1.5, label='CatBoost (nb 05): $530')
+           alpha=0.5, linewidth=1.5, label='CatBoost (nb 05): USD 530')
 ax.axhline(baseline_rmse, color='gray', linestyle=':',
            alpha=0.5, linewidth=1.2, label=f'Baseline: ${baseline_rmse:,.0f}')
 
@@ -857,9 +857,9 @@ plt.tight_layout()
 plt.show()
 
 # %% [markdown]
-# The learning curve has a characteristic double-phase shape. The first 5 epochs drop steeply from baseline (\$19,658 at epoch 1, essentially random initialisation) to \$2,373, capturing the dominant carat-price signal. The next 45 epochs grind out the remaining gains as the model learns progressively more refined feature interactions. The curve has not flattened by epoch 50, confirming that best_epoch=49 simply hit the training budget rather than a true convergence point.
+# The learning curve has a characteristic double-phase shape. The first 5 epochs drop steeply from baseline (USD 19,658 at epoch 1, essentially random initialisation) to USD 2,373, capturing the dominant carat-price signal. The next 45 epochs grind out the remaining gains as the model learns progressively more refined feature interactions. The curve has not flattened by epoch 50, confirming that best_epoch=49 simply hit the training budget rather than a true convergence point.
 #
-# The orange reference line (\$1,076, scratch TabNet) is crossed around epoch 10, meaning the Pro library beats our scratch model in 10 epochs of what our scratch took 11 epochs to achieve best. After that, Pro keeps improving while scratch had already stalled, which illustrates the compounding benefit of deeper feature transformers.
+# The orange reference line (USD 1,076, scratch TabNet) is crossed around epoch 10, meaning the Pro library beats our scratch model in 10 epochs of what our scratch took 11 epochs to achieve best. After that, Pro keeps improving while scratch had already stalled, which illustrates the compounding benefit of deeper feature transformers.
 
 # %%
 # ── feature importance comparison: scratch vs pro ────────────────────────────
@@ -1241,15 +1241,15 @@ plt.show()
 # %% [markdown]
 # Each panel is a direct window into the model's internal logic.
 #
-# - **`carat`**: The curve rises sharply and monotonically, reflecting the well-known exponential price premium for large stones. The model assigns near-zero contribution below the average carat (0.80 ct) because those diamonds are common, and most of their price is captured by the bias term. Above ~1.5 ct the contribution exceeds \$4,000.
+# - **`carat`**: The curve rises sharply and monotonically, reflecting the well-known exponential price premium for large stones. The model assigns near-zero contribution below the average carat (0.80 ct) because those diamonds are common, and most of their price is captured by the bias term. Above ~1.5 ct the contribution exceeds USD 4,000.
 #
-# - **`x` and `z`** (length and depth in mm): Near-identical rising curves. Both are proxies for size; the model uses them as secondary size signals when `carat` is ambiguous. Their combined contribution for large stones can exceed \$10,000 additively.
+# - **`x` and `z`** (length and depth in mm): Near-identical rising curves. Both are proxies for size; the model uses them as secondary size signals when `carat` is ambiguous. Their combined contribution for large stones can exceed USD 10,000 additively.
 #
 # - **`depth` and `table`**: Both show a penalty for extreme values. Very deep diamonds lose brilliance; very wide tables reduce light return. The curves decrease for values beyond the optimal range, correctly capturing why proportions matter.
 #
 # - **`cut`**: Unexpectedly, the shape function decreases for higher cut grades. This is a classic **interaction suppression artefact**: in the real data, Ideal-cut diamonds tend to be smaller (cutters optimise proportion over weight), so a purely additive model conflates high cut quality with smaller size and assigns a negative marginal contribution. TabNet avoids this by attending to cut and carat *jointly* in the same step.
 #
-# - **`color` and `clarity`**: Gentle positive slopes, consistent with the grading scale (higher code = better grade). The modest range (< \$500) reflects that color and clarity are secondary to size in the diamonds market, particularly at the low-to-mid carat range that dominates the dataset.
+# - **`color` and `clarity`**: Gentle positive slopes, consistent with the grading scale (higher code = better grade). The modest range (< USD 500) reflects that color and clarity are secondary to size in the diamonds market, particularly at the low-to-mid carat range that dominates the dataset.
 #
 # None of this required any post-hoc explainability tool. The shape functions **are** the model.
 
@@ -1308,7 +1308,7 @@ plt.show()
 # %% [markdown]
 # The left panel shows the NAM's predictions: the diagonal trend is clear, but the scatter band is noticeably wider than TabNet Pro's (the hexbin cloud is more diffuse). The model is calibrated; predictions are unbiased, but it misses the premium on exceptional stones.
 #
-# The right panel quantifies exactly *where* the interaction gap lives. For cheap diamonds (< \$2K), NAM and TabNet Pro produce nearly identical errors; low-price stones are small and uniform, so additivity is not a limiting assumption. The gap opens dramatically for diamonds above \$5K: at the \$10K+ tier, NAM's RMSE is roughly 3× worse than TabNet Pro. This is where the carat × clarity × cut interactions that TabNet learns to detect matter most. A \$15,000 diamond is almost always large AND high-quality across every dimension simultaneously, a joint condition that no sum of individual curves can fully represent.
+# The right panel quantifies exactly *where* the interaction gap lives. For cheap diamonds (< USD 2K), NAM and TabNet Pro produce nearly identical errors; low-price stones are small and uniform, so additivity is not a limiting assumption. The gap opens dramatically for diamonds above USD 5K: at the USD 10K+ tier, NAM's RMSE is roughly 3× worse than TabNet Pro. This is where the carat × clarity × cut interactions that TabNet learns to detect matter most. A USD 15,000 diamond is almost always large AND high-quality across every dimension simultaneously, a joint condition that no sum of individual curves can fully represent.
 
 # %% [markdown]
 #
@@ -1438,7 +1438,7 @@ print(f"  R2   : {r2_pro:.4f}")
 print(f"{'='*50}")
 
 # %% [markdown]
-# The Pro model converges faster than scratch (early stopping around epoch 85 vs 140) because the deeper FeatureNNs can fit the shape functions with fewer gradient steps. But the final RMSE is essentially identical to the scratch model; both land around \$1,510–1,560, well above TabNet Pro's \$654.
+# The Pro model converges faster than scratch (early stopping around epoch 85 vs 140) because the deeper FeatureNNs can fit the shape functions with fewer gradient steps. But the final RMSE is essentially identical to the scratch model; both land around USD 1,510–1,560, well above TabNet Pro's USD 654.
 #
 # This is one of the most instructive results in the module: multiplying parameters by 55× without removing the additive constraint yields no RMSE improvement. Both models are bottlenecked by the same missing interaction terms, not by capacity. What the deeper architecture *does* improve is the quality and smoothness of the shape functions, visible in the next visualisation.
 
@@ -1502,9 +1502,9 @@ plt.show()
 # %% [markdown]
 # The comparison surfaces two key differences:
 #
-# - **`carat`**: Both models agree on the upward trend; the Pro curve is smoother and extends further into negative territory (small diamonds contribute -\$509 below the mean, vs ~\$0 in scratch). The deeper architecture allows it to represent the "below-average is penalised" effect that the single-layer scratch model missed.
+# - **`carat`**: Both models agree on the upward trend; the Pro curve is smoother and extends further into negative territory (small diamonds contribute -USD 509 below the mean, vs ~USD 0 in scratch). The deeper architecture allows it to represent the "below-average is penalised" effect that the single-layer scratch model missed.
 #
-# - **`depth`** and **`table`**: The Pro model's curves are nearly flat (range \$45-\$61), while the scratch model shows steeper slopes. This is the effect of feature dropout:
+# - **`depth`** and **`table`**: The Pro model's curves are nearly flat (range USD 45-USD 61), while the scratch model shows steeper slopes. This is the effect of feature dropout:
 #   `depth` and `table` are weakly predictive features, and the regulariser correctly suppresses their influence, concentrating the model's capacity on `carat`, `x`, `z`.
 #
 # - **`cut`**: Both models show the same interaction-suppression artefact. This is not a calibration issue; it is the additive constraint manifesting in the same place regardless of architecture depth. The artefact is a property of the data's interaction structure, not the model's capacity.
@@ -1518,15 +1518,15 @@ plt.show()
 #
 # | Model | RMSE | MAE | R² | Parameters | Interpretable |
 # |---|---|---|---|---|---|
-# | Baseline (mean) | \$4,031 | \$3,033 | 0.000 | 1 | trivial |
-# | Scratch NAM | \$1,512 | \$1,015 | 0.856 | 1,729 | **full shape functions** |
-# | NAM Pro (`nam`) | \$1,555 | \$958 | 0.848 | 95,347 | **full shape functions** |
-# | Scratch TabNet | \$1,076 | \$700 | 0.927 | ~43K | attention masks |
-# | **TabNet Pro** | **\$654** | **\$378** | **0.973** | ~45K | attention masks |
+# | Baseline (mean) | USD 4,031 | USD 3,033 | 0.000 | 1 | trivial |
+# | Scratch NAM | USD 1,512 | USD 1,015 | 0.856 | 1,729 | **full shape functions** |
+# | NAM Pro (`nam`) | USD 1,555 | USD 958 | 0.848 | 95,347 | **full shape functions** |
+# | Scratch TabNet | USD 1,076 | USD 700 | 0.927 | ~43K | attention masks |
+# | **TabNet Pro** | **USD 654** | **USD 378** | **0.973** | ~45K | attention masks |
 #
 # The table tells a clean story on two axes: **accuracy** and **interpretability**.
 #
-# Reading the NAM rows together, the most striking result is that multiplying parameters by 55× (Scratch: 1,729; Pro: 95,347) yields no RMSE improvement; in fact, it is marginally worse (\$1,555 vs \$1,512). The bottleneck is not capacity; it is the architectural constraint. No amount of depth inside each FeatureNN can produce a term that combines `carat × clarity`, because such a term requires two inputs and the additive sum forbids it. Throwing more parameters at an incorrectly specified model is a pattern that repeats across machine learning; NAMs make it unusually visible.
+# Reading the NAM rows together, the most striking result is that multiplying parameters by 55× (Scratch: 1,729; Pro: 95,347) yields no RMSE improvement; in fact, it is marginally worse (USD 1,555 vs USD 1,512). The bottleneck is not capacity; it is the architectural constraint. No amount of depth inside each FeatureNN can produce a term that combines `carat × clarity`, because such a term requires two inputs and the additive sum forbids it. Throwing more parameters at an incorrectly specified model is a pattern that repeats across machine learning; NAMs make it unusually visible.
 #
 # Where the deeper Pro architecture *does* help is interpretability quality: the Pro shape functions are smoother, the regulariser suppresses noise features (`depth`, `table`) to near-zero, and the `carat` curve correctly captures the below-mean penalty that the scratch model approximates as zero.
 #
