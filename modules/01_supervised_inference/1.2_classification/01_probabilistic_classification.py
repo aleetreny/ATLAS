@@ -364,9 +364,9 @@ class ScratchGaussianNB:
             self.priors[idx] = X_c.shape[0] / float(n_samples)
             
     def _pdf(self, class_idx, x):
-        # Gaussian Probability Density Function
+        # Gaussian Probability Density Function (add small epsilon to avoid division by zero when var=0)
         mean = self.mean[class_idx]
-        var = self.var[class_idx]
+        var = np.maximum(self.var[class_idx], 1e-9)
         numerator = np.exp(-((x - mean) ** 2) / (2 * var))
         denominator = np.sqrt(2 * np.pi * var)
         return numerator / denominator

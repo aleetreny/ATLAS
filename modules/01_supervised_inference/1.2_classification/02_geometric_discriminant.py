@@ -108,7 +108,7 @@ except ImportError:
 
 display(df.head())
 print(f"Dataset shape: {df.shape}")
-print(f"Class distribution:\\n{df['target'].value_counts().sort_index()}")
+print(f"Class distribution:\n{df['target'].value_counts().sort_index()}")
 
 # Prepare X and y
 X = df.drop(columns=['target', 'diagnosis']).values
@@ -127,8 +127,9 @@ X_test_scaled  = scaler.transform(X_test)
 print(f"Train set: {X_train_scaled.shape[0]} samples")
 print(f"Test set:  {X_test_scaled.shape[0]} samples")
 
-# Let's visualize the challenge by plotting the first two Principal Components (PCA) 
-# to see if the classes are linearly separable in a 2D space.
+# %% [markdown]
+# Let's visualize the challenge by plotting the first two Principal Components (PCA) to see if the classes are linearly separable in a 2D space.
+
 # %%
 from sklearn.decomposition import PCA
 
@@ -248,8 +249,6 @@ plt.show()
 # But remember what we saw in the 2D PCA projection: the classes are *almost* linearly separable, but not perfectly. A straight line hyperplane does a fantastic job, but to achieve total mastery, we will eventually need a non-linear Kernel SVM (which we will unleash in the Pro section).
 #
 # ## 4. Discriminant Analysis from Scratch (LDA & QDA)
-#
-# Let's build **Linear Discriminant Analysis (LDA)**
 #
 # Let's build **Linear Discriminant Analysis (LDA)** entirely from scratch using pure linear algebra. 
 #
@@ -616,4 +615,4 @@ plt.show()
 # When you care solely about **accuracy guarantees and structural margins**, and don't need "smooth" probabilities. 
 #
 # - **SVM** is a surgical knife. The fact that it only cares about the endpoints holding up the margin (Support Vectors) means it ignores the noise of the masses and creates highly generalized, incredibly sharp non-linear boundaries. It is exceptional for complex spaces (like computer vision contours or gene expression).
-# - **LDA/QDA** are phenomenally statistically robust when your datasets are small, clean, and genuinely Gaussian in space. When the classes are naturally separated into spheres, no algorithm will draw the box faster, cleaner, or more effectively than Discriminant Analysis.\n
+# - **LDA/QDA** are phenomenally statistically robust when your datasets are small, clean, and genuinely Gaussian in space. When the classes are naturally separated into spheres, no algorithm will draw the box faster, cleaner, or more effectively than Discriminant Analysis.
