@@ -31,7 +31,8 @@
 # A model that hardcodes itself to always predict "Legitimate Transaction" without ever looking at any feature will still achieve **$99.9\%$ global Accuracy**. An executive reading that number might celebrate, completely unaware that the instrument has a $0\%$ success rate at catching fraud; the only task it was deployed to solve. Meanwhile, real money is being stolen.
 #
 # The model has not computed anything. It has simply discovered the cheapest mathematical cheat: *"If I always say the majority class, I will be wrong only 0.1% of the time and no standard loss function will punish me for it."*
-#
+
+# %% [markdown]
 # ### 1.1 Beyond Accuracy (The Alternative Metrics)
 #
 # To build classifiers that actually solve the problem, we must abandon global Accuracy and reason about the **Confusion Matrix** with precision-recall language:
@@ -47,7 +48,8 @@
 # - **Precision:** $\frac{TP}{TP + FP}$. Out of every prediction we made as "Minority", how many were correct? Low precision means we annoyed customers with false alarms.
 # - **F1-Score:** $\frac{2 \cdot Precision \cdot Recall}{Precision + Recall}$. The harmonic mean. It punishes extreme cases where you achieve high Recall by flagging everything, or high Precision by only flagging a tiny certainty set.
 # - **AUPRC (Area Under the Precision-Recall Curve):** The global ranking metric for imbalanced data. It evaluates how well the model's predicted probabilities separate minority from majority across *all* possible classification thresholds, not just 0.50. The higher, the better.
-#
+
+# %% [markdown]
 # ### 1.2 Algorithmic Interventions
 #
 # Once we diagnose the problem, we have three families of solutions to force a model to take the minority class seriously:
@@ -57,7 +59,8 @@
 # 2. **Undersampling:** We physically delete rows from the majority class until the dataset is balanced. Simple and fast, but potentially catastrophic: we might be throwing away the exact majority-class boundary data that the model needs to draw a clean separation line. With a 99/1 ratio, we would destroy 99% of our original data.
 #
 # 3. **Oversampling & SMOTE:** We physically augment the minority class. Pure random oversampling just duplicates existing minority rows, which risks severe overfitting. SMOTE (Synthetic Minority Over-sampling Technique) goes further: it synthesizes entirely new, geometrically plausible minority examples by interpolating between existing rare points in feature space.
-#
+
+# %% [markdown]
 # ### 1.3 The Roadmap
 #
 # 1. **Data:** We will use the **Forest Covertypes** dataset, isolating an extreme $99\%$ vs $1\%$ class skew to simulate finding a rare tree type in an ocean of pines.
