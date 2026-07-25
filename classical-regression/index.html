@@ -273,11 +273,12 @@
     <br />
     <p class="body-text">
       But bending comes with a temptation. If degree 2 helps, why not 5? Why not 9?
-      This time we're keeping score honestly: the model is fitted on 75% of the cars
+      This time we're keeping score honestly: the model is fitted on training cars
       (<span class="bold" style="color: #ff9900">solid dots</span>) and graded on 25%
       it never saw (<span class="bold" style="color: #003181">hollow dots</span>).
-      Slide the degree and watch the two scores separate — the gap between them is
-      <span class="bold">overfitting</span>, live.
+      And there is a second, crueler knob: <span class="bold">how many cars the model
+      gets to learn from</span>. Flexibility alone rarely kills — flexibility times
+      data scarcity does. Starve the model and slide the degree up.
     </p>
   </section>
 
@@ -286,6 +287,10 @@
       <div class="controls-row">
         <span class="slider-label">degree: <span class="value" id="poly-deg-label">1</span></span>
         <input type="range" class="atlas-range" id="poly-deg" min="1" max="9" value="1" step="1" />
+      </div>
+      <div class="controls-row">
+        <span class="slider-label">training cars: <span class="value" id="poly-n-label">294</span></span>
+        <input type="range" class="atlas-range" id="poly-n" min="15" max="294" value="294" step="1" />
       </div>
       <div id="poly-r2-bars"></div>
       <div id="poly-verdict" class="slider-label" style="margin-top: 0.75rem"></div>
@@ -298,10 +303,15 @@
       Degree 2 is the sweet spot here: test \(R^2\) jumps from 0.60 to
       <span class="bold">0.68</span>, and the curve finally speaks physics — MPG
       drops fast when you add power to a weak engine, then the drop flattens:
-      <span class="bold">diminishing returns</span>. Past degree 5 the training score
-      keeps inflating while the test score decays: the polynomial stops learning
-      physics and starts memorizing cars. A flexible model plus an honest holdout
-      is the entire immune system of machine learning in one chart.
+      <span class="bold">diminishing returns</span>. Now notice something honest and
+      slightly surprising: with all 294 training cars, even degree 9 stays almost
+      tame. Abundant data is a straitjacket — the wiggles have nowhere to go.
+      But drop to ~30 cars and push the degree up: the curve starts slaloming
+      through individual points, the train score inflates toward 1, and the test
+      score craters (even below zero — worse than predicting the mean!). That gap is
+      <span class="bold">overfitting</span>: not flexibility itself, but flexibility
+      the data can no longer discipline. A flexible model plus an honest holdout is
+      the entire immune system of machine learning in one chart.
     </p>
   </section>
 

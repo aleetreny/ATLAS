@@ -8,6 +8,13 @@ export function initPolyWidget(mpg) {
   const train = pts.filter((_, i) => !testSet.has(i));
   const test = pts.filter((_, i) => testSet.has(i));
 
+  // deterministic shuffle of the training pool, so the "starve the model"
+  // slider always removes/restores the same cars (stable, replayable)
+  const order = train
+    .map((d, i) => [((i * 2654435761) >>> 0) % 9973, i])
+    .sort((a, b) => a[0] - b[0])
+    .map(([, i]) => i);
+
   const { svg, g, w, h } = makeChart('#poly-chart', {
     width: 640,
     height: 480,
@@ -25,7 +32,8 @@ export function initPolyWidget(mpg) {
   const clipId = 'poly-clip';
   svg.append('clipPath').attr('id', clipId).append('rect').attr('width', w).attr('height', h);
 
-  g.append('g')
+  const trainDots = g
+    .append('g')
     .selectAll('circle.train')
     .data(train)
     .join('circle')
@@ -64,25 +72,38 @@ export function initPolyWidget(mpg) {
   const barsEl = document.querySelector('#poly-r2-bars');
   const verdictEl = document.querySelector('#poly-verdict');
   const degLabel = document.querySelector('#poly-deg-label');
+  const nLabel = document.querySelector('#poly-n-label');
+  const state = { degree: 1, n: train.length };
 
-  function verdictFor(deg, gap) {
+  function verdictFor(deg, n, gap, r2Test) {
+    if (r2Test < 0) return 'Below zero: worse than guessing the mean. Total memorization.';
+    if (gap > 0.15) return `Overfitting: flexibility the ${n} cars cannot discipline.`;
     if (deg === 1) return 'Underfitting: the ruler cannot bend.';
     if (deg === 2) return 'The sweet spot — the curve speaks physics.';
     if (deg <= 4) return 'Still fine, but the extra wiggle buys almost nothing.';
-    if (deg <= 6) return 'The tail starts dancing. Watch the gap grow.';
-    return `Memorizing cars, not learning physics. Train–test gap: ${gap.toFixed(2)}.`;
+    if (n === train.length) return 'High degree, but 294 cars keep the wiggles disciplined.';
+    return 'The tail starts dancing. Fewer cars, more temptation.';
   }
 
-  function render(degree) {
+  function render() {
+    const { degree, n } = state;
     degLabel.textContent = degree;
-    const model = polyFit(train.map((d) => d.hp), train.map((d) => d.mpg), degree);
-    const r2Train = r2Score(train.map((d) => d.mpg), train.map((d) => model.predict(d.hp)));
+    nLabel.textContent = n;
+    const active = new Set(order.slice(0, n));
+    const sub = train.filter((_, i) => active.has(i));
+
+    trainDots.attr('opacity', (d, i) => (active.has(i) ? 0.85 : 0.12));
+
+    const model = polyFit(sub.map((d) => d.hp), sub.map((d) => d.mpg), degree);
+    const r2Train = r2Score(sub.map((d) => d.mpg), sub.map((d) => model.predict(d.hp)));
     const r2Test = r2Score(test.map((d) => d.mpg), test.map((d) => model.predict(d.hp)));
 
-    // sanity check against the Python reference
-    const ref = mpg.ref.poly_degrees.find((r) => r.degree === degree);
-    if (ref && Math.abs(ref.r2_train - r2Train) > 0.02) {
-      console.warn(`poly degree ${degree}: JS r2_train ${r2Train.toFixed(4)} vs ref ${ref.r2_train}`);
+    // sanity check against the Python reference (full training set only)
+    if (n === train.length) {
+      const ref = mpg.ref.poly_degrees.find((r) => r.degree === degree);
+      if (ref && Math.abs(ref.r2_train - r2Train) > 0.02) {
+        console.warn(`poly degree ${degree}: JS r2_train ${r2Train.toFixed(4)} vs ref ${ref.r2_train}`);
+      }
     }
 
     const pathData = lineGen(grid.map((v) => [v, model.predict(v)]));
@@ -91,18 +112,26 @@ export function initPolyWidget(mpg) {
 
     const bar = (label, val, color) => {
       const width = Math.max(0, Math.min(1, val)) * 100;
+      const shown = val < -10 ? '≪ 0 (broken)' : val.toFixed(3);
       return (
         `<div class="slider-label" style="margin-top:.6rem">${label} r² = ` +
-        `<span class="value" style="color:${color}">${val.toFixed(3)}</span></div>` +
+        `<span class="value" style="color:${color}">${shown}</span></div>` +
         `<div style="height:12px;background:var(--stone);max-width:260px">` +
         `<div style="height:12px;width:${width}%;background:${color};transition:width .35s"></div></div>`
       );
     };
     barsEl.innerHTML =
       bar('train', r2Train, 'var(--smile)') + bar('test&nbsp;', r2Test, 'var(--anchor)');
-    verdictEl.textContent = verdictFor(degree, r2Train - r2Test);
+    verdictEl.textContent = verdictFor(degree, n, r2Train - r2Test, r2Test);
   }
 
-  document.querySelector('#poly-deg').addEventListener('input', (e) => render(+e.target.value));
-  render(1);
+  document.querySelector('#poly-deg').addEventListener('input', (e) => {
+    state.degree = +e.target.value;
+    render();
+  });
+  document.querySelector('#poly-n').addEventListener('input', (e) => {
+    state.n = +e.target.value;
+    render();
+  });
+  render();
 }
