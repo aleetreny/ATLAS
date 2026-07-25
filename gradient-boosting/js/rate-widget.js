@@ -3,7 +3,7 @@
  * surface from the real diamonds data are shown, because the shape of that
  * trade is the single most useful thing to internalise about boosting. */
 import { makeChart, drawAxes, drawGrid, axisLabels, spread } from '../../assets/js/chart.js';
-import { makeData, boost, ensemblePredict, TRUTH, rmse } from './mathkit.js';
+import { makeData, boost, ensemblePredict, stumpPredict, TRUTH, rmse } from './mathkit.js';
 
 export function initRateWidget(dia) {
   const { xs, ys } = makeData();
@@ -113,15 +113,30 @@ export function initRateWidget(dia) {
   }
 
   /* Sweep the two knobs once to find the floor, so "how good is this?" has a
-   * reference rather than an adjective. */
+   * reference rather than an adjective.
+   *
+   * The sweep has to be fine enough that the reader cannot beat it. A coarse
+   * five-by-six grid reported 0.4565 as the floor while nu = 0.25 with 151
+   * trees, a setting two drags away, reaches 0.451: the widget was congratulating
+   * you for being "within 0% of the best" on a fit better than its own best.
+   * The real floor over the sliders' full range is 0.4379, at nu = 0.72 and 48
+   * trees.
+   *
+   * Fifty learning rates by three hundred tree counts is fifteen thousand
+   * evaluations, which is only affordable because the ensemble is accumulated
+   * one stump at a time instead of re-summed from scratch at every n. That
+   * turns the inner loop from quadratic into linear and the whole sweep runs in
+   * about a tenth of a second, once, on first use. */
   let bestCache = null;
   function bestError() {
     if (bestCache !== null) return bestCache;
     let b = Infinity;
-    for (const lr of [0.05, 0.1, 0.25, 0.5, 1]) {
-      const m = modelFor(lr);
-      for (const n of [10, 25, 50, 100, 200, 300]) {
-        b = Math.min(b, rmse(truth, ensemblePredict(m, grid, n)));
+    for (let lr = +lrSlider.min; lr <= +lrSlider.max + 1e-9; lr += 0.02) {
+      const m = modelFor(+lr.toFixed(2));
+      const acc = grid.map(() => m.base);
+      for (let t = 0; t < m.stumps.length; t++) {
+        for (let i = 0; i < grid.length; i++) acc[i] += m.lr * stumpPredict(m.stumps[t], grid[i]);
+        b = Math.min(b, rmse(truth, acc));
       }
     }
     bestCache = b;

@@ -58,7 +58,7 @@
 # 3. **Pro:** Unleash Scikit-Learn's SVM with RBF Kernels and explore the dramatic effect of the `C` penalty and `Gamma` parameters.
 # 4. **Visuals:** Project 30-dimensional breast cancer data down to 2D to physically see the hyperplanes cutting through space.
 #
-# **Dataset:** `Breast Cancer Wisconsin (Diagnostic)`. This dataset contains 30 features (radius, texture, perimeter) derived from digitized images of breast masses. High-dimensional, dense, and continuous—the absolute perfect playground for SVM to project into higher dimensions and find the hyperplane of life or death.
+# **Dataset:** `Breast Cancer Wisconsin (Diagnostic)`. This dataset contains 30 features (radius, texture, perimeter) derived from digitized images of breast masses. High-dimensional, dense, and continuous: the absolute perfect playground for SVM to project into higher dimensions and find the hyperplane of life or death.
 #
 # ---
 # *We follow the **ATLAS** protocol: First we understand the **Intuition**, then we build it from **Scratch** using only NumPy, and finally we apply the **Pro** tools used in industry.*
@@ -89,7 +89,7 @@ print("Libraries imported and styling set.")
 #
 # We load the dataset and prepare our features matrix `X` and target vector `y`. The target is highly critical: 0 = Malignant, 1 = Benign.
 #
-# Because Geometric Models calculate distances explicitly (Margin in SVM, Covariance in LDA/QDA), **feature scaling is not optional—it is mathematically mandatory**. If 'Area' is measured in thousands of pixels squared, and 'Smoothness' is measured in decimals (0.05), the geometry will be grotesquely warped toward the Area feature, and the Hyperplane will fail to rotate correctly. We mandate `StandardScaler()`.
+# Because Geometric Models calculate distances explicitly (Margin in SVM, Covariance in LDA/QDA), **feature scaling is not optional, it is mathematically mandatory**. If 'Area' is measured in thousands of pixels squared, and 'Smoothness' is measured in decimals (0.05), the geometry will be grotesquely warped toward the Area feature, and the Hyperplane will fail to rotate correctly. We mandate `StandardScaler()`.
 
 # %%
 # Load the dataset

@@ -15,7 +15,7 @@ export function initScrollyStars(stars) {
   const fitClean = ols(cleanIdx.map((i) => xs[i]), cleanIdx.map((i) => ys[i]));
   const ts = theilSen(xs, ys);
   // 0.6 is calibrated to the data: the main sequence scatters with sigma about
-  // 0.4, so this admits 39 of the 43 honest stars and none of the giants.
+  // 0.4, so this admits 40 of the 43 honest stars and none of the giants.
   // A tighter threshold finds a narrow sub-band instead of the sequence.
   const rs = ransac(xs, ys, { threshold: 0.6, iterations: 400, seed: 11 });
 

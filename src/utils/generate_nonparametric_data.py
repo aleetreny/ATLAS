@@ -62,9 +62,10 @@ def nadaraya_watson(xt, yt, xq, h):
 
 
 def local_linear(xt, yt, xq, h):
-    """Weighted least squares in a moving window, CENTRED on the query point.
-    Centring is what the companion notebook's comment claimed but its code
-    never did, and it is exactly what removes the boundary bias."""
+    """Weighted least squares in a moving window, parameterised around the query
+    point. Centring is a conditioning choice, not a correctness one: the
+    predictions match a fit in raw x to about 1e-14. What removes the boundary
+    bias is that the local fit can tilt, not where its origin sits."""
     out = np.empty(len(xq))
     for i, q in enumerate(xq):
         dx = xt - q

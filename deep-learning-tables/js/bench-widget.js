@@ -59,11 +59,17 @@ export function initBenchWidget(data) {
   const labelsG = g.append('g');
 
   function xScale() {
-    /* Timings run from 0.02s to 40s. On a linear axis six of the seven models
-     * stack on the left edge, which is itself worth seeing once. */
+    /* Timings run from 0.02s to 49s. On a linear axis only ridge and boosting
+     * sit on the left edge, three models bunch around ten to sixteen seconds,
+     * and TabNet and the pairwise EBM trail off alone, which is itself worth
+     * seeing once. */
     return logScale
       ? d3.scaleLog().domain([0.015, 60]).range([0, w])
-      : d3.scaleLinear().domain([0, d3.max(rows, (r) => r.seconds) * 1.08]).range([0, w]);
+      /* A domain starting at exactly 0 puts the "0ms" label directly under the
+       * y axis, where it crosses the bottom y tick ("$400"). A sliver of
+       * negative padding moves it clear without moving any data point
+       * perceptibly. */
+      : d3.scaleLinear().domain([-1.6, d3.max(rows, (r) => r.seconds) * 1.08]).range([0, w]);
   }
 
   function render() {
@@ -153,7 +159,10 @@ export function initBenchWidget(data) {
           .style('font-size', '0.6rem')
           .style('text-transform', 'none')
       )
-      .attr('fill', (d) => d.colour)
+      /* The linear family is drawn in --stone so its dot reads as a baseline,
+       * but --stone on --paper is 1.3:1 and the direct label vanished. Ink the
+       * text even when the mark stays pale. */
+      .attr('fill', (d) => (d.colour === 'var(--stone)' ? 'var(--squidink)' : d.colour))
       .transition()
       .duration(400)
       .attr('y', (d) => d.y + 4)

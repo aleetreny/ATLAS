@@ -108,7 +108,7 @@ export function initGLMWidget(tips) {
       `iteration <span class="value">${model.iter}</span> · ` +
       `neg. log-likelihood <span class="value">${model.nll().toFixed(4)}</span>` +
       (converged
-        ? ' · <span class="bold" style="color:var(--primary)">converged, matches statsmodels ✓</span>'
+        ? ' · <span class="bold" style="color:var(--primary)">converged, matches scikit-learn\'s Poisson MLE ✓</span>'
         : model.iter === 0
           ? ' · untrained: a flat guess of e⁰ = 1 diner'
           : '');

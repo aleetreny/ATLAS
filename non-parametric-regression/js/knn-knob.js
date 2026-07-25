@@ -41,6 +41,27 @@ export function initKnnKnob(mpg) {
   const label = document.querySelector('#knn-k-label');
   const stats = document.querySelector('#knn-stats');
 
+  /* Score the whole slider once so the verdict can name the actual winner
+   * instead of a band someone picked by eye. It is 120 lookups over 294
+   * training cars, about a millisecond, and it turns "the useful range" from a
+   * claim into a measurement. */
+  const best = { k: 1, rmse: Infinity };
+  for (let kk = +slider.min; kk <= +slider.max; kk++) {
+    const e = rmse(yte, knnPredict(xtr, ytr, xte, kk, 'uniform'));
+    if (e < best.rmse) {
+      best.k = kk;
+      best.rmse = e;
+    }
+  }
+
+  /* How many training cars share their horsepower with another car. Horsepower
+   * is recorded as a whole number, so most of them do, and that is why k = 1
+   * does NOT reproduce the training set the way the textbook promises. Counted
+   * rather than quoted, so it stays true if the data is ever regenerated. */
+  const perX = new Map();
+  for (const v of xtr) perX.set(v, (perX.get(v) || 0) + 1);
+  const tied = xtr.reduce((c, v) => c + (perX.get(v) > 1 ? 1 : 0), 0);
+
   function render() {
     const k = +slider.value;
     label.textContent = k;
@@ -65,22 +86,31 @@ export function initKnnKnob(mpg) {
       console.warn(`knn k=${k}: JS test rmse ${eu.toFixed(3)} vs sklearn ${ref.rmse_test}`);
     }
 
+    /* Verdicts are measured, not assigned to bands of k. Hardcoding "the useful
+     * range" to k in 5..30 put a cliff between k = 30 and k = 31 that the RMSE
+     * column does not have (4.736 against 4.752), and it called k = 5 merely
+     * useful when k = 5 is in fact the best this dataset offers. The bands are
+     * still the vocabulary; where the reader is standing relative to the
+     * optimum is now a fact rather than an assertion. */
+    const behind = eu - best.rmse;
     const verdict =
       k === 1
-        ? 'Memorised: it reproduces every training car exactly and generalises worst.'
-        : k <= 4
-          ? 'Still twitchy. Each prediction rests on very few opinions.'
-          : k <= 30
-            ? 'The useful range: enough neighbours to average away noise, few enough to stay local.'
-            : k <= 90
-              ? 'Over-smoothed. The curve is flattening towards the global mean.'
-              : 'This is barely a model any more. Almost every car gets the same answer.';
+        ? `One car decides everything, and it still is not memorisation: ${tied} of these ${xtr.length} cars share a horsepower reading with another.`
+        : k === best.k
+          ? `The best this dataset offers: ${eu.toFixed(3)} held out, from ${k} opinions per prediction.`
+          : behind < 0.05
+            ? `Within ${behind.toFixed(3)} of the best on offer, which sits at k = ${best.k}.`
+            : k < best.k
+              ? `Still twitchy: ${behind.toFixed(2)} worse than k = ${best.k}, on too few opinions.`
+              : k > 90
+                ? 'Barely a model any more. Almost every car is getting the same answer.'
+                : `Over-smoothed: ${behind.toFixed(2)} worse than k = ${best.k}, flattening towards the global mean.`;
 
     stats.innerHTML =
       `<table class="np-table">
         <tr><th></th><th style="color:var(--primary)">uniform</th><th style="color:var(--smile)">1/distance</th></tr>
         <tr><td>held-out RMSE</td><td>${eu.toFixed(3)}</td><td>${ed.toFixed(3)}</td></tr>
-        <tr><td>training RMSE</td><td>${trU.toFixed(3)}</td><td>${k === 1 ? '0.000' : rmse(ytr, knnPredict(xtr, ytr, xtr, k, 'distance')).toFixed(3)}</td></tr>
+        <tr><td>training RMSE</td><td>${trU.toFixed(3)}</td><td>${rmse(ytr, knnPredict(xtr, ytr, xtr, k, 'distance')).toFixed(3)}</td></tr>
        </table>
        <div class="slider-label" style="margin-top:.7rem;line-height:1.45">${verdict}</div>`;
   }

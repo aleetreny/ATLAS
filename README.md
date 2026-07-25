@@ -2,7 +2,7 @@
 
 ### Practical Case Studies from Classical Statistics to State-of-the-Art Generative AI
 
-Welcome to **ATLAS** (**A**lgorithmic **T**echniques for **L**earning **A**nd **S**tatistics). This repository is designed not as a theoretical roadmap, but as a collection of **practical implementations** addressing specific real-world cases. While many resources focus on the "what", this project focuses on the "how"—building the engine before we drive the car.
+Welcome to **ATLAS** (**A**lgorithmic **T**echniques for **L**earning **A**nd **S**tatistics). This repository is designed not as a theoretical roadmap, but as a collection of **practical implementations** addressing specific real-world cases. While many resources focus on the "what", this project focuses on the "how": building the engine before we drive the car.
 
 The structure of this repository follows the natural progression of data intelligence, guiding you through the main paradigms and techniques used to analyze, model, generate, and deploy data-driven solutions. Each section builds on the previous, covering the essential approaches and tools needed to address real-world data challenges from start to finish.
 
@@ -201,7 +201,7 @@ Instead of analyzing data, the model learns the underlying distribution of the r
 
 ## MODULE 4: Sequential Intelligence (NLP & Time Series)
 
-Data here isn't a snapshot; it flows. Context matters—what happened _before_ dictates what happens _next_. This covers understanding human language and predicting the future based on history.
+Data here isn't a snapshot; it flows. Context matters: what happened _before_ dictates what happens _next_. This covers understanding human language and predicting the future based on history.
 
 ### 4.1. Natural Language Processing (NLP)
 

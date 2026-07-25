@@ -1,12 +1,11 @@
 /* Non-parametric regression, from scratch.
  *
- * Mirrors src/models/non_parametric_regression.py, with two corrections the
- * article is explicit about:
+ * Mirrors src/models/non_parametric_regression.py.
  *
- *  - Local linear regression is centred on the query point. The companion
- *    notebook's comment claimed this and its code did not do it, which matters
- *    because centring is precisely what removes the boundary bias the method
- *    exists to fix.
+ *  - Local linear regression is parameterised around the query point. That is a
+ *    conditioning choice, not a correctness one: the prediction is identical to
+ *    fitting in raw x and evaluating at the query, to about 1e-14. What removes
+ *    the boundary bias is the tilt, not where the origin sits.
  *  - The Gaussian process is solved by Cholesky factorisation of K + sigma^2 I
  *    and returns a posterior variance, so the page can draw what the model does
  *    not know rather than only what it predicts.

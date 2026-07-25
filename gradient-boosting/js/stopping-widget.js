@@ -41,8 +41,10 @@ export function initStoppingWidget(dia) {
     .style('font-size', '0.64rem').style('letter-spacing', '0.4px').style('text-transform', 'none')
     .attr('fill', (d) => d.c).text((d) => d.t);
 
+  /* Chrome, not data: --cosmos is this article's --primary, which is already the
+   * validation curve, so a marker wearing it read as a third series. */
   const marker = g.append('line').attr('y1', 0).attr('y2', h)
-    .attr('stroke', 'var(--cosmos)').attr('stroke-width', 2.5);
+    .attr('stroke', 'var(--squidink)').attr('stroke-width', 1.8);
   const dotT = g.append('circle').attr('r', 5).attr('fill', 'var(--squidink)').attr('stroke', 'white').attr('stroke-width', 1.5);
   const dotV = g.append('circle').attr('r', 5).attr('fill', 'var(--primary)').attr('stroke', 'white').attr('stroke-width', 1.5);
 

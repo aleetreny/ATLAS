@@ -87,7 +87,11 @@ export function initBoundaryWidget(mpg) {
 
   function render() {
     const band = +hSlider.value;
-    const hh = (x.domain()[1] - x.domain()[0]) * band;
+    /* Scale the window to the horsepower the cars actually span, not to the
+     * padded axis domain. Using the axis made the printed h differ from the one
+     * the article quotes, so the widget could never be dragged to the setting
+     * its own paragraph describes. */
+    const hh = (d3.max(allX) - d3.min(allX)) * band;
     hLabel.textContent = hh.toFixed(0);
     const q = +qSlider.value;
     qLabel.textContent = q.toFixed(0);
@@ -127,7 +131,16 @@ export function initBoundaryWidget(mpg) {
     const eNWm = rmse(sub(yte, mid), sub(nwTe, mid));
     const eLLm = rmse(sub(yte, mid), sub(llTe, mid));
 
-    const gap = ((eNWe / eLLe - 1) * 100).toFixed(0);
+    /* At the narrowest windows local linear is very slightly behind, and
+     * printing "the kernel average is -2% worse" was a sentence that argued
+     * against itself. Say what is actually true in that regime. */
+    const gapPct = (eNWe / eLLe - 1) * 100;
+    const verdict =
+      gapPct <= 0.5
+        ? 'At the edges the two are indistinguishable: the window is still so narrow that the neighbourhood is barely one-sided. Widen it and watch them separate.'
+        : `At the edges the kernel average is <span class="bold">${gapPct.toFixed(0)}%</span> worse. ` +
+          'Widen the window and watch that number grow: the more one-sided the ' +
+          'neighbourhood, the more an average of it flattens the trend.';
     stats.innerHTML =
       `<table class="np-table">
         <tr><th>held-out RMSE</th><th style="color:var(--smile)">nadaraya-watson</th><th style="color:var(--primary)">local linear</th></tr>
@@ -135,11 +148,7 @@ export function initBoundaryWidget(mpg) {
         <tr><td>outer 20% (edges)</td><td style="color:var(--cosmos)">${eNWe.toFixed(2)}</td><td>${eLLe.toFixed(2)}</td></tr>
         <tr><td>everywhere</td><td>${eNW.toFixed(2)}</td><td>${eLL.toFixed(2)}</td></tr>
        </table>
-       <div class="slider-label" style="margin-top:.7rem;line-height:1.45">
-         At the edges the kernel average is <span class="bold">${gap}%</span> worse.
-         Widen the window and watch that number grow: the more one-sided the
-         neighbourhood, the more an average of it flattens the trend.
-       </div>`;
+       <div class="slider-label" style="margin-top:.7rem;line-height:1.45">${verdict}</div>`;
   }
 
   hSlider.addEventListener('input', render);

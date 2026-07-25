@@ -161,7 +161,7 @@ export function initScrollyMonster(sine) {
     1: () => show({ alpha: BARE, color: 'var(--cosmos)', label: 'degree 15, no penalty' }),
     2: () => show({ alpha: BARE, color: 'var(--cosmos)', label: 'the smoking gun is in the coefficients' }),
     // alphas chosen from the actual error-against-truth curve, so the story is
-    // monotonic: 0.82 -> 0.25 -> 0.17 (the optimum) -> 0.46 (overdose)
+    // monotonic: 0.71 -> 0.24 -> 0.17 (the optimum) -> 0.46 (overdose)
     3: () => show({ alpha: 1e-5, color: 'var(--anchor)', label: 'ridge, a small toll on size' }),
     4: () => show({ alpha: 3.16e-4, color: 'var(--anchor)', label: 'ridge, the best this data allows' }),
     5: () => show({ alpha: 3, color: 'var(--anchor)', label: 'overdose: nothing left to say' }),

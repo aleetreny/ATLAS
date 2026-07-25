@@ -5,6 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Regularization | ATLAS</title>
   <meta name="description" content="A visual, interactive introduction to regularization: Ridge, Lasso and ElasticNet. Why a penalty on size tames overfitting, and why a diamond produces exact zeros where a circle never can." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/regularization/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="Regularization | ATLAS" />
+  <meta property="og:description" content="A visual, interactive introduction to regularization: Ridge, Lasso and ElasticNet. Why a penalty on size tames overfitting, and why a diamond produces exact zeros where a circle never can." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/regularization/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Regularization | ATLAS" />
+  <meta name="twitter:description" content="A visual, interactive introduction to regularization: Ridge, Lasso and ElasticNet. Why a penalty on size tames overfitting, and why a diamond produces exact zeros where a circle never can." />
   <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="../assets/styles/fonts.css" />
   <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
@@ -123,13 +132,13 @@
       Twenty noisy observations of a simple wave, \(y = \sin(x) + x/2\). We hand
       the model fifteen polynomial features to work with, which is far more
       flexibility than twenty points can possibly justify. The dashed line is the
-      truth we are trying to recover. The bars underneath the chart are the
+      truth we are trying to recover. The bars above the chart are the
       coefficients themselves, on a logarithmic scale, because the most damning
       evidence of overfitting is not the shape of the curve. It is the arithmetic.
     </p>
   </section>
 
-  <section id="monster-scrolly">
+  <section id="monster-scrolly" class="scrolly">
     <div class="scrolly-container">
       <div class="steps-container">
         <div class="step" data-index="0">
@@ -187,7 +196,7 @@
             <p>
               Turn the tax rate up a little further and we reach the best this
               data allows. Measured against the dashed line, error has fallen from
-              <span class="bold">0.82 to 0.17</span>, even though the model now
+              <span class="bold">0.71 to 0.17</span>, even though the model now
               misses almost every dot it used to hit. This is the whole bargain:
               deliberately fit the data you have a bit worse, in exchange for
               fitting the world a lot better.
@@ -254,8 +263,8 @@
       inverting it, and you square the condition number of your problem. On the
       degree-15 polynomial above, the design matrix is already borderline, so
       squaring it pushes the arithmetic past what double precision can represent
-      and the "unpenalized" fit quietly comes back wrong. Every model on this page
-      is therefore solved by QR decomposition instead, which never forms
+      and the "unpenalized" fit quietly comes back wrong. Every Ridge fit on this
+      page is therefore solved by QR decomposition instead, which never forms
       \(X^{\top}X\) at all. There is a satisfying trick behind it: stacking
       \(\sqrt{\lambda}I\) underneath \(X\), and zeros underneath \(y\), turns Ridge
       into an ordinary least squares problem. You are literally inventing fake
@@ -264,6 +273,21 @@
       coefficient values you may see quoted for fits like this one should be
       treated with suspicion: below a certain \(\lambda\), two correct solvers stop
       agreeing with each other.</i>
+    </p>
+    <br />
+    <p class="body-text">
+      <i>Lasso gets no such trick, because it has no closed form at all: the
+      absolute value has no derivative at zero, which is exactly the property that
+      makes it useful. It is solved by <span class="bold">coordinate descent</span>,
+      sweeping one coefficient at a time and leaving the rest frozen, and that
+      inherits the conditioning problem in a different currency. When the columns
+      are nearly parallel each sweep barely moves, so the iteration count, not the
+      mathematics, decides the answer you see. On the fifteen-degree design below,
+      a solver stopped after eight hundred sweeps at \(\lambda = 10^{-4}\) reports
+      three surviving features too many and a largest coefficient less than half
+      the true one. That is why the slider in the next widget stops at
+      \(\lambda = 10^{-3}\): further left, this page could not print a number it
+      was willing to defend.</i>
     </p>
     <br />
     <p class="body-text">
@@ -285,6 +309,16 @@
     </p>
     <br />
     <p class="body-text">
+      <i>One bookkeeping note before the sliders, so the numbers on them can be
+      taken at face value. Both formulas above write the error term as a plain
+      sum of squares, which is how textbooks state it. Every solver on this page,
+      like scikit-learn, divides that sum by \(2n\) first, so a \(\lambda\)
+      printed beside a slider is smaller than the \(\lambda\) in these formulas
+      by a factor of \(2n\). It changes nothing about the argument and everything
+      about which numbers you can compare against a library.</i>
+    </p>
+    <br />
+    <p class="body-text">
       Below, both penalties attack the same overgrown polynomial. Drag the tax
       rate and watch two different philosophies at work: the blue curve keeps all
       fifteen features on a tight leash, while the pink one fires most of them.
@@ -295,7 +329,7 @@
     <div class="equations-panel">
       <div class="controls-row">
         <span class="slider-label">λ = <span class="value" id="knob-alpha-label">0.01</span></span>
-        <input type="range" class="atlas-range" id="knob-alpha" min="-5" max="0.4" step="0.05" value="-2" />
+        <input type="range" class="atlas-range" id="knob-alpha" aria-label="penalty strength lambda, log scale" min="-3" max="0.4" step="0.05" value="-2" />
       </div>
       <div id="knob-stats"></div>
       <p class="slider-label" style="margin-top: 0.9rem; line-height: 1.4">
@@ -372,7 +406,7 @@
       </div>
       <div class="controls-row">
         <span class="slider-label">λ = <span class="value" id="geo-alpha-label">0.01</span></span>
-        <input type="range" class="atlas-range" id="geo-alpha" min="-2.4" max="0.15" step="0.02" value="-0.7" />
+        <input type="range" class="atlas-range" id="geo-alpha" aria-label="penalty strength lambda, log scale" min="-2.4" max="0.15" step="0.02" value="-0.7" />
       </div>
       <div id="geo-stats"></div>
       <p class="slider-label" style="margin-top: 0.9rem; line-height: 1.4">
@@ -433,7 +467,7 @@
       <button class="atlas-btn" id="path-l1">lasso</button>
       <button class="atlas-btn ghost" id="path-l2">ridge</button>
       <span class="slider-label">λ = <span class="value" id="path-alpha-label"></span></span>
-      <input type="range" class="atlas-range" id="path-alpha" min="0" max="120" step="1" />
+      <input type="range" class="atlas-range" id="path-alpha" aria-label="penalty strength lambda, log scale" min="0" max="120" step="1" />
       <button class="atlas-btn ghost" id="path-best">jump to best</button>
     </div>
     <div id="path-chart"></div>
@@ -446,7 +480,8 @@
       Read the lasso path left to right and it becomes a ranking. The lines that
       survive the longest under pressure are the variables the data insists on:
       <span class="bold">body mass index</span> and
-      <span class="bold">s5</span>, a measure of blood triglycerides. The lines
+      <span class="bold">s5</span>, a measure of blood triglycerides, with
+      <span class="bold">blood pressure</span> hanging on behind them. The lines
       that collapse to zero almost immediately were never carrying much of their
       own weight. This is why practitioners reach for Lasso even when they do not
       need the regularization: the path is a feature-importance report that comes
@@ -497,7 +532,7 @@
     <p class="body-text">
       Below, two synthetic predictors correlated at
       <span class="bold">0.98</span>, plus four pure-noise features that both
-      models correctly delete. Each press repeats the entire experiment: a brand
+      models shrink to zero or nearly so. Each press repeats the entire experiment: a brand
       new sample drawn from the same process, both models refitted from scratch.
       Watch which twin Lasso crowns.
     </p>
@@ -508,7 +543,8 @@
       <span class="bold">21</span> times, splitting the pair's credit
       <span class="bold">31%</span> unevenly on average. ElasticNet, on the same
       forty samples, kept them within <span class="bold">5%</span> of each other
-      every time. The winner under Lasso is not a finding about the world. It is
+      on average and never drifted past <span class="bold">15%</span>. The winner
+      under Lasso is not a finding about the world. It is
       a coin flip decided by whichever twin happened to catch the noise.
     </p>
   </section>
@@ -616,15 +652,16 @@
       Next in this module: what happens when the problem is not too many features
       but a handful of catastrophically wrong observations. A single mistyped value
       can drag a least-squares line across the room, and squaring the errors is
-      precisely what makes it so easy. That story is called robust regression.
+      precisely what makes it so easy. That story is called
+      <a href="../robust-regression/">Robust Regression</a>.
     </p>
     <br />
     <p class="body-text">
       Thanks for reading! The from-scratch NumPy implementations behind this
       article (<code>ScratchRidge</code>, <code>ScratchLasso</code>) live in the
-      <a href="https://github.com/aleetreny/ATLAS">ATLAS repository</a>, and every
-      number on this page was computed in your browser and checked against
-      scikit-learn at load time.
+      <a href="https://github.com/aleetreny/ATLAS">ATLAS repository</a>. Every fit
+      on this page is recomputed in your browser, and checked against scikit-learn
+      reference solutions at load time.
     </p>
   </section>
 

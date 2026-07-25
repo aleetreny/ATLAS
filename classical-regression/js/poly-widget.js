@@ -75,14 +75,38 @@ export function initPolyWidget(mpg) {
   const nLabel = document.querySelector('#poly-n-label');
   const state = { degree: 1, n: train.length };
 
-  function verdictFor(deg, n, gap, r2Test) {
+  /* The verdict has to be earned, not hardcoded to a degree. Calling degree 2
+   * "the sweet spot" was a lie the widget itself refuted: on all 294 cars,
+   * degree 7 scores 0.683 on held-out data against degree 2's 0.659, and both
+   * numbers are printed two lines above the verdict. So sweep the degrees at
+   * the current sample size and phrase everything relative to what actually
+   * wins there. */
+  function bestDegreeAt(sub) {
+    const xs = sub.map((d) => d.hp);
+    const ys = sub.map((d) => d.mpg);
+    const ty = test.map((d) => d.mpg);
+    let best = { degree: 1, r2: -Infinity };
+    for (let deg = 1; deg <= 9; deg++) {
+      const m = polyFit(xs, ys, deg);
+      const s = r2Score(ty, test.map((d) => m.predict(d.hp)));
+      if (s > best.r2) best = { degree: deg, r2: s };
+    }
+    return best;
+  }
+
+  function verdictFor(deg, n, gap, r2Test, best) {
+    /* A straight line cannot overfit, whatever the train/test gap says. With
+     * thirty cars the gap test fired on degree 1 and the widget called a ruler
+     * "overfitting", so the degree check has to come first. */
+    if (deg === 1 && deg !== best.degree) return 'Underfitting: the ruler cannot bend.';
     if (r2Test < 0) return 'Below zero: worse than guessing the mean. Total memorization.';
     if (gap > 0.15) return `Overfitting: flexibility the ${n} cars cannot discipline.`;
+    const behind = best.r2 - r2Test;
+    if (deg === best.degree) return `Nothing beats this on the held-out cars, at ${n} of them.`;
+    if (behind < 0.01) return `As good as it gets here: degree ${best.degree} wins by ${behind.toFixed(3)}.`;
     if (deg === 1) return 'Underfitting: the ruler cannot bend.';
-    if (deg === 2) return 'The sweet spot: the curve speaks physics.';
-    if (deg <= 4) return 'Still fine, but the extra wiggle buys almost nothing.';
-    if (n === train.length) return 'High degree, but 294 cars keep the wiggles disciplined.';
-    return 'The tail starts dancing. Fewer cars, more temptation.';
+    if (deg < best.degree) return `More bend still pays: degree ${best.degree} scores ${behind.toFixed(3)} higher.`;
+    return `Past the peak. Degree ${best.degree} scores ${behind.toFixed(3)} higher with less flexibility.`;
   }
 
   function render() {
@@ -98,11 +122,19 @@ export function initPolyWidget(mpg) {
     const r2Train = r2Score(sub.map((d) => d.mpg), sub.map((d) => model.predict(d.hp)));
     const r2Test = r2Score(test.map((d) => d.mpg), test.map((d) => model.predict(d.hp)));
 
-    // sanity check against the Python reference (full training set only)
+    /* Sanity check against the Python reference (full training set only).
+     * The tolerance used to be 0.02, which was wide enough to swallow a
+     * genuinely wrong degree-9 fit: 0.7048 against a reference of 0.7102.
+     * Solved by QR the agreement is around 1e-4, so anything past 0.002 is a
+     * real divergence and deserves to be shouted about. Grade the held-out
+     * score too, since that is the number the reader is being asked to trust. */
     if (n === train.length) {
       const ref = mpg.ref.poly_degrees.find((r) => r.degree === degree);
-      if (ref && Math.abs(ref.r2_train - r2Train) > 0.02) {
+      if (ref && Math.abs(ref.r2_train - r2Train) > 0.002) {
         console.warn(`poly degree ${degree}: JS r2_train ${r2Train.toFixed(4)} vs ref ${ref.r2_train}`);
+      }
+      if (ref && Math.abs(ref.r2_test - r2Test) > 0.002) {
+        console.warn(`poly degree ${degree}: JS r2_test ${r2Test.toFixed(4)} vs ref ${ref.r2_test}`);
       }
     }
 
@@ -122,7 +154,7 @@ export function initPolyWidget(mpg) {
     };
     barsEl.innerHTML =
       bar('train', r2Train, 'var(--primary)') + bar('test&nbsp;', r2Test, 'var(--anchor)');
-    verdictEl.textContent = verdictFor(degree, n, r2Train - r2Test, r2Test);
+    verdictEl.textContent = verdictFor(degree, n, r2Train - r2Test, r2Test, bestDegreeAt(sub));
   }
 
   document.querySelector('#poly-deg').addEventListener('input', (e) => {

@@ -42,10 +42,15 @@ export function initPathWidget(dia) {
   const px = d3.scaleLog().domain([alphas[0], alphas[alphas.length - 1]]).range([0, P.w]);
   const py = d3.scaleLinear().range([P.h, 0]);
 
-  drawGrid(P.g, px, py, P.w, P.h);
+  /* The grid is drawn inside renderStatic, not here: at this point py still has
+   * d3's default [0, 1] domain, so a grid drawn now rules the canvas at heights
+   * that have nothing to do with the axis eventually printed beside it. */
   const pathLinesG = P.g.append('g');
+  /* Ink, not data: the rule marks where the slider is, so it must not wear a
+   * colour that a coefficient trace is also using. --primary here is --violet,
+   * which is exactly the sixth series. */
   const pathRule = P.g.append('line').attr('y1', 0).attr('y2', P.h)
-    .attr('stroke', 'var(--primary)').attr('stroke-width', 2.5);
+    .attr('stroke', 'var(--squidink)').attr('stroke-width', 2);
   const pathLabelsG = P.g.append('g');
   // No x label here: this chart is stacked directly on top of the validation
   // chart and they share the same axis, so one label at the bottom serves both.
@@ -60,16 +65,15 @@ export function initPathWidget(dia) {
   });
   const vx = d3.scaleLog().domain([alphas[0], alphas[alphas.length - 1]]).range([0, V.w]);
   const vy = d3.scaleLinear().range([V.h, 0]);
-  drawGrid(V.g, vx, vy, V.w, V.h);
   const bestBand = V.g.append('rect').attr('y', 0).attr('height', V.h)
     .attr('fill', 'var(--lab)').attr('opacity', 0.18);
   const trainLine = V.g.append('path').attr('fill', 'none').attr('stroke', 'var(--squidink)')
     .attr('stroke-width', 2.5).attr('stroke-dasharray', '6 5');
   const testLine = V.g.append('path').attr('fill', 'none').attr('stroke', 'var(--cosmos)').attr('stroke-width', 3.2);
   const curveRule = V.g.append('line').attr('y1', 0).attr('y2', V.h)
-    .attr('stroke', 'var(--primary)').attr('stroke-width', 2.5);
+    .attr('stroke', 'var(--squidink)').attr('stroke-width', 2);
   const vLabels = V.g.append('g');
-  axisLabels(V.g, V.w, V.h, { x: 'penalty strength α (log)', y: 'RMSE' });
+  axisLabels(V.g, V.w, V.h, { x: 'penalty strength λ (log)', y: 'RMSE' });
 
   const slider = document.querySelector('#path-alpha');
   const alphaLabel = document.querySelector('#path-alpha-label');
@@ -83,6 +87,7 @@ export function initPathWidget(dia) {
     const ext = d3.extent(flat);
     const pad = (ext[1] - ext[0]) * 0.08;
     py.domain([ext[0] - pad, ext[1] + pad]);
+    drawGrid(P.g, px, py, P.w, P.h, { xTicks: 5 });
     drawAxes(P.g, px, py, P.w, P.h, { xTicks: 5 });
 
     pathLinesG
@@ -112,6 +117,7 @@ export function initPathWidget(dia) {
     const hi = d3.max(curve, (d) => Math.max(d.train, d.test));
     const padV = (hi - lo) * 0.14 || 1;
     vy.domain([lo - padV, hi + padV]);
+    drawGrid(V.g, vx, vy, V.w, V.h, { xTicks: 5, yTicks: 5 });
     drawAxes(V.g, vx, vy, V.w, V.h, { xTicks: 5, yTicks: 5 });
     trainLine.attr('d', d3.line().x((d, i) => vx(alphas[i])).y((d) => vy(d.train))(curve));
     testLine.attr('d', d3.line().x((d, i) => vx(alphas[i])).y((d) => vy(d.test))(curve));
@@ -178,7 +184,7 @@ export function initPathWidget(dia) {
     statsEl.innerHTML =
       `<div class="slider-label">features alive: <span class="value">${alive}/10</span></div>` +
       `<div class="slider-label">held-out RMSE: <span class="value">${c.test.toFixed(2)}</span>` +
-      ` (best ${curve[bi].test.toFixed(2)} at α = ${alphas[bi].toPrecision(2)})</div>` +
+      ` (best ${curve[bi].test.toFixed(2)} at λ = ${alphas[bi].toPrecision(2)})</div>` +
       `<div class="slider-label" style="margin-top:.4rem">${
         i < bi - 6
           ? 'Too loose: the model is still chasing noise.'

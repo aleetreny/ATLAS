@@ -29,7 +29,7 @@ export function initImportanceWidget(dia) {
   g.append('g').selectAll('rect').data(rows).join('rect')
     .attr('x', 0).attr('y', (r) => y(r.feature)).attr('height', y.bandwidth())
     .attr('width', (r) => x(r.gain))
-    .attr('fill', (r) => (r.feature === 'carat' ? 'var(--primary)' : isProxy(r.feature) ? 'var(--cosmos)' : 'var(--stone)'))
+    .attr('fill', (r) => (r.feature === 'carat' ? 'var(--primary)' : isProxy(r.feature) ? 'var(--anchor)' : 'var(--stone)'))
     .attr('stroke', 'var(--squidink)').attr('stroke-width', 0.8)
     .on('mousemove', (event, r) => {
       const c = corr[r.feature];
@@ -56,7 +56,7 @@ export function initImportanceWidget(dia) {
     `<div class="slider-label">The three physical dimensions correlate with carat at ` +
     proxies.map((p) => `<span class="value">${corr[p.feature].toFixed(2)}</span>`).join(', ') +
     `, so they are not really separate variables. Together they take ` +
-    `<span class="value" style="color:var(--cosmos)">${(proxyShare * 100).toFixed(0)}%</span> of the gain, ` +
+    `<span class="value" style="color:var(--anchor)">${(proxyShare * 100).toFixed(0)}%</span> of the gain, ` +
     `against <span class="value" style="color:var(--primary)">${(caratShare * 100).toFixed(0)}%</span> for carat itself.</div>` +
     `<div class="slider-label" style="margin-top:.5rem;line-height:1.45">Read naively, this chart says size in millimetres matters more than weight. What it actually says is that one underlying quantity was measured four times, and the algorithm had to give the credit to somebody.</div>`;
 }

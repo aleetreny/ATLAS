@@ -5,6 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Classical Regression | ATLAS</title>
   <meta name="description" content="A visual, interactive introduction to classical regression: Ordinary Least Squares, Polynomial Regression, Generalized Linear Models and Partial Least Squares, built from scratch, one assumption at a time." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/classical-regression/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="Classical Regression | ATLAS" />
+  <meta property="og:description" content="A visual, interactive introduction to classical regression: Ordinary Least Squares, Polynomial Regression, Generalized Linear Models and Partial Least Squares, built from scratch, one assumption at a time." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/classical-regression/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Classical Regression | ATLAS" />
+  <meta name="twitter:description" content="A visual, interactive introduction to classical regression: Ordinary Least Squares, Polynomial Regression, Generalized Linear Models and Partial Least Squares, built from scratch, one assumption at a time." />
   <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="../assets/styles/fonts.css" />
   <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
@@ -13,6 +22,15 @@
   <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
   <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
   <script type="module" src="./js/main.js"></script>
+  <style>
+    /* Per-article theme. Everything else inherits from these two.
+     * The accent is the site orange, but --secondary has to be darkened by hand:
+     * body links use it, and #ff9900 on --paper is 1.9:1, unreadable. */
+    :root {
+      --primary: #ff9900;
+      --secondary: #a35f00;
+    }
+  </style>
 </head>
 <body>
   <!-- ======================= chrome ======================= -->
@@ -103,7 +121,7 @@
     </p>
   </section>
 
-  <section id="scrolly">
+  <section id="scrolly" class="scrolly">
     <div class="scrolly-container">
       <div class="steps-container">
         <div class="step" data-index="0">
@@ -286,11 +304,11 @@
     <div class="equations-panel">
       <div class="controls-row">
         <span class="slider-label">degree: <span class="value" id="poly-deg-label">1</span></span>
-        <input type="range" class="atlas-range" id="poly-deg" min="1" max="9" value="1" step="1" />
+        <input type="range" class="atlas-range" id="poly-deg" aria-label="polynomial degree" min="1" max="9" value="1" step="1" />
       </div>
       <div class="controls-row">
         <span class="slider-label">training cars: <span class="value" id="poly-n-label">294</span></span>
-        <input type="range" class="atlas-range" id="poly-n" min="15" max="294" value="294" step="1" />
+        <input type="range" class="atlas-range" id="poly-n" aria-label="number of training cars" min="15" max="294" value="294" step="1" />
       </div>
       <div id="poly-r2-bars"></div>
       <div id="poly-verdict" class="slider-label" style="margin-top: 0.75rem"></div>
@@ -300,12 +318,15 @@
 
   <section>
     <p class="body-text">
-      Degree 2 is the sweet spot here: test \(R^2\) jumps from 0.60 to
-      <span class="bold">0.68</span>, and the curve finally speaks physics: MPG
+      Degree 2 buys almost all of the gain: test \(R^2\) climbs from 0.57 to
+      <span class="bold">0.66</span>, and the curve finally speaks physics: MPG
       drops fast when you add power to a weak engine, then the drop flattens:
-      <span class="bold">diminishing returns</span>. Now notice something honest and
-      slightly surprising: with all 294 training cars, even degree 9 stays almost
-      tame. Abundant data is a straitjacket, the wiggles have nowhere to go.
+      <span class="bold">diminishing returns</span>. Everything after that is
+      small change, and the widget will tell you exactly how small, because it
+      scores every degree and names the winner rather than taking anyone's word
+      for where the sweet spot is. On all 294 training cars it turns out to be
+      degree 7, at 0.68, and even degree 9 only slips back to 0.65. Abundant data
+      is a straitjacket, the wiggles have nowhere to go.
       But drop to ~30 cars and push the degree up: the curve starts slaloming
       through individual points, the train score inflates toward 1, and the test
       score craters (even below zero, worse than predicting the mean). That gap is
@@ -347,16 +368,18 @@
       <span class="bold">Poisson GLM</span>: assume \(y \sim \text{Poisson}(\mu)\)
       and set \(\log(\mu) = X\beta\), so predictions
       \(\mu = e^{X\beta}\) are positive by construction. The price: no closed form.
-      For the first time in this article we must <i>search</i> for \(\beta\) by
-      maximizing likelihood iteratively, and the gradient turns out to be an old
+      For the first time in this article we must <i>search</i> for \(\beta\),
+      descending on the <span class="bold">negative log-likelihood</span> (the
+      same thing as maximizing likelihood, flipped so it is a cost to minimize
+      like every other one on this page), and the gradient turns out to be an old
       friend wearing a mask:
     </p>
     <p class="body-text">
-      $$ \frac{\partial \mathcal{L}}{\partial \beta} = \tfrac{1}{n} X^{\top}(\underbrace{e^{X\beta}}_{\hat{y}} - \,y) $$
+      $$ \frac{\partial \mathcal{L}_{\text{NLL}}}{\partial \beta} = \tfrac{1}{n} X^{\top}(\underbrace{e^{X\beta}}_{\hat{y}} - \,y) $$
     </p>
     <p class="body-text">
       Identical in shape to the OLS gradient, except the prediction inside is
-      exponential. <i>(Many textbooks solve GLMs with Newton–Raphson / IRLS, which
+      exponential. <i>(Many textbooks solve GLMs with Newton-Raphson / IRLS, which
       converges in a handful of steps; plain gradient descent, shown here, is the
       same idea with smaller strides.)</i>
     </p>
@@ -397,9 +420,12 @@
       the axis. Second, toggle the <span class="bold">variance envelope</span>. OLS
       assumes the spread of party sizes is identical for a $5 bill and a $50 bill
       (constant band). Poisson knows that variance grows with the mean
-      (\(\sigma^2 = \mu\)): cheap bills are almost certainly one diner; expensive
-      bills could be one big spender or six splitting dessert. The widening funnel
-      isn't a bug, it's the model telling the truth about uncertainty.
+      (\(\sigma^2 = \mu\)). Watch what that buys in relative terms: a $5 bill
+      predicts about two diners and OLS hands it exactly the same absolute
+      uncertainty as a $50 one, while Poisson lets the band grow with the
+      prediction, so the spread relative to the prediction falls from 0.74 at the
+      cheap end to 0.45 at the expensive one. The widening funnel isn't a bug,
+      it's the model telling the truth about uncertainty.
     </p>
   </section>
 
@@ -476,11 +502,17 @@
   <section>
     <p class="body-text">
       PCA does a respectable job: with this much structure in the chemistry, raw
-      variance alone separates the cultivars decently. But look at what PLS does to
-      the first axis: the three classes line up in <span class="bold">perfect ordinal
-      sequence</span> along component 1, because that axis was built to covary with
-      the label. Thirteen correlated measurements, and the predictive essence turns
-      out to be essentially <span class="bold">one clever linear combination</span>.
+      variance alone separates the cultivars decently. On the first axis PLS lands
+      almost exactly where PCA does, correlated with it at
+      <span class="bold">0.999</span>, and that is worth saying out loud rather
+      than hiding: when the loudest variation in \(X\) happens to be the variation
+      that matters, an unsupervised axis is already the right one. The difference
+      is the <span class="bold">second</span> component. PCA spends it on whatever
+      variance is left over, which turns out to know nothing about the cultivar.
+      PLS spends it on the label, and its spread collapses from 1.59 to 0.83 while
+      its correlation with the class rises from 0.01 to 0.25. Thirteen correlated
+      measurements, and the predictive essence turns out to be essentially
+      <span class="bold">one clever linear combination</span>.
       That is PLS's entire job description: find the needle of signal in the
       haystack of redundancy, even when \(X^{\top}X\) is too broken to invert.
     </p>
@@ -548,7 +580,7 @@
       <i>that one</i>, not everything at once. The next article in this module
       takes the opposite failure seriously: what happens when the model has too
       much freedom, and we must <span class="bold">pay to constrain it</span>.
-      That story is called regularization.
+      That story is called <a href="../regularization/">Regularization</a>.
     </p>
     <br />
     <p class="body-text">

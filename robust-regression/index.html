@@ -5,6 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Robust Regression | ATLAS</title>
   <meta name="description" content="A visual, interactive introduction to robust regression: Huber, Theil-Sen and RANSAC. Why squaring the errors hands unlimited power to a single point, and why the dangerous outliers are not the ones you can see." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/robust-regression/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="Robust Regression | ATLAS" />
+  <meta property="og:description" content="A visual, interactive introduction to robust regression: Huber, Theil-Sen and RANSAC. Why squaring the errors hands unlimited power to a single point, and why the dangerous outliers are not the ones you can see." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/robust-regression/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Robust Regression | ATLAS" />
+  <meta name="twitter:description" content="A visual, interactive introduction to robust regression: Huber, Theil-Sen and RANSAC. Why squaring the errors hands unlimited power to a single point, and why the dangerous outliers are not the ones you can see." />
   <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="../assets/styles/fonts.css" />
   <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
@@ -107,7 +116,7 @@
     </p>
   </section>
 
-  <section id="stars-scrolly">
+  <section id="stars-scrolly" class="scrolly">
     <div class="scrolly-container">
       <div class="steps-container">
         <div class="step" data-index="0">
@@ -141,7 +150,7 @@
               puts them in the upper left, far from everyone else. They are not
               measurement errors. They are <span class="bold">red giants</span>:
               real, well-understood stars that have left the main sequence and
-              are burning helium in a swollen shell.
+              are burning hydrogen in a shell around a spent helium core.
             </p>
           </div>
         </div>
@@ -235,7 +244,7 @@
     <div class="equations-panel">
       <div class="controls-row">
         <span class="slider-label">δ = <span class="value" id="loss-delta-label">1.35</span></span>
-        <input type="range" class="atlas-range" id="loss-delta" min="0.2" max="4" step="0.05" value="1.35" />
+        <input type="range" class="atlas-range" id="loss-delta" aria-label="delta, where Huber switches from squared to absolute" min="0.2" max="4" step="0.05" value="1.35" />
       </div>
       <div id="loss-stats"></div>
       <p class="slider-label" style="margin-top: 0.9rem; line-height: 1.45">
@@ -297,7 +306,7 @@
         <button class="atlas-btn ghost" id="lev-companions">Give it two companions</button>
       </div>
       <p class="slider-label" style="margin-top: 0.8rem; line-height: 1.45">
-        The dashed grey line is the fit on the clean points alone, which is the
+        The dashed dark line is the fit on the clean points alone, which is the
         answer every method should be trying to recover.
       </p>
     </div>
@@ -307,7 +316,10 @@
   <section>
     <p class="body-text">
       Park the point high above the middle and every robust method shrugs, while
-      OLS visibly tilts. A large residual in a crowded region is the easy case:
+      OLS's whole line jumps upward. Notice that its <i>slope</i> barely moves:
+      the point is sitting almost exactly on the mean of x, and a point at the
+      pivot can lift a line but cannot tilt it. A large residual in a crowded
+      region is the easy case:
       it is exactly what Huber is built to discount, and there are neighbours to
       contradict it.
     </p>
@@ -323,8 +335,9 @@
     <br />
     <p class="body-text">
       That is the real mechanism, and the star data measures it exactly. Adding
-      the red giants back one at a time, Huber's slope runs
-      <span class="bold">+2.55, +1.70, +0.94, −0.08, −0.44</span>. It is not that
+      the red giants back one at a time, the IRLS Huber running in your browser
+      reports slopes of
+      <span class="bold">+2.34, +1.35, +0.46, −0.18, −0.43</span>. It is not that
       Huber is immune to leverage and then suddenly is not. It is being dragged
       the entire time, and by the third giant the sign has flipped.
       <span class="bold">Huber decides who to distrust by looking at
@@ -433,8 +446,9 @@
       The logic is that two honest points define a line that many other honest
       points will sit near, while a line drawn through a giant agrees with almost
       nobody. Watch it search the star data. Each frame is one hypothesis: the
-      two sampled stars are ringed, the candidate line is drawn, and the stars
-      that voted for it turn solid.
+      two sampled stars are ringed and the candidate line is drawn, while the
+      solid stars and the shaded band show the best consensus found so far. A
+      hypothesis that convinces nobody leaves the previous champion standing.
     </p>
   </section>
 
@@ -446,7 +460,7 @@
     </div>
     <div class="controls-row" style="justify-content: center">
       <span class="slider-label">threshold ε = <span class="value" id="ransac-eps-label">0.60</span></span>
-      <input type="range" class="atlas-range" id="ransac-eps" min="0.15" max="1.4" step="0.01" value="0.60" />
+      <input type="range" class="atlas-range" id="ransac-eps" aria-label="inlier threshold epsilon" min="0.15" max="1.4" step="0.01" value="0.60" />
     </div>
     <div id="ransac-chart"></div>
     <div class="widget-readout" id="ransac-stats"></div>
@@ -475,7 +489,7 @@
     <p class="body-text">
       For a line (\(s = 2\)) with 30% contamination and 99% confidence, that is
       just <span class="bold">7</span> iterations. Even at 60% contamination it
-      is only 70. This is why RANSAC keeps working when the data is mostly
+      is only 27. This is why RANSAC keeps working when the data is mostly
       garbage: it never needs a clean <i>majority</i>, only a clean
       <i>pair</i>, and often enough. The usual claim that it fails above 50% is
       a simplification: what actually degrades is the reliability of the
@@ -565,15 +579,18 @@
     <p class="body-text">
       Next in this module: what happens when you stop assuming any equation at
       all, and let the data speak for itself through its nearest neighbours.
+      That story is called
+      <a href="../non-parametric-regression/">Non-Parametric Regression</a>.
     </p>
     <br />
     <p class="body-text">
       Thanks for reading! The from-scratch NumPy implementations
       (<code>ScratchRANSAC</code>, <code>ScratchTheilSen</code>,
       <code>ScratchHuber</code>) live in the
-      <a href="https://github.com/aleetreny/ATLAS">ATLAS repository</a>, and every
-      fit on this page is computed in your browser and checked against
-      scikit-learn at load time.
+      <a href="https://github.com/aleetreny/ATLAS">ATLAS repository</a>. Every fit
+      on this page is computed in your browser, and the least squares and
+      Theil-Sen ones are re-checked at load time against reference values from
+      scikit-learn and scipy.
     </p>
   </section>
 

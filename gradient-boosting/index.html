@@ -5,6 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Gradient Boosting | ATLAS</title>
   <meta name="description" content="A visual, interactive introduction to gradient boosting: how a committee of deliberately weak trees, each fitted to the previous ensemble's mistakes, became the default model for tabular data." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/gradient-boosting/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="Gradient Boosting | ATLAS" />
+  <meta property="og:description" content="A visual, interactive introduction to gradient boosting: how a committee of deliberately weak trees, each fitted to the previous ensemble's mistakes, became the default model for tabular data." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/gradient-boosting/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Gradient Boosting | ATLAS" />
+  <meta name="twitter:description" content="A visual, interactive introduction to gradient boosting: how a committee of deliberately weak trees, each fitted to the previous ensemble's mistakes, became the default model for tabular data." />
   <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="../assets/styles/fonts.css" />
   <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
@@ -116,7 +125,7 @@
     </p>
   </section>
 
-  <section id="boost-scrolly">
+  <section id="boost-scrolly" class="scrolly">
     <div class="scrolly-container">
       <div class="steps-container">
         <div class="step" data-index="0">
@@ -207,8 +216,9 @@
       Given that, why not always take big steps and save the compute? Because
       the route matters. Small steps let later trees correct the overshoot of
       earlier ones, and the resulting ensemble generalises better at the same
-      training error. This is Friedman's shrinkage, and it is why every practical
-      default sits between 0.01 and 0.1.
+      training error. This is Friedman's shrinkage, and it is why practical
+      defaults are small: 0.1 in LightGBM and scikit-learn, 0.03 in CatBoost,
+      0.3 in XGBoost, and lower still once you can afford the trees.
     </p>
     <br />
     <p class="body-text">
@@ -222,11 +232,11 @@
     <div class="equations-panel">
       <div class="controls-row">
         <span class="slider-label">ν = <span class="value" id="rate-lr-label">0.25</span></span>
-        <input type="range" class="atlas-range" id="rate-lr" min="0.02" max="1" step="0.01" value="0.25" />
+        <input type="range" class="atlas-range" id="rate-lr" aria-label="learning rate nu" min="0.02" max="1" step="0.01" value="0.25" />
       </div>
       <div class="controls-row">
         <span class="slider-label">trees = <span class="value" id="rate-n-label">200</span></span>
-        <input type="range" class="atlas-range" id="rate-n" min="1" max="300" step="1" value="200" />
+        <input type="range" class="atlas-range" id="rate-n" aria-label="number of trees" min="1" max="300" step="1" value="200" />
       </div>
       <div id="rate-stats"></div>
     </div>
@@ -242,8 +252,11 @@
       \(\nu = 1\) the model gets somewhere fast and then gets
       <span class="bold">worse</span> as trees accumulate. At \(\nu = 0.01\) it
       is still improving after four hundred trees and has not arrived. Everything
-      in between converges to roughly the same floor, and the slower rates
-      converge to a slightly better one. Time is the only thing you are trading.
+      in between is still falling when the chart runs out: at four hundred trees
+      \(\nu = 0.3\) has reached $566, \(\nu = 0.1\) trails it by $3, and
+      \(\nu = 0.03\) is still $38 behind. Given enough trees the patient rates
+      match that floor and usually beat it. Inside this budget they have not got
+      there yet, and that is the trade: the shrinkage is free, the trees are not.
     </p>
   </section>
 
@@ -270,7 +283,7 @@
   <div class="interactive-full stacked-charts" id="stopping-widget">
     <div class="controls-row" style="justify-content: center">
       <span class="slider-label">stop after <span class="value" id="stop-n-label">16</span> trees</span>
-      <input type="range" class="atlas-range" id="stop-n" min="1" max="400" step="1" value="16" />
+      <input type="range" class="atlas-range" id="stop-n" aria-label="stop after this many trees" min="1" max="400" step="1" value="16" />
     </div>
     <div id="stopping-chart"></div>
     <div class="widget-readout" id="stopping-stats"></div>
@@ -319,6 +332,15 @@
       $$ w^{*} = -\frac{G}{H + \lambda} $$
     </p>
     <p class="body-text">
+      It is worth grounding those symbols before the widget prints them. For
+      squared error the gradient is minus the residual and the second derivative
+      is exactly 1, so \(H\) is simply <i>how many points are in the leaf</i> and
+      \(w^{*}\) is their mean residual, shrunk by \(\lambda\). That is the whole
+      trick: the same ratio covers logistic loss, Poisson loss and everything
+      else, and squared error is just the case where it collapses back into an
+      average.
+    </p>
+    <p class="body-text">
       and the value of holding that leaf is \(\tfrac{1}{2} G^2/(H+\lambda)\). A
       split is then worth making only if the two children are together worth more
       than the parent, after paying a fixed toll \(\gamma\) for the extra leaf:
@@ -340,15 +362,15 @@
     <div class="equations-panel">
       <div class="controls-row">
         <span class="slider-label">split at x = <span class="value" id="gain-thr-label">4.5</span></span>
-        <input type="range" class="atlas-range" id="gain-thr" min="0.6" max="9" step="0.05" value="4.5" />
+        <input type="range" class="atlas-range" id="gain-thr" aria-label="split threshold on x" min="0.6" max="9" step="0.05" value="4.5" />
       </div>
       <div class="controls-row">
         <span class="slider-label">λ = <span class="value" id="gain-lambda-label">1.0</span></span>
-        <input type="range" class="atlas-range" id="gain-lambda" min="0" max="40" step="0.5" value="1" />
+        <input type="range" class="atlas-range" id="gain-lambda" aria-label="lambda, leaf regularization" min="0" max="40" step="0.5" value="1" />
       </div>
       <div class="controls-row">
         <span class="slider-label">γ = <span class="value" id="gain-gamma-label">0.0</span></span>
-        <input type="range" class="atlas-range" id="gain-gamma" min="0" max="30" step="0.5" value="0" />
+        <input type="range" class="atlas-range" id="gain-gamma" aria-label="gamma, cost charged per split" min="0" max="30" step="0.5" value="0" />
       </div>
       <div id="gain-eq"></div>
       <div id="gain-stats"></div>
@@ -390,7 +412,7 @@
       <button class="atlas-btn" id="growth-level">Level-wise</button>
       <button class="atlas-btn ghost" id="growth-leaf">Leaf-wise</button>
       <span class="slider-label">splits used: <span class="value" id="growth-budget-label">4</span></span>
-      <input type="range" class="atlas-range" id="growth-budget" min="1" max="11" step="1" value="4" />
+      <input type="range" class="atlas-range" id="growth-budget" aria-label="split budget" min="1" max="11" step="1" value="4" />
     </div>
     <div id="growth-chart"></div>
     <div class="widget-readout" id="growth-stats"></div>
@@ -582,7 +604,7 @@
       the headline feature of both LightGBM and CatBoost, and here it does
       nothing at all. That is not a failure, it is a lesson about when the
       feature is for: cut, colour and clarity are <span class="bold">ordered
-      grades</span>, so mapping them to 0 through 4 encodes real information, and
+      grades</span>, so numbering them in grade order encodes real information, and
       a method that treats them as unordered sets can only match it. Native
       handling earns its reputation on genuinely unordered, high-cardinality
       columns, postcodes, product IDs, user agents, where an ordinal code would
@@ -606,7 +628,8 @@
     <p class="body-text">
       Boosted ensembles hand you a feature importance ranking for free, which is
       a large part of their appeal and a reliable source of confident nonsense.
-      Here is the ranking from a model trained on all 53,920 diamonds.
+      Here is the ranking from a model trained on the same 80% split as every
+      other model on this page, 43,136 stones.
     </p>
   </section>
 
@@ -722,7 +745,7 @@
       line, then a shape, then a distribution, then a trusted majority, then
       distance itself, and finally here, no continuous structure whatsoever,
       only a very long sum of yes-or-no questions. Which leaves one obvious
-      question for the last article of the module, and it is the one everybody
+      question for the article that closes this arc, and it is the one everybody
       asks: if boosting wins on tabular data, what exactly happens when you
       point a neural network at it?
       <a href="../deep-learning-tables/">Deep Learning for Tables</a> measures

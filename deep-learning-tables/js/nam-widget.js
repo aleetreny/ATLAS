@@ -125,7 +125,7 @@ export function initNamWidget(data) {
         `<span style="color:var(--smile)">${d.feature}</span><br/>` +
           `this stone: ${fmtX(stones[stone].values[j])}<br/>` +
           `contribution ${signed(stones[stone].contrib[j])}<br/>` +
-          `full range ${money(d.range)}`,
+          `span, 1st to 99th pct ${money(d.range)}`,
         event
       );
     })

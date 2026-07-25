@@ -50,10 +50,58 @@ export function olsFit(X, y) {
   return solve(XtX, Xty);
 }
 
-/* Polynomial regression of given degree with column standardization
- * (keeps the normal equation well-conditioned at degree 9, same scheme the
- * Python reference used, so R^2 values match). Returns a predict(x) function
- * plus train diagnostics. */
+/* Solve min ||A x - b|| by Householder QR, without ever forming A'A.
+ *
+ * The article teaches the Normal Equation and olsFit above is its faithful
+ * mirror, which is fine for the two-parameter line it fits. Polynomials are a
+ * different animal: forming A'A squares the condition number, and the powers
+ * x^1..x^9 stay nearly collinear even after each column is standardized. In
+ * double precision the elimination then hits pivots it has to skip, and the
+ * fit comes back wrong *silently*. Measured on this very widget: at degree 9
+ * on all 294 cars the normal equation reported test r^2 = 0.681 when the true
+ * value, which QR and the Python reference both give, is 0.649. That is the
+ * difference between "degree 9 is fine" and "degree 9 is past the peak", which
+ * is the entire point of the widget. */
+export function lstsq(A, b) {
+  const m = A.length;
+  const n = A[0].length;
+  const R = A.map((row, i) => [...row, b[i]]);
+
+  for (let k = 0; k < n; k++) {
+    let norm = 0;
+    for (let i = k; i < m; i++) norm += R[i][k] * R[i][k];
+    norm = Math.sqrt(norm);
+    if (norm < 1e-300) continue;
+
+    const alpha = R[k][k] > 0 ? -norm : norm; // sign that avoids cancellation
+    const v = new Array(m).fill(0);
+    for (let i = k; i < m; i++) v[i] = R[i][k];
+    v[k] -= alpha;
+
+    let vv = 0;
+    for (let i = k; i < m; i++) vv += v[i] * v[i];
+    if (vv < 1e-300) continue;
+
+    for (let j = k; j <= n; j++) {
+      let dot = 0;
+      for (let i = k; i < m; i++) dot += v[i] * R[i][j];
+      const f = (2 * dot) / vv;
+      for (let i = k; i < m; i++) R[i][j] -= f * v[i];
+    }
+  }
+
+  const x = new Array(n).fill(0);
+  for (let i = n - 1; i >= 0; i--) {
+    let s = R[i][n];
+    for (let j = i + 1; j < n; j++) s -= R[i][j] * x[j];
+    x[i] = Math.abs(R[i][i]) < 1e-300 ? 0 : s / R[i][i];
+  }
+  return x;
+}
+
+/* Polynomial regression of given degree with column standardization (the same
+ * scheme the Python reference used, so the R^2 values match) solved by QR.
+ * Returns a predict(x) function plus the coefficients. */
 export function polyFit(xs, ys, degree) {
   const n = xs.length;
   const mu = [];
@@ -69,11 +117,11 @@ export function polyFit(xs, ys, degree) {
     sd.push(s);
   }
   const X = xs.map((x) => {
-    const row = [];
+    const row = [1];
     for (let d = 1; d <= degree; d++) row.push((x ** d - mu[d - 1]) / sd[d - 1]);
     return row;
   });
-  const coeffs = olsFit(X, ys);
+  const coeffs = lstsq(X, ys);
   const predict = (x) => {
     let yhat = coeffs[0];
     for (let d = 1; d <= degree; d++) yhat += coeffs[d] * ((x ** d - mu[d - 1]) / sd[d - 1]);

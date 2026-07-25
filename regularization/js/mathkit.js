@@ -151,13 +151,15 @@ export function makeModel(X, y) {
       if (l1Ratio === 0) return ridgeFit(X, y, alpha);
       return coordFit(X, y, alpha, { l1Ratio });
     },
-    /* A whole path, warm-started from the strongest penalty downward. */
-    path(alphas, l1Ratio = 1) {
+    /* A whole path, warm-started from the strongest penalty downward.
+     * opts is forwarded to the descent: badly conditioned designs need a much
+     * larger maxIter than the default before the answer stops moving. */
+    path(alphas, l1Ratio = 1, opts = {}) {
       const order = alphas.map((a, i) => [a, i]).sort((p, q) => q[0] - p[0]);
       const out = new Array(alphas.length);
       let warm = null;
       for (const [a, i] of order) {
-        const b = l1Ratio === 0 ? ridgeFit(X, y, a) : coordFit(X, y, a, { l1Ratio, warmStart: warm });
+        const b = l1Ratio === 0 ? ridgeFit(X, y, a) : coordFit(X, y, a, { ...opts, l1Ratio, warmStart: warm });
         warm = b;
         out[i] = b;
       }

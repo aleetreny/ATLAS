@@ -302,7 +302,10 @@ export function initScrollyRotation() {
     .data(ROWS)
     .join('g')
     .attr('class', 'row')
-    .attr('transform', (d, i) => `translate(0,${24 + i * 44})`)
+    /* 44 was too tight once the leaf count moved down to clear the figure's
+     * descenders: the note then touched the next row's label. The panel has
+     * 510 units of height and uses 254 of them, so the pitch can afford 48. */
+    .attr('transform', (d, i) => `translate(0,${24 + i * 48})`)
     .attr('opacity', 0);
   rowG
     .append('text')
@@ -323,7 +326,10 @@ export function initScrollyRotation() {
     .append('text')
     .attr('class', 'chart-annotation')
     .attr('x', 0)
-    .attr('y', 31)
+    /* 31 put the leaf count inside the descender box of the 15px figure above
+     * it. Invisible on a desktop, a one-pixel collision at 375px. The row pitch
+     * is 44, so there is room. */
+    .attr('y', 34)
     .style('font-size', '0.55rem')
     .style('text-transform', 'none')
     .attr('opacity', 0.7);

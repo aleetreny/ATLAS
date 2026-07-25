@@ -6,8 +6,9 @@
  * everywhere: exp of anything is above zero, so every feature always gets some
  * weight, however small, and "this model ignored that column" is never literally
  * true. Sparsemax projects the score vector onto the simplex instead, and a
- * projection lands on the boundary whenever the point is outside, which means
- * exact zeros.
+ * projection can land on a face of it, where some coordinates are exactly zero.
+ * Whether it does depends on how unequal the scores are, not merely on the fact
+ * that the raw scores lie outside the simplex, which they always do.
  *
  *   sparsemax(z) = argmin_{p in simplex} ||p - z||^2
  *

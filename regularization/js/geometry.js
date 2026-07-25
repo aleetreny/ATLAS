@@ -117,9 +117,13 @@ export function initGeometry(dia) {
 
   /* Budget boundary passing exactly through the solution. */
   function budgetPath(b, l1Ratio) {
-    const t =
+    const raw =
       l1Ratio * (Math.abs(b[0]) + Math.abs(b[1])) +
       ((1 - l1Ratio) / 2) * (b[0] * b[0] + b[1] * b[1]);
+    /* Once the penalty kills both coefficients the budget is exactly zero and
+     * the region collapses to a point, so the shape the whole section is about
+     * disappears at the very moment it has won the argument. Keep a sliver. */
+    const t = Math.max(raw, 1e-3);
     const pts = [];
     for (let i = 0; i <= 240; i++) {
       const phi = (i / 240) * 2 * Math.PI;
@@ -166,11 +170,14 @@ export function initGeometry(dia) {
     const zeroA = Math.abs(b[0]) < 1e-9;
     const zeroB = Math.abs(b[1]) < 1e-9;
     if (zeroA || zeroB) {
+      /* Both can go at once, and naming only the first one made the widget look
+       * like it had missed half of what it had just done. */
+      const gone = [zeroA && nameA, zeroB && nameB].filter(Boolean);
       killNote
         .attr('x', x(b[0]))
         .attr('y', yS(b[1]) + (zeroB ? 30 : 0))
         .attr('opacity', 1)
-        .text(`${zeroA ? nameA : nameB} eliminated`);
+        .text(`${gone.join(' and ')} eliminated`);
     } else {
       killNote.attr('opacity', 0);
     }
@@ -179,9 +186,10 @@ export function initGeometry(dia) {
     const shape = state.l1Ratio === 1 ? 'a diamond, corners on the axes' : state.l1Ratio === 0 ? 'a circle, no corners anywhere' : 'a rounded diamond, corners survive';
     statsEl.innerHTML =
       `<div class="slider-label" style="margin-bottom:.4rem"><span class="bold">${kind}</span>: budget is ${shape}.</div>` +
-      `<div class="slider-label">${nameA} = <span class="value">${b[0].toFixed(3)}</span></div>` +
+      `<div class="slider-label">${nameA} = <span class="value">${b[0].toFixed(3)}</span>` +
+      `${zeroA ? ' <span class="bold" style="color:var(--cosmos)">← exactly zero</span>' : ''}</div>` +
       `<div class="slider-label">${nameB} = <span class="value">${b[1].toFixed(3)}</span>` +
-      `${zeroA || zeroB ? ' <span class="bold" style="color:var(--cosmos)">← exactly zero</span>' : ''}</div>`;
+      `${zeroB ? ' <span class="bold" style="color:var(--cosmos)">← exactly zero</span>' : ''}</div>`;
   }
 
   for (const [ratio, btn] of Object.entries(buttons)) {

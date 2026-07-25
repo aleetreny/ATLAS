@@ -74,15 +74,39 @@ export function initLambdaKnob(sine) {
   const spec = g.append('g');
   const bx = d3.scaleBand().domain(d3.range(sine.degree)).range([0, w]).padding(0.3);
 
+  const sliderEl = document.querySelector('#knob-alpha');
+
+  /* Solve every stop of the slider once, up front.
+   *
+   * Ridge is exact (QR on an augmented system), so it does not care. Lasso is
+   * coordinate descent, and on a degree-15 design with twenty points the
+   * columns are close enough to parallel that a cold 800-iteration solve is
+   * nowhere near the answer: at lambda = 1e-4 it reported max |coef| = 3.19 and
+   * 13 surviving features when scikit-learn, shipped in the reference block,
+   * says 8.15 and 7. The widget was drawing a lasso far tamer than the real
+   * one, which is the opposite of what this page is arguing.
+   *
+   * Warm starting down the path from the strongest penalty, and giving each
+   * step a real iteration budget, fixes it: measured against every reference
+   * alpha the agreement is now to four decimals. Solved once for all 69 stops
+   * it costs a tenth of a second, and the slider stays instant while dragging. */
+  const stops = [];
+  for (let lv = +sliderEl.min; lv <= +sliderEl.max + 1e-9; lv += +sliderEl.step) stops.push(10 ** lv);
+  const lassoFits = model.path(stops, 1, { maxIter: 20000, tol: 1e-13 });
+  const ridgeFits = stops.map((a) => model.fit(a, 0));
+  const nearest = (a) => {
+    let best = 0;
+    for (let i = 1; i < stops.length; i++) if (Math.abs(stops[i] - a) < Math.abs(stops[best] - a)) best = i;
+    return best;
+  };
+
   /* Size the bar scale to the coefficients this slider can actually produce.
    * A fixed symlog domain borrowed from the unregularized fit (which reaches
    * into the hundreds) squashed every bar here into a few invisible pixels,
    * because nothing on this widget exceeds about 10. */
-  const sliderEl = document.querySelector('#knob-alpha');
   let peak = 0;
-  for (let lv = +sliderEl.min; lv <= +sliderEl.max; lv += 0.25) {
-    const a = 10 ** lv;
-    peak = Math.max(peak, d3.max(model.fit(a, 0), (v) => Math.abs(v)), d3.max(model.fit(a, 1), (v) => Math.abs(v)));
+  for (let i = 0; i < stops.length; i++) {
+    peak = Math.max(peak, d3.max(ridgeFits[i], (v) => Math.abs(v)), d3.max(lassoFits[i], (v) => Math.abs(v)));
   }
   const by = d3.scaleLinear().domain([0, symlog(peak) * 1.04]).range([0, BAR_MAX]).clamp(true);
 
@@ -107,6 +131,13 @@ export function initLambdaKnob(sine) {
   const alphaLabel = document.querySelector('#knob-alpha-label');
   const statsEl = document.querySelector('#knob-stats');
 
+  /* Look the reference up by VALUE, not by string. The keys are written the way
+   * Python prints a float ("1e-06", "1.0") and the way JavaScript prints the
+   * same number ("0.000001", "1") does not match, so a string lookup silently
+   * skipped most of the checks and one genuinely wrong fit sailed through. */
+  const REF = Object.entries(sine.ref.alphas).map(([k, v]) => [Number(k), v]);
+  const refFor = (a) => (REF.find(([k]) => Math.abs(k - a) <= 1e-9 * Math.max(k, a)) || [])[1];
+
   function curveFor(b) {
     return grid.map((v, i) => [v, yMean + Xg[i].reduce((s, u, j) => s + u * b[j], 0)]);
   }
@@ -115,8 +146,9 @@ export function initLambdaKnob(sine) {
     const alpha = 10 ** (+slider.value);
     alphaLabel.textContent = alpha < 0.001 ? alpha.toExponential(0) : alpha.toPrecision(2);
 
-    const bR = model.fit(alpha, 0);
-    const bL = model.fit(alpha, 1);
+    const i = nearest(alpha);
+    const bR = ridgeFits[i];
+    const bL = lassoFits[i];
 
     const dR = line(curveFor(bR));
     const dL = line(curveFor(bL));
@@ -153,11 +185,14 @@ export function initLambdaKnob(sine) {
     // few percent of disagreement down there is a property of the problem, not
     // a bug in either solver. Anywhere the problem is well posed they agree to
     // four decimals.
-    const ref = sine.ref.alphas[alpha.toString()];
+    const ref = refFor(alpha);
     if (ref) {
       const jsMax = d3.max(bL, (v) => Math.abs(v));
       const rel = Math.abs(jsMax - ref.lasso_max_abs) / Math.max(ref.lasso_max_abs, 1e-9);
       if (rel > 0.05) console.warn(`lasso@${alpha}: JS ${jsMax.toFixed(4)} vs sklearn ${ref.lasso_max_abs}`);
+      if (nonZero(bL, 1e-6) !== ref.lasso_nonzero) {
+        console.warn(`lasso@${alpha}: JS keeps ${nonZero(bL, 1e-6)} features vs sklearn ${ref.lasso_nonzero}`);
+      }
     }
   }
 

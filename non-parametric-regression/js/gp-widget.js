@@ -70,16 +70,23 @@ export function initGpWidget() {
     const avgSd = d3.mean(sd);
     const maxSd = d3.max(sd);
     const worstAt = grid[sd.indexOf(maxSd)];
+    /* With a flat band there is no "least confident" point, and naming the
+     * first grid cell as though there were contradicted the sentence directly
+     * underneath. The test is on the band, not on obs.length: a short-period
+     * periodic kernel flattens it with observations present too. */
+    const flat = maxSd - d3.min(sd) < 1e-6;
     statsEl.innerHTML =
       `<div class="slider-label">observations: <span class="value">${obs.length}</span>` +
       ` · average uncertainty <span class="value">${avgSd.toFixed(2)}</span></div>` +
-      `<div class="slider-label">least confident at x = <span class="value">${worstAt.toFixed(1)}</span>` +
-      ` (±${(2 * maxSd).toFixed(2)})</div>` +
+      (flat
+        ? `<div class="slider-label">uncertainty is identical everywhere: <span class="value">±${(2 * maxSd).toFixed(2)}</span></div>`
+        : `<div class="slider-label">least confident at x = <span class="value">${worstAt.toFixed(1)}</span>` +
+          ` (±${(2 * maxSd).toFixed(2)})</div>`) +
       `<div class="slider-label" style="margin-top:.4rem;line-height:1.45">${
         obs.length === 0
           ? 'With no data the posterior is the prior: a flat mean and a band of constant width. It knows nothing, and says so.'
           : obs.length < 4
-            ? 'The band pinches shut at each observation and swells between them. That shape is the model reporting where it is guessing.'
+            ? 'The band pinches down to the noise level at each observation and swells between them. That shape is the model reporting where it is guessing.'
             : 'Every other method on this page would answer with equal confidence everywhere. This one will not.'
       }</div>`;
   }
@@ -109,15 +116,26 @@ export function initGpWidget() {
     document.querySelector('#gp-length-label').textContent = state.length.toFixed(2);
     render();
   });
+
+  /* The same knob means two different things. In the RBF and Matern kernels it
+   * is a length scale; in the periodic one it sets the period, and calling that
+   * a length scale while the curve repeats at a fixed interval is misleading. */
+  const nameKnob = document.querySelector('#gp-length-name');
+  const relabel = () => {
+    if (nameKnob) nameKnob.textContent = state.kernel === 'periodic' ? 'period' : 'length scale';
+  };
+
   for (const [k, id] of [['rbf', '#gp-rbf'], ['matern', '#gp-matern'], ['periodic', '#gp-periodic']]) {
     document.querySelector(id).addEventListener('click', () => {
       state.kernel = k;
       for (const [k2, id2] of [['rbf', '#gp-rbf'], ['matern', '#gp-matern'], ['periodic', '#gp-periodic']]) {
         document.querySelector(id2).classList.toggle('ghost', k2 !== k);
       }
+      relabel();
       render();
     });
   }
 
+  relabel();
   render();
 }

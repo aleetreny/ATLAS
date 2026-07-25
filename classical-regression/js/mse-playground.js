@@ -22,8 +22,9 @@ export function initMSEPlayground(mpg) {
   const HP_B = 200;
   const state = { b0: 45, b1: -0.05, resid: false };
 
-  drawGrid(g, x, yData, w, h);
-  drawAxes(g, x, yData, w, h);
+  /* The grid is redrawn on every render, alongside the axis it belongs to.
+   * Drawing it once here left MPG rules behind the residual axis, so the faint
+   * lines named heights the labels disagreed with. */
   axisLabels(g, w, h, { x: 'horsepower', y: 'MPG' });
 
   const stemsG = g.append('g');
@@ -82,6 +83,7 @@ export function initMSEPlayground(mpg) {
 
     if (!state.resid) {
       // ---- data view ----
+      drawGrid(g, x, yData, w, h);
       drawAxes(g, x, yData, w, h);
       axisLabels(g, w, h, { x: 'horsepower', y: 'MPG' });
       zeroLine.transition(t).attr('opacity', 0);
@@ -109,6 +111,13 @@ export function initMSEPlayground(mpg) {
         .attr('stroke', 'var(--cosmos)').attr('stroke-width', 1).attr('opacity', 0.35);
     } else {
       // ---- residual view ----
+      /* Size the axis to the residuals the current line actually produces. A
+       * fixed [-22, 22] window is fine for the fitted line but throws 81 of the
+       * 392 points off the canvas the moment you drag the handles, and an
+       * unclipped chart paints them over the axis labels. */
+      const span = d3.max(pts, (d) => Math.abs(d.mpg - predict(d.hp))) * 1.06;
+      yResid.domain([-span, span]);
+      drawGrid(g, x, yResid, w, h);
       drawAxes(g, x, yResid, w, h);
       axisLabels(g, w, h, { x: 'horsepower', y: 'residual' });
       zeroLine.attr('y1', yResid(0)).attr('y2', yResid(0)).transition(t).attr('opacity', 1);

@@ -5,6 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Deep Learning for Tables | ATLAS</title>
   <meta name="description" content="A visual, interactive account of why neural networks keep losing to gradient boosting on tabular data, what TabNet and neural additive models actually contribute, and when a network is still the right call." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/deep-learning-tables/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="Deep Learning for Tables | ATLAS" />
+  <meta property="og:description" content="A visual, interactive account of why neural networks keep losing to gradient boosting on tabular data, what TabNet and neural additive models actually contribute, and when a network is still the right call." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/deep-learning-tables/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Deep Learning for Tables | ATLAS" />
+  <meta name="twitter:description" content="A visual, interactive account of why neural networks keep losing to gradient boosting on tabular data, what TabNet and neural additive models actually contribute, and when a network is still the right call." />
   <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="../assets/styles/fonts.css" />
   <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
@@ -102,7 +111,7 @@
     </p>
   </section>
 
-  <section id="rot-scrolly">
+  <section id="rot-scrolly" class="scrolly">
     <div class="scrolly-container">
       <div class="steps-container">
         <div class="step" data-index="0">
@@ -161,8 +170,8 @@
               The obvious objection is that depth 6 was too mean, so here is the
               same fit with the limit taken off entirely. It helps, and it does
               not rescue anything: still six times the aligned error, from a tree
-              that now needs more than twice as many leaves to get there. Look at
-              the row above it. The aligned tree never wanted the extra depth. It
+              that now needs more than twice as many leaves to get there. Look
+              back at the aligned tree. It never wanted the extra depth. It
               used thirteen leaves and stopped, because thirteen was enough.
             </p>
           </div>
@@ -180,6 +189,7 @@
             </p>
           </div>
         </div>
+        <div class="step-spacer"></div>
       </div>
       <div class="charts-container">
         <div class="chart-wrap" id="rot-chart"></div>
@@ -250,7 +260,7 @@
     <div id="junk-chart"></div>
     <div class="controls-row" style="justify-content: center">
       <span class="slider-label">noise columns</span>
-      <input type="range" min="0" max="3" step="1" value="0" class="atlas-range" id="junk-slider" />
+      <input type="range" min="0" max="3" step="1" value="0" class="atlas-range" id="junk-slider" aria-label="number of pure noise columns added" />
     </div>
     <div class="widget-readout" id="junk-readout"></div>
   </div>
@@ -324,9 +334,11 @@
     <br />
     <p class="body-text">
       <span class="bold">Nothing neural is fast.</span> The horizontal axis is
-      logarithmic for a reason. Press the button to see it linear: six of the
-      seven models collapse onto the left edge and TabNet sits alone at forty
-      seconds, roughly fifty times the cost of the model that beats it. On this
+      logarithmic for a reason. Press the button to see it linear: two of the
+      seven pin themselves to the left edge, three cluster between ten and
+      sixteen seconds, and two long tails are left out on their own, TabNet at
+      38 seconds and the pairwise EBM at 49. TabNet alone costs roughly fifty
+      times the model that beats it on accuracy. On this
       dataset that is the difference between an experiment you run and an
       experiment you think about running.
     </p>
@@ -463,8 +475,9 @@
       Leave the panels on <span class="bold">shared scale</span> for a moment
       before pressing the toggle. Carat swings the price by
       <span class="bold">$8,103</span> across its range; table percentage swings
-      it by <span class="bold">$253</span>. On a common axis, five of the nine
-      curves are visibly almost flat, and that is the finding. Press
+      it by <span class="bold">$253</span>. On a common axis, three of the nine
+      are visibly almost flat, cut, table percentage and depth percentage, and
+      that is the finding. Press
       <span class="bold">own scale each</span> and every panel fills its box with
       an interesting-looking wiggle. Both charts are honest. Only one of them
       tells you what matters, which is a good general warning about small
@@ -521,9 +534,12 @@
       $$ \operatorname{sparsemax}(z) = \operatorname*{arg\,min}_{p \in \Delta} \lVert p - z \rVert^2 $$
     </p>
     <p class="body-text">
-      and a projection lands on the boundary of a set whenever the point is
-      outside it. On the simplex, the boundary is exactly where some coordinates
-      are zero. Drag the slider: the feature scores below are real, taken from
+      and a projection can land on a face of the simplex, where some coordinates
+      are exactly zero, in a way that a softmax never can. Whether it does
+      depends on how unequal the scores are: the closed form fixes a threshold
+      \(\tau\), and every feature whose score falls below it is switched off. Even
+      out the scores and nothing is dropped, which is why the slider matters and
+      not just the choice of normaliser. Drag it: the feature scores below are real, taken from
       how far the additive model above moves the price across each feature's
       range.
     </p>
@@ -533,7 +549,7 @@
     <div id="attn-chart"></div>
     <div class="controls-row" style="justify-content: center">
       <span class="slider-label">score sharpness</span>
-      <input type="range" min="0.1" max="2.6" step="0.05" value="0.8" class="atlas-range" id="attn-slider" />
+      <input type="range" min="0.1" max="2.6" step="0.05" value="0.8" class="atlas-range" id="attn-slider" aria-label="score sharpness fed to softmax and sparsemax" />
     </div>
     <div class="widget-readout" id="attn-readout"></div>
   </div>
@@ -646,16 +662,19 @@
     </p>
     <br />
     <p class="body-text">
-      This closes module 1.1. Six articles, and the arc through them is a steady
+      That closes the arc of module 1.1. Six articles, and the path through them
+      is a steady
       surrender of assumptions: a straight line, then a line with its
       coefficients pulled toward zero, then a line that stops trusting the
       majority of its own data, then no line at all but a weighted vote among
       neighbours, then a long sum of yes-or-no questions, and finally here, a
       function assembled by gradient descent with no shape assumed anywhere. The
       last of those is the most flexible and, on this data, not the best. That is
-      a fitting note to end a module on. The next one leaves regression behind
-      for classification, where the target stops being a number and becomes a
-      decision.
+      a fitting note to end on. A couple of regression methods are still on the
+      map and will get their own pages later, support vector regression and
+      kernel ridge, but they are variations on ground this module has already
+      covered. The next module leaves regression behind for classification, where
+      the target stops being a number and becomes a decision.
     </p>
     <br />
     <p class="body-text">

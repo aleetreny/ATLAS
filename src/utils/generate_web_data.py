@@ -16,11 +16,17 @@ from sklearn.linear_model import LinearRegression, PoissonRegressor
 from sklearn.metrics import r2_score
 from sklearn.preprocessing import StandardScaler
 
-DATA = Path(r"C:\Users\Z0058EYW\Workspace\Atlas\docs\classical-regression\data")
+# Raw CSVs live in datasets/, generated JSON goes next to the article that
+# serves it. Both derived from the repo root, so the script runs anywhere and
+# does not point at a docs/ directory that stopped existing when the site moved
+# to the repo root.
+ROOT = Path(__file__).resolve().parents[2]
+RAW = ROOT / "datasets"
+DATA = ROOT / "classical-regression" / "data"
 rnd = lambda x, n=4: round(float(x), n)
 
 # ---------- 1. Auto MPG: horsepower vs mpg ----------
-mpg = pd.read_csv(DATA / "mpg_raw.csv").dropna(subset=["horsepower", "mpg"])
+mpg = pd.read_csv(RAW / "mpg.csv").dropna(subset=["horsepower", "mpg"])
 pts = [{"hp": rnd(h, 1), "mpg": rnd(m, 1), "name": str(n)}
        for h, m, n in zip(mpg.horsepower, mpg.mpg, mpg.name)]
 
@@ -64,7 +70,7 @@ mpg_out = {
 (DATA / "mpg.json").write_text(json.dumps(mpg_out, separators=(",", ":")), encoding="utf-8")
 
 # ---------- 2. Tips: total_bill vs party size (Poisson GLM) ----------
-tips = pd.read_csv(DATA / "tips_raw.csv")
+tips = pd.read_csv(RAW / "tips.csv")
 tpts = [{"bill": rnd(b, 2), "size": int(s)} for b, s in zip(tips.total_bill, tips["size"])]
 Xt = tips[["total_bill"]].values
 yt = tips["size"].values
