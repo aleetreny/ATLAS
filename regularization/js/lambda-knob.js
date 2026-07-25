@@ -23,7 +23,7 @@ export function initLambdaKnob(sine) {
   const { g, w, h } = makeChart('#knob-chart', {
     width: 620,
     height: 620,
-    margin: { top: 175, right: 22, bottom: 62, left: 56 },
+    margin: { top: 175, right: 22, bottom: 62, left: 62 },
   });
 
   const x = d3.scaleLinear().domain([-0.15, 5.15]).range([0, w]);

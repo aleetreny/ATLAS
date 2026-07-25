@@ -30,14 +30,18 @@ export function initPLSWidget(wine) {
 function drawHeatmap(wine) {
   const n = wine.features.length;
   const labels = wine.features.map((f) => ABBREV[f] || f);
-  const size = 560;
-  const pad = { top: 70, left: 78 };
-  const cell = (size - pad.left - 12) / n;
+  // The column labels are rotated 45 degrees, so the rightmost one reaches well
+  // past its own column. The canvas is wider than the grid to give it room:
+  // at equal width the last label ("proline") was clipped by the svg edge.
+  const W = 625;
+  const H = 580;
+  const pad = { top: 78, left: 78 };
+  const cell = (560 - pad.left - 12) / n;
 
   const svg = d3
     .select('#corr-widget')
     .append('svg')
-    .attr('viewBox', `0 0 ${size} ${size}`)
+    .attr('viewBox', `0 0 ${W} ${H}`)
     .attr('preserveAspectRatio', 'xMidYMid meet')
     .style('width', '100%')
     .style('height', 'auto');
@@ -45,8 +49,8 @@ function drawHeatmap(wine) {
   svg
     .append('text')
     .attr('class', 'chart-title')
-    .attr('x', size / 2)
-    .attr('y', 22)
+    .attr('x', pad.left + (cell * n) / 2)
+    .attr('y', 18)
     .attr('text-anchor', 'middle')
     .text('13 features, one story told twice');
 
