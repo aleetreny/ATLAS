@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gradient Boosting | ATLAS</title>
+  <meta name="description" content="A visual, interactive introduction to gradient boosting: how a committee of deliberately weak trees, each fitted to the previous ensemble's mistakes, became the default model for tabular data." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    /* Per-article theme. Everything else inherits from these two. */
+    :root {
+      --primary: #df2a5d;
+      --secondary: #b01e49;
+    }
+    /* Width only: a margin here would override .interactive-full's rhythm. */
+    .stacked-charts {
+      max-width: 760px;
+    }
+    .gb-table {
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      margin-top: 0.5rem;
+      width: 100%;
+    }
+    .gb-table th,
+    .gb-table td {
+      padding: 5px 10px 5px 0;
+      text-align: left;
+      font-weight: 400;
+    }
+    .gb-table th {
+      font-family: var(--font-heavy);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .gb-table td:first-child {
+      opacity: 0.75;
+    }
+  </style>
+</head>
+<body>
+  <!-- ======================= chrome ======================= -->
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <!-- ======================= hero ======================= -->
+  <section id="intro">
+    <h1 id="intro-hed">Gradient Boosting</h1>
+    <h1 id="intro-sub">A committee of weak trees, each one fitted to the last one's mistakes</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 1.1 · Regression</span>
+  </section>
+
+  <br />
+
+  <!-- ======================= introduction ======================= -->
+  <section>
+    <p class="body-text">
+      Every model in this module so far has tried to be right in one go. Fit the
+      line, fit the curve, fit the smoother, and whatever error remains is what
+      you live with. Boosting takes a stranger route. It builds a model that is
+      barely a model at all, looks at what that model got wrong, builds a second
+      one to predict <i>the mistakes</i>, adds a small fraction of it, and then
+      repeats several hundred times.
+    </p>
+    <br />
+    <p class="body-text">
+      Nothing in that description sounds powerful. Each individual member of the
+      committee is a stump: a single yes-or-no question, two possible answers.
+      And yet on the kind of data that fills most spreadsheets, ensembles built
+      this way have beaten everything else for more than a decade, including,
+      stubbornly, neural networks.
+    </p>
+    <br />
+    <p class="body-text">
+      The idea is due to Jerome Friedman <a href="#resources">[1]</a>, and his
+      framing is the one worth carrying: each new tree is a step of
+      <span class="bold">gradient descent in function space</span>. Ordinary
+      gradient descent nudges numbers to reduce a loss. Boosting nudges the
+      <i>function itself</i>, and the direction it nudges in is the residual.
+    </p>
+    <br />
+    <p class="body-text">
+      Formally the ensemble after \(M\) rounds is a sum of small corrections,
+      each scaled by a learning rate \(\nu\):
+    </p>
+    <p class="body-text">
+      $$ F_M(x) = F_0(x) + \nu \sum_{m=1}^{M} h_m(x) $$
+    </p>
+    <p class="body-text">
+      where \(F_0\) is a constant and each \(h_m\) is fitted to the residual left
+      by everything before it. That is genuinely the whole algorithm. Let's watch
+      it run.
+    </p>
+  </section>
+
+  <!-- ======================= scrolly ======================= -->
+  <section>
+    <h1 class="body-header">Building the Committee</h1>
+    <p class="body-text">
+      Ninety noisy points from a curve. The upper panel is the fit; the lower
+      panel is what is still wrong, which is the only thing any new tree ever
+      sees. Watch the second panel collapse towards zero.
+    </p>
+  </section>
+
+  <section id="boost-scrolly">
+    <div class="scrolly-container">
+      <div class="steps-container">
+        <div class="step" data-index="0">
+          <div class="step-content">
+            <h3>Start With Nothing</h3>
+            <p>
+              The first model is a single number: the mean of y. It is a terrible
+              prediction, deliberately. What matters is the panel below, where
+              the residuals still carry the entire shape of the problem.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="1">
+          <div class="step-content">
+            <h3>Fit the Mistakes</h3>
+            <p>
+              Now fit one stump, not to the data, but to those residuals. One
+              threshold, two constants. It cannot capture the curve, and it is
+              not trying to. It only has to be
+              <span class="bold">slightly better than nothing</span> at
+              describing where the errors are positive and where they are
+              negative.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="2">
+          <div class="step-content">
+            <h3>Take a Small Step</h3>
+            <p>
+              Add that stump to the ensemble, but scaled down by the learning
+              rate. Deliberately taking less than the full correction is what
+              keeps the committee from lurching, and it is the single most
+              important regularizer boosting has. The residuals shrink a little.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="3">
+          <div class="step-content">
+            <h3>Round Five</h3>
+            <p>
+              Five stumps in. The fit is a coarse staircase, and the residual
+              panel has visibly flattened in the regions those five splits
+              covered. Every subsequent tree will be handed a harder, smaller
+              problem than the one before it.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="4">
+          <div class="step-content">
+            <h3>Round Twenty-Five</h3>
+            <p>
+              The staircase now has enough steps to follow the curve up and back
+              down. Notice that no single tree here understands the shape. The
+              shape is an emergent property of the sum.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="5">
+          <div class="step-content">
+            <h3>Round One Hundred and Twenty</h3>
+            <p>
+              A smooth-looking curve made entirely of step functions, and
+              residuals that are nearly structureless noise. This is what
+              "gradient descent in function space" buys: an arbitrarily flexible
+              model assembled out of parts that individually cannot bend at all.
+            </p>
+          </div>
+        </div>
+        <div class="step-spacer"></div>
+      </div>
+      <div class="charts-container">
+        <div class="chart-wrap" id="boost-chart"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================= learning rate ======================= -->
+  <section>
+    <h1 class="body-header">Small Steps, Many of Them</h1>
+    <p class="body-text">
+      The learning rate \(\nu\) and the number of trees \(M\) are not two
+      independent settings. They are one setting seen from two directions, and
+      the product of them is roughly how far the ensemble travels. Halve the
+      rate and you need about twice the trees to arrive at the same place.
+    </p>
+    <br />
+    <p class="body-text">
+      Given that, why not always take big steps and save the compute? Because
+      the route matters. Small steps let later trees correct the overshoot of
+      earlier ones, and the resulting ensemble generalises better at the same
+      training error. This is Friedman's shrinkage, and it is why every practical
+      default sits between 0.01 and 0.1.
+    </p>
+    <br />
+    <p class="body-text">
+      The upper chart is a live fit on the toy curve. The lower chart is
+      measured on 53,920 real diamonds: validation error against tree count, one
+      line per learning rate. Notice the shape of the family.
+    </p>
+  </section>
+
+  <div class="interactive-container wide" id="rate-widget">
+    <div class="equations-panel">
+      <div class="controls-row">
+        <span class="slider-label">ν = <span class="value" id="rate-lr-label">0.25</span></span>
+        <input type="range" class="atlas-range" id="rate-lr" min="0.02" max="1" step="0.01" value="0.25" />
+      </div>
+      <div class="controls-row">
+        <span class="slider-label">trees = <span class="value" id="rate-n-label">200</span></span>
+        <input type="range" class="atlas-range" id="rate-n" min="1" max="300" step="1" value="200" />
+      </div>
+      <div id="rate-stats"></div>
+    </div>
+    <div class="chart-panel">
+      <div id="rate-chart"></div>
+      <div id="rate-surface"></div>
+    </div>
+  </div>
+
+  <section>
+    <p class="body-text">
+      Read the lower chart carefully, because it contains the practical rule. At
+      \(\nu = 1\) the model gets somewhere fast and then gets
+      <span class="bold">worse</span> as trees accumulate. At \(\nu = 0.01\) it
+      is still improving after four hundred trees and has not arrived. Everything
+      in between converges to roughly the same floor, and the slower rates
+      converge to a slightly better one. Time is the only thing you are trading.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= early stopping ======================= -->
+  <section>
+    <h1 class="body-header">Knowing When to Stop</h1>
+    <p class="body-text">
+      Boosting has no natural end. Every additional tree reduces the training
+      error, forever, because there is always some residual left to fit. Left
+      alone it will eventually fit the noise perfectly, which is why the number
+      of trees is itself a regularization parameter and why you must measure
+      when to stop rather than decide in advance.
+    </p>
+    <br />
+    <p class="body-text">
+      Below, a deliberately aggressive configuration on the diamond data: rate
+      0.6, depth 6. The training curve falls without limit. The held-out curve
+      does something else entirely.
+    </p>
+  </section>
+
+  <div class="interactive-full stacked-charts" id="stopping-widget">
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">stop after <span class="value" id="stop-n-label">16</span> trees</span>
+      <input type="range" class="atlas-range" id="stop-n" min="1" max="400" step="1" value="16" />
+    </div>
+    <div id="stopping-chart"></div>
+    <div class="widget-readout" id="stopping-stats"></div>
+  </div>
+
+  <section>
+    <p class="body-text">
+      The held-out error bottoms out at <span class="bold">tree 16</span> and
+      then climbs steadily, while the training error keeps falling all the way to
+      $133. By tree 400 the model predicts its own training stones almost
+      perfectly and has given back roughly sixty dollars of accuracy on stones it
+      has never seen. Every library implements
+      <code>early_stopping_rounds</code> for exactly this reason: watch a
+      validation set, and stop when it stops improving.
+    </p>
+    <br />
+    <p class="body-text">
+      Notice also how early that optimum arrives here. That is the aggressive
+      learning rate talking. At the gentler default of 0.1 this same model never
+      turns around at all within any tree budget worth plotting, which is the
+      clearest possible argument for shrinkage: a small learning rate is the
+      cheapest overfitting insurance boosting sells.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= xgboost second order ======================= -->
+  <section>
+    <h1 class="body-header">What XGBoost Actually Changed</h1>
+    <p class="body-text">
+      Friedman's algorithm fits each tree to the residual and then works out what
+      each leaf should say by averaging. Tianqi Chen's XGBoost
+      <a href="#resources">[2]</a> replaced that with something sharper: expand
+      the loss to <span class="bold">second order</span> around the current
+      prediction, and the whole tree-building problem turns into arithmetic.
+    </p>
+    <br />
+    <p class="body-text">
+      Write \(g_i\) for the gradient of the loss at sample \(i\) and \(h_i\) for
+      its second derivative. For a leaf holding some set of samples, with
+      \(G = \sum g_i\) and \(H = \sum h_i\), the output that minimises the
+      regularized objective is not an average but a ratio:
+    </p>
+    <p class="body-text">
+      $$ w^{*} = -\frac{G}{H + \lambda} $$
+    </p>
+    <p class="body-text">
+      and the value of holding that leaf is \(\tfrac{1}{2} G^2/(H+\lambda)\). A
+      split is then worth making only if the two children are together worth more
+      than the parent, after paying a fixed toll \(\gamma\) for the extra leaf:
+    </p>
+    <p class="body-text">
+      $$ \text{gain} = \tfrac{1}{2}\left[\frac{G_L^2}{H_L+\lambda} + \frac{G_R^2}{H_R+\lambda} - \frac{G^2}{H+\lambda}\right] - \gamma $$
+    </p>
+    <p class="body-text">
+      Three things fall out of this at once. Pruning stops being a heuristic and
+      becomes a sign test on a number. \(\lambda\) shrinks leaf outputs, exactly
+      as ridge regression shrinks coefficients in the
+      <a href="../regularization/">regularization article</a>. And \(\gamma\)
+      puts an explicit price on tree complexity. Move the threshold below and
+      watch all of it respond.
+    </p>
+  </section>
+
+  <div class="interactive-container wide" id="gain-widget">
+    <div class="equations-panel">
+      <div class="controls-row">
+        <span class="slider-label">split at x = <span class="value" id="gain-thr-label">4.5</span></span>
+        <input type="range" class="atlas-range" id="gain-thr" min="0.6" max="9" step="0.05" value="4.5" />
+      </div>
+      <div class="controls-row">
+        <span class="slider-label">λ = <span class="value" id="gain-lambda-label">1.0</span></span>
+        <input type="range" class="atlas-range" id="gain-lambda" min="0" max="40" step="0.5" value="1" />
+      </div>
+      <div class="controls-row">
+        <span class="slider-label">γ = <span class="value" id="gain-gamma-label">0.0</span></span>
+        <input type="range" class="atlas-range" id="gain-gamma" min="0" max="30" step="0.5" value="0" />
+      </div>
+      <div id="gain-eq"></div>
+      <div id="gain-stats"></div>
+    </div>
+    <div class="chart-panel" id="gain-chart"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= growth strategy ======================= -->
+  <section>
+    <h1 class="body-header">Two Ways to Grow a Tree</h1>
+    <p class="body-text">
+      LightGBM <a href="#resources">[3]</a> arrived from Microsoft Research with
+      a different question: given a budget of splits, where should you spend
+      them? Classic implementations grow
+      <span class="bold">level-wise</span>, finishing an entire depth before
+      descending, which keeps trees balanced and predictable. LightGBM grows
+      <span class="bold">leaf-wise</span>, always splitting whichever leaf
+      anywhere in the tree promises the largest loss reduction.
+    </p>
+    <br />
+    <p class="body-text">
+      Leaf-wise reaches the profitable parts of the tree sooner, so it buys more
+      improvement per split. It also produces deep, lopsided trees that will
+      happily memorise a small dataset, which is why <code>num_leaves</code> is
+      the parameter that matters most in LightGBM and why setting it too high is
+      the classic way to ruin a model with it.
+    </p>
+    <br />
+    <p class="body-text">
+      Same tree, same numbers, same budget. The only difference is the order the
+      splits are spent in.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="growth-widget" style="max-width: 720px">
+    <div class="controls-row" style="justify-content: center">
+      <button class="atlas-btn" id="growth-level">Level-wise</button>
+      <button class="atlas-btn ghost" id="growth-leaf">Leaf-wise</button>
+      <span class="slider-label">splits used: <span class="value" id="growth-budget-label">4</span></span>
+      <input type="range" class="atlas-range" id="growth-budget" min="1" max="11" step="1" value="4" />
+    </div>
+    <div id="growth-chart"></div>
+    <div class="widget-readout" id="growth-stats"></div>
+  </div>
+
+  <section>
+    <p class="body-text">
+      LightGBM's other big idea was <span class="bold">histogram binning</span>:
+      instead of considering every distinct value of a feature as a candidate
+      split, bucket the values into a couple of hundred bins once, and search
+      only the bin edges. It sounds like an approximation that should cost
+      accuracy. Measured on the diamonds, on this machine, it does not:
+    </p>
+    <br />
+    <ul class="body-text">
+      <li>Exact split search, 300 trees: RMSE <span class="bold">$572</span>, fit in <span class="bold">8.5 s</span></li>
+      <li>Histogram binning, 300 trees: RMSE <span class="bold">$526</span>, fit in <span class="bold">0.8 s</span></li>
+    </ul>
+    <br />
+    <p class="body-text">
+      Eleven times faster <i>and</i> more accurate, because the binning also acts
+      as a mild regularizer. This idea was convincing enough that XGBoost adopted
+      it: since version 2.0 its default tree method is histogram-based too, so
+      the old "XGBoost is exact, LightGBM is approximate" framing you will still
+      find in blog posts is simply out of date.
+    </p>
+    <br />
+    <p class="body-text">
+      The third library in the usual trio, <span class="bold">CatBoost</span>
+      <a href="#resources">[4]</a>, attacks a subtler problem. In standard
+      boosting the same rows are used both to compute the residuals and to fit
+      the tree that corrects them, which leaks a little of each target into its
+      own prediction and biases the ensemble. CatBoost's
+      <span class="bold">ordered boosting</span> fixes this by fixing a random
+      permutation and computing each row's residual using only a model trained on
+      rows that came before it. It also handles raw categorical columns natively
+      by target statistics computed under the same ordering, which is why it
+      tends to win on data full of high-cardinality categories.
+    </p>
+    <br />
+    <p class="body-text">
+      <i>A note on what this page does not claim. The three libraries are not
+      installed in the environment this article was built in, so no timing or
+      accuracy comparison between them appears here, and you should be suspicious
+      of any article that publishes one without saying which versions, which
+      thread count and how many repeats. The measurements above are scikit-learn
+      against scikit-learn, three runs each, on one machine, and even those
+      should be read as an order of magnitude rather than a benchmark.</i>
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= importance ======================= -->
+  <section>
+    <h1 class="body-header">Reading the Importances, Carefully</h1>
+    <p class="body-text">
+      Boosted ensembles hand you a feature importance ranking for free, which is
+      a large part of their appeal and a reliable source of confident nonsense.
+      Here is the ranking from a model trained on all 53,920 diamonds.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="importance-widget" style="max-width: 700px">
+    <div id="importance-chart"></div>
+    <div class="widget-readout" id="importance-stats"></div>
+  </div>
+
+  <section>
+    <p class="body-text">
+      A diamond's price is famously driven by carat. This model says the most
+      important feature is <span class="bold">y</span>, the width in
+      millimetres, and gives carat less than half as much credit. Both statements
+      are true and neither is informative, because y correlates with carat at
+      <span class="bold">0.95</span>: they are two measurements of one physical
+      quantity. When features are near-duplicates, gain-based importance has to
+      divide the credit between them, and how it divides is close to arbitrary.
+    </p>
+    <br />
+    <p class="body-text">
+      The lesson is not that importances are useless. It is that they measure
+      <i>what the model used</i>, not <i>what matters</i>, and those two things
+      come apart exactly when your columns are correlated, which for real data is
+      most of the time. If you need attributions you can reason about, reach for
+      <span class="bold">SHAP values</span>, which are built on a game-theoretic
+      account of how to share credit fairly among cooperating features.
+    </p>
+    <br />
+    <p class="body-text">
+      <i>Twenty of the 53,940 stones list a width, depth or height of exactly
+      zero, which is physically impossible and marks a recording error. They are
+      dropped before anything on this page is fitted.</i>
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= verdict ======================= -->
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text">
+      Everything measured on the same 53,920 diamonds, same split, three runs
+      each. The comparison is not a leaderboard, it is a shape:
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Model</th>
+          <th>Held-out RMSE</th>
+          <th>Fit time</th>
+          <th>What it tells you</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Ridge</td>
+          <td>$1,200</td>
+          <td>0.00 s</td>
+          <td>A straight line through a price surface that is anything but. The floor everything else is measured against.</td>
+        </tr>
+        <tr>
+          <td>One deep tree</td>
+          <td>$625</td>
+          <td>0.09 s</td>
+          <td>Half the error of the line, from a model that only asks yes-or-no questions. Structure beats smoothness here.</td>
+        </tr>
+        <tr>
+          <td>Random forest</td>
+          <td>$515</td>
+          <td>1.6 s</td>
+          <td>Averaging many independent deep trees. Note that it beat both boosted models at default settings.</td>
+        </tr>
+        <tr>
+          <td>Boosting, exact</td>
+          <td>$572</td>
+          <td>8.5 s</td>
+          <td>300 shallow trees in sequence. Slower and worse than the forest until you tune it, which is the honest headline.</td>
+        </tr>
+        <tr>
+          <td>Boosting, histogram</td>
+          <td>$526</td>
+          <td>0.8 s</td>
+          <td>Same algorithm, binned features. Eleven times faster and more accurate. This is what modern libraries do.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text">
+      That fourth row deserves saying out loud, because most introductions to
+      boosting quietly omit it. <span class="bold">Out of the box, on this data,
+      a random forest beat gradient boosting.</span> Boosting's advantage is not
+      that it wins by default. It is that it has far more room to be tuned, and
+      with the learning rate, depth and tree count actually searched it will
+      generally end up ahead. A forest is the better untuned model; a boosted
+      ensemble is the better tuned one. If you have an afternoon, that
+      distinction decides which you should reach for.
+    </p>
+    <br />
+    <p class="body-text">
+      And if you want boosting without a new dependency, scikit-learn's
+      <code>HistGradientBoostingRegressor</code> is the histogram-based
+      implementation used for the last row above. It is genuinely competitive,
+      and it is already installed.
+    </p>
+    <br />
+    <p class="body-text">
+      This is the last technique in module 1.1. Across five articles the
+      assumptions have fallen away one at a time: a line, then a shape, then a
+      distribution, then a trusted majority, then distance itself, and finally
+      here, no continuous structure whatsoever, only a very long sum of
+      yes-or-no questions. The next module leaves regression behind for
+      classification, where the target stops being a number and becomes a
+      decision.
+    </p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! The from-scratch NumPy implementation
+      (<code>ScratchGradientBoosting</code>) lives in the
+      <a href="https://github.com/aleetreny/ATLAS">ATLAS repository</a>. The
+      toy-curve boosting on this page runs live in your browser, stump by stump;
+      the diamond measurements were produced by
+      <code>src/utils/generate_boosting_data.py</code>, which you can rerun.
+    </p>
+  </section>
+
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text">
+      Every diamond number quoted here comes from a script in the repository
+      rather than from memory, and the boosting loop in the first chart is
+      implemented from scratch in about eighty lines of JavaScript.
+    </p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://projecteuclid.org/journals/annals-of-statistics/volume-29/issue-5/Greedy-function-approximation-A-gradient-boosting-machine/10.1214/aos/1013203451.full">[1] Greedy Function Approximation: A Gradient Boosting Machine</a><br />
+      (Friedman, J. H., Annals of Statistics, 2001)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://dl.acm.org/doi/10.1145/2939672.2939785">[2] XGBoost: A Scalable Tree Boosting System</a><br />
+      (Chen, T. &amp; Guestrin, C., KDD, 2016)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://papers.nips.cc/paper_files/paper/2017/hash/6449f44a102fde848669bdd9eb6b76fa-Abstract.html">[3] LightGBM: A Highly Efficient Gradient Boosting Decision Tree</a><br />
+      (Ke, G. et al., NeurIPS, 2017)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://papers.nips.cc/paper_files/paper/2018/hash/14491b756b3a51daac41c24863285549-Abstract.html">[4] CatBoost: Unbiased Boosting with Categorical Features</a><br />
+      (Prokhorenkova, L. et al., NeurIPS, 2018)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/2207.08815">[5] Why Do Tree-Based Models Still Outperform Deep Learning on Tabular Data?</a><br />
+      (Grinsztajn, L., Oyallon, E., Varoquaux, G., NeurIPS Datasets and Benchmarks, 2022)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://www.kaggle.com/datasets/shivam2503/diamonds">[6] The Diamonds Dataset</a><br />
+      (53,940 stones, distributed with ggplot2 and seaborn)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>

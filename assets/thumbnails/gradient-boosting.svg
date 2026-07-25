@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <rect width="400" height="300" fill="#f1f3f3" />
+  <g stroke="#232f3e" stroke-opacity="0.075">
+    <line x1="100" y1="30" x2="100" y2="200" /><line x1="160" y1="30" x2="160" y2="200" />
+    <line x1="220" y1="30" x2="220" y2="200" /><line x1="280" y1="30" x2="280" y2="200" />
+    <line x1="40" y1="70" x2="360" y2="70" /><line x1="40" y1="120" x2="360" y2="120" />
+  </g>
+  <g stroke="#232f3e" stroke-width="2">
+    <line x1="40" y1="200" x2="360" y2="200" />
+    <line x1="40" y1="200" x2="40" y2="30" />
+  </g>
+  <!-- the true curve -->
+  <path d="M48,168 C110,60 150,52 200,96 C250,140 300,86 352,48"
+        fill="none" stroke="#232f3e" stroke-width="2" stroke-dasharray="7 6" opacity="0.4" />
+  <!-- the staircase of stumps approximating it -->
+  <path d="M48,172 L88,172 L88,132 L128,132 L128,86 L168,86 L168,64 L208,64 L208,96
+           L248,96 L248,122 L288,122 L288,88 L328,88 L328,56 L356,56"
+        fill="none" stroke="#df2a5d" stroke-width="3.5" />
+  <g fill="#d4dada" stroke="#232f3e" stroke-width="0.8">
+    <circle cx="70" cy="176" r="4" /><circle cx="106" cy="126" r="4" />
+    <circle cx="145" cy="92" r="4" /><circle cx="186" cy="60" r="4" />
+    <circle cx="226" cy="104" r="4" /><circle cx="266" cy="126" r="4" />
+    <circle cx="306" cy="80" r="4" /><circle cx="342" cy="52" r="4" />
+  </g>
+  <!-- the residual strip below: what the next tree sees -->
+  <line x1="40" y1="252" x2="360" y2="252" stroke="#232f3e" stroke-width="1.5" />
+  <g fill="#df2a5d" opacity="0.8">
+    <circle cx="70" cy="246" r="3" /><circle cx="106" cy="258" r="3" />
+    <circle cx="145" cy="248" r="3" /><circle cx="186" cy="256" r="3" />
+    <circle cx="226" cy="247" r="3" /><circle cx="266" cy="257" r="3" />
+    <circle cx="306" cy="249" r="3" /><circle cx="342" cy="254" r="3" />
+  </g>
+  <path d="M48,240 L168,240 L168,264 L356,264" fill="none" stroke="#003181" stroke-width="2.2" />
+</svg>
