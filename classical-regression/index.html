@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Classical Regression — ATLAS</title>
-  <meta name="description" content="A visual, interactive introduction to classical regression: Ordinary Least Squares, Polynomial Regression, Generalized Linear Models and Partial Least Squares — built from scratch, one assumption at a time." />
+  <title>Classical Regression | ATLAS</title>
+  <meta name="description" content="A visual, interactive introduction to classical regression: Ordinary Least Squares, Polynomial Regression, Generalized Linear Models and Partial Least Squares, built from scratch, one assumption at a time." />
   <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="../assets/styles/fonts.css" />
   <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
@@ -27,7 +27,7 @@
     <h1 id="intro-hed">Classical Regression</h1>
     <h1 id="intro-sub">The Art of Drawing Lines: OLS, Polynomial Regression, GLMs &amp; Partial Least Squares</h1>
     <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
-    <span id="intro__module">Module 1.1 — Regression</span>
+    <span id="intro__module">Module 1.1 · Regression</span>
   </section>
 
   <br />
@@ -40,7 +40,7 @@
       treats a model as a black-box optimization problem: whatever maps inputs to
       outputs with the lowest test error wins. Classical statistics treats data
       modeling as a <span class="bold">scientific inquiry</span>. We don't just ask
-      <i>"what is the prediction?"</i> — we ask tougher questions:
+      <i>"what is the prediction?"</i>. We ask tougher questions:
     </p>
     <br />
     <ul class="body-text">
@@ -57,7 +57,7 @@
       specific stochastic process and estimates its parameters; the
       <span class="bold">algorithmic culture</span> treats nature as unknown and
       hunts for the function with the best test error. This article lives in the
-      first culture — and everything that follows rests on one rigid, additive
+      first culture, and everything that follows rests on one rigid, additive
       claim about how reality works:
     </p>
     <p class="body-text">
@@ -65,7 +65,7 @@
     </p>
     <p class="body-text">
       The coefficients \(\beta\) are the <span class="bold">signal</span> we want to
-      recover. The term \(\epsilon\) is the <span class="bold">irreducible error</span> —
+      recover. The term \(\epsilon\) is the <span class="bold">irreducible error</span>,
       the noise of the universe. Our entire job is separating one from the other.
     </p>
     <br />
@@ -80,7 +80,7 @@
     </p>
     <br />
     <p class="body-text">
-      Here is the plan — four techniques, each one relaxing exactly one assumption
+      Here is the plan: four techniques, each one relaxing exactly one assumption
       the previous one couldn't survive without:
       <span class="bold">OLS</span> draws the straight line,
       <span class="bold">Polynomial Regression</span> lets it bend,
@@ -97,8 +97,8 @@
       We'll start with a single real question: <i>how does engine power affect fuel
       efficiency?</i> Below is the classic
       <a href="https://archive.ics.uci.edu/dataset/9/auto+mpg">Auto MPG</a> dataset
-      <a href="#resources">[2]</a> — 392 cars from 1970–1982, each a dot: horsepower
-      on the x-axis, miles-per-gallon on the y-axis. Scroll on — the chart will keep
+      <a href="#resources">[2]</a>, 392 cars from 1970-1982, each a dot: horsepower
+      on the x-axis, miles-per-gallon on the y-axis. Scroll on, the chart will keep
       pace with the story.
     </p>
   </section>
@@ -124,7 +124,7 @@
               Start stupid on purpose. Ignore horsepower entirely and predict the
               <span class="bold">average MPG (23.4)</span> for every car:
               \(\hat{y} = \bar{y}\). A 50 HP economy car and a 230 HP muscle car get
-              the same prediction. Clearly bad — but <i>how</i> bad, exactly?
+              the same prediction. Clearly bad, but <i>how</i> bad, exactly?
             </p>
           </div>
         </div>
@@ -135,7 +135,7 @@
               Draw the error of each prediction: the vertical gap between every dot
               and the line. These are the <span class="bold">residuals</span>. Square
               them (so big misses hurt disproportionately), average them, and you get
-              the <span class="bold">mean squared error</span> — our score to beat:
+              the <span class="bold">mean squared error</span>, our score to beat:
               \(\mathrm{MSE} = 60.8\).
             </p>
           </div>
@@ -146,7 +146,7 @@
             <p>
               Now let the line tilt and shift, searching for the slope and intercept
               that make the squared residuals as small as possible. There is exactly
-              one winner — the <span class="bold">least squares</span> line:
+              one winner, the <span class="bold">least squares</span> line:
               \(\hat{y} = 39.94 - 0.158\,x\). The MSE collapses from 60.8 to
               <span class="bold">23.9</span>.
             </p>
@@ -159,7 +159,7 @@
               This is why classical statistics loves linear models: the coefficients
               <i>say things</i>. Slope \(-0.158\): every extra horsepower costs about
               <span class="bold">0.16 MPG</span>. Intercept \(39.94\): a mythical 0 HP
-              car would get ~40 MPG — physically absurd, but it anchors the line.
+              car would get ~40 MPG. Physically absurd, but it anchors the line.
               And \(R^2 = 0.61\): the line explains 61% of the variation in MPG.
             </p>
           </div>
@@ -179,7 +179,7 @@
           <div class="step-content">
             <h3>The Flaw</h3>
             <p>
-              Look closer. The errors are not random — they are
+              Look closer. The errors are not random. They are
               <span class="bold">systematic</span>. Below ~75 HP and above ~180 HP the
               dots sit <span style="color: #2074d5" class="bold">above</span> the line;
               in the middle they sit <span style="color: #df2a5d" class="bold">below</span>.
@@ -202,7 +202,7 @@
     <h2 class="body-header">How the Line Is Found</h2>
     <p class="body-text">
       No search, no iterations, no learning rate. For least squares there is a
-      <span class="bold">closed-form solution</span> — you compute the best
+      <span class="bold">closed-form solution</span>: you compute the best
       coefficients directly with linear algebra. It's called the
       <span class="bold">Normal Equation</span>:
     </p>
@@ -211,9 +211,9 @@
     </p>
     <p class="body-text">
       What is actually happening in there? \(X^{\top}y\) measures the
-      <span class="bold">co-movement</span> between each feature and the target —
+      <span class="bold">co-movement</span> between each feature and the target,
       the direction of the relationship. \(X^{\top}X\) captures the
-      <span class="bold">variance and overlap</span> of the features — their scale.
+      <span class="bold">variance and overlap</span> of the features, their scale.
       Inverting it and multiplying is, loosely, "dividing correlation by variance":
       normalize the co-movement by how spread out the features are, and the
       coefficients fall out. One detail matters: we prepend a column of 1s to
@@ -223,17 +223,17 @@
     <br />
     <p class="body-text">
       <i>A note from the trenches: textbooks write \((X^{\top}X)^{-1}\), but
-      production code never inverts the matrix — solving the linear system
+      production code never inverts the matrix. Solving the linear system
       directly (<code>np.linalg.solve</code>, QR decomposition) is faster and
       numerically safer. Same math, better manners.</i>
     </p>
     <br />
     <p class="body-text">
-      Enough theory — <span class="bold">grab the line yourself</span>. Drag the
+      Enough theory. <span class="bold">Grab the line yourself</span>. Drag the
       two handles to change the intercept and slope, and watch the squared error
       respond. Then press the button and let the Normal Equation snap it to
       perfection. You can also flip to <span class="bold">residual view</span>:
-      the fastest diagnostic in statistics — if the residuals show a pattern, your
+      the fastest diagnostic in statistics. If the residuals show a pattern, your
       model is missing one.
     </p>
   </section>
@@ -258,7 +258,7 @@
     <h1 class="body-header">Polynomial Regression</h1>
     <p class="body-text">
       The banana problem: how do you model a curve when your solver only knows how
-      to fit lines? <span class="bold">The trick</span> — keep the model linear in
+      to fit lines? <span class="bold">The trick</span>: keep the model linear in
       its <i>parameters</i> while making it non-linear in its <i>features</i>:
     </p>
     <p class="body-text">
@@ -267,7 +267,7 @@
     <p class="body-text">
       To the algorithm, \(x^2\) is just another anonymous column of numbers. It has
       no idea it came from squaring the first one. Feed it "squared horsepower" and
-      the very same Normal Equation happily learns a parabola. No new algorithm —
+      the very same Normal Equation happily learns a parabola. No new algorithm,
       just <span class="bold">feature engineering</span>, vintage 1805.
     </p>
     <br />
@@ -277,7 +277,7 @@
       (<span class="bold" style="color: #ff9900">solid dots</span>) and graded on 25%
       it never saw (<span class="bold" style="color: #003181">hollow dots</span>).
       And there is a second, crueler knob: <span class="bold">how many cars the model
-      gets to learn from</span>. Flexibility alone rarely kills — flexibility times
+      gets to learn from</span>. Flexibility alone rarely kills. Flexibility times
       data scarcity does. Starve the model and slide the degree up.
     </p>
   </section>
@@ -301,14 +301,14 @@
   <section>
     <p class="body-text">
       Degree 2 is the sweet spot here: test \(R^2\) jumps from 0.60 to
-      <span class="bold">0.68</span>, and the curve finally speaks physics — MPG
+      <span class="bold">0.68</span>, and the curve finally speaks physics: MPG
       drops fast when you add power to a weak engine, then the drop flattens:
       <span class="bold">diminishing returns</span>. Now notice something honest and
       slightly surprising: with all 294 training cars, even degree 9 stays almost
-      tame. Abundant data is a straitjacket — the wiggles have nowhere to go.
+      tame. Abundant data is a straitjacket, the wiggles have nowhere to go.
       But drop to ~30 cars and push the degree up: the curve starts slaloming
       through individual points, the train score inflates toward 1, and the test
-      score craters (even below zero — worse than predicting the mean!). That gap is
+      score craters (even below zero, worse than predicting the mean). That gap is
       <span class="bold">overfitting</span>: not flexibility itself, but flexibility
       the data can no longer discipline. A flexible model plus an honest holdout is
       the entire immune system of machine learning in one chart.
@@ -322,7 +322,7 @@
     <h1 class="body-header">Generalized Linear Models</h1>
     <p class="body-text">
       Ordinary least squares hides its strongest assumption in plain sight: the
-      noise \(\epsilon\) is <span class="bold">Gaussian</span> — symmetric,
+      noise \(\epsilon\) is <span class="bold">Gaussian</span>: symmetric,
       continuous, unbounded. But look at what we actually predict in the wild:
     </p>
     <br />
@@ -334,7 +334,7 @@
     <br />
     <p class="body-text">
       Fit a straight line to any of these and it will eventually predict something
-      physically impossible — minus two customers, a 150% probability.
+      physically impossible: minus two customers, a 150% probability.
       <span class="bold">Generalized Linear Models</span> fix this with one elegant
       move, the <span class="bold">link function</span>:
     </p>
@@ -348,14 +348,14 @@
       and set \(\log(\mu) = X\beta\), so predictions
       \(\mu = e^{X\beta}\) are positive by construction. The price: no closed form.
       For the first time in this article we must <i>search</i> for \(\beta\) by
-      maximizing likelihood iteratively — and the gradient turns out to be an old
+      maximizing likelihood iteratively, and the gradient turns out to be an old
       friend wearing a mask:
     </p>
     <p class="body-text">
       $$ \frac{\partial \mathcal{L}}{\partial \beta} = \tfrac{1}{n} X^{\top}(\underbrace{e^{X\beta}}_{\hat{y}} - \,y) $$
     </p>
     <p class="body-text">
-      Identical in shape to the OLS gradient — except the prediction inside is
+      Identical in shape to the OLS gradient, except the prediction inside is
       exponential. <i>(Many textbooks solve GLMs with Newton–Raphson / IRLS, which
       converges in a handful of steps; plain gradient descent, shown here, is the
       same idea with smaller strides.)</i>
@@ -363,7 +363,7 @@
     <br />
     <p class="body-text">
       The stage: the <a href="https://rdrr.io/cran/reshape2/man/tips.html">tips</a>
-      dataset <a href="#resources">[3]</a> — 244 restaurant bills. Given the
+      dataset <a href="#resources">[3]</a>, 244 restaurant bills. Given the
       <span class="bold">total bill</span>, predict the <span class="bold">party
       size</span>. Headcount is a count. Watch OLS walk into the trap, then press
       the buttons to train the Poisson GLM live, one gradient step at a time.
@@ -391,15 +391,15 @@
   <section>
     <p class="body-text">
       Two things to notice once training converges. First, the
-      <span class="bold">shape</span>: the Poisson curve bends gently upward — at
+      <span class="bold">shape</span>: the Poisson curve bends gently upward. At
       $50 bills it expects bigger parties at an accelerating rate, while OLS is
       stuck on a fixed slope that would happily cross into negative diners left of
-      the axis. Second — toggle the <span class="bold">variance envelope</span>. OLS
+      the axis. Second, toggle the <span class="bold">variance envelope</span>. OLS
       assumes the spread of party sizes is identical for a $5 bill and a $50 bill
       (constant band). Poisson knows that variance grows with the mean
       (\(\sigma^2 = \mu\)): cheap bills are almost certainly one diner; expensive
       bills could be one big spender or six splitting dessert. The widening funnel
-      isn't a bug — it's the model telling the truth about uncertainty.
+      isn't a bug, it's the model telling the truth about uncertainty.
     </p>
   </section>
 
@@ -409,7 +409,7 @@
   <section>
     <h1 class="body-header">Partial Least Squares</h1>
     <p class="body-text">
-      One assumption left to break — and this one kills the Normal Equation
+      One assumption left to break, and this one kills the Normal Equation
       outright. \((X^{\top}X)^{-1}\) only exists if the features are linearly
       independent enough to invert. Two ways reality sabotages that:
     </p>
@@ -422,10 +422,10 @@
     <p class="body-text">
       The stage this time:
       <a href="https://archive.ics.uci.edu/dataset/109/wine">wine chemistry</a>
-      <a href="#resources">[4]</a> — 178 wines from three grape cultivars, each
+      <a href="#resources">[4]</a>, 178 wines from three grape cultivars, each
       described by 13 lab measurements. Hover the correlation matrix: those deep
       red and blue blocks are features telling you the same thing twice. Flavanoids
-      and total phenols correlate at <span class="bold">+0.86</span> — pay for one,
+      and total phenols correlate at <span class="bold">+0.86</span>: pay for one,
       get the other free.
     </p>
   </section>
@@ -441,9 +441,9 @@
     <br />
     <ul class="body-text">
       <li><span class="bold">PCA</span> finds directions of maximum <i>variance of
-      X</i> — it never looks at the target. Unsupervised compression.</li>
+      X</i>, never looking at the target. Unsupervised compression.</li>
       <li><span class="bold">PLS</span> finds directions of maximum <i>covariance
-      between X and y</i> — it keeps only the information that helps prediction.
+      between X and y</i>, keeping only the information that helps prediction.
       Supervised compression.</li>
     </ul>
     <br />
@@ -452,37 +452,37 @@
       <span class="bold">NIPALS</span>: compute the direction of maximum covariance
       with the target, \(w = X^{\top}y\) (normalized); project the samples onto it,
       \(t = Xw\); measure how much of \(X\) that direction explains,
-      \(p = X^{\top}t / t^{\top}t\); then <span class="bold">deflate</span> —
-      subtract the explained part, \(X \leftarrow X - t p^{\top}\) — and repeat on
+      \(p = X^{\top}t / t^{\top}t\); then <span class="bold">deflate</span>,
+      subtracting the explained part, \(X \leftarrow X - t p^{\top}\), and repeat on
       the leftovers. Each pass strips one layer of signal off the data.
     </p>
     <br />
     <p class="body-text">
       Below, both algorithms compress the same 13-D chemistry into 2-D. Flip the
       toggle and watch every wine fly from its PCA position to its PLS position.
-      The colors (three cultivars) are shown to <i>you</i> — PCA never saw them,
+      The colors (three cultivars) are shown to <i>you</i>. PCA never saw them,
       PLS did.
     </p>
   </section>
 
   <div class="interactive-full" id="pls-widget" style="max-width: 760px">
     <div class="controls-row" style="justify-content: center">
-      <button class="atlas-btn" id="pls-toggle-pca">PCA — unsupervised</button>
-      <button class="atlas-btn ghost" id="pls-toggle-pls">PLS — supervised</button>
+      <button class="atlas-btn" id="pls-toggle-pca">PCA · unsupervised</button>
+      <button class="atlas-btn ghost" id="pls-toggle-pls">PLS · supervised</button>
     </div>
     <div id="pls-chart"></div>
   </div>
 
   <section>
     <p class="body-text">
-      PCA does a respectable job — with this much structure in the chemistry, raw
+      PCA does a respectable job: with this much structure in the chemistry, raw
       variance alone separates the cultivars decently. But look at what PLS does to
       the first axis: the three classes line up in <span class="bold">perfect ordinal
       sequence</span> along component 1, because that axis was built to covary with
       the label. Thirteen correlated measurements, and the predictive essence turns
       out to be essentially <span class="bold">one clever linear combination</span>.
       That is PLS's entire job description: find the needle of signal in the
-      haystack of redundancy — even when \(X^{\top}X\) is too broken to invert.
+      haystack of redundancy, even when \(X^{\top}X\) is too broken to invert.
     </p>
   </section>
 
@@ -512,7 +512,7 @@
         <tr>
           <td>OLS</td>
           <td>You need the interpretable baseline: one coefficient = one marginal effect, plus p-values and confidence intervals.</td>
-          <td>— (the reference point)</td>
+          <td>nothing (the reference point)</td>
           <td>Closed form (Normal Equation)</td>
           <td>Curved relationships, outliers, correlated features.</td>
         </tr>
@@ -545,14 +545,14 @@
     <p class="body-text">
       The deeper lesson of classical regression is the habit of mind: state your
       assumptions, check them against the data, and when one breaks, relax
-      <i>that one</i> — not everything at once. The next article in this module
+      <i>that one</i>, not everything at once. The next article in this module
       takes the opposite failure seriously: what happens when the model has too
       much freedom, and we must <span class="bold">pay to constrain it</span>.
       That story is called regularization.
     </p>
     <br />
     <p class="body-text">
-      Thanks for reading! ATLAS articles pair with runnable notebooks — the
+      Thanks for reading! ATLAS articles pair with runnable notebooks: the
       from-scratch NumPy implementations of everything above
       (<code>ScratchOLS</code>, <code>ScratchPoissonGLM</code>, <code>ScratchPLS</code>)
       live in the <a href="https://github.com/aleetreny/ATLAS">ATLAS repository</a>,
@@ -575,11 +575,11 @@
     </p>
     <p class="resource-item">
       <a class="on-end" href="https://archive.ics.uci.edu/dataset/9/auto+mpg">[2] Auto MPG Dataset</a><br />
-      (Quinlan, R., UCI Machine Learning Repository, 1993 — via the seaborn data collection)
+      (Quinlan, R., UCI Machine Learning Repository, 1993. Via the seaborn data collection)
     </p>
     <p class="resource-item">
       <a class="on-end" href="https://rdrr.io/cran/reshape2/man/tips.html">[3] Tips Dataset</a><br />
-      (Bryant, P. G. &amp; Smith, M. A., Practical Data Analysis, 1995 — via the seaborn data collection)
+      (Bryant, P. G. &amp; Smith, M. A., Practical Data Analysis, 1995. Via the seaborn data collection)
     </p>
     <p class="resource-item">
       <a class="on-end" href="https://archive.ics.uci.edu/dataset/109/wine">[4] Wine Dataset</a><br />
@@ -587,7 +587,7 @@
     </p>
     <p class="resource-item">
       <a class="on-end" href="https://www.statlearning.com/">[5] An Introduction to Statistical Learning</a><br />
-      (James, G., Witten, D., Hastie, T., Tibshirani, R. — chapters 3 &amp; 7)
+      (James, G., Witten, D., Hastie, T., Tibshirani, R. Chapters 3 &amp; 7)
     </p>
     <p class="resource-item">
       <a class="on-end" href="https://www.cambridge.org/core/books/regression-and-other-stories/DD20DD6C9057118581076E54E40C372C">[6] Regression and Other Stories</a><br />
@@ -596,7 +596,7 @@
     <br />
     <p class="resource-item">
       This site is built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
-      <a class="on-end" href="https://katex.org/">KaTeX</a> — no frameworks, no build
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
       step. The aesthetic is an homage to
       <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
       rebuilt with the open fonts Archivo Black and IBM Plex Mono.

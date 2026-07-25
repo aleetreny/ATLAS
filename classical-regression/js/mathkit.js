@@ -1,5 +1,5 @@
 /* Small linear-algebra kit for the classical-regression article.
- * Mirrors the from-scratch NumPy implementations in src/models/ — same math,
+ * Mirrors the from-scratch NumPy implementations in src/models/: same math,
  * same results (validated against the reference values baked into data/*.json).
  */
 
@@ -29,7 +29,7 @@ export function solve(A, b) {
 
 /* Ordinary least squares on a design matrix WITH bias handled here.
  * X: array of feature rows (no ones column), y: targets.
- * Returns coeffs [b0, b1, ..., bp] — the Normal Equation, exactly like ScratchOLS. */
+ * Returns coeffs [b0, b1, ..., bp] via the Normal Equation, exactly like ScratchOLS. */
 export function olsFit(X, y) {
   const n = X.length;
   const p = X[0].length + 1;
@@ -51,7 +51,7 @@ export function olsFit(X, y) {
 }
 
 /* Polynomial regression of given degree with column standardization
- * (keeps the normal equation well-conditioned at degree 9 — same scheme the
+ * (keeps the normal equation well-conditioned at degree 9, same scheme the
  * Python reference used, so R^2 values match). Returns a predict(x) function
  * plus train diagnostics. */
 export function polyFit(xs, ys, degree) {
@@ -101,7 +101,7 @@ export function mse(yTrue, yPred) {
   return s / yTrue.length;
 }
 
-/* Poisson GLM trainer on standardized x — the exact ScratchPoissonGLM loop.
+/* Poisson GLM trainer on standardized x, the exact ScratchPoissonGLM loop.
  * Returns an object you can .step(k) and read {w, b, iter, nll}. */
 export function poissonGLM(xRaw, y, lr = 0.1) {
   const n = xRaw.length;

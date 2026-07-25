@@ -10,7 +10,7 @@ export function initScrollyOLS(mpg) {
   const xs = pts.map((d) => d.hp);
   const ys = pts.map((d) => d.mpg);
   const yMean = d3.mean(ys);
-  const fit = ols1d(xs, ys); // {intercept, slope} — matches mpg.ref.ols
+  const fit = ols1d(xs, ys); // {intercept, slope}, matches mpg.ref.ols
 
   const mseFor = (predict) => d3.mean(pts, (d) => (d.mpg - predict(d.hp)) ** 2);
   const mseMean = mseFor(() => yMean);
@@ -43,7 +43,7 @@ export function initScrollyOLS(mpg) {
     .attr('cx', (d) => x(d.hp))
     .attr('cy', (d) => y(d.mpg))
     .attr('r', 4.5)
-    .attr('fill', 'var(--smile)')
+    .attr('fill', 'var(--primary)')
     .attr('stroke', 'white')
     .attr('stroke-width', 1)
     .attr('opacity', 0.9);
@@ -110,7 +110,7 @@ export function initScrollyOLS(mpg) {
     dots
       .transition(t())
       .attr('fill', (d) => {
-        if (!colorBySign || !predict) return 'var(--smile)';
+        if (!colorBySign || !predict) return 'var(--primary)';
         return d.mpg - predict(d.hp) >= 0 ? 'var(--sky)' : 'var(--cosmos)';
       });
   }

@@ -1,5 +1,5 @@
 /* =========================================================================
-   ATLAS — global design system
+   ATLAS global design system
    Aesthetic cloned from MLU-Explain (mlu-explain.github.io), rebuilt with
    open fonts: Archivo Black (display) + IBM Plex Mono (body) + Archivo (sans).
    ========================================================================= */
@@ -34,8 +34,12 @@
   /* ---- semantic ---- */
   --bg: var(--paper);
   --default: var(--squidink);
+
+  /* Per-article theme: an article overrides ONLY these two in its own <style>.
+     Everything else (headers, links, buttons, sliders, hr, resources band)
+     derives from them, so the whole page re-themes with two lines. */
   --primary: var(--smile);
-  --secondary: var(--smile);
+  --secondary: var(--primary);
 
   /* ---- type ---- */
   --font-heavy: 'Archivo Black', 'Arial Black', sans-serif;
@@ -73,7 +77,7 @@ body {
 }
 
 ::selection {
-  background: var(--smile);
+  background: var(--primary);
   color: var(--white);
 }
 
@@ -103,7 +107,7 @@ body {
 }
 
 #site-logo .logo-word span {
-  color: var(--smile);
+  color: var(--primary);
 }
 
 /* =========================================================================
@@ -179,7 +183,7 @@ body {
   padding-top: 2rem;
   padding-bottom: 0.5rem;
   text-decoration: underline;
-  text-decoration-color: var(--smile);
+  text-decoration-color: var(--primary);
   text-decoration-thickness: 4px;
   text-underline-offset: 6px;
 }
@@ -218,8 +222,8 @@ ol.body-text li {
 hr {
   margin: 3rem auto;
   width: 3%;
-  border: 3px solid var(--smile);
-  background-color: var(--smile);
+  border: 3px solid var(--primary);
+  background-color: var(--primary);
 }
 
 code {
@@ -365,7 +369,7 @@ code {
 button.atlas-btn {
   font-family: var(--font-mono);
   font-size: 14px;
-  background-color: var(--smile);
+  background-color: var(--primary);
   color: var(--white);
   border: none;
   border-radius: 0;
@@ -384,7 +388,7 @@ button.atlas-btn.ghost {
 }
 
 button.atlas-btn.ghost:hover {
-  outline: 2px solid var(--smile);
+  outline: 2px solid var(--primary);
 }
 
 /* sliders */
@@ -404,7 +408,7 @@ input[type='range'].atlas-range::-webkit-slider-thumb {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: var(--smile);
+  background: var(--primary);
   cursor: pointer;
   border: none;
 }
@@ -413,7 +417,7 @@ input[type='range'].atlas-range::-moz-range-thumb {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: var(--smile);
+  background: var(--primary);
   cursor: pointer;
   border: none;
 }
@@ -556,7 +560,7 @@ table.atlas-table td:first-child {
 
 #resources .body-header {
   color: var(--white);
-  text-decoration-color: var(--smile);
+  text-decoration-color: var(--primary);
 }
 
 #resources .body-text {
@@ -573,7 +577,7 @@ table.atlas-table td:first-child {
 
 .resource-item a,
 a.on-end {
-  color: var(--smile);
+  color: var(--primary);
 }
 
 /* =========================================================================

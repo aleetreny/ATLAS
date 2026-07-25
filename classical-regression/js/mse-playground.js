@@ -54,7 +54,7 @@ export function initMSEPlayground(mpg) {
     .data([{ hp: HP_A }, { hp: HP_B }])
     .join('circle')
     .attr('r', 9)
-    .attr('fill', 'var(--smile)')
+    .attr('fill', 'var(--primary)')
     .attr('stroke', 'var(--squidink)')
     .attr('stroke-width', 2.5)
     .attr('cursor', 'ns-resize')
@@ -140,7 +140,7 @@ export function initMSEPlayground(mpg) {
       eqStats.innerHTML =
         `<span class="slider-label">MSE = <span class="value">${curMSE.toFixed(1)}</span>` +
         ` &nbsp;·&nbsp; R² = <span class="value">${curR2.toFixed(3)}</span>` +
-        (isBest ? ' &nbsp;·&nbsp; <span style="color:var(--smile)" class="bold">← the least squares line</span>' : '') +
+        (isBest ? ' &nbsp;·&nbsp; <span style="color:var(--primary)" class="bold">← the least squares line</span>' : '') +
         `</span>`;
     }
   }

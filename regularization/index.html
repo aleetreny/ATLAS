@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Regularization | ATLAS</title>
+  <meta name="description" content="A visual, interactive introduction to regularization: Ridge, Lasso and ElasticNet. Why a penalty on size tames overfitting, and why a diamond produces exact zeros where a circle never can." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    /* Per-article theme. Everything else inherits from these two. */
+    :root {
+      --primary: #7c5aed;
+      --secondary: #6b46d6;
+    }
+    .knob-table {
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      margin-top: 0.5rem;
+    }
+    .knob-table th,
+    .knob-table td {
+      padding: 4px 10px 4px 0;
+      text-align: left;
+      font-weight: 400;
+    }
+    .knob-table th {
+      font-family: var(--font-heavy);
+      font-size: 11.5px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .knob-table td:first-child {
+      color: var(--squidink);
+      opacity: 0.7;
+    }
+    .stacked-charts {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+  </style>
+</head>
+<body>
+  <!-- ======================= chrome ======================= -->
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <!-- ======================= hero ======================= -->
+  <section id="intro">
+    <h1 id="intro-hed">Regularization</h1>
+    <h1 id="intro-sub">The Art of Constraint: why paying a toll on coefficient size makes a model smarter</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 1.1 · Regression</span>
+  </section>
+
+  <br />
+
+  <!-- ======================= introduction ======================= -->
+  <section>
+    <p class="body-text">
+      In the <a href="../classical-regression/">previous article</a> we watched a
+      polynomial go feral: give a model enough flexibility and too little data, and
+      it stops learning the pattern and starts memorizing the noise. We diagnosed
+      the disease. This article is about the cure, and the cure is stranger than it
+      sounds. We are going to make the model <span class="bold">worse</span> at its
+      job on purpose, and it is going to get <span class="bold">better</span>.
+    </p>
+    <br />
+    <p class="body-text">
+      Here is the intuition. Imagine hiring someone and telling them:
+      <i>"I don't care how you do it, just hit the number."</i> You will get the
+      number, and you will also get creative accounting, wild swings, and a
+      strategy nobody can repeat next quarter. Ordinary least squares is exactly
+      that boss. Its only instruction is <i>minimize the squared error</i>, so when
+      you hand it fifteen knobs and twenty data points, it will happily crank every
+      knob to an absurd setting if that shaves one more decimal off the training
+      error.
+    </p>
+    <br />
+    <p class="body-text">
+      <span class="bold">Regularization</span> adds the missing half of the
+      instruction: <i>"hit the number, but keep your methods simple."</i> Formally,
+      we stop minimizing error alone and start minimizing error plus a toll on
+      complexity:
+    </p>
+    <p class="body-text">
+      $$ \text{Total Loss} \;=\; \underbrace{\text{prediction error}}_{\text{how wrong}} \;+\; \lambda \cdot \underbrace{\text{coefficient size}}_{\text{how extreme}} $$
+    </p>
+    <p class="body-text">
+      Every coefficient now has to <span class="bold">pay rent</span>. A feature
+      can still take a large weight, but only if the error it removes is worth more
+      than the toll it owes. The parameter \(\lambda\) sets the tax rate: at
+      \(\lambda = 0\) we are back to unconstrained least squares, and as
+      \(\lambda\) grows the model is squeezed toward saying nothing at all.
+    </p>
+    <br />
+    <p class="body-text">
+      Where does this show up? Everywhere the feature count is uncomfortable
+      compared to the sample count: genomics with 20,000 genes and 200 patients,
+      text models with a vocabulary of a million tokens, credit scoring with
+      hundreds of engineered ratios that all say roughly the same thing. In those
+      rooms, an unregularized linear model is not a baseline, it is a liability.
+      Let's build one and break it.
+    </p>
+  </section>
+
+  <!-- ======================= scrolly: the monster ======================= -->
+  <section>
+    <h1 class="body-header">Growing a Monster</h1>
+    <p class="body-text">
+      Twenty noisy observations of a simple wave, \(y = \sin(x) + x/2\). We hand
+      the model fifteen polynomial features to work with, which is far more
+      flexibility than twenty points can possibly justify. The dashed line is the
+      truth we are trying to recover. The bars underneath the chart are the
+      coefficients themselves, on a logarithmic scale, because the most damning
+      evidence of overfitting is not the shape of the curve. It is the arithmetic.
+    </p>
+  </section>
+
+  <section id="monster-scrolly">
+    <div class="scrolly-container">
+      <div class="steps-container">
+        <div class="step" data-index="0">
+          <div class="step-content">
+            <h3>The Target</h3>
+            <p>
+              Twenty dots, sampled from the dashed curve and then jostled by noise.
+              A good model recovers the dashed line. A bad model recovers the
+              jostling. Nothing about the dots tells you which is which, and that
+              is the whole difficulty.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="1">
+          <div class="step-content">
+            <h3>Unleash Fifteen Degrees</h3>
+            <p>
+              Fit a degree-15 polynomial with no constraints at all. It threads
+              itself through the data beautifully, and between the points it
+              convulses. Training error is nearly perfect. Ask it about any
+              <span class="bold">x</span> it has not seen and the answer is
+              somewhere between wrong and deranged.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="2">
+          <div class="step-content">
+            <h3>The Smoking Gun</h3>
+            <p>
+              Look at the bars. To whip a curve up and down that violently, the
+              polynomial terms must fight each other with enormous, nearly
+              cancelling weights. The largest has grown past
+              <span class="bold">900</span>, on features that were scaled to
+              standard deviation 1. No honest process has coefficients like that.
+              <span class="bold">Coefficient size is the fingerprint of
+              overfitting</span>, and that is precisely what we are about to tax.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="3">
+          <div class="step-content">
+            <h3>Charge Rent</h3>
+            <p>
+              Now add a small penalty on the sum of squared coefficients. Nothing
+              else changes: same data, same fifteen features, same solver. The
+              largest weight collapses roughly a hundredfold and the curve stops
+              convulsing. We paid a little training error and bought back an
+              enormous amount of sanity.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="4">
+          <div class="step-content">
+            <h3>Closer to the Truth</h3>
+            <p>
+              Turn the tax rate up a little further and we reach the best this
+              data allows. Measured against the dashed line, error has fallen from
+              <span class="bold">0.82 to 0.17</span>, even though the model now
+              misses almost every dot it used to hit. This is the whole bargain:
+              deliberately fit the data you have a bit worse, in exchange for
+              fitting the world a lot better.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="5">
+          <div class="step-content">
+            <h3>Overdose</h3>
+            <p>
+              Push the penalty too far and the cure becomes the disease. Every
+              coefficient is squeezed toward zero, the curve flattens into a
+              near-horizontal line, and the model has been taxed into silence. It
+              is no longer overfitting, it is refusing to say anything at all.
+              \(\lambda\) is a dial, not a switch.
+            </p>
+          </div>
+        </div>
+        <div class="step-spacer"></div>
+      </div>
+      <div class="charts-container">
+        <div class="chart-wrap" id="monster-chart"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================= the two penalties ======================= -->
+  <section>
+    <h1 class="body-header">Two Ways to Charge Rent</h1>
+    <p class="body-text">
+      We taxed the coefficients, but we never said <i>how</i> to measure their
+      size. That choice turns out to matter enormously. There are two natural
+      answers, and they produce models with completely different personalities.
+    </p>
+    <br />
+    <p class="body-text">
+      <span class="bold">Ridge</span> (also called L2 or Tikhonov regularization)
+      charges the sum of <span class="bold">squared</span> coefficients:
+    </p>
+    <p class="body-text">
+      $$ \mathcal{L}_{\text{ridge}} = \sum_i (y_i - \hat{y}_i)^2 + \lambda \sum_{j} \beta_j^2 $$
+    </p>
+    <p class="body-text">
+      Squaring makes large weights disproportionately expensive. A coefficient of
+      10 costs 100; a coefficient of 100 costs 10,000. The model becomes desperate
+      to keep every weight small. And because the penalty is smooth, Ridge has the
+      same luxury OLS had: a closed-form solution, which is just the Normal
+      Equation with one extra term bolted onto the diagonal.
+    </p>
+    <p class="body-text">
+      $$ \hat{\beta}_{\text{ridge}} = (X^{\top}X + \lambda I)^{-1} X^{\top} y $$
+    </p>
+    <p class="body-text">
+      That single \(+\lambda I\) is doing something quietly profound. Remember from
+      the previous article that \(X^{\top}X\) becomes uninvertible when features
+      are redundant. Adding \(\lambda\) to the diagonal makes it invertible again,
+      <span class="bold">always</span>. Ridge does not just reduce variance, it
+      repairs a broken matrix.
+    </p>
+    <br />
+    <p class="body-text">
+      <i>A digression that is really a warning, and it bit this article during
+      construction. Write that formula literally, forming \(X^{\top}X\) and
+      inverting it, and you square the condition number of your problem. On the
+      degree-15 polynomial above, the design matrix is already borderline, so
+      squaring it pushes the arithmetic past what double precision can represent
+      and the "unpenalized" fit quietly comes back wrong. Every model on this page
+      is therefore solved by QR decomposition instead, which never forms
+      \(X^{\top}X\) at all. There is a satisfying trick behind it: stacking
+      \(\sqrt{\lambda}I\) underneath \(X\), and zeros underneath \(y\), turns Ridge
+      into an ordinary least squares problem. You are literally inventing fake
+      observations that all insist the coefficients should be zero, which is an
+      honest description of what a penalty is. It is also why the extreme
+      coefficient values you may see quoted for fits like this one should be
+      treated with suspicion: below a certain \(\lambda\), two correct solvers stop
+      agreeing with each other.</i>
+    </p>
+    <br />
+    <p class="body-text">
+      <span class="bold">Lasso</span> (L1, and an acronym for Least Absolute
+      Shrinkage and Selection Operator) charges the sum of
+      <span class="bold">absolute</span> coefficients instead:
+    </p>
+    <p class="body-text">
+      $$ \mathcal{L}_{\text{lasso}} = \sum_i (y_i - \hat{y}_i)^2 + \lambda \sum_{j} |\beta_j| $$
+    </p>
+    <p class="body-text">
+      A one-character change, and the consequences are dramatic. Squaring is
+      forgiving near zero: shrinking a coefficient from 0.02 to 0.01 saves almost
+      nothing, so Ridge never quite bothers finishing the job. Absolute value is
+      not forgiving. The saving is the same whether you move from 10.01 to 10.00 or
+      from 0.01 to 0.00, so Lasso keeps pushing until coefficients land on
+      <span class="bold">exactly zero</span> and the feature is gone from the model
+      entirely. Ridge shrinks. Lasso <span class="bold">selects</span>.
+    </p>
+    <br />
+    <p class="body-text">
+      Below, both penalties attack the same overgrown polynomial. Drag the tax
+      rate and watch two different philosophies at work: the blue curve keeps all
+      fifteen features on a tight leash, while the pink one fires most of them.
+    </p>
+  </section>
+
+  <div class="interactive-container" id="knob-widget">
+    <div class="equations-panel">
+      <div class="controls-row">
+        <span class="slider-label">λ = <span class="value" id="knob-alpha-label">0.01</span></span>
+        <input type="range" class="atlas-range" id="knob-alpha" min="-5" max="0.4" step="0.05" value="-2" />
+      </div>
+      <div id="knob-stats"></div>
+      <p class="slider-label" style="margin-top: 0.9rem; line-height: 1.4">
+        Error vs truth is measured against the noiseless curve, not the noisy dots,
+        which is the score we actually care about and the one no real dataset lets
+        you compute.
+      </p>
+    </div>
+    <div class="chart-panel" id="knob-chart"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= the geometry ======================= -->
+  <section>
+    <h1 class="body-header">Why a Diamond Deletes</h1>
+    <p class="body-text">
+      "Absolute value is not forgiving near zero" is a decent story, but it is not
+      the real explanation. The real explanation is geometric, and it is the single
+      most illuminating picture in this corner of statistics.
+    </p>
+    <br />
+    <p class="body-text">
+      Start with a change of view. Minimizing "error plus penalty" is equivalent to
+      a different problem: minimize error alone, subject to a
+      <span class="bold">budget</span> on total coefficient size.
+    </p>
+    <p class="body-text">
+      $$ \min_{\beta} \sum_i (y_i - \hat{y}_i)^2 \quad \text{subject to} \quad \|\beta\| \le t $$
+    </p>
+    <p class="body-text">
+      Every \(\lambda\) in the penalized form corresponds to some budget \(t\) in
+      this constrained form, and vice versa. Turning the tax rate up is the same as
+      tightening the belt. This matters because the constrained version can be
+      <span class="bold">drawn</span>.
+    </p>
+    <br />
+    <p class="body-text">
+      With two coefficients, the whole optimization lives on a flat plane. Squared
+      error becomes a bowl centered on the OLS solution, and slicing that bowl at
+      fixed heights gives <span class="bold">ellipses of equal error</span>: every
+      point on one ring fits the training data exactly as well as every other point
+      on it. The budget is a region around the origin. The best legal model sits
+      where the smallest ellipse first <span class="bold">touches</span> the budget
+      region.
+    </p>
+    <br />
+    <p class="body-text">
+      And now the punchline. The L2 budget \(\beta_1^2 + \beta_2^2 \le t\) is a
+      <span class="bold">circle</span>. A circle is smooth everywhere, so an
+      expanding ellipse will kiss it at some generic point, with both coordinates
+      nonzero. The L1 budget \(|\beta_1| + |\beta_2| \le t\) is a
+      <span class="bold">diamond</span>, and a diamond has
+      <span class="bold">corners</span>, and its corners sit exactly on the axes,
+      where one coefficient is zero. Corners stick out, so they get touched first.
+      That is the entire mechanism behind feature selection.
+    </p>
+    <br />
+    <p class="body-text">
+      Below are two real predictors of diabetes progression, body mass index and
+      blood pressure. Tighten the budget and watch the solution walk from the OLS
+      point toward the origin. Under L1 it eventually hits a corner and
+      <span class="bold">stays glued to the axis</span>. Under L2 it approaches the
+      origin forever and never quite lands on it.
+    </p>
+  </section>
+
+  <div class="interactive-container" id="geometry-widget">
+    <div class="equations-panel">
+      <div class="controls-row">
+        <button class="atlas-btn" id="geo-l1">L1 · lasso</button>
+        <button class="atlas-btn ghost" id="geo-l2">L2 · ridge</button>
+        <button class="atlas-btn ghost" id="geo-en">hybrid</button>
+      </div>
+      <div class="controls-row">
+        <span class="slider-label">λ = <span class="value" id="geo-alpha-label">0.01</span></span>
+        <input type="range" class="atlas-range" id="geo-alpha" min="-3.2" max="0.3" step="0.02" value="-2.2" />
+      </div>
+      <div id="geo-stats"></div>
+      <p class="slider-label" style="margin-top: 0.9rem; line-height: 1.4">
+        The pink ring is the error level the solution achieves. The dashed trail is
+        the route the solution takes as the budget tightens. Notice the kink where
+        the lasso path meets the axis.
+      </p>
+    </div>
+    <div class="chart-panel" id="geometry-chart"></div>
+  </div>
+
+  <section>
+    <p class="body-text">
+      Switch to the hybrid and you get the compromise that gives
+      <span class="bold">ElasticNet</span> its name: a budget region that is mostly
+      diamond but with its edges rounded by a dose of L2. It keeps the corners, so
+      it can still zero features out, while the rounding softens the tie-breaking
+      that makes pure Lasso erratic. We will see exactly why that matters shortly.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the path ======================= -->
+  <section>
+    <h1 class="body-header">Watching Features Die</h1>
+    <p class="body-text">
+      Two coefficients fit on a page. Real problems do not. The instrument that
+      scales is the <span class="bold">regularization path</span>: plot every
+      coefficient as the penalty sweeps from nothing to crushing, and read the
+      model's priorities straight off the chart.
+    </p>
+    <br />
+    <p class="body-text">
+      The data is the classic
+      <a href="https://archive.ics.uci.edu/dataset/34/diabetes">diabetes</a>
+      dataset <a href="#resources">[3]</a>: 442 patients, ten baseline measurements,
+      and a target measuring disease progression one year later. One preprocessing
+      note that is not a footnote at all. A penalty on coefficient size is only
+      fair if the features are on comparable scales, otherwise a variable measured
+      in millimetres gets taxed a thousand times harder than the same variable
+      measured in metres. Every feature here is standardized to mean 0 and
+      standard deviation 1 before anything else happens.
+      <span class="bold">Regularization without standardization is not
+      regularization, it is a unit-conversion bug.</span>
+    </p>
+    <br />
+    <p class="body-text">
+      The two charts share one slider. Above, the coefficients. Below, the honest
+      score: error on the training patients against error on held-out patients the
+      model never saw. Drag from left to right and watch the trade happen in both
+      views at once.
+    </p>
+  </section>
+
+  <div class="interactive-full stacked-charts" id="path-widget">
+    <div class="controls-row" style="justify-content: center">
+      <button class="atlas-btn" id="path-l1">lasso</button>
+      <button class="atlas-btn ghost" id="path-l2">ridge</button>
+      <span class="slider-label">λ = <span class="value" id="path-alpha-label"></span></span>
+      <input type="range" class="atlas-range" id="path-alpha" min="0" max="120" step="1" />
+      <button class="atlas-btn ghost" id="path-best">jump to best</button>
+    </div>
+    <div id="path-chart"></div>
+    <div id="curve-chart"></div>
+    <div id="path-stats" style="margin-top: 0.75rem"></div>
+  </div>
+
+  <section>
+    <p class="body-text">
+      Read the lasso path left to right and it becomes a ranking. The lines that
+      survive the longest under pressure are the variables the data insists on:
+      <span class="bold">body mass index</span> and
+      <span class="bold">s5</span>, a measure of blood triglycerides. The lines
+      that collapse to zero almost immediately were never carrying much of their
+      own weight. This is why practitioners reach for Lasso even when they do not
+      need the regularization: the path is a feature-importance report that comes
+      free with the model.
+    </p>
+    <br />
+    <p class="body-text">
+      Now flip to ridge and watch the same ten lines behave completely differently.
+      They glide toward zero together and asymptotically, and not one of them ever
+      arrives. Ten features go in, ten features come out, all politely shrunk. The
+      geometry from the previous section is right there in the shapes: no corners,
+      no deletions.
+    </p>
+    <br />
+    <p class="body-text">
+      The lower chart is where the tuning lesson lives. Training error rises
+      monotonically as you tighten the penalty, which is unsurprising since we are
+      handicapping the model on purpose. Held-out error does something more
+      interesting: it falls first, bottoms out, then climbs. That valley is the
+      only thing that matters, and it is why \(\lambda\) is never chosen by taste.
+      In production you locate it with cross-validation
+      (<code>LassoCV</code>, <code>RidgeCV</code>), which repeats this split many
+      times and averages the curves.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= collinearity ======================= -->
+  <section>
+    <h1 class="body-header">When Lasso Cannot Choose</h1>
+    <p class="body-text">
+      Lasso's decisiveness is its selling point, and also its weakness. Suppose two
+      of your features are near-duplicates: two nearly identical lab assays, or
+      "total floor area in square metres" alongside "total floor area in square
+      feet". Both are genuinely predictive, and they carry the
+      <span class="bold">same</span> information.
+    </p>
+    <br />
+    <p class="body-text">
+      Lasso is paying by total coefficient size, so it has no incentive to split
+      the work between two identical features when one will do. It picks a winner
+      and zeroes the loser. The problem is that the tie is essentially arbitrary,
+      broken by whatever noise happens to be in your particular sample. Collect the
+      data again and Lasso may hand the credit to the other twin.
+    </p>
+    <br />
+    <p class="body-text">
+      Below, two synthetic predictors correlated at
+      <span class="bold">0.98</span>, plus four pure-noise features that both
+      models correctly delete. Each press repeats the entire experiment: a brand
+      new sample drawn from the same process, both models refitted from scratch.
+      Watch which twin Lasso crowns.
+    </p>
+    <br />
+    <p class="body-text">
+      Over forty runs of this, Lasso handed the crown to twin A
+      <span class="bold">19</span> times and to twin B
+      <span class="bold">21</span> times, splitting the pair's credit
+      <span class="bold">31%</span> unevenly on average. ElasticNet, on the same
+      forty samples, kept them within <span class="bold">5%</span> of each other
+      every time. The winner under Lasso is not a finding about the world. It is
+      a coin flip decided by whichever twin happened to catch the noise.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="collinear-widget" style="max-width: 720px">
+    <div class="controls-row" style="justify-content: center">
+      <button class="atlas-btn" id="collinear-resample">Run the experiment again</button>
+    </div>
+    <div id="collinear-chart"></div>
+    <div id="collinear-stats" style="margin-top: 0.5rem"></div>
+    <div id="collinear-tally"></div>
+  </div>
+
+  <section>
+    <p class="body-text">
+      This is what ElasticNet was invented to fix. The L2 component prefers to
+      spread weight across correlated features rather than concentrate it, because
+      squaring makes one big coefficient cost more than two medium ones. Two
+      coefficients of 1 cost 2 under L2; one coefficient of 2 costs 4. The L1
+      component still deletes the genuine deadweight. You get sparsity where you
+      want it and stability where you need it, at the cost of a second
+      hyperparameter to tune.
+    </p>
+    <br />
+    <p class="body-text">
+      A closing warning, because it is the most common way this all goes wrong in
+      practice. Regularization is not free virtue, and there is no default value of
+      \(\lambda\) that is safe. In the notebook this article grew out of, an
+      untuned ElasticNet scored an \(R^2\) of 0.099 on this same diabetes data,
+      against 0.45 for plain unregularized OLS. The penalty was strong enough to
+      crush real signal along with the noise. A constrained model that has not been
+      tuned is not a safer model, it is just a differently broken one.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= verdict ======================= -->
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text">
+      Three penalties, one dial, and a decision that comes down to what you want
+      the model to do with features it distrusts.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Penalty</th>
+          <th>Reach for it when…</th>
+          <th>Does to coefficients</th>
+          <th>Solver</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Ridge (L2)</td>
+          <td>Features are correlated and you believe most of them carry a little signal. The safe default upgrade to OLS.</td>
+          <td>Shrinks all of them smoothly toward zero, never reaching it.</td>
+          <td>Closed form, one term on the diagonal</td>
+          <td>Keeps every feature, so it buys you no interpretability and no sparsity.</td>
+        </tr>
+        <tr>
+          <td>Lasso (L1)</td>
+          <td>You suspect most features are irrelevant and you want the model to name the ones that are not.</td>
+          <td>Sets most of them to exactly zero, shrinks the rest.</td>
+          <td>Coordinate descent, soft thresholding</td>
+          <td>Arbitrary tie-breaking among correlated features; cannot keep more than n features when p &gt; n.</td>
+        </tr>
+        <tr>
+          <td>ElasticNet</td>
+          <td>Features are both numerous and correlated in groups, and you want sparsity without the coin flips.</td>
+          <td>Zeroes the deadweight, splits credit within correlated groups.</td>
+          <td>Coordinate descent</td>
+          <td>Two hyperparameters instead of one; needs a real search over both.</td>
+        </tr>
+        <tr>
+          <td>None (OLS)</td>
+          <td>You have far more samples than features, low correlation, and you need unbiased coefficients for inference.</td>
+          <td>Nothing. Coefficients go wherever the error surface says.</td>
+          <td>Normal Equation</td>
+          <td>Explodes under redundancy; impossible when p &gt; n.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text">
+      One last reframing worth carrying forward. Everything on this page has a
+      Bayesian twin. Ridge is exactly what you get by assuming a Gaussian prior on
+      the coefficients, and Lasso by assuming a Laplace prior, which is sharply
+      peaked at zero. Under that reading, \(\lambda\) is not an arbitrary tuning
+      knob at all: it encodes how strongly you believed, before seeing any data,
+      that most effects in your problem are small. Regularization is prior
+      knowledge, written as arithmetic.
+    </p>
+    <br />
+    <p class="body-text">
+      Next in this module: what happens when the problem is not too many features
+      but a handful of catastrophically wrong observations. A single mistyped value
+      can drag a least-squares line across the room, and squaring the errors is
+      precisely what makes it so easy. That story is called robust regression.
+    </p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! The from-scratch NumPy implementations behind this
+      article (<code>ScratchRidge</code>, <code>ScratchLasso</code>) live in the
+      <a href="https://github.com/aleetreny/ATLAS">ATLAS repository</a>, and every
+      number on this page was computed in your browser and checked against
+      scikit-learn at load time.
+    </p>
+  </section>
+
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text">
+      Ridge, Lasso and ElasticNet are refitted live in your browser at every slider
+      position, using the same coordinate descent and closed-form solvers described
+      above. Reference fits from scikit-learn ship alongside the data and are
+      verified on load.
+    </p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://www.jstor.org/stable/2346178">[1] Regression Shrinkage and Selection via the Lasso</a><br />
+      (Tibshirani, R., Journal of the Royal Statistical Society, 1996)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://www.tandfonline.com/doi/abs/10.1080/00401706.1970.10488634">[2] Ridge Regression: Biased Estimation for Nonorthogonal Problems</a><br />
+      (Hoerl, A. E. &amp; Kennard, R. W., Technometrics, 1970)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://archive.ics.uci.edu/dataset/34/diabetes">[3] Least Angle Regression (source of the diabetes dataset)</a><br />
+      (Efron, B., Hastie, T., Johnstone, I., Tibshirani, R., Annals of Statistics, 2004)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://rss.onlinelibrary.wiley.com/doi/10.1111/j.1467-9868.2005.00503.x">[4] Regularization and Variable Selection via the Elastic Net</a><br />
+      (Zou, H. &amp; Hastie, T., Journal of the Royal Statistical Society, 2005)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://www.statlearning.com/">[5] An Introduction to Statistical Learning</a><br />
+      (James, G., Witten, D., Hastie, T., Tibshirani, R. Chapter 6, and figure 6.7 in particular)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://web.stanford.edu/~hastie/ElemStatLearn/">[6] The Elements of Statistical Learning</a><br />
+      (Hastie, T., Tibshirani, R., Friedman, J. Chapter 3)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>

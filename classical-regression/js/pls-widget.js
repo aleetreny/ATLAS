@@ -18,7 +18,7 @@ const ABBREV = {
 };
 
 const CULTIVARS = ['Barolo', 'Grignolino', 'Barbera'];
-const CLASS_COLORS = ['var(--anchor)', 'var(--smile)', 'var(--cosmos)'];
+const CLASS_COLORS = ['var(--anchor)', 'var(--primary)', 'var(--cosmos)'];
 
 export function initPLSWidget(wine) {
   drawHeatmap(wine);
@@ -65,7 +65,7 @@ function drawHeatmap(wine) {
         .on('mousemove', (event) => {
           const v = wine.corr[i][j];
           tip.show(
-            `<span style="color:var(--smile)">${labels[i]} × ${labels[j]}</span><br/>corr = ${v >= 0 ? '+' : ''}${v.toFixed(2)}`,
+            `<span style="color:var(--primary)">${labels[i]} × ${labels[j]}</span><br/>corr = ${v >= 0 ? '+' : ''}${v.toFixed(2)}`,
             event
           );
         })
@@ -170,7 +170,7 @@ function drawLatentSpace(wine) {
       .attr('cy', (d) => y(d[key][1]));
     caption.text(
       key === 'pca'
-        ? 'pca: axes of maximum variance — never saw the labels'
+        ? 'pca: axes of maximum variance, never saw the labels'
         : 'pls: axes of maximum covariance with the label'
     );
     btnPCA.classList.toggle('ghost', key !== 'pca');

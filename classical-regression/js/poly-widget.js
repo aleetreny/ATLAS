@@ -41,7 +41,7 @@ export function initPolyWidget(mpg) {
     .attr('cx', (d) => x(d.hp))
     .attr('cy', (d) => y(d.mpg))
     .attr('r', 3.8)
-    .attr('fill', 'var(--smile)')
+    .attr('fill', 'var(--primary)')
     .attr('stroke', 'white')
     .attr('stroke-width', 0.8)
     .attr('opacity', 0.85);
@@ -79,7 +79,7 @@ export function initPolyWidget(mpg) {
     if (r2Test < 0) return 'Below zero: worse than guessing the mean. Total memorization.';
     if (gap > 0.15) return `Overfitting: flexibility the ${n} cars cannot discipline.`;
     if (deg === 1) return 'Underfitting: the ruler cannot bend.';
-    if (deg === 2) return 'The sweet spot — the curve speaks physics.';
+    if (deg === 2) return 'The sweet spot: the curve speaks physics.';
     if (deg <= 4) return 'Still fine, but the extra wiggle buys almost nothing.';
     if (n === train.length) return 'High degree, but 294 cars keep the wiggles disciplined.';
     return 'The tail starts dancing. Fewer cars, more temptation.';
@@ -121,7 +121,7 @@ export function initPolyWidget(mpg) {
       );
     };
     barsEl.innerHTML =
-      bar('train', r2Train, 'var(--smile)') + bar('test&nbsp;', r2Test, 'var(--anchor)');
+      bar('train', r2Train, 'var(--primary)') + bar('test&nbsp;', r2Test, 'var(--anchor)');
     verdictEl.textContent = verdictFor(degree, n, r2Train - r2Test, r2Test);
   }
 

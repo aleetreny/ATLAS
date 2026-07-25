@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <rect width="400" height="300" fill="#f1f3f3" />
+  <!-- coefficient space: axes through the origin -->
+  <g stroke="#232f3e" stroke-width="1.5" opacity="0.55">
+    <line x1="40" y1="200" x2="360" y2="200" />
+    <line x1="150" y1="40" x2="150" y2="275" />
+  </g>
+  <!-- error contours: ellipses centred on the OLS solution, tilted -->
+  <g transform="rotate(-27 268 108)" fill="none" stroke="#232f3e" opacity="0.2">
+    <ellipse cx="268" cy="108" rx="34" ry="15" />
+    <ellipse cx="268" cy="108" rx="66" ry="29" />
+    <ellipse cx="268" cy="108" rx="98" ry="43" />
+  </g>
+  <!-- the contour that touches the budget -->
+  <ellipse cx="268" cy="108" rx="128" ry="56" transform="rotate(-27 268 108)"
+           fill="none" stroke="#df2a5d" stroke-width="2.5" />
+  <!-- L1 budget: the diamond, corners on the axes -->
+  <path d="M150,120 L230,200 L150,280 L70,200 Z" fill="#7c5aed" fill-opacity="0.16"
+        stroke="#7c5aed" stroke-width="3" />
+  <!-- OLS solution -->
+  <circle cx="268" cy="108" r="6" fill="none" stroke="#232f3e" stroke-width="2.5" />
+  <!-- the constrained solution, sitting exactly on a corner -->
+  <circle cx="230" cy="200" r="8" fill="#7c5aed" stroke="#232f3e" stroke-width="2.5" />
+  <!-- the path from OLS down to the corner -->
+  <path d="M268,108 C258,140 244,175 230,200" fill="none" stroke="#232f3e"
+        stroke-width="2" stroke-dasharray="5 5" opacity="0.6" />
+</svg>

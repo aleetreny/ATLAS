@@ -1,4 +1,4 @@
-/* ATLAS chart helpers — shared d3 conventions (axis styling, labels,
+/* ATLAS chart helpers: shared d3 conventions (axis styling, labels,
  * annotations) so every article's charts look like one system.
  * Assumes d3 v7 is loaded globally (vendored, see assets/js/vendor/).
  */
