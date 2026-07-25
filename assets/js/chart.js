@@ -77,6 +77,22 @@ export function annotate(g, x, y, text, { anchor = 'start' } = {}) {
     .text(text);
 }
 
+/* Push labels apart so none sit closer than `gap` pixels vertically.
+ * Works on any array of objects carrying a `y`, sorted internally, and returns
+ * the same objects with `y` adjusted. Direct labelling beats a legend, but only
+ * when the labels are actually readable. */
+export function spread(items, gap = 14) {
+  const sorted = [...items].sort((a, b) => a.y - b.y);
+  for (let i = 1; i < sorted.length; i++) {
+    const need = sorted[i - 1].y + gap - sorted[i].y;
+    if (need > 0) sorted[i].y += need;
+  }
+  // if pushing down overflowed the group, shift the whole stack back up
+  const overflow = sorted.length ? sorted[sorted.length - 1].y - Math.max(...items.map((d) => d.yMax ?? Infinity)) : 0;
+  if (overflow > 0) sorted.forEach((d) => (d.y -= overflow));
+  return items;
+}
+
 /* Singleton tooltip div. */
 let tooltipDiv = null;
 export function tooltip() {

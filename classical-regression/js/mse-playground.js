@@ -145,17 +145,30 @@ export function initMSEPlayground(mpg) {
     }
   }
 
+  /* Animate the line into the least squares solution.
+   *
+   * This runs on a d3.timer rather than a d3.transition. A transition whose
+   * tween calls render() does not work here: render() creates its own
+   * transitions on the same nodes, and an unnamed d3.transition interrupts the
+   * one already running, so the animation cancelled itself on the first tick
+   * and the button appeared to do nothing at all. */
+  let snapTimer = null;
   document.querySelector('#mse-fit-btn').addEventListener('click', () => {
-    const i = d3.interpolate({ b0: state.b0, b1: state.b1 }, { b0: fit.intercept, b1: fit.slope });
-    d3.transition()
-      .duration(900)
-      .ease(d3.easeCubicInOut)
-      .tween('fit', () => (u) => {
-        const v = i(u);
-        state.b0 = v.b0;
-        state.b1 = v.b1;
-        render(0);
-      });
+    if (snapTimer) snapTimer.stop();
+    const from = { b0: state.b0, b1: state.b1 };
+    const to = { b0: fit.intercept, b1: fit.slope };
+    const DURATION = 900;
+    snapTimer = d3.timer((elapsed) => {
+      const u = Math.min(1, elapsed / DURATION);
+      const e = d3.easeCubicInOut(u);
+      state.b0 = from.b0 + (to.b0 - from.b0) * e;
+      state.b1 = from.b1 + (to.b1 - from.b1) * e;
+      render(0);
+      if (u >= 1) {
+        snapTimer.stop();
+        snapTimer = null;
+      }
+    });
   });
 
   document.querySelector('#mse-reset-btn').addEventListener('click', () => {

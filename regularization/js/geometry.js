@@ -28,7 +28,11 @@ export function initGeometry(dia) {
     margin: { top: 30, right: 30, bottom: 62, left: 62 },
   });
 
-  const LIM = 0.46;
+  // The L1 budget reaches |b1| + |b2| along each axis, which is always further
+  // out than the solution itself, so the view has to be wide enough to contain
+  // the whole diamond at the loosest penalty. At 0.46 it was clipped into an
+  // octagon and the corners, the entire point of the picture, were off screen.
+  const LIM = 0.82;
   const x = d3.scaleLinear().domain([-LIM, LIM]).range([0, w]);
   const yS = d3.scaleLinear().domain([-LIM, LIM]).range([h, 0]);
   const pxPerUnit = (x(1) - x(0));
@@ -42,7 +46,7 @@ export function initGeometry(dia) {
   drawAxes(g, x, yS, w, h, { xTicks: 5, yTicks: 5 });
   axisLabels(g, w, h, { x: `coefficient of ${nameA}`, y: `coefficient of ${nameB}` });
 
-  const region = g.append('path').attr('fill', 'var(--primary)').attr('fill-opacity', 0.16)
+  const region = g.append('path').attr('fill', 'var(--primary)').attr('fill-opacity', 0.11)
     .attr('stroke', 'var(--primary)').attr('stroke-width', 2.5);
 
   const contoursG = g.append('g');

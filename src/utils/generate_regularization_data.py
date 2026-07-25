@@ -101,14 +101,23 @@ for a in ALPHAS:
     rmse = lambda idx: float(np.sqrt(np.mean((yd[idx] - lt.predict(Xd[idx])) ** 2)))
     ref_paths["curve"].append({"train": rnd(rmse(train_i), 3), "test": rnd(rmse(test_i), 3)})
 
-NICE = {
-    "age": "age", "sex": "sex", "bmi": "bmi", "bp": "blood pressure",
-    "s1": "s1 · total chol.", "s2": "s2 · ldl", "s3": "s3 · hdl",
-    "s4": "s4 · chol ratio", "s5": "s5 · log triglyc.", "s6": "s6 · glucose",
+# Short labels are drawn directly on the path chart, so they have to fit in the
+# right margin; the long ones are for the hover tooltip.
+SHORT = {
+    "age": "age", "sex": "sex", "bmi": "bmi", "bp": "blood pr.",
+    "s1": "s1 chol", "s2": "s2 ldl", "s3": "s3 hdl",
+    "s4": "s4 ratio", "s5": "s5 trig", "s6": "s6 gluc",
+}
+LONG = {
+    "age": "age", "sex": "sex", "bmi": "body mass index", "bp": "blood pressure",
+    "s1": "s1 · total cholesterol", "s2": "s2 · ldl cholesterol",
+    "s3": "s3 · hdl cholesterol", "s4": "s4 · cholesterol ratio",
+    "s5": "s5 · log triglycerides", "s6": "s6 · blood glucose",
 }
 diabetes_out = {
     "features": list(dia.feature_names),
-    "labels": [NICE[f] for f in dia.feature_names],
+    "labels": [SHORT[f] for f in dia.feature_names],
+    "descriptions": [LONG[f] for f in dia.feature_names],
     "X": [[rnd(v, 4) for v in row] for row in Xd],
     "y": [rnd(v, 2) for v in yd],
     "train_idx": sorted(int(i) for i in train_i),

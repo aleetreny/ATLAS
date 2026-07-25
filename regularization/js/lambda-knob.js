@@ -17,10 +17,13 @@ export function initLambdaKnob(sine) {
   const grid = d3.range(0, 5.001, 0.02);
   const Xg = polyDesign(grid, sine.degree, sine.poly_mu, sine.poly_sd);
 
+  // Both coefficient spectra live in the top margin. Underneath the plot they
+  // collided with the x axis label and the lower one fell outside the viewBox
+  // entirely, so half of it was simply not rendered.
   const { g, w, h } = makeChart('#knob-chart', {
     width: 620,
-    height: 560,
-    margin: { top: 34, right: 22, bottom: 132, left: 56 },
+    height: 620,
+    margin: { top: 175, right: 22, bottom: 62, left: 56 },
   });
 
   const x = d3.scaleLinear().domain([-0.15, 5.15]).range([0, w]);
@@ -62,30 +65,45 @@ export function initLambdaKnob(sine) {
     .attr('stroke', 'white')
     .attr('stroke-width', 1.3);
 
-  // ---------- paired coefficient spectra ----------
-  const specTop = h + 56;
-  const spec = g.append('g').attr('transform', `translate(0,${specTop})`);
+  // ---------- paired coefficient spectra, in the top margin ----------
+  // Local y (the inner group starts at margin.top): ridge bars grow up from
+  // RIDGE_BASE, lasso bars grow down from LASSO_BASE, each capped at BAR_MAX.
+  const RIDGE_BASE = -105;
+  const LASSO_BASE = -80;
+  const BAR_MAX = 40;
+  const spec = g.append('g');
   const bx = d3.scaleBand().domain(d3.range(sine.degree)).range([0, w]).padding(0.3);
-  const by = d3.scaleLinear().domain([0, 5.2]).range([0, -46]);
 
-  spec.append('line').attr('x1', 0).attr('x2', w).attr('y1', 0).attr('y2', 0)
-    .attr('stroke', 'var(--squidink)').attr('stroke-width', 1.2);
-  spec.append('line').attr('x1', 0).attr('x2', w).attr('y1', 56).attr('y2', 56)
-    .attr('stroke', 'var(--squidink)').attr('stroke-width', 1.2);
+  /* Size the bar scale to the coefficients this slider can actually produce.
+   * A fixed symlog domain borrowed from the unregularized fit (which reaches
+   * into the hundreds) squashed every bar here into a few invisible pixels,
+   * because nothing on this widget exceeds about 10. */
+  const sliderEl = document.querySelector('#knob-alpha');
+  let peak = 0;
+  for (let lv = +sliderEl.min; lv <= +sliderEl.max; lv += 0.25) {
+    const a = 10 ** lv;
+    peak = Math.max(peak, d3.max(model.fit(a, 0), (v) => Math.abs(v)), d3.max(model.fit(a, 1), (v) => Math.abs(v)));
+  }
+  const by = d3.scaleLinear().domain([0, symlog(peak) * 1.04]).range([0, BAR_MAX]).clamp(true);
 
-  spec.append('text').attr('class', 'chart-annotation').attr('x', 0).attr('y', -50)
-    .style('font-size', '0.68rem').text('ridge |coef|');
-  spec.append('text').attr('class', 'chart-annotation').attr('x', 0).attr('y', 50)
-    .style('font-size', '0.68rem').text('lasso |coef|');
+  for (const yb of [RIDGE_BASE, LASSO_BASE]) {
+    spec.append('line').attr('x1', 0).attr('x2', w).attr('y1', yb).attr('y2', yb)
+      .attr('stroke', 'var(--squidink)').attr('stroke-width', 1.2);
+  }
+
+  spec.append('text').attr('class', 'chart-annotation').attr('x', 0).attr('y', RIDGE_BASE - BAR_MAX - 8)
+    .style('font-size', '0.66rem').attr('fill', 'var(--anchor)').text('ridge |coef|');
+  spec.append('text').attr('class', 'chart-annotation').attr('x', 0).attr('y', LASSO_BASE + BAR_MAX + 18)
+    .style('font-size', '0.66rem').attr('fill', 'var(--cosmos)').text('lasso |coef|');
 
   const ridgeBars = spec.selectAll('rect.r').data(new Array(sine.degree).fill(0)).join('rect')
     .attr('class', 'r').attr('x', (d, i) => bx(i)).attr('width', bx.bandwidth())
-    .attr('fill', 'var(--anchor)');
+    .attr('y', RIDGE_BASE).attr('height', 0).attr('fill', 'var(--anchor)');
   const lassoBars = spec.selectAll('rect.l').data(new Array(sine.degree).fill(0)).join('rect')
     .attr('class', 'l').attr('x', (d, i) => bx(i)).attr('width', bx.bandwidth())
-    .attr('y', 56).attr('fill', 'var(--cosmos)');
+    .attr('y', LASSO_BASE).attr('height', 0).attr('fill', 'var(--cosmos)');
 
-  const slider = document.querySelector('#knob-alpha');
+  const slider = sliderEl;
   const alphaLabel = document.querySelector('#knob-alpha-label');
   const statsEl = document.querySelector('#knob-stats');
 
@@ -108,11 +126,11 @@ export function initLambdaKnob(sine) {
     lassoPath.attr('d', dL);
 
     ridgeBars.data(bR).transition().duration(160)
-      .attr('y', (v) => by(symlog(Math.abs(v))))
-      .attr('height', (v) => Math.abs(by(symlog(Math.abs(v)))));
+      .attr('y', (v) => RIDGE_BASE - by(symlog(Math.abs(v))))
+      .attr('height', (v) => by(symlog(Math.abs(v))));
     lassoBars.data(bL).transition().duration(160)
-      .attr('y', 56)
-      .attr('height', (v) => Math.abs(by(symlog(Math.abs(v)))));
+      .attr('y', LASSO_BASE)
+      .attr('height', (v) => by(symlog(Math.abs(v))));
 
     // honest scoring against the noiseless truth, not against the noisy dots
     const errTruth = (b) => {

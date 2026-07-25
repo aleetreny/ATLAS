@@ -1,7 +1,7 @@
 /* The regularization path plus the validation curve, driven by ONE slider so
  * the reader can see the trade in both views at once: which features are still
  * alive on the left, and whether that choice generalizes on the right. */
-import { makeChart, drawAxes, drawGrid, axisLabels, tooltip } from '../../assets/js/chart.js';
+import { makeChart, drawAxes, drawGrid, axisLabels, tooltip, spread } from '../../assets/js/chart.js';
 import { makeModel, predict, rmse, nonZero } from './mathkit.js';
 
 const SERIES = [
@@ -37,7 +37,7 @@ export function initPathWidget(dia) {
 
   /* ------------------------------ path chart ------------------------------ */
   const P = makeChart('#path-chart', {
-    width: 620, height: 420, margin: { top: 30, right: 108, bottom: 58, left: 62 },
+    width: 620, height: 400, margin: { top: 30, right: 112, bottom: 34, left: 62 },
   });
   const px = d3.scaleLog().domain([alphas[0], alphas[alphas.length - 1]]).range([0, P.w]);
   const py = d3.scaleLinear().range([P.h, 0]);
@@ -47,14 +47,16 @@ export function initPathWidget(dia) {
   const pathRule = P.g.append('line').attr('y1', 0).attr('y2', P.h)
     .attr('stroke', 'var(--primary)').attr('stroke-width', 2.5);
   const pathLabelsG = P.g.append('g');
-  axisLabels(P.g, P.w, P.h, { x: 'penalty strength α (log)', y: 'coefficient' });
+  // No x label here: this chart is stacked directly on top of the validation
+  // chart and they share the same axis, so one label at the bottom serves both.
+  axisLabels(P.g, P.w, P.h, { y: 'coefficient' });
 
   const tip = tooltip();
   const lineGen = d3.line().x((d, i) => px(alphas[i])).y((d) => py(d));
 
   /* --------------------------- validation chart --------------------------- */
   const V = makeChart('#curve-chart', {
-    width: 620, height: 300, margin: { top: 26, right: 108, bottom: 58, left: 62 },
+    width: 620, height: 290, margin: { top: 18, right: 112, bottom: 62, left: 62 },
   });
   const vx = d3.scaleLog().domain([alphas[0], alphas[alphas.length - 1]]).range([0, V.w]);
   const vy = d3.scaleLinear().range([V.h, 0]);
@@ -95,7 +97,7 @@ export function initPathWidget(dia) {
       .style('cursor', 'pointer')
       .on('mousemove', (event, d) => {
         const j = pathLinesG.selectAll('path').nodes().indexOf(event.currentTarget);
-        tip.show(`<span style="color:var(--smile)">${dia.labels[j]}</span>`, event);
+        tip.show(`<span style="color:var(--primary)">${dia.descriptions?.[j] ?? dia.labels[j]}</span>`, event);
         pathLinesG.selectAll('path').attr('opacity', (dd, k) => (k === j ? 1 : 0.15));
       })
       .on('mouseleave', () => {
@@ -103,9 +105,14 @@ export function initPathWidget(dia) {
         pathLinesG.selectAll('path').attr('opacity', 0.9);
       });
 
-    const vExt = [0, d3.max(curve, (d) => Math.max(d.train, d.test)) * 1.05];
-    vy.domain(vExt);
-    drawAxes(V.g, vx, vy, V.w, V.h, { xTicks: 5 });
+    // Zoom to the range the curves actually occupy. Anchoring this axis at zero
+    // flattens everything into a straight line and hides the valley, which is
+    // the entire reason this chart exists.
+    const lo = d3.min(curve, (d) => Math.min(d.train, d.test));
+    const hi = d3.max(curve, (d) => Math.max(d.train, d.test));
+    const padV = (hi - lo) * 0.14 || 1;
+    vy.domain([lo - padV, hi + padV]);
+    drawAxes(V.g, vx, vy, V.w, V.h, { xTicks: 5, yTicks: 5 });
     trainLine.attr('d', d3.line().x((d, i) => vx(alphas[i])).y((d) => vy(d.train))(curve));
     testLine.attr('d', d3.line().x((d, i) => vx(alphas[i])).y((d) => vy(d.test))(curve));
 
@@ -113,13 +120,25 @@ export function initPathWidget(dia) {
     bestBand.attr('x', vx(alphas[Math.max(0, bi - 2)]))
       .attr('width', Math.max(6, vx(alphas[Math.min(alphas.length - 1, bi + 2)]) - vx(alphas[Math.max(0, bi - 2)])));
 
-    vLabels.selectAll('text').data(['train', 'held out']).join('text')
+    // The two curves converge at the right edge, so their labels land on top of
+    // each other. Nudge them apart to a minimum readable gap.
+    const last = curve[curve.length - 1];
+    const placed = spread(
+      [
+        { t: 'train', y: vy(last.train), c: 'var(--squidink)' },
+        { t: 'held out', y: vy(last.test), c: 'var(--cosmos)' },
+      ],
+      15
+    );
+    vLabels.selectAll('text').data(placed).join('text')
       .attr('class', 'chart-annotation')
-      .attr('x', V.w + 8)
-      .attr('y', (d, i) => (i === 0 ? vy(curve[curve.length - 1].train) : vy(curve[curve.length - 1].test)) + 4)
-      .style('font-size', '0.68rem')
-      .attr('fill', (d, i) => (i === 0 ? 'var(--squidink)' : 'var(--cosmos)'))
-      .text((d) => d);
+      .attr('x', V.w + 10)
+      .attr('y', (d) => d.y + 4)
+      .style('font-size', '0.64rem')
+      .style('letter-spacing', '0.5px')
+      .style('text-transform', 'none')
+      .attr('fill', (d) => d.c)
+      .text((d) => d.t);
   }
 
   function renderAlpha() {
@@ -132,16 +151,25 @@ export function initPathWidget(dia) {
     const b = paths[i];
     const alive = nonZero(b, 1e-8);
 
-    // name the survivors right where their line is, only while they are alive
+    // Name the survivors at the right edge, only while they are alive, pushed
+    // apart so overlapping coefficients stay readable.
+    const labels = spread(
+      dia.labels
+        .map((l, j) => ({ l, j, v: b[j], y: py(b[j]) }))
+        .filter((d) => Math.abs(d.v) > 1e-8),
+      13
+    );
     pathLabelsG
       .selectAll('text')
-      .data(dia.labels.map((l, j) => ({ l, j, v: b[j] })).filter((d) => Math.abs(d.v) > 1e-8))
+      .data(labels, (d) => d.j)
       .join('text')
       .attr('class', 'chart-annotation')
-      .attr('x', px(alpha) + 8)
-      .attr('y', (d) => py(d.v) + 4)
+      .attr('x', P.w + 8)
+      .attr('y', (d) => d.y + 4)
       .attr('text-anchor', 'start')
-      .style('font-size', '0.66rem')
+      .style('font-size', '0.62rem')
+      .style('letter-spacing', '0.5px')
+      .style('text-transform', 'none')
       .attr('fill', (d) => SERIES[d.j])
       .text((d) => d.l);
 
