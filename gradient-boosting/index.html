@@ -402,20 +402,13 @@
       instead of considering every distinct value of a feature as a candidate
       split, bucket the values into a couple of hundred bins once, and search
       only the bin edges. It sounds like an approximation that should cost
-      accuracy. Measured on the diamonds, on this machine, it does not:
-    </p>
-    <br />
-    <ul class="body-text">
-      <li>Exact split search, 300 trees: RMSE <span class="bold">$572</span>, fit in <span class="bold">8.5 s</span></li>
-      <li>Histogram binning, 300 trees: RMSE <span class="bold">$526</span>, fit in <span class="bold">0.8 s</span></li>
-    </ul>
-    <br />
-    <p class="body-text">
-      Eleven times faster <i>and</i> more accurate, because the binning also acts
-      as a mild regularizer. This idea was convincing enough that XGBoost adopted
-      it: since version 2.0 its default tree method is histogram-based too, so
-      the old "XGBoost is exact, LightGBM is approximate" framing you will still
-      find in blog posts is simply out of date.
+      accuracy. On these diamonds it costs essentially nothing and saves an
+      order of magnitude: at identical settings, exact search takes
+      <span class="bold">8.7 s</span> for RMSE $572.4 while the histogram version
+      takes <span class="bold">0.8 s</span> for $572.6. The idea was convincing
+      enough that XGBoost adopted it, so since version 2.0 its default tree
+      method is histogram-based too, and the old "XGBoost is exact, LightGBM is
+      approximate" framing you will still find in blog posts is out of date.
     </p>
     <br />
     <p class="body-text">
@@ -426,19 +419,182 @@
       own prediction and biases the ensemble. CatBoost's
       <span class="bold">ordered boosting</span> fixes this by fixing a random
       permutation and computing each row's residual using only a model trained on
-      rows that came before it. It also handles raw categorical columns natively
-      by target statistics computed under the same ordering, which is why it
-      tends to win on data full of high-cardinality categories.
+      rows that came before it. It also handles raw categorical columns natively,
+      by target statistics computed under that same ordering.
+    </p>
+  </section>
+
+  <!-- ======================= the library question ======================= -->
+  <section>
+    <h1 class="body-header">Does the Library Matter?</h1>
+    <p class="body-text">
+      This is the question every introduction dances around, so here is a
+      straight answer measured on 53,920 diamonds, three runs each. The catch in
+      most published comparisons is that they run each library at
+      <i>its own defaults</i>, which measures whose defaults are bolder rather
+      than whose algorithm is better. Every boosted row below is pinned to the
+      same capacity: <span class="bold">300 trees, depth 3, learning rate
+      0.1</span>.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Implementation</th>
+          <th>Held-out RMSE</th>
+          <th>Fit time</th>
+          <th>Relative speed</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>scikit-learn, exact splits</td>
+          <td>$572.4 ± 0.4</td>
+          <td>8.67 s</td>
+          <td>1×</td>
+        </tr>
+        <tr>
+          <td>scikit-learn, histogram</td>
+          <td>$572.6 ± 0.5</td>
+          <td>0.76 s</td>
+          <td>11×</td>
+        </tr>
+        <tr>
+          <td>CatBoost</td>
+          <td>$571.7 ± 0.5</td>
+          <td>0.73 s</td>
+          <td>12×</td>
+        </tr>
+        <tr>
+          <td>LightGBM</td>
+          <td>$569.9 ± 0.0</td>
+          <td>0.29 s</td>
+          <td>30×</td>
+        </tr>
+        <tr>
+          <td>XGBoost</td>
+          <td>$573.2 ± 0.0</td>
+          <td>0.17 s</td>
+          <td><span class="bold">51×</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text">
+      Read the accuracy column first, because it is the surprising one. Five
+      different implementations, three of them the celebrated competition
+      libraries, and they span <span class="bold">$3.30</span> of RMSE, about
+      half of one percent. At matched capacity they are, statistically, the same
+      model. Which they should be: they are all fitting shallow trees to
+      residuals, and the algorithm was published in 2001.
     </p>
     <br />
     <p class="body-text">
-      <i>A note on what this page does not claim. The three libraries are not
-      installed in the environment this article was built in, so no timing or
-      accuracy comparison between them appears here, and you should be suspicious
-      of any article that publishes one without saying which versions, which
-      thread count and how many repeats. The measurements above are scikit-learn
-      against scikit-learn, three runs each, on one machine, and even those
-      should be read as an order of magnitude rather than a benchmark.</i>
+      Now read the time column, where the same five implementations span a factor
+      of <span class="bold">51</span>. That is what the modern libraries actually
+      sell. Not a better estimator, but the same estimator delivered in
+      sub-second time through histogram binning, cache-aware data layout,
+      multithreading and sparsity-aware split finding. On this dataset that turns
+      an eight-second experiment into a fifth of a second, which changes how many
+      experiments you are willing to run, which is how you actually get a better
+      model.
+    </p>
+    <br />
+    <p class="body-text">
+      And to make the point sharper: letting LightGBM use its own default
+      capacity of 31 leaves instead of the depth-3 straitjacket takes RMSE from
+      $569.9 to <span class="bold">$516.6</span>, in the same 0.3 seconds. That
+      one setting is worth <span class="bold">sixteen times</span> more accuracy
+      than the entire choice of library. Pick whichever you like, then go and
+      tune it.
+    </p>
+    <br />
+    <p class="body-text">
+      <i>Measured on Windows AMD64 with xgboost 3.2.0, lightgbm 4.7.0, catboost
+      1.2.10 and scikit-learn 1.8.0, Python 3.11.7, three repeats per row, all
+      cores available. Timings are wall clock and will move with thread count and
+      hardware; the accuracy column will not.</i>
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= categoricals ======================= -->
+  <section>
+    <h1 class="body-header">How to Feed It a Category</h1>
+    <p class="body-text">
+      Diamonds come with three text columns: cut, colour and clarity. Trees split
+      on numbers, so something has to happen to those columns first, and the
+      choice matters more than most people expect. Three options, same library,
+      same settings, same split.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Treatment</th>
+          <th>Columns</th>
+          <th>Held-out RMSE</th>
+          <th>What happened</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Ordinal codes</td>
+          <td>9</td>
+          <td><span class="bold">$569.9</span></td>
+          <td>Fair → Ideal becomes 0 → 4. Best of the three, because these grades really are ordered.</td>
+        </tr>
+        <tr>
+          <td>Native categorical</td>
+          <td>9</td>
+          <td>$573.6</td>
+          <td>The library partitions category sets directly. No gain here, and no loss.</td>
+        </tr>
+        <tr>
+          <td>One-hot</td>
+          <td>26</td>
+          <td>$628.0</td>
+          <td>Seventeen extra columns and <span class="bold">10% worse</span>. The clear loser.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text">
+      One-hot encoding is the reflex most people learned first, and for tree
+      ensembles it is usually the wrong reflex. Each binary column can only ever
+      answer "is it this one category or not", so a split that would cleanly
+      separate three grades from five has to be built out of several weak splits
+      instead, and each of them fragments the data further. The cost here is ten
+      percent of accuracy for seventeen extra columns.
+    </p>
+    <br />
+    <p class="body-text">
+      The more interesting row is the middle one. Native categorical handling is
+      the headline feature of both LightGBM and CatBoost, and here it does
+      nothing at all. That is not a failure, it is a lesson about when the
+      feature is for: cut, colour and clarity are <span class="bold">ordered
+      grades</span>, so mapping them to 0 through 4 encodes real information, and
+      a method that treats them as unordered sets can only match it. Native
+      handling earns its reputation on genuinely unordered, high-cardinality
+      columns, postcodes, product IDs, user agents, where an ordinal code would
+      be meaningless and one-hot would explode.
+    </p>
+    <br />
+    <p class="body-text">
+      CatBoost's ordered target statistics on these same columns came out at
+      $596.6 and took eight times longer, for the same reason: machinery built to
+      prevent target leakage across thousands of rare categories is overhead when
+      you have eight ordered grades. Reach for the feature when the data calls
+      for it, not because the documentation is proud of it.
     </p>
   </section>
 
@@ -527,16 +683,16 @@
           <td>Averaging many independent deep trees. Note that it beat both boosted models at default settings.</td>
         </tr>
         <tr>
-          <td>Boosting, exact</td>
-          <td>$572</td>
-          <td>8.5 s</td>
-          <td>300 shallow trees in sequence. Slower and worse than the forest until you tune it, which is the honest headline.</td>
+          <td>Boosting, depth 3</td>
+          <td>$570</td>
+          <td>0.29 s</td>
+          <td>300 shallow trees in sequence, LightGBM. Slower to write and worse than the forest at this capacity.</td>
         </tr>
         <tr>
-          <td>Boosting, histogram</td>
-          <td>$526</td>
-          <td>0.8 s</td>
-          <td>Same algorithm, binned features. Eleven times faster and more accurate. This is what modern libraries do.</td>
+          <td>Boosting, 31 leaves</td>
+          <td>$517</td>
+          <td>0.30 s</td>
+          <td>The same library given room to breathe. One parameter, $53 of accuracy, no extra time.</td>
         </tr>
       </tbody>
     </table>
@@ -544,21 +700,21 @@
 
   <section>
     <p class="body-text">
-      That fourth row deserves saying out loud, because most introductions to
-      boosting quietly omit it. <span class="bold">Out of the box, on this data,
-      a random forest beat gradient boosting.</span> Boosting's advantage is not
-      that it wins by default. It is that it has far more room to be tuned, and
-      with the learning rate, depth and tree count actually searched it will
-      generally end up ahead. A forest is the better untuned model; a boosted
-      ensemble is the better tuned one. If you have an afternoon, that
-      distinction decides which you should reach for.
+      The two boosted rows are the lesson. At depth 3 the ensemble
+      <span class="bold">loses</span> to a random forest that was not tuned at
+      all; give the same library its default 31 leaves and it draws level, in
+      three tenths of a second. Boosting's advantage was never that it wins out
+      of the box. It is that it has far more room to be tuned, and it responds to
+      tuning fast enough that you can afford to do it. A forest is the better
+      untuned model; a boosted ensemble is the better tuned one.
     </p>
     <br />
     <p class="body-text">
       And if you want boosting without a new dependency, scikit-learn's
       <code>HistGradientBoostingRegressor</code> is the histogram-based
-      implementation used for the last row above. It is genuinely competitive,
-      and it is already installed.
+      implementation that appeared in the library table, within a dollar of
+      XGBoost at matched settings. It is genuinely competitive, and it is already
+      installed.
     </p>
     <br />
     <p class="body-text">
@@ -585,9 +741,12 @@
   <section id="resources">
     <h3 class="body-header">References + Open Source</h3>
     <p class="body-text">
-      Every diamond number quoted here comes from a script in the repository
-      rather than from memory, and the boosting loop in the first chart is
-      implemented from scratch in about eighty lines of JavaScript.
+      Every diamond number quoted here comes from
+      <code>src/utils/generate_boosting_data.py</code> in the repository, run on
+      Windows AMD64 with xgboost 3.2.0, lightgbm 4.7.0, catboost 1.2.10 and
+      scikit-learn 1.8.0 under Python 3.11.7, three repeats per measurement. The
+      boosting loop in the first chart is implemented from scratch in about
+      eighty lines of JavaScript and runs as you scroll.
     </p>
     <br />
     <p class="resource-item">

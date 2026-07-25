@@ -14,8 +14,8 @@ export function initScrollyBoost() {
 
   const { g, w, h } = makeChart('#boost-chart', {
     width: 620,
-    height: 600,
-    margin: { top: 42, right: 26, bottom: 190, left: 58 },
+    height: 620,
+    margin: { top: 42, right: 26, bottom: 232, left: 58 },
   });
 
   const x = d3.scaleLinear().domain([-0.2, 9.8]).range([0, w]);
@@ -42,19 +42,27 @@ export function initScrollyBoost() {
   const readout = g.append('text').attr('class', 'chart-annotation')
     .attr('x', w / 2).attr('y', -18).attr('text-anchor', 'middle');
 
-  /* ---- residual panel ---- */
-  const resTop = h + 74;
-  const resH = 78;
+  /* ---- residual panel ----
+   * Sits clear of the x axis label above it, with its caption underneath rather
+   * than on top, because a caption placed above the panel lands exactly where
+   * the axis label already is. */
+  const resTop = h + 115;
+  const resH = 55;
   const res = g.append('g').attr('transform', `translate(0,${resTop})`);
   const ry = d3.scaleLinear().domain([-5, 5]).range([resH, -resH]);
+  /* A line generator in the RESIDUAL scale. Reusing the main plot's generator
+   * here drew the stump roughly 200 units below the bottom of the canvas, so
+   * the one step that shows a tree being fitted showed nothing at all. */
+  const resLine = d3.line().x((d) => x(d[0])).y((d) => ry(d[1])).curve(d3.curveStepAfter);
+
   res.append('line').attr('x1', 0).attr('x2', w).attr('y1', ry(0)).attr('y2', ry(0))
     .attr('stroke', 'var(--squidink)').attr('stroke-width', 1.2);
-  res.append('text').attr('class', 'chart-annotation').attr('x', 0).attr('y', -resH - 10)
+  res.append('text').attr('class', 'chart-annotation').attr('x', 0).attr('y', resH + 24)
     .style('font-size', '0.64rem').style('letter-spacing', '0.5px').style('text-transform', 'none')
     .text('what is still wrong: the residual each new tree is fitted to');
   const resDots = res.append('g').selectAll('circle').data(xs).join('circle')
     .attr('cx', (v) => x(v)).attr('r', 3).attr('fill', 'var(--cosmos)').attr('opacity', 0.75);
-  const resFit = res.append('path').attr('fill', 'none').attr('stroke', 'var(--anchor)').attr('stroke-width', 2.6).attr('opacity', 0);
+  const resFit = res.append('path').attr('fill', 'none').attr('stroke', 'var(--anchor)').attr('stroke-width', 2.8).attr('opacity', 0);
 
   const t = () => d3.transition().duration(DUR).ease(d3.easeCubicOut);
 
@@ -77,7 +85,7 @@ export function initScrollyBoost() {
     if (showStump && model.history[m]) {
       const s = model.history[m].stump;
       resFit.transition(t())
-        .attr('d', stepLine(grid.map((v) => [v, stumpPredict(s, v)])).replace(/NaN/g, '0'))
+        .attr('d', resLine(grid.map((v) => [v, stumpPredict(s, v)])))
         .attr('opacity', 1);
     } else {
       resFit.transition(t()).attr('opacity', 0);
