@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Robust Regression | ATLAS</title>
+  <meta name="description" content="A visual, interactive introduction to robust regression: Huber, Theil-Sen and RANSAC. Why squaring the errors hands unlimited power to a single point, and why the dangerous outliers are not the ones you can see." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    /* Per-article theme. Everything else inherits from these two. */
+    :root {
+      --primary: #007faa;
+      --secondary: #005f80;
+    }
+    /* Width only: a margin here would override .interactive-full's rhythm. */
+    .stacked-charts {
+      max-width: 720px;
+    }
+    .method-table {
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      margin-top: 0.6rem;
+      width: 100%;
+    }
+    .method-table th,
+    .method-table td {
+      padding: 5px 10px 5px 0;
+      text-align: left;
+      font-weight: 400;
+      white-space: nowrap;
+    }
+    .method-table th {
+      font-family: var(--font-heavy);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+  </style>
+</head>
+<body>
+  <!-- ======================= chrome ======================= -->
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <!-- ======================= hero ======================= -->
+  <section id="intro">
+    <h1 id="intro-hed">Robust Regression</h1>
+    <h1 id="intro-sub">When one point owns the model: Huber, Theil-Sen and RANSAC</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 1.1 · Regression</span>
+  </section>
+
+  <br />
+
+  <!-- ======================= introduction ======================= -->
+  <section>
+    <p class="body-text">
+      Ten people are drinking in a bar. The average net worth is maybe forty
+      thousand. A billionaire walks in, and the average net worth of the room
+      becomes a hundred million. Every single person in that bar is now, on
+      paper, extraordinarily wealthy. The statistic is arithmetically perfect and
+      completely useless.
+    </p>
+    <br />
+    <p class="body-text">
+      Least squares has this problem built into its foundations, and worse. In
+      the <a href="../classical-regression/">first article</a> we accepted
+      squaring the errors without much argument: it makes big mistakes hurt more,
+      it keeps the maths differentiable, and it hands us a closed-form solution.
+      All true. Here is the bill for that convenience. A residual of 10 costs
+      100. A residual of 100 costs 10,000. There is no ceiling, so the further a
+      point sits from the line, the more absolute authority it has over where
+      that line goes. <span class="bold">One observation can outvote a
+      thousand.</span>
+    </p>
+    <br />
+    <p class="body-text">
+      That is not a hypothetical. Let's start with a real measurement, of real
+      stars, where least squares reports something that is not merely inaccurate
+      but physically backwards.
+    </p>
+  </section>
+
+  <!-- ======================= scrolly: the stars ======================= -->
+  <section>
+    <h1 class="body-header">Forty-Seven Stars</h1>
+    <p class="body-text">
+      In 1987 Peter Rousseeuw and Annick Leroy published a table of 47 stars from
+      the CYG OB1 cluster in the constellation Cygnus
+      <a href="#resources">[1]</a>. For each star: the logarithm of its surface
+      temperature, and the logarithm of how much light it puts out. Astronomers
+      have known the shape of this relationship since 1911. Hotter stars burn
+      brighter. The plot of one against the other is the
+      <a href="https://en.wikipedia.org/wiki/Hertzsprung%E2%80%93Russell_diagram">Hertzsprung-Russell diagram</a>,
+      and its main diagonal band is called the main sequence.
+    </p>
+  </section>
+
+  <section id="stars-scrolly">
+    <div class="scrolly-container">
+      <div class="steps-container">
+        <div class="step" data-index="0">
+          <div class="step-content">
+            <h3>The Measurements</h3>
+            <p>
+              Forty-seven stars. Temperature increases to the right, brightness
+              upward. Take a moment before any model touches this: which way does
+              the relationship run, and are all forty-seven points telling the
+              same story?
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="1">
+          <div class="step-content">
+            <h3>What Least Squares Concludes</h3>
+            <p>
+              Here is the line that minimizes the sum of squared errors. Its
+              slope is <span class="bold">negative</span>. Taken at face value
+              this says that across this cluster, the hotter a star burns, the
+              <i>less</i> light it emits. That is not a small error. It is the
+              opposite of stellar physics.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="2">
+          <div class="step-content">
+            <h3>The Culprits</h3>
+            <p>
+              Four stars, highlighted. They are cool and enormously bright, which
+              puts them in the upper left, far from everyone else. They are not
+              measurement errors. They are <span class="bold">red giants</span>:
+              real, well-understood stars that have left the main sequence and
+              are burning helium in a swollen shell.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="3">
+          <div class="step-content">
+            <h3>Four Against Forty-Three</h3>
+            <p>
+              Drop those four and refit. The slope flips from
+              <span class="bold">−0.41 to +2.05</span>, and the line finally lies
+              along the band the other forty-three stars form. Four points out of
+              forty-seven, under nine percent of the sample, were not just
+              biasing the answer. They were reversing it.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="4">
+          <div class="step-content">
+            <h3>Why They Win</h3>
+            <p>
+              It is not because their errors are large. It is because of
+              <span class="bold">where they sit on the x axis</span>. A point far
+              out along x acts on the line like a long lever: a small movement at
+              that end swings the whole thing. Statisticians call this quantity
+              <span class="bold">leverage</span>, and it is the real villain of
+              this article.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="5">
+          <div class="step-content">
+            <h3>Robust Estimators</h3>
+            <p>
+              Two methods we are about to build, <span class="bold">Theil-Sen</span>
+              and <span class="bold">RANSAC</span>, recover a positive slope
+              without being told which stars are giants. They find the main
+              sequence on their own. Getting there requires deciding what to do
+              with a point you distrust: <i>dampen</i> it, <i>out-vote</i> it, or
+              <i>expel</i> it.
+            </p>
+          </div>
+        </div>
+        <div class="step-spacer"></div>
+      </div>
+      <div class="charts-container">
+        <div class="chart-wrap" id="stars-chart"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================= the loss functions ======================= -->
+  <section>
+    <h1 class="body-header">The Price of a Mistake</h1>
+    <p class="body-text">
+      Every regression method is an opinion about how much a mistake should cost,
+      and that opinion is the loss function. Fitting a line means choosing the
+      line that makes total cost smallest, so the shape of the cost curve decides
+      whose complaints get listened to.
+    </p>
+    <br />
+    <p class="body-text">
+      Three candidates. <span class="bold">Squared loss</span>, what OLS uses:
+    </p>
+    <p class="body-text">$$ L_{\text{sq}}(r) = \tfrac{1}{2} r^{2} $$</p>
+    <p class="body-text">
+      <span class="bold">Absolute loss</span>, which charges the same rate
+      forever and gives you median regression:
+    </p>
+    <p class="body-text">$$ L_{\text{abs}}(r) = |r| $$</p>
+    <p class="body-text">
+      And <span class="bold">Huber loss</span>, which is quadratic near zero and
+      switches to linear once a residual crosses a threshold \(\delta\), so it
+      keeps the smooth, efficient behaviour of least squares for ordinary points
+      and stops escalating for extreme ones <a href="#resources">[2]</a>:
+    </p>
+    <p class="body-text">
+      $$ L_{\delta}(r) = \begin{cases} \tfrac{1}{2}r^{2} & |r| \le \delta \\[4pt] \delta\left(|r| - \tfrac{1}{2}\delta\right) & |r| > \delta \end{cases} $$
+    </p>
+    <br />
+    <p class="body-text">
+      The loss curve is not the interesting picture though. What actually decides
+      the fit is its <span class="bold">derivative</span>, because that is the
+      force each point exerts while the optimizer searches. Look at the right
+      panel: under squared loss the pull grows without limit, so a point far
+      enough away can overpower any number of well-behaved ones. Under absolute
+      and Huber loss the pull is <span class="bold">capped</span>. That cap is
+      the whole idea of robustness in one line.
+    </p>
+  </section>
+
+  <div class="interactive-container" id="loss-widget">
+    <div class="equations-panel">
+      <div class="controls-row">
+        <span class="slider-label">δ = <span class="value" id="loss-delta-label">1.35</span></span>
+        <input type="range" class="atlas-range" id="loss-delta" min="0.2" max="4" step="0.05" value="1.35" />
+      </div>
+      <div id="loss-stats"></div>
+      <p class="slider-label" style="margin-top: 0.9rem; line-height: 1.45">
+        The default δ = 1.35 is not arbitrary. Measured in units of the noise
+        standard deviation, it is the value at which Huber retains
+        <span class="bold">95%</span> of the efficiency of least squares when the
+        data really is Gaussian, which is the price you pay for the insurance.
+      </p>
+    </div>
+    <div class="chart-panel" id="loss-chart"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= the leverage lab ======================= -->
+  <section>
+    <h1 class="body-header">Not All Outliers Are Equal</h1>
+    <p class="body-text">
+      Here is the distinction that decides which method you need, and the one the
+      word "outlier" hides. Take a clean cloud of points and move a single one of
+      them somewhere strange. <span class="bold">Where</span> you move it matters
+      more than <span class="bold">how far</span>.
+    </p>
+    <br />
+    <p class="body-text">
+      Move it straight up, into the middle of the x range: a
+      <span class="bold">vertical outlier</span>. It has a big residual and it
+      pulls the line, but it sits where plenty of other points can argue back.
+      Now drag it far out to the right instead: a
+      <span class="bold">leverage point</span>. Out there it has no neighbours,
+      so nothing contradicts it, and the line pivots to follow. The formal
+      measure is the hat value, which for a single predictor is
+    </p>
+    <p class="body-text">
+      $$ h_i = \frac{1}{n} + \frac{(x_i - \bar{x})^2}{\sum_j (x_j - \bar{x})^2} $$
+    </p>
+    <p class="body-text">
+      and notice what is missing from it: \(y\). Leverage is decided entirely by
+      where a point sits along x, before anyone looks at whether its outcome is
+      surprising. A point above the conventional cutoff of \(2p/n\) has
+      disproportionate say by construction.
+    </p>
+    <br />
+    <p class="body-text">
+      <span class="bold">Drag the large point below</span> and watch all four
+      methods react. Then find the position that breaks each one.
+    </p>
+  </section>
+
+  <div class="interactive-container wide" id="leverage-widget">
+    <div class="equations-panel">
+      <div id="leverage-stats"></div>
+      <div class="controls-row">
+        <button class="atlas-btn" id="lev-vertical">Vertical outlier</button>
+        <button class="atlas-btn ghost" id="lev-leverage">Leverage point</button>
+        <button class="atlas-btn ghost" id="lev-reset">Back in the cloud</button>
+      </div>
+      <div class="controls-row">
+        <button class="atlas-btn ghost" id="lev-companions">Give it two companions</button>
+      </div>
+      <p class="slider-label" style="margin-top: 0.8rem; line-height: 1.45">
+        The dashed grey line is the fit on the clean points alone, which is the
+        answer every method should be trying to recover.
+      </p>
+    </div>
+    <div class="chart-panel" id="leverage-chart"></div>
+  </div>
+
+  <section>
+    <p class="body-text">
+      Park the point high above the middle and every robust method shrugs, while
+      OLS visibly tilts. A large residual in a crowded region is the easy case:
+      it is exactly what Huber is built to discount, and there are neighbours to
+      contradict it.
+    </p>
+    <br />
+    <p class="body-text">
+      Now drag it far to the right. OLS breaks immediately. Huber bends but
+      mostly survives, which is worth being precise about, because the textbook
+      line that "Huber has breakdown point zero" makes you expect a collapse that
+      does not happen here. Then press
+      <span class="bold">give it two companions</span> and watch Huber go over
+      the edge with them.
+    </p>
+    <br />
+    <p class="body-text">
+      That is the real mechanism, and the star data measures it exactly. Adding
+      the red giants back one at a time, Huber's slope runs
+      <span class="bold">+2.55, +1.70, +0.94, −0.08, −0.44</span>. It is not that
+      Huber is immune to leverage and then suddenly is not. It is being dragged
+      the entire time, and by the third giant the sign has flipped.
+      <span class="bold">Huber decides who to distrust by looking at
+      residuals</span>, and a group of leverage points drags the line onto
+      itself, so their residuals stay small. They never look suspicious. They
+      look like the best-behaved points on the chart.
+    </p>
+    <br />
+    <p class="body-text">
+      Hence the formal result: the <span class="bold">breakdown point</span> of
+      Huber regression, the smallest fraction of contamination that can send the
+      estimate arbitrarily far, is <span class="bold">zero</span>. That is a
+      worst-case statement about adversarially placed points, not a promise that
+      any single outlier will wreck it. What you should take from it is that
+      Huber offers no <i>guarantee</i> against leverage, and on real data the
+      margin ran out at three points in forty-seven.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= theil-sen ======================= -->
+  <section>
+    <h1 class="body-header">Out-Voting the Outliers</h1>
+    <p class="body-text">
+      If the mean is the fragile statistic and the median is the sturdy one, the
+      obvious move is to build a regression out of medians. That is exactly what
+      Theil and Sen did <a href="#resources">[3]</a>, and the recipe is short
+      enough to state in one breath: take every pair of points, compute the slope
+      of the line through that pair, and report the median of all those slopes.
+    </p>
+    <p class="body-text">
+      $$ \hat{m} = \operatorname{median}_{i<j} \frac{y_j - y_i}{x_j - x_i}, \qquad \hat{b} = \operatorname{median}_i \left( y_i - \hat{m}\,x_i \right) $$
+    </p>
+    <p class="body-text">
+      No threshold, no learning rate, no loss function to tune. Below, every one
+      of the pairwise slopes for the star data is drawn as a tick. Pairs that
+      involve a red giant are marked: notice they are scattered off in their own
+      territory, they are numerous, and the median sits calmly among the honest
+      majority regardless.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="theilsen-widget" style="max-width: 760px">
+    <div class="controls-row" style="justify-content: center">
+      <label class="slider-label"><input type="checkbox" id="ts-highlight" checked /> mark pairs involving a giant</label>
+      <button class="atlas-btn ghost" id="ts-drop">Drop the giants</button>
+    </div>
+    <div id="theilsen-chart"></div>
+    <div class="widget-readout" id="theilsen-stats"></div>
+  </div>
+
+  <section>
+    <p class="body-text">
+      There is a catch, and it is a beautiful piece of arithmetic. A slope needs
+      two points, so contamination compounds. If a fraction \(\varepsilon\) of
+      your points are bad, the fraction of <i>pairs</i> touched by at least one
+      bad point is \(1 - (1-\varepsilon)^2\). The median only survives while
+      fewer than half the pairs are contaminated:
+    </p>
+    <p class="body-text">
+      $$ 1 - (1-\varepsilon)^2 < \tfrac{1}{2} \;\Longleftrightarrow\; \varepsilon < 1 - \tfrac{1}{\sqrt{2}} \approx 29.3\% $$
+    </p>
+    <p class="body-text">
+      So Theil-Sen tolerates just under thirty percent contamination, and no
+      more. That is far better than the zero percent Huber offers against
+      leverage, and it comes with no knobs at all. The cost is speed: every pair
+      means \(\binom{n}{2}\) slopes, so a hundred thousand points would mean five
+      billion of them.
+    </p>
+    <br />
+    <p class="body-text">
+      <i>A trap worth knowing about, found while checking this page's numbers
+      against a reference implementation. Two different estimators answer to the
+      name Theil-Sen. The classic one is the median of pairwise slopes defined
+      above, which is what <code>scipy.stats.theilslopes</code> computes and what
+      runs on this page. Scikit-learn's <code>TheilSenRegressor</code> is
+      something else: it takes the spatial median of least squares fits over
+      random subsamples, which generalises to many features but is not the same
+      quantity in one dimension. On these 47 stars the two disagree by a wide
+      margin, <span class="bold">1.73 against 1.49</span>. Both are defensible
+      robust estimators. Only one matches the formula above.</i>
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= ransac ======================= -->
+  <section>
+    <h1 class="body-header">Guess, Then Take a Vote</h1>
+    <p class="body-text">
+      RANSAC comes at it from a completely different direction, one that feels
+      more like gambling than statistics <a href="#resources">[4]</a>. Rather
+      than fit all the data carefully, fit almost none of it, repeatedly:
+    </p>
+    <br />
+    <ol class="body-text">
+      <li><span class="bold">Hypothesize.</span> Pick the smallest sample that defines a model. For a line, two points.</li>
+      <li><span class="bold">Verify.</span> Ask every other point whether it lies within a threshold of that line.</li>
+      <li><span class="bold">Count.</span> The agreeing points are the consensus set. Its size is this guess's score.</li>
+      <li><span class="bold">Repeat.</span> Hundreds of times, keeping the best-scoring guess.</li>
+      <li><span class="bold">Refine.</span> Refit properly, using every member of the winning consensus.</li>
+    </ol>
+    <br />
+    <p class="body-text">
+      The logic is that two honest points define a line that many other honest
+      points will sit near, while a line drawn through a giant agrees with almost
+      nobody. Watch it search the star data. Each frame is one hypothesis: the
+      two sampled stars are ringed, the candidate line is drawn, and the stars
+      that voted for it turn solid.
+    </p>
+  </section>
+
+  <div class="interactive-full stacked-charts" id="ransac-widget">
+    <div class="controls-row" style="justify-content: center">
+      <button class="atlas-btn" id="ransac-play">Run the search</button>
+      <button class="atlas-btn ghost" id="ransac-step">One guess</button>
+      <button class="atlas-btn ghost" id="ransac-reset">Reset</button>
+      <span class="slider-label">threshold ε = <span class="value" id="ransac-eps-label">0.60</span></span>
+      <input type="range" class="atlas-range" id="ransac-eps" min="0.15" max="1.4" step="0.01" value="0.60" />
+    </div>
+    <div id="ransac-chart"></div>
+    <div class="widget-readout" id="ransac-stats"></div>
+  </div>
+
+  <section>
+    <p class="body-text">
+      Two things are worth noticing. First, RANSAC does not merely fit a line, it
+      <span class="bold">labels the data</span>: the consensus set is a by-product
+      you can inspect, and on the star data it separates the main sequence from
+      the giants without ever being told they exist. Second, the threshold
+      \(\varepsilon\) is doing real work. Set it too tight and no hypothesis
+      gathers a majority; too loose and the giants are welcomed back in. Unlike
+      Theil-Sen, this method asks you to know something about your noise.
+    </p>
+    <br />
+    <p class="body-text">
+      How many guesses are enough? That has an exact answer. If a fraction
+      \(\varepsilon\) of the data is bad and each hypothesis needs \(s\) points,
+      the probability that one draw is all-clean is \((1-\varepsilon)^s\), so to
+      get at least one clean draw with probability \(p\) you need
+    </p>
+    <p class="body-text">
+      $$ N = \frac{\log(1-p)}{\log\left(1 - (1-\varepsilon)^{s}\right)} $$
+    </p>
+    <p class="body-text">
+      For a line (\(s = 2\)) with 30% contamination and 99% confidence, that is
+      just <span class="bold">7</span> iterations. Even at 60% contamination it
+      is only 70. This is why RANSAC keeps working when the data is mostly
+      garbage: it never needs a clean <i>majority</i>, only a clean
+      <i>pair</i>, and often enough. The usual claim that it fails above 50% is
+      a simplification: what actually degrades is the reliability of the
+      consensus score, since a large enough wrong cluster can out-vote the truth.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= verdict ======================= -->
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text">
+      Every method here answers one question differently: what do you do with a
+      point you do not trust? The right answer depends on a question about your
+      data that no algorithm can answer for you.
+      <span class="bold">Are your outliers garbage, or are they loud truth?</span>
+    </p>
+    <br />
+    <p class="body-text">
+      A mistyped price is garbage; delete it and never think about it again. A
+      market crash in a returns series is loud truth; it really happened, it
+      should not dominate your model, and it must not be erased. Those two cases
+      call for opposite tools.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Method</th>
+          <th>Does what with a suspect point</th>
+          <th>Breakdown</th>
+          <th>Tuning</th>
+          <th>Reach for it when…</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>OLS</td>
+          <td>Obeys it, without limit</td>
+          <td>0%</td>
+          <td>None</td>
+          <td>You have already established the data is clean. It remains the most efficient estimator when it is.</td>
+        </tr>
+        <tr>
+          <td>Huber</td>
+          <td>Dampens it, by residual size</td>
+          <td>0% against leverage</td>
+          <td>δ (in units of σ)</td>
+          <td>Heavy-tailed but honest noise: extreme values that are real and deserve less weight, not deletion.</td>
+        </tr>
+        <tr>
+          <td>Theil-Sen</td>
+          <td>Out-votes it, via medians</td>
+          <td>29.3%</td>
+          <td>None at all</td>
+          <td>The safe default below roughly ten thousand points. Deterministic, tuning-free, and it protects against leverage.</td>
+        </tr>
+        <tr>
+          <td>RANSAC</td>
+          <td>Expels it from the model</td>
+          <td>~50%, threshold permitting</td>
+          <td>ε, iterations</td>
+          <td>Heavy contamination, and you want the outliers identified as output. Standard in computer vision.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text">
+      One honest correction to close on, because this article was built from a
+      notebook that got it half right. That notebook concluded Huber fails
+      against a dense cluster of structural outliers, and showed a nearly flat
+      fitted line as proof. The conclusion is correct, but the picture was not:
+      it used a fixed δ on unscaled data with an optimizer stopped long before
+      convergence. Rerun properly, scaled and converged, Huber lands at a slope
+      of <span class="bold">21.2</span> where the truth is
+      <span class="bold">87.4</span>. Still badly dragged, so the lesson stands,
+      but the original demonstration was measuring the optimizer as much as the
+      loss. Every Huber fit on this page uses iteratively reweighted least
+      squares with an estimated scale, for exactly that reason.
+    </p>
+    <br />
+    <p class="body-text">
+      Next in this module: what happens when you stop assuming any equation at
+      all, and let the data speak for itself through its nearest neighbours.
+    </p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! The from-scratch NumPy implementations
+      (<code>ScratchRANSAC</code>, <code>ScratchTheilSen</code>,
+      <code>ScratchHuber</code>) live in the
+      <a href="https://github.com/aleetreny/ATLAS">ATLAS repository</a>, and every
+      fit on this page is computed in your browser and checked against
+      scikit-learn at load time.
+    </p>
+  </section>
+
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text">
+      The star data is reproduced from the source table below and was
+      cross-checked between two independent publications of it. Every regression
+      on this page is refitted live in your browser.
+    </p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://onlinelibrary.wiley.com/doi/book/10.1002/0471725382">[1] Robust Regression and Outlier Detection</a><br />
+      (Rousseeuw, P. J. &amp; Leroy, A. M., Wiley, 1987. The CYG OB1 table is on p.27)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://projecteuclid.org/journals/annals-of-mathematical-statistics/volume-35/issue-1/Robust-Estimation-of-a-Location-Parameter/10.1214/aoms/1177703732.full">[2] Robust Estimation of a Location Parameter</a><br />
+      (Huber, P. J., Annals of Mathematical Statistics, 1964)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://www.jstor.org/stable/2285891">[3] Estimates of the Regression Coefficient Based on Kendall's Tau</a><br />
+      (Sen, P. K., Journal of the American Statistical Association, 1968)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://dl.acm.org/doi/10.1145/358669.358692">[4] Random Sample Consensus</a><br />
+      (Fischler, M. A. &amp; Bolles, R. C., Communications of the ACM, 1981)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://vincentarelbundock.github.io/Rdatasets/doc/robustbase/starsCYG.html">[5] starsCYG, the published data table</a><br />
+      (via the robustbase R package documentation, cross-checked against HSAUR::CYGOB1)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>

@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <rect width="400" height="300" fill="#f1f3f3" />
+  <g stroke="#232f3e" stroke-opacity="0.075">
+    <line x1="90" y1="40" x2="90" y2="250" /><line x1="160" y1="40" x2="160" y2="250" />
+    <line x1="230" y1="40" x2="230" y2="250" /><line x1="300" y1="40" x2="300" y2="250" />
+    <line x1="40" y1="70" x2="360" y2="70" /><line x1="40" y1="120" x2="360" y2="120" />
+    <line x1="40" y1="170" x2="360" y2="170" /><line x1="40" y1="220" x2="360" y2="220" />
+  </g>
+  <g stroke="#232f3e" stroke-width="2">
+    <line x1="40" y1="250" x2="360" y2="250" />
+    <line x1="40" y1="250" x2="40" y2="40" />
+  </g>
+  <!-- the main sequence: a rising band -->
+  <g fill="#d4dada" stroke="#232f3e" stroke-width="1">
+    <circle cx="150" cy="215" r="6" /><circle cx="175" cy="200" r="6" />
+    <circle cx="190" cy="208" r="6" /><circle cx="205" cy="185" r="6" />
+    <circle cx="222" cy="192" r="6" /><circle cx="238" cy="170" r="6" />
+    <circle cx="252" cy="158" r="6" /><circle cx="266" cy="165" r="6" />
+    <circle cx="280" cy="140" r="6" /><circle cx="296" cy="132" r="6" />
+    <circle cx="310" cy="118" r="6" /><circle cx="326" cy="110" r="6" />
+    <circle cx="196" cy="172" r="6" /><circle cx="262" cy="182" r="6" />
+  </g>
+  <!-- the four red giants: cool and very bright, upper left -->
+  <g fill="#ff9900" stroke="#232f3e" stroke-width="1.5">
+    <circle cx="72" cy="78" r="8" /><circle cx="80" cy="64" r="8" />
+    <circle cx="66" cy="92" r="8" /><circle cx="86" cy="82" r="8" />
+  </g>
+  <!-- least squares, dragged into a negative slope -->
+  <line x1="52" y1="120" x2="350" y2="178" stroke="#df2a5d" stroke-width="3.5" />
+  <!-- the robust fit, following the main sequence -->
+  <line x1="130" y1="232" x2="345" y2="96" stroke="#007faa" stroke-width="4" />
+</svg>
