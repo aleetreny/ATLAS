@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Probabilistic Classification | ATLAS</title>
+  <meta name="description" content="A visual, interactive introduction to logistic regression and naive Bayes: how a model turns a number into a decision, why the sigmoid is not an arbitrary choice, and why two classifiers that agree on almost every label can disagree completely about how sure they are." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/probabilistic-classification/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="Probabilistic Classification | ATLAS" />
+  <meta property="og:description" content="A visual, interactive introduction to logistic regression and naive Bayes: how a model turns a number into a decision, why the sigmoid is not an arbitrary choice, and why two classifiers that agree on almost every label can disagree completely about how sure they are." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/probabilistic-classification/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Probabilistic Classification | ATLAS" />
+  <meta name="twitter:description" content="A visual, interactive introduction to logistic regression and naive Bayes: how a model turns a number into a decision, why the sigmoid is not an arbitrary choice, and why two classifiers that agree on almost every label can disagree completely about how sure they are." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    /* Per-article theme. Everything else inherits from these two. */
+    :root {
+      --primary: #a8410f;
+      --secondary: #7c2d12;
+    }
+    /* Width only: a margin here would override .interactive-full's rhythm. */
+    .stacked-charts {
+      max-width: 720px;
+    }
+    .narrow-widget {
+      max-width: 780px;
+    }
+    .pc-table {
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      margin-top: 0.5rem;
+      width: 100%;
+    }
+    .pc-table th,
+    .pc-table td {
+      padding: 5px 10px 5px 0;
+      text-align: left;
+      font-weight: 400;
+    }
+    .pc-table th {
+      font-family: var(--font-heavy);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .pc-table td:first-child {
+      opacity: 0.75;
+    }
+  </style>
+</head>
+<body>
+  <!-- ======================= chrome ======================= -->
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <!-- ======================= hero ======================= -->
+  <section id="intro">
+    <h1 id="intro-hed">Probabilistic Classification</h1>
+    <h1 id="intro-sub">Logistic regression, naive Bayes, and the difference between being right and being believable</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 1.2 · Classification</span>
+  </section>
+
+  <br />
+
+  <!-- ======================= introduction ======================= -->
+  <section>
+    <p class="body-text">
+      Six articles of this atlas have asked <i>how much</i>. How many miles per
+      gallon, how many dollars, how many diners. The answer was a number, and the
+      score was how far off it was. This module asks a different question:
+      <i>which one</i>. Benign or malignant. Fraud or not. Churn or stay. The
+      answer is a category, and the moment that changes, so does everything
+      about what counts as a good model.
+    </p>
+    <br />
+    <p class="body-text">
+      Here is the part that gets skipped. A classifier could just hand you the
+      label and stop. Most of the interesting ones hand you a
+      <span class="bold">probability</span> instead, and a probability is a
+      promise: <i>of all the cases where I said seventy percent, seventy percent
+      of them will turn out positive</i>. That promise is checkable. You can hold
+      a model to it after the fact and find out whether it was lying.
+    </p>
+    <br />
+    <p class="body-text">
+      Almost nobody checks. Accuracy gets reported, the model ships, and its
+      probabilities go straight into a decision, a triage queue, a price. This
+      article builds the two foundational probabilistic classifiers, and then
+      does the checking. The two of them will land within
+      <span class="bold">4.7 points</span> of each other on accuracy and a factor
+      of <span class="bold">ten</span> apart on the probabilities, and the second
+      number is the one that would hurt you.
+    </p>
+    <br />
+    <p class="body-text">
+      The data is 569 breast biopsies from Wisconsin
+      <a href="#resources">[1]</a>, digitised into 30 measurements of cell nuclei:
+      radius, texture, concavity, and so on, each summarised three ways. 212 of
+      the samples are malignant. It is a small, clean, famous dataset, and it has
+      a property we will lean on hard later: several of its features are the same
+      quantity measured under different names.
+    </p>
+  </section>
+
+  <!-- ======================= scrolly: one dimension ======================= -->
+  <section>
+    <h1 class="body-header">A Line Through Zeros and Ones</h1>
+    <p class="body-text">
+      Start with the single most informative measurement of the thirty. Every dot
+      is a biopsy: horizontal position is the measurement, vertical position is
+      the answer, which can only be 0 or 1. There is no cloud here, just two
+      rails, and the whole problem is what to draw between them.
+    </p>
+  </section>
+
+  <section id="odds-scrolly" class="scrolly">
+    <div class="scrolly-container">
+      <div class="steps-container">
+        <div class="step" data-index="0">
+          <div class="step-content">
+            <h3>Two Rails</h3>
+            <p>
+              398 training biopsies. The benign ones sit on the floor at
+              <span class="bold">y = 0</span>, the malignant ones on the ceiling
+              at <span class="bold">y = 1</span>. Even by eye the measurement
+              separates them: small on the left, large on the right, with an
+              argument in the middle.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="1">
+          <div class="step-content">
+            <h3>Do the Obvious Thing</h3>
+            <p>
+              We have a tool for drawing a line through points. Least squares
+              does not know or care that the target only takes two values, so
+              hand it the zeros and ones and see what comes back. It slopes
+              upward, it passes between the rails, and at a glance it looks like
+              a reasonable answer.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="2">
+          <div class="step-content">
+            <h3>Read It Out Loud</h3>
+            <p>
+              Now treat the height of that line as a probability, which is what
+              you would have to do to use it. At the far left it predicts
+              <span class="bold">−0.22</span>, and at the far right
+              <span class="bold">1.99</span>. Seventy-four of the 398 training
+              biopsies get a probability that does not exist. A straight line has
+              no ceiling and no floor, and probabilities have both.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="3">
+          <div class="step-content">
+            <h3>Bend the Ends</h3>
+            <p>
+              So we need a function that rises with the measurement, is free in
+              the middle, and cannot leave the interval no matter how far you
+              push it. There is one obvious candidate shape: an S. Flat, then
+              steep, then flat again. The
+              <span class="bold">sigmoid</span> is that shape, and the next
+              section shows that it is not a shape somebody liked, it is the only
+              one consistent with a linear model of the odds.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="4">
+          <div class="step-content">
+            <h3>The Same Ranking</h3>
+            <p>
+              Here they are together. Notice what did not change: both curves
+              order these 398 patients identically, and the area under the ROC
+              curve is <span class="bold">0.981</span> for each of them, to four
+              decimals. On a single feature the straight line and the S are the
+              same classifier. They differ only in the numbers they report,
+              which is exactly the distinction this article is about.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="5">
+          <div class="step-content">
+            <h3>Where the Decision Lives</h3>
+            <p>
+              The curve crosses <span class="bold">0.5</span> at one place, and
+              that single point is the entire decision rule: to the right,
+              malignant. Everything the model knows about the boundary is one
+              number. Everything it knows about <i>doubt</i> is the steepness of
+              the curve at that point, and that is the part a hard label throws
+              away.
+            </p>
+          </div>
+        </div>
+        <div class="step-spacer"></div>
+      </div>
+      <div class="charts-container">
+        <div class="chart-wrap" id="odds-chart"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================= the logit ======================= -->
+  <section>
+    <h1 class="body-header">The Only Function That Fits</h1>
+    <p class="body-text">
+      The sigmoid is usually introduced as a convenient squashing function, which
+      makes it look arbitrary. It is not. It falls out of one modelling decision,
+      and the decision is easier to defend than the curve.
+    </p>
+    <br />
+    <p class="body-text">
+      Probabilities are a bad thing to be linear in, because they are trapped
+      between 0 and 1. <span class="bold">Odds</span> are not. The odds of an
+      event are \(p / (1-p)\): a probability of 0.5 is odds of 1, a probability of
+      0.9 is odds of 9, and as \(p\) approaches 1 the odds run off to infinity.
+      That fixes the ceiling but not the floor, since odds cannot go below zero.
+      Take the logarithm and the floor goes too:
+    </p>
+    <p class="body-text">
+      $$ \operatorname{logit}(p) \;=\; \log\frac{p}{1-p} \;\in\; (-\infty, +\infty) $$
+    </p>
+    <p class="body-text">
+      Now there is something a linear model can safely predict. So state the
+      model in the only place where a straight line is not an embarrassment:
+    </p>
+    <p class="body-text">
+      $$ \log\frac{p}{1-p} \;=\; \beta_0 + \beta_1 x_1 + \dots + \beta_d x_d $$
+    </p>
+    <p class="body-text">
+      Everything else is algebra. Solve that for \(p\) and the sigmoid is what
+      comes out, not because anyone chose it but because there is nothing else it
+      could be:
+    </p>
+    <p class="body-text">
+      $$ p \;=\; \frac{1}{1 + e^{-(\beta_0 + \beta^{\top}x)}} \;=\; \sigma(\beta_0 + \beta^{\top}x) $$
+    </p>
+    <br />
+    <p class="body-text">
+      This also hands you the interpretation for free, and it is a better one
+      than linear regression gets. A coefficient is not "how much the probability
+      moves", because that depends on where you start. It is
+      <span class="bold">how much the odds multiply</span>, and that is the same
+      everywhere. A coefficient of \(\beta_j\) means one standard deviation more
+      of feature \(j\) multiplies the odds of malignancy by \(e^{\beta_j}\),
+      whether you were at ten percent or at ninety.
+    </p>
+    <br />
+    <p class="body-text">
+      Drag the slider to see what a coefficient does to the whole curve, and
+      watch the odds statement underneath stay true at every point on it.
+    </p>
+  </section>
+
+  <div class="interactive-container" id="logit-widget">
+    <div class="equations-panel">
+      <div class="controls-row">
+        <span class="slider-label">β₁ = <span class="value" id="logit-b1-label">1.00</span></span>
+        <input type="range" class="atlas-range" id="logit-b1" aria-label="coefficient beta one, the log odds slope"
+               min="0.1" max="4" step="0.05" value="1" />
+      </div>
+      <div class="controls-row">
+        <span class="slider-label">reading at x = <span class="value" id="logit-x-label">0.0</span></span>
+        <input type="range" class="atlas-range" id="logit-x" aria-label="where on the axis to read the model"
+               min="-3" max="3" step="0.05" value="0" />
+      </div>
+      <div class="controls-row">
+        <button class="atlas-btn" id="logit-view-p">probability</button>
+        <button class="atlas-btn ghost" id="logit-view-l">log odds</button>
+      </div>
+      <div id="logit-stats"></div>
+    </div>
+    <div class="chart-panel" id="logit-chart"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= the loss ======================= -->
+  <section>
+    <h1 class="body-header">Why Not Squared Error</h1>
+    <p class="body-text">
+      We have a shape. We still need a way to score it, and the obvious move is
+      to reuse the one from the last six articles: take the squared distance
+      between the predicted probability and the true 0 or 1, and minimise it. It
+      is a perfectly sensible-looking objective. It is also the wrong one, and
+      the reason is worth seeing rather than being told.
+    </p>
+    <br />
+    <p class="body-text">
+      The right objective comes from asking the model to explain the data it
+      actually saw. If the model says \(p\) and the truth was 1, the probability
+      it assigned to what happened is \(p\); if the truth was 0, it is \(1-p\).
+      Multiply that over every patient, take the log to turn the product into a
+      sum, and negate it so we can minimise:
+    </p>
+    <p class="body-text">
+      $$ \mathcal{L}_{\text{NLL}} = -\frac{1}{n}\sum_{i=1}^{n} \Big[\, y_i \log p_i + (1-y_i)\log(1-p_i) \,\Big] $$
+    </p>
+    <p class="body-text">
+      That is cross-entropy, and it is the same maximum-likelihood machinery the
+      Poisson GLM used in the
+      <a href="../classical-regression/">first article</a>: a different
+      distribution for the target, the same principle for fitting it. Its
+      gradient is the same old friend again, prediction minus truth.
+    </p>
+    <br />
+    <p class="body-text">
+      Below, both objectives over the same two coefficients, drawn as contour
+      maps. Press the toggle and watch what happens to the shape of the ground.
+      Cross-entropy is <span class="bold">convex</span>: one basin, every path
+      downhill reaches the same bottom. Squared error through a sigmoid is not,
+      and the plateau it grows across half the map is where a gradient descent
+      goes to die. Drop the ball in the same place on both and compare where it
+      ends up: from the bottom-left corner, cross-entropy travels 13.8 units and
+      lands exactly on the answer, while squared error moves 3.1 units, stops,
+      and sits at <span class="bold">0.37</span> on a surface whose floor is
+      <span class="bold">0.05</span>.
+    </p>
+  </section>
+
+  <div class="interactive-container" id="loss-widget">
+    <div class="equations-panel">
+      <div class="controls-row">
+        <button class="atlas-btn" id="loss-ce">cross-entropy</button>
+        <button class="atlas-btn ghost" id="loss-mse">squared error</button>
+      </div>
+      <div class="controls-row">
+        <button class="atlas-btn ghost" id="loss-run">Drop the ball</button>
+        <button class="atlas-btn ghost" id="loss-corner">Start in the corner</button>
+      </div>
+      <div id="loss-stats"></div>
+      <p class="slider-label" style="margin-top: 0.9rem; line-height: 1.4">
+        Click anywhere on the map to start a descent from there. Both runs use
+        the same learning rate and the same number of steps.
+      </p>
+    </div>
+    <div class="chart-panel" id="loss-chart"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= generative vs discriminative ======================= -->
+  <section>
+    <h1 class="body-header">Two Ways to Answer the Same Question</h1>
+    <p class="body-text">
+      Logistic regression never asks what a malignant tumour looks like. It only
+      asks where the boundary between the two groups goes, and it spends all of
+      its capacity on that boundary. Models built this way are called
+      <span class="bold">discriminative</span>.
+    </p>
+    <br />
+    <p class="body-text">
+      There is an entirely different route to the same answer. Instead of
+      modelling the boundary, model each class: what does the distribution of
+      radii look like <i>among malignant tumours</i>, and separately among benign
+      ones? Once you have those, Bayes' theorem turns them around for you:
+    </p>
+    <p class="body-text">
+      $$ \underbrace{P(y \mid x)}_{\text{what you want}} \;=\; \frac{\overbrace{P(x \mid y)}^{\text{what each class looks like}} \; \overbrace{P(y)}^{\text{how common it is}}}{P(x)} $$
+    </p>
+    <p class="body-text">
+      Models built this way are <span class="bold">generative</span>: they carry
+      a description of the data complete enough that you could draw new samples
+      from it. They know more, in principle. The catch is what it takes to know
+      it. A full joint distribution over 30 features is a 30-dimensional object,
+      and 398 training patients is nowhere near enough to pin one down.
+    </p>
+    <br />
+    <p class="body-text">
+      <span class="bold">Naive Bayes</span> solves that with one brutal
+      assumption: given the class, every feature is independent of every other.
+      The 30-dimensional distribution collapses into thirty one-dimensional
+      ones, and thirty one-dimensional Gaussians are trivially easy to estimate.
+    </p>
+    <p class="body-text">
+      $$ P(x \mid y) \;\approx\; \prod_{j=1}^{d} P(x_j \mid y) $$
+    </p>
+    <br />
+    <p class="body-text">
+      That is the whole model. Two numbers per feature per class, a mean and a
+      standard deviation, and the training is done in one pass with no
+      optimisation at all. Below are the bells it fits: pick a feature and see
+      what naive Bayes believes about it.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="nb-widget">
+    <div class="controls-row" style="justify-content: center" id="nb-buttons"></div>
+    <div id="nb-chart"></div>
+    <div class="widget-readout" id="nb-readout"></div>
+  </div>
+
+  <!-- ======================= the twins ======================= -->
+  <section>
+    <h1 class="body-header">One Number Wearing Three Hats</h1>
+    <p class="body-text">
+      "Given the class, every feature is independent of every other" is famously
+      false, and everybody says so before moving on. It is worth not moving on,
+      because on this dataset the assumption is not approximately violated. It is
+      violated in the most complete way available.
+    </p>
+    <br />
+    <p class="body-text">
+      Three of the thirty features are <span class="bold">mean radius</span>,
+      <span class="bold">mean perimeter</span> and
+      <span class="bold">mean area</span>. For anything roughly circular those are
+      one measurement written three ways, and the training set agrees: radius and
+      perimeter correlate at <span class="bold">0.998</span>, and each of them
+      with area at <span class="bold">0.986</span>. Knowing one tells you the
+      others to within rounding.
+    </p>
+    <br />
+    <p class="body-text">
+      Naive Bayes does not know that, and its arithmetic has no way to find out.
+      It multiplies the three likelihoods as though they were three separate
+      witnesses, so a large nucleus gets to testify three times. Do that across
+      thirty features with several such families and the log-posterior is not
+      slightly too confident. It is <i>compounded</i> too confident, and the
+      compounding is exponential in the number of duplicated columns.
+    </p>
+    <br />
+    <p class="body-text">
+      One important thing this does <span class="bold">not</span> wreck is the
+      ranking. Multiplying the evidence by a roughly constant factor stretches the
+      scores without reordering them, which is why naive Bayes keeps winning
+      benchmarks that only measure ordering. Watch it happen on two features that
+      are nearly independent, where the assumption is close to true and the two
+      models produce almost the same picture.
+    </p>
+  </section>
+
+  <div class="interactive-full stacked-charts" id="bnd-widget">
+    <div class="controls-row" style="justify-content: center">
+      <button class="atlas-btn" id="bnd-log">logistic regression</button>
+      <button class="atlas-btn ghost" id="bnd-nb">naive Bayes</button>
+      <button class="atlas-btn ghost" id="bnd-both">disagreement</button>
+    </div>
+    <div class="controls-row" style="justify-content: center">
+      <label class="slider-label"><input type="checkbox" id="bnd-test" /> show the held-out patients</label>
+    </div>
+    <div id="bnd-chart"></div>
+    <div class="widget-readout" id="bnd-readout"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= the benchmark ======================= -->
+  <section>
+    <h1 class="body-header">Where the Assumption Sends the Bill</h1>
+    <p class="body-text">
+      Two features, barely correlated, and the two models are indistinguishable.
+      Now give them all thirty, correlated families and all, and score four
+      different things: whether the label is right, whether the ordering is
+      right, and two measures of whether the <i>number</i> is right.
+    </p>
+    <br />
+    <p class="body-text">
+      The two probability scores are worth a sentence each.
+      <span class="bold">Brier</span> is just the mean squared error of the
+      probability against the 0 or 1 that happened, so it charges you gently and
+      symmetrically for being off. <span class="bold">Log loss</span> is the same
+      cross-entropy the model was trained on, and it charges you
+      <i>unboundedly</i> for being confident and wrong: predict 0.999 for
+      something that does not happen and it costs about seven, where a shrugging
+      0.5 would have cost 0.7.
+    </p>
+    <br />
+    <p class="body-text">
+      The third row is the control. <span class="bold">QDA</span>, which the
+      <a href="../geometric-classification/">next article</a> builds properly, is
+      Gaussian naive Bayes with the covariances put back in: same Gaussians, same
+      Bayes' theorem, the only difference being that it is allowed to know the
+      features move together. Naive Bayes is literally QDA with the off-diagonal
+      terms of every covariance set to zero.
+    </p>
+    <br />
+    <p class="body-text">
+      <i>One caveat, because it is itself part of the argument. On thirty
+      features and 398 rows, un-shrunk QDA cannot be fitted at all: each class
+      has fewer rows than the 465 numbers its covariance matrix contains, the
+      matrix is singular, and the fit throws. The row below uses a 5% shrink
+      toward a scaled identity to make it exist. So the control is not perfectly
+      clean, and the reason it is not clean is exactly why the naive assumption
+      was invented. The conclusion does not depend on the amount: at 1%, 5% and
+      10% shrinkage the Brier score comes out 0.043, 0.034 and 0.033, against
+      naive Bayes at 0.062 for all of them.</i>
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="bench-widget">
+    <div class="controls-row" style="justify-content: center">
+      <button class="atlas-btn" id="bench-brier">brier</button>
+      <button class="atlas-btn ghost" id="bench-logloss">log loss</button>
+      <button class="atlas-btn ghost" id="bench-acc">accuracy</button>
+      <button class="atlas-btn ghost" id="bench-auc">roc auc</button>
+    </div>
+    <div id="bench-chart"></div>
+    <div class="widget-readout" id="bench-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text">
+      Accuracy differs by 4.7 points. Ranking differs by fourteen thousandths of
+      an AUC, which on a five-fold check is inside the noise.
+      Log loss differs by a factor of <span class="bold">ten</span>. Putting the
+      covariances back recovers most of that gap, which is about as close to a
+      controlled experiment as this kind of thing gets: the naive assumption
+      costs almost nothing in <i>who</i> and almost everything in
+      <i>how sure</i>.
+    </p>
+    <br />
+    <p class="body-text">
+      The obvious repair is to delete the duplicated columns, and it is worth
+      reporting that <span class="bold">it does not work</span>. Dropping every
+      feature correlated above 0.9 with one already kept takes the model from 30
+      columns to 21, and its Brier score gets <i>worse</i>, from 0.062 to 0.086,
+      because the columns being deleted carried real signal alongside the
+      duplication. The problem is not the columns. It is the assumption, and you
+      cannot fix an assumption by throwing away data.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= calibration ======================= -->
+  <section>
+    <h1 class="body-header">Checking the Promise</h1>
+    <p class="body-text">
+      Log loss says something is wrong. It does not say what. For that there is
+      one picture, and it is the most underused diagnostic in applied machine
+      learning.
+    </p>
+    <br />
+    <p class="body-text">
+      Take the held-out patients, sort them by the probability the model gave
+      them, and put them into buckets: everyone told "under ten percent", everyone
+      told "between ten and twenty", and so on. Within each bucket, compare what
+      the model promised against what actually happened. A model whose
+      probabilities mean what they say lands on the diagonal in every bucket. That
+      property has a name, <span class="bold">calibration</span>, and it is
+      logically independent of accuracy: you can be perfectly calibrated and
+      useless, or extremely accurate and a liar.
+    </p>
+    <br />
+    <p class="body-text">
+      Both models here are accurate. Only one of them is telling the truth.
+    </p>
+  </section>
+
+  <div class="interactive-full stacked-charts" id="calib-widget">
+    <div class="controls-row" style="justify-content: center">
+      <button class="atlas-btn" id="calib-log">logistic regression</button>
+      <button class="atlas-btn ghost" id="calib-nb">naive Bayes</button>
+      <button class="atlas-btn ghost" id="calib-both">both</button>
+    </div>
+    <div id="calib-chart"></div>
+    <div class="widget-readout" id="calib-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text">
+      Read the bottom-left bucket, because that is the one that matters in a
+      hospital. Naive Bayes put <span class="bold">108</span> of the 171 held-out
+      patients in it, with an average predicted probability of malignancy of
+      <span class="bold">0.00024</span>. Seven of those 108 had cancer. The model
+      did not say "unlikely". It said, to three decimal places,
+      <span class="bold">no</span>, and it said it to seven people who had a
+      malignant tumour.
+    </p>
+    <br />
+    <p class="body-text">
+      Logistic regression put 98 patients in the same bucket at an average of
+      0.010, and one of them was malignant. That is what a probability looks like
+      when it is doing its job: not more accurate, just honest about the size of
+      the doubt. Across the whole test set, naive Bayes is past 99% certainty on
+      <span class="bold">97%</span> of patients. It has essentially two outputs,
+      yes and no, wearing the costume of a probability.
+    </p>
+    <br />
+    <p class="body-text">
+      <i>None of this makes naive Bayes a bad algorithm. It is fast, it needs
+      almost no data, it handles hundreds of thousands of features without
+      complaint, and on text, where the features really are closer to
+      independent, it is a respectable baseline to this day. The failure is
+      specific and predictable: use its ranking, do not quote its
+      probability.</i>
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the threshold ======================= -->
+  <section>
+    <h1 class="body-header">Nobody Voted for 0.5</h1>
+    <p class="body-text">
+      One last thing a calibrated probability buys you, and it is the reason to
+      care about all of the above.
+    </p>
+    <br />
+    <p class="body-text">
+      Turning a probability into a decision needs a threshold, and 0.5 arrives by
+      default with no argument behind it. It is only correct if the two mistakes
+      cost the same. Here, one mistake is a healthy person sent for a second
+      test, and the other is a malignant tumour told to go home. Those are not the
+      same mistake, and no amount of model quality will notice that on its own,
+      because the cost lives outside the data.
+    </p>
+    <br />
+    <p class="body-text">
+      Below is the logistic model's held-out performance at every threshold. Slide
+      it and watch the two kinds of error trade against each other. At
+      <span class="bold">0.40</span> the model misses two cancers and raises one
+      false alarm; push it down to <span class="bold">0.06</span> and it misses
+      none, at a cost of twelve. Whether that is a good trade is not a question
+      about the model. It is a question about what a missed cancer is worth, and
+      the second slider makes you answer it.
+    </p>
+    <br />
+    <p class="body-text">
+      The point is not to find the best threshold. The point is that the choice is
+      <i>yours</i>, it lives outside the data where no amount of accuracy can
+      reach it, and the only reason you can make it at all is that the number the
+      model produced meant something.
+    </p>
+  </section>
+
+  <div class="interactive-container" id="thresh-widget">
+    <div class="equations-panel">
+      <div class="controls-row">
+        <span class="slider-label">threshold = <span class="value" id="thresh-t-label">0.50</span></span>
+        <input type="range" class="atlas-range" id="thresh-t" aria-label="decision threshold"
+               min="0.01" max="0.99" step="0.01" value="0.5" />
+      </div>
+      <div class="controls-row">
+        <span class="slider-label">a missed cancer costs <span class="value" id="thresh-c-label">8</span>×</span>
+        <input type="range" class="atlas-range" id="thresh-c" aria-label="cost of a missed cancer relative to a false alarm"
+               min="1" max="12" step="1" value="8" />
+      </div>
+      <div id="thresh-stats"></div>
+      <div class="controls-row">
+        <button class="atlas-btn ghost" id="thresh-best">Jump to the cheapest</button>
+      </div>
+    </div>
+    <div class="chart-panel" id="thresh-chart"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= verdict ======================= -->
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text">
+      Two models, one question, and a split that is sharper than the usual
+      accuracy table suggests.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Model</th>
+          <th>Reach for it when…</th>
+          <th>It assumes…</th>
+          <th>Trained by</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">Logistic regression</span></td>
+          <td>You need a probability anyone is going to act on, and you want to read the coefficients out loud.</td>
+          <td>The log-odds are linear in the features.</td>
+          <td>Maximising likelihood, on a convex surface with no local minima.</td>
+          <td>Separable data sends the coefficients to infinity. Regularise, always.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Gaussian naive Bayes</span></td>
+          <td>Features vastly outnumber rows, training has to be instant, or you only need a ranking.</td>
+          <td>Every feature is independent of every other, given the class.</td>
+          <td>Counting. One pass, two moments per feature per class, no optimiser.</td>
+          <td>Correlated features. It will still classify well and its probabilities will be worthless.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">QDA</span></td>
+          <td>The classes really are roughly Gaussian and you have enough rows per class to estimate a covariance.</td>
+          <td>Each class is a Gaussian, with its own covariance.</td>
+          <td>Counting again, plus one covariance matrix per class.</td>
+          <td>Needs samples growing with the square of the feature count. Next article.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text">
+      The thread through all of it: a classifier that hands you a label has
+      answered a smaller question than the one you asked. The probability is where
+      the useful information lives, and it is also the part that fails quietly,
+      because nothing in a standard evaluation will tell you it has.
+    </p>
+    <br />
+    <p class="body-text">
+      Next in this module, we throw probability away entirely. If two groups of
+      points sit in space, there are infinitely many walls you could build between
+      them, and one of them is further from everybody than the rest. That story is
+      called <a href="../geometric-classification/">Geometric Classification</a>.
+    </p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! The from-scratch NumPy implementations
+      (<code>ScratchLogisticRegression</code>, <code>ScratchGaussianNB</code>)
+      live in the <a href="https://github.com/aleetreny/ATLAS">ATLAS repository</a>.
+      Every number on this page comes from
+      <code>src/utils/generate_classification_data.py</code>, and the sigmoid,
+      the two loss surfaces, the descent paths and the threshold arithmetic are
+      all recomputed in your browser.
+    </p>
+  </section>
+
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text">
+      The benchmark, the calibration bins and the threshold sweep were produced by
+      <code>src/utils/generate_classification_data.py</code> with scikit-learn
+      1.8.0 under Python 3.11.7, on a 70/30 stratified split of the 569 biopsies
+      with the seed fixed at 7. The headline numbers are repeated under five-fold
+      cross validation in the same file, and the ordering does not change.
+    </p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://archive.ics.uci.edu/dataset/17/breast+cancer+wisconsin+diagnostic">[1] Breast Cancer Wisconsin (Diagnostic) Data Set</a><br />
+      (Street, W. N., Wolberg, W. H., Mangasarian, O. L., UCI Machine Learning Repository, 1995)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://www.jstor.org/stable/2984952">[2] The Regression Analysis of Binary Sequences</a><br />
+      (Cox, D. R., Journal of the Royal Statistical Society B, 1958)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://journals.ametsoc.org/view/journals/mwre/78/1/1520-0493_1950_078_0001_vofeit_2_0_co_2.xml">[3] Verification of Forecasts Expressed in Terms of Probability</a><br />
+      (Brier, G. W., Monthly Weather Review, 1950)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://link.springer.com/article/10.1023/A:1007413511361">[4] On the Optimality of the Simple Bayesian Classifier under Zero-One Loss</a><br />
+      (Domingos, P. &amp; Pazzani, M., Machine Learning, 1997)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://dl.acm.org/doi/10.1145/1102351.1102430">[5] Predicting Good Probabilities with Supervised Learning</a><br />
+      (Niculescu-Mizil, A. &amp; Caruana, R., ICML, 2005)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://papers.nips.cc/paper_files/paper/2001/hash/7b7a53e239400a13bd6be6c91c4f6c4e-Abstract.html">[6] On Discriminative vs. Generative Classifiers: A comparison of logistic regression and naive Bayes</a><br />
+      (Ng, A. Y. &amp; Jordan, M. I., NeurIPS, 2001)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://www.statlearning.com/">[7] An Introduction to Statistical Learning</a><br />
+      (James, G., Witten, D., Hastie, T., Tibshirani, R., chapter 4)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>

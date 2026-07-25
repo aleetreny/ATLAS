@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Geometric Classification | ATLAS</title>
+  <meta name="description" content="A visual, interactive introduction to support vector machines and discriminant analysis: what the margin buys, how the kernel trick separates the inseparable, when QDA's extra freedom starts paying for itself, and an honest measurement of what a kernel is worth on real tabular data." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/geometric-classification/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="Geometric Classification | ATLAS" />
+  <meta property="og:description" content="A visual, interactive introduction to support vector machines and discriminant analysis: what the margin buys, how the kernel trick separates the inseparable, when QDA's extra freedom starts paying for itself, and an honest measurement of what a kernel is worth on real tabular data." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/geometric-classification/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Geometric Classification | ATLAS" />
+  <meta name="twitter:description" content="A visual, interactive introduction to support vector machines and discriminant analysis: what the margin buys, how the kernel trick separates the inseparable, when QDA's extra freedom starts paying for itself, and an honest measurement of what a kernel is worth on real tabular data." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    /* Per-article theme. Everything else inherits from these two. */
+    :root {
+      --primary: #4d7c0f;
+      --secondary: #3f6212;
+    }
+    /* Width only: a margin here would override .interactive-full's rhythm. */
+    .stacked-charts {
+      max-width: 720px;
+    }
+    .narrow-widget {
+      max-width: 800px;
+    }
+    .gc-table {
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      margin-top: 0.5rem;
+      width: 100%;
+    }
+    .gc-table th,
+    .gc-table td {
+      padding: 5px 10px 5px 0;
+      text-align: left;
+      font-weight: 400;
+    }
+    .gc-table th {
+      font-family: var(--font-heavy);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .gc-table td:first-child {
+      opacity: 0.75;
+    }
+  </style>
+</head>
+<body>
+  <!-- ======================= chrome ======================= -->
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <!-- ======================= hero ======================= -->
+  <section id="intro">
+    <h1 id="intro-hed">Geometric Classification</h1>
+    <h1 id="intro-sub">Support vector machines and discriminant analysis: where to put the wall, and what it costs to bend it</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 1.2 · Classification</span>
+  </section>
+
+  <br />
+
+  <!-- ======================= introduction ======================= -->
+  <section>
+    <p class="body-text">
+      The <a href="../probabilistic-classification/">previous article</a> answered
+      "which one?" with probability: a sigmoid, a likelihood, a number between
+      zero and one you could hold the model to. This one throws all of that away.
+    </p>
+    <br />
+    <p class="body-text">
+      Geometric classifiers treat the data as what it literally is, points with
+      coordinates, and ask a question about space rather than about chance:
+      <i>where do I put the wall?</i> Left of it, benign. Right of it, malignant.
+      No percentages, no distributions, no likelihood to maximise. It sounds
+      cruder than the probabilistic route and for twenty years it was the thing to
+      beat, because the question turns out to have a beautiful answer.
+    </p>
+    <br />
+    <p class="body-text">
+      Two families live here, and they are opposites. The
+      <span class="bold">support vector machine</span> ignores the bulk of the
+      data entirely and builds its wall from the handful of points nearest the
+      frontier. <span class="bold">Discriminant analysis</span> ignores the
+      frontier and models the shape of each class, letting the boundary fall out
+      of where the two shapes tie. One is all boundary and no distribution, the
+      other all distribution and no boundary.
+    </p>
+    <br />
+    <p class="body-text">
+      Both come with a knob that buys flexibility, and both will let you buy far
+      more than you can afford. The last third of this article is about the price,
+      including a measurement most tutorials leave out: on the thirty real
+      features from the previous article, the celebrated kernel trick is worth
+      <span class="bold">0.36 accuracy points</span> over a plain linear model,
+      which is less than the noise between folds.
+    </p>
+  </section>
+
+  <!-- ======================= scrolly: the margin ======================= -->
+  <section>
+    <h1 class="body-header">The Widest Street</h1>
+    <p class="body-text">
+      Eighty points, two classes, and a gap you can see. The question is not
+      whether a line separates them. Infinitely many do. The question is which
+      one, and answering it turns out to say something about what generalisation
+      even means.
+    </p>
+  </section>
+
+  <section id="margin-scrolly" class="scrolly">
+    <div class="scrolly-container">
+      <div class="steps-container">
+        <div class="step" data-index="0">
+          <div class="step-content">
+            <h3>Infinitely Many Answers</h3>
+            <p>
+              Here are five lines. Every one of them separates these eighty
+              points perfectly, so every one scores 100% on the data you have.
+              Nothing in "minimise the training error" prefers any of them, which
+              means the criterion we have used for seven articles has just run
+              out of opinions.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="1">
+          <div class="step-content">
+            <h3>Ask About the Empty Space</h3>
+            <p>
+              Vapnik's answer: prefer the line with the most room around it.
+              Widen each boundary into a <span class="bold">street</span> until it
+              touches a point on either side, and pick the boundary whose street
+              is widest. It is a claim about the data you have not seen yet, made
+              using only the shape of the data you have.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="2">
+          <div class="step-content">
+            <h3>The Points That Hold It Up</h3>
+            <p>
+              Notice which points touch the kerb. On this dataset there are
+              <span class="bold">two</span>, out of eighty. Delete every other
+              point and the boundary does not move a millimetre. Those two are
+              the <span class="bold">support vectors</span>, and the model is
+              nothing but them: an SVM is a summary of its own edge cases.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="3">
+          <div class="step-content">
+            <h3>One Point Ruins Everything</h3>
+            <p>
+              Now add a single observation, out in the gap where it does not
+              belong. The data is still perfectly separable, so a hard margin
+              still exists. It is <span class="bold">153 times</span> narrower.
+              A boundary threaded through a slot that tight is a boundary held
+              hostage by one point, and it is the same lesson as the outlier in
+              <a href="../robust-regression/">robust regression</a>, in a new
+              costume.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="4">
+          <div class="step-content">
+            <h3>Buy the Width Back</h3>
+            <p>
+              So allow violations, and charge for them. The parameter
+              <span class="bold">C</span> is the price of letting a point sit
+              inside the street or on the wrong side of it. Lower the price and
+              the model happily pays it in exchange for a wider street: from
+              <span class="bold">0.20</span> to <span class="bold">1.87</span>
+              units of half-width across this sweep, and every setting on it
+              scores exactly the same 80 out of 81 on the training data.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="5">
+          <div class="step-content">
+            <h3>What Actually Changed</h3>
+            <p>
+              As the street widens it swallows more points, and every point inside
+              it becomes a support vector: four at
+              <span class="bold">C = 10</span>, forty-four at
+              <span class="bold">C = 0.01</span>. That is the trade in one
+              sentence. A hard margin listens to almost nobody. A soft margin
+              listens to half the room, and is much harder to knock over.
+            </p>
+          </div>
+        </div>
+        <div class="step-spacer"></div>
+      </div>
+      <div class="charts-container">
+        <div class="chart-wrap" id="margin-chart"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================= the maths ======================= -->
+  <section>
+    <h1 class="body-header">Writing "Widest" Down</h1>
+    <p class="body-text">
+      A boundary is the set of points where \(w^{\top}x + b = 0\). Scale \(w\) and
+      \(b\) together and the boundary does not move, so we can fix the scale by
+      demanding that the closest points on each side sit exactly at \(\pm 1\).
+      With that convention the street has half-width \(1/\lVert w \rVert\), and
+      "widest street" becomes something an optimiser can chew on:
+    </p>
+    <p class="body-text">
+      $$ \min_{w,b} \; \tfrac{1}{2}\lVert w \rVert^2 \quad \text{subject to} \quad y_i\,(w^{\top}x_i + b) \ge 1 \;\; \forall i $$
+    </p>
+    <p class="body-text">
+      Minimising the length of \(w\) <i>is</i> maximising the width of the street.
+      That is the hard margin, and the constraint has no give in it: one point on
+      the wrong side and there is no solution at all. The soft margin buys give by
+      letting each point pay a fee \(\xi_i\) to break the rule:
+    </p>
+    <p class="body-text">
+      $$ \min_{w,b,\xi} \; \tfrac{1}{2}\lVert w \rVert^2 + C\sum_i \xi_i \quad \text{subject to} \quad y_i\,(w^{\top}x_i + b) \ge 1 - \xi_i, \;\; \xi_i \ge 0 $$
+    </p>
+    <br />
+    <p class="body-text">
+      That second form should look familiar. It is a fit term plus a penalty on
+      the size of the coefficients, which is exactly the shape of
+      <a href="../regularization/">ridge regression</a>, with the roles of the two
+      terms swapped: here \(C\) multiplies the errors instead of \(\lambda\)
+      multiplying the weights, so <span class="bold">large C is small
+      \(\lambda\)</span>. Same trade, mirrored notation, and the sign of that
+      mirror is responsible for a great deal of confusion.
+    </p>
+    <br />
+    <p class="body-text">
+      Drag \(C\) across five orders of magnitude and watch the street breathe.
+    </p>
+  </section>
+
+  <div class="interactive-container" id="c-widget">
+    <div class="equations-panel">
+      <div class="controls-row">
+        <span class="slider-label">C = <span class="value" id="c-label">1</span></span>
+        <input type="range" class="atlas-range" id="c-slider" aria-label="C, the price of letting a point violate the margin"
+               min="0" max="9" step="1" value="4" />
+      </div>
+      <div class="controls-row">
+        <label class="slider-label"><input type="checkbox" id="c-only-sv" /> keep only the support vectors</label>
+      </div>
+      <div id="c-stats"></div>
+    </div>
+    <div class="chart-panel" id="c-chart"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= the kernel ======================= -->
+  <section>
+    <h1 class="body-header">When No Wall Will Do</h1>
+    <p class="body-text">
+      Everything so far assumes a straight boundary is available. Here is a
+      dataset where it is not: two concentric rings, one class inside the other.
+      Every straight line through this picture gets roughly half of it wrong, and
+      a linear SVM cannot get past <span class="bold">0.609</span> on these 220
+      points even when it is scored on the very data it was fitted to.
+    </p>
+    <br />
+    <p class="body-text">
+      The fix is one of the genuinely great ideas in machine learning, and it is
+      easier than its reputation. The rings are inseparable
+      <i>in the plane</i>. Add a third coordinate, the squared distance from the
+      centre, and lift each point to that height. The inner ring rises a little.
+      The outer ring rises a lot. In three dimensions they are two flat discs at
+      different altitudes, and now a plane, a completely ordinary flat wall, slips
+      between them.
+    </p>
+    <p class="body-text">
+      $$ \phi(x_1, x_2) = (x_1,\; x_2,\; x_1^2 + x_2^2) $$
+    </p>
+    <br />
+    <p class="body-text">
+      Drag the lift, and press the button to keep the boundary on screen at both
+      ends of it. Down in the plane it is a circle. Up in the lifted space it is
+      a straight line. It is the same boundary either way, and that is the whole
+      trick: nothing about the data changed, only the space it was measured in.
+    </p>
+  </section>
+
+  <div class="interactive-container" id="lift-widget">
+    <div class="equations-panel">
+      <div class="controls-row">
+        <span class="slider-label">lift = <span class="value" id="lift-label">0.00</span></span>
+        <input type="range" class="atlas-range" id="lift-slider" aria-label="how far to lift the points into the third dimension"
+               min="0" max="1" step="0.02" value="0" />
+      </div>
+      <div class="controls-row">
+        <button class="atlas-btn ghost" id="lift-plane">Show the boundary</button>
+      </div>
+      <div id="lift-stats"></div>
+    </div>
+    <div class="chart-panel" id="lift-chart"></div>
+  </div>
+
+  <section>
+    <p class="body-text">
+      The part that makes it practical is the part you cannot see, and it is
+      worth a paragraph. An SVM's solution depends on the training points only
+      through <span class="bold">dot products</span> between pairs of them. So if
+      all you need are the dot products <i>in the lifted space</i>, you never have
+      to compute the lifted coordinates at all: you just need a function that
+      returns the answer.
+    </p>
+    <p class="body-text">
+      $$ K(x, z) \;=\; \phi(x)^{\top}\phi(z) \qquad \text{without ever evaluating } \phi $$
+    </p>
+    <p class="body-text">
+      That is the <span class="bold">kernel trick</span>, and its most useful
+      instance is the RBF kernel, \(K(x,z) = e^{-\gamma\lVert x - z\rVert^2}\),
+      whose implied \(\phi\) maps into a space of <i>infinite</i> dimension. You
+      could never write those coordinates down. You never need to.
+    </p>
+    <br />
+    <p class="body-text">
+      What you do need is a feel for \(\gamma\), because it is the most
+      dangerous knob in this article. It sets how far a single training point's
+      influence reaches. Small \(\gamma\), and every point feels every other one:
+      the boundary is smooth and the model is nearly linear. Large \(\gamma\), and
+      each point defends only its own doorstep: the boundary shatters into an
+      archipelago of little islands around individual observations, training
+      accuracy hits 1.000, and the model has learned nothing.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="gamma-widget">
+    <div class="controls-row" style="justify-content: center" id="gamma-buttons"></div>
+    <div id="gamma-chart"></div>
+    <div class="widget-readout" id="gamma-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text">
+      The middle setting is what you want and the two on either side are the two
+      ways to lose, so press all three. Note that the failure at
+      \(\gamma = 100\) is invisible from the training set: the model is
+      <i>perfect</i> on the data it was shown and gets one in five held-out
+      points wrong. Nothing about the fit complains. Only a test set tells you,
+      which is the whole reason there is always a test set.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= discriminant analysis ======================= -->
+  <section>
+    <h1 class="body-header">Boxes Instead of Walls</h1>
+    <p class="body-text">
+      The other family in this article starts from the opposite end. Instead of
+      hunting for a frontier, assume each class is a Gaussian cloud, estimate the
+      clouds, and let the boundary be wherever the two clouds are equally dense.
+      Every reader of the previous article has already met this idea: it is naive
+      Bayes with the independence assumption removed.
+    </p>
+    <br />
+    <p class="body-text">
+      The single decision that splits this family in two is whether the classes
+      are allowed to have <i>different shapes</i>.
+    </p>
+    <br />
+    <p class="body-text">
+      <span class="bold">LDA</span> insists they share one covariance matrix: the
+      clouds may sit in different places but must have the same spread and the
+      same tilt. Under that assumption the quadratic terms in the two densities
+      are identical, they cancel when you take the ratio, and the boundary that
+      survives is exactly linear. <span class="bold">QDA</span> gives each class
+      its own covariance, nothing cancels, and the boundary is a conic: an
+      ellipse, a parabola, a hyperbola, whatever the two shapes imply.
+    </p>
+    <br />
+    <p class="body-text">
+      More freedom is not free, and here the bill is easy to compute. A covariance
+      matrix over \(d\) features holds \(d(d+1)/2\) distinct numbers. LDA
+      estimates one of them from the whole dataset; QDA estimates one per class
+      from that class alone. On thirteen features that is 91 numbers per class,
+      and below the chart's first few sample sizes QDA does not merely do badly:
+      it <span class="bold">cannot be fitted at all</span>, because the covariance
+      it needs to invert is singular.
+    </p>
+  </section>
+
+  <div class="interactive-full stacked-charts" id="curve-widget">
+    <div id="curve-chart"></div>
+    <div class="widget-readout" id="curve-readout"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= the projection ======================= -->
+  <section>
+    <h1 class="body-header">Three Ways to Choose an Axis</h1>
+    <p class="body-text">
+      LDA has a second life that has nothing to do with classifying. Finding the
+      direction that separates the classes best is a
+      <span class="bold">projection</span> problem, and with \(k\) classes it
+      yields \(k-1\) useful axes for free. That makes it the supervised sibling of
+      a technique from the very first article.
+    </p>
+    <br />
+    <p class="body-text">
+      These are the same 178 Italian wines from
+      <a href="../classical-regression/">Classical Regression</a>, thirteen
+      chemical measurements each, projected onto two axes three different ways.
+      PCA asks only "where is the variance?" and never sees a label. PLS asks
+      "what covaries with the target?", which sounds right until you notice we
+      handed it a class index and it is built for a continuous one. LDA asks the
+      question the picture is actually about: which plane pushes the class means
+      apart while keeping each class tight?
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="axes-widget">
+    <div class="controls-row" style="justify-content: center">
+      <button class="atlas-btn" id="ax-pca">PCA · unsupervised</button>
+      <button class="atlas-btn ghost" id="ax-pls">PLS · covariance</button>
+      <button class="atlas-btn ghost" id="ax-lda">LDA · separation</button>
+    </div>
+    <div id="axes-chart"></div>
+    <div class="widget-readout" id="axes-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text">
+      A logistic model given nothing but those two LDA coordinates classifies all
+      178 wines correctly under five-fold cross validation. Given the two PCA
+      coordinates it manages 0.961, and given PLS, 0.938. Thirteen dimensions to
+      two, with no loss at all, because the two dimensions that were kept were
+      chosen by asking the right question.
+    </p>
+    <br />
+    <p class="body-text">
+      <i>The PLS result deserves its own sentence, because it is the one that
+      looks wrong. PLS is supervised, so it ought to beat PCA. It does not here,
+      and the reason is a mismatch nobody warns you about: PLS maximises
+      covariance with a numeric target, and "cultivar 0, 1, 2" is not a numeric
+      target. It is three names that happen to be written as digits. Feed an
+      ordinal encoding to a method that assumes an ordering and it will
+      cheerfully optimise for a fiction.</i>
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the honest benchmark ======================= -->
+  <section>
+    <h1 class="body-header">Was the Kernel Worth It?</h1>
+    <p class="body-text">
+      The rings needed the kernel. Reality mostly does not, and this is the part
+      of the SVM story that gets skipped between the beautiful geometry and the
+      infinite-dimensional feature space.
+    </p>
+    <br />
+    <p class="body-text">
+      Here are six models on the 569 breast biopsies from the previous article:
+      thirty real features, no synthetic structure, five-fold cross validation
+      with the spread drawn as a whisker so nobody has to trust a single split.
+      Three of the models are constrained to a flat boundary. Three are not.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="bench-widget">
+    <div class="controls-row" style="justify-content: center">
+      <button class="atlas-btn" id="gb-acc">accuracy</button>
+      <button class="atlas-btn ghost" id="gb-time">time to fit</button>
+    </div>
+    <div id="gb-chart"></div>
+    <div class="widget-readout" id="gb-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text">
+      The best kernel model beats the best linear model by
+      <span class="bold">0.36 accuracy points</span>, and the fold-to-fold
+      standard deviation of both is larger than that. On this data, the honest
+      report is that the kernel bought nothing you could measure. It is not that
+      RBF kernels do not work. It is that thirty carefully engineered medical
+      features have already done the lifting that \(\phi\) was going to do, and a
+      boundary that was going to be nearly flat anyway does not get better for
+      being allowed to curve.
+    </p>
+    <br />
+    <p class="body-text">
+      There is a second cost that this dataset is too small to show. Kernel SVMs
+      need the pairwise kernel matrix, which is \(n \times n\): at a thousand rows
+      that is a million entries and nobody notices, at a million rows it is a
+      trillion and the method is simply unavailable. Linear SVMs and logistic
+      regression scale with \(n\), not \(n^2\). That asymmetry, more than any
+      accuracy table, is why the kernel SVM's decade as the default classifier
+      ended when datasets grew.
+    </p>
+    <br />
+    <p class="body-text">
+      And one thing an SVM will never give you, which the previous article spent
+      three thousand words arguing for: a probability. The decision function is a
+      signed distance from a wall, not a likelihood, and squashing it through a
+      sigmoid after the fact (Platt scaling) is a patch fitted on held-out data,
+      not something the model knew.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= verdict ======================= -->
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text">
+      Four geometries, and the choice between them is mostly a question about how
+      many rows you have and how much you trust your features.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Model</th>
+          <th>Reach for it when…</th>
+          <th>Boundary</th>
+          <th>It assumes…</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">Linear SVM</span></td>
+          <td>Wide data, many features, and you want the boundary decided by the hard cases.</td>
+          <td>A flat wall, as far from both classes as it can get.</td>
+          <td>Nothing about the distributions. Only that a flat wall is enough.</td>
+          <td>C is a regularisation strength in disguise, and it runs the opposite way to λ.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">RBF SVM</span></td>
+          <td>Genuinely curved structure, a few thousand rows at most, and time to tune two knobs.</td>
+          <td>Anything, up to and including nonsense.</td>
+          <td>That similarity falls off with distance at a rate you have to pick.</td>
+          <td>γ too high looks perfect in training and fails silently. Memory grows as n².</td>
+        </tr>
+        <tr>
+          <td><span class="bold">LDA</span></td>
+          <td>Few rows per class, or you want k−1 supervised axes to plot.</td>
+          <td>Linear, and it falls out rather than being searched for.</td>
+          <td>Gaussian classes sharing one covariance.</td>
+          <td>The shared-covariance assumption is usually false; it survives it better than it should.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">QDA</span></td>
+          <td>Classes with visibly different spreads, and roughly 30+ rows per class per handful of features.</td>
+          <td>A conic: ellipse, parabola or hyperbola.</td>
+          <td>Gaussian classes, each with its own covariance.</td>
+          <td>d(d+1)/2 parameters per class. Below the crossover it is worse than LDA, then unfittable.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text">
+      Stepping back across both articles of this module: we have answered "which
+      one?" with a probability, and then with a wall. What we have not done is
+      ask a question. Every model so far consumes all of its features at once and
+      produces an answer in a single shot.
+    </p>
+    <br />
+    <p class="body-text">
+      Next in this module: models that interrogate. One yes-or-no question at a
+      time, each chosen because of how the last one was answered, building a
+      structure you can read out loud as rules. That story is called Trees and
+      Ensembles, and the reader of
+      <a href="../gradient-boosting/">Gradient Boosting</a> has already seen how
+      it ends.
+    </p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! The from-scratch NumPy implementation
+      (<code>ScratchLDA</code>, eigenvectors and all) lives in the
+      <a href="https://github.com/aleetreny/ATLAS">ATLAS repository</a>. Every
+      number on this page comes from
+      <code>src/utils/generate_geometric_data.py</code>, and the margin geometry,
+      the lift, and the projections are all recomputed in your browser.
+    </p>
+  </section>
+
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text">
+      The margin sweep, the gamma grid, the discriminant learning curve and the
+      benchmark were produced by
+      <code>src/utils/generate_geometric_data.py</code> with scikit-learn 1.8.0
+      under Python 3.11.7, seed 11. The learning curve averages 24 random draws at
+      every sample size; the benchmark is five-fold stratified cross validation
+      over all 569 biopsies.
+    </p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://link.springer.com/article/10.1007/BF00994018">[1] Support-Vector Networks</a><br />
+      (Cortes, C. &amp; Vapnik, V., Machine Learning, 1995)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://dl.acm.org/doi/10.1145/130385.130401">[2] A Training Algorithm for Optimal Margin Classifiers</a><br />
+      (Boser, B., Guyon, I., Vapnik, V., COLT, 1992)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://onlinelibrary.wiley.com/doi/10.1111/j.1469-1809.1936.tb02137.x">[3] The Use of Multiple Measurements in Taxonomic Problems</a><br />
+      (Fisher, R. A., Annals of Eugenics, 1936)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://www.csie.ntu.edu.tw/~cjlin/papers/guide/guide.pdf">[4] A Practical Guide to Support Vector Classification</a><br />
+      (Hsu, C.-W., Chang, C.-C., Lin, C.-J., 2003)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://www.microsoft.com/en-us/research/publication/probabilistic-outputs-for-support-vector-machines-and-comparisons-to-regularized-likelihood-methods/">[5] Probabilistic Outputs for Support Vector Machines</a><br />
+      (Platt, J., Advances in Large Margin Classifiers, 1999)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://web.stanford.edu/~hastie/ElemStatLearn/">[6] The Elements of Statistical Learning</a><br />
+      (Hastie, T., Tibshirani, R., Friedman, J., chapters 4 and 12)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://archive.ics.uci.edu/dataset/109/wine">[7] The Wine Recognition Dataset</a><br />
+      (Forina, M. et al., UCI Machine Learning Repository, 178 samples, 3 cultivars)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>

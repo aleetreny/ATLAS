@@ -65,6 +65,15 @@ export function drawAxes(g, x, y, w, h, { xTicks = 6, yTicks = 6, xFmt = null, y
   gy.call(d3.axisLeft(y).ticks(yTicks).tickValues(thinTicks(y, yTicks)).tickFormat(yFmt).tickSizeOuter(0));
 }
 
+/* Tick positions for a grid line. A band or point scale has no `.ticks()`, and
+ * calling it throws and takes the whole widget's init down with it, so an
+ * ordinal axis simply contributes no rules. There is nothing sensible to rule
+ * against on a categorical axis anyway. */
+function gridTicks(scale, n) {
+  if (typeof scale.ticks !== 'function') return [];
+  return thinTicks(scale, n) ?? scale.ticks(n);
+}
+
 /* Faint background grid (MLU: stroke-opacity .075). */
 export function drawGrid(g, x, y, w, h, { xTicks = 6, yTicks = 6 } = {}) {
   let gg = g.select('g.grid');
@@ -74,7 +83,7 @@ export function drawGrid(g, x, y, w, h, { xTicks = 6, yTicks = 6 } = {}) {
    * labels that are supposed to name them. */
   gg.append('g')
     .selectAll('line')
-    .data(thinTicks(x, xTicks) ?? x.ticks(xTicks))
+    .data(gridTicks(x, xTicks))
     .join('line')
     .attr('x1', (d) => x(d))
     .attr('x2', (d) => x(d))
@@ -82,7 +91,7 @@ export function drawGrid(g, x, y, w, h, { xTicks = 6, yTicks = 6 } = {}) {
     .attr('y2', h);
   gg.append('g')
     .selectAll('line')
-    .data(thinTicks(y, yTicks) ?? y.ticks(yTicks))
+    .data(gridTicks(y, yTicks))
     .join('line')
     .attr('x1', 0)
     .attr('x2', w)

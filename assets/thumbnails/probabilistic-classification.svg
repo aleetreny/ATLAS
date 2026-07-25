@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <rect width="400" height="300" fill="#f1f3f3" />
+  <defs>
+    <clipPath id="pc-plot"><rect x="40" y="25" width="320" height="250" /></clipPath>
+  </defs>
+  <g clip-path="url(#pc-plot)">
+    <!-- the band a probability is allowed to live in -->
+    <rect x="40" y="70" width="320" height="180" fill="#a8410f" fill-opacity="0.06" />
+
+    <!-- the two rails: the answer is only ever 0 or 1 -->
+    <g fill="#007faa" fill-opacity="0.75">
+      <circle cx="62" cy="250" r="4" /><circle cx="80" cy="250" r="4" />
+      <circle cx="97" cy="250" r="4" /><circle cx="112" cy="250" r="4" />
+      <circle cx="128" cy="250" r="4" /><circle cx="141" cy="250" r="4" />
+      <circle cx="156" cy="250" r="4" /><circle cx="170" cy="250" r="4" />
+      <circle cx="185" cy="250" r="4" /><circle cx="203" cy="250" r="4" />
+      <circle cx="221" cy="250" r="4" />
+    </g>
+    <g fill="#df2a5d" fill-opacity="0.75">
+      <circle cx="182" cy="70" r="4" /><circle cx="199" cy="70" r="4" />
+      <circle cx="214" cy="70" r="4" /><circle cx="231" cy="70" r="4" />
+      <circle cx="246" cy="70" r="4" /><circle cx="262" cy="70" r="4" />
+      <circle cx="277" cy="70" r="4" /><circle cx="294" cy="70" r="4" />
+      <circle cx="311" cy="70" r="4" /><circle cx="329" cy="70" r="4" />
+      <circle cx="346" cy="70" r="4" />
+    </g>
+
+    <!-- least squares, which has no ceiling and no floor and leaves both -->
+    <line x1="46" y1="286" x2="354" y2="34" stroke="#232f3e" stroke-width="2.2"
+          stroke-dasharray="7 6" opacity="0.55" />
+
+    <!-- the sigmoid, which cannot leave no matter how hard you push -->
+    <path d="M44,249 C110,249 140,246 165,225 C190,204 200,116 225,95 C250,74 300,71 356,71"
+          fill="none" stroke="#a8410f" stroke-width="4" stroke-linecap="round" />
+
+    <!-- where the decision lives -->
+    <line x1="195" y1="25" x2="195" y2="275" stroke="#a8410f" stroke-width="1.6"
+          stroke-dasharray="5 4" opacity="0.7" />
+    <line x1="40" y1="160" x2="360" y2="160" stroke="#232f3e" stroke-width="1.2"
+          stroke-dasharray="5 4" opacity="0.45" />
+  </g>
+  <g stroke="#232f3e" stroke-width="2">
+    <line x1="40" y1="275" x2="360" y2="275" />
+    <line x1="40" y1="275" x2="40" y2="25" />
+  </g>
+</svg>

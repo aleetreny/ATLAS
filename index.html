@@ -203,6 +203,44 @@
             </button>
           </div>
         </div>
+
+        <!-- card: probabilistic classification -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./probabilistic-classification/';" style="cursor: pointer">
+            <img src="assets/thumbnails/probabilistic-classification.svg"
+                 alt="Probabilistic Classification article image: points pinned to two horizontal rails at zero and one, a straight line running out past both of them, and an S-shaped curve that stays inside the band between." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Probabilistic Classification</h2>
+            <p class="article-description">
+              Logistic regression and naive Bayes: why the sigmoid is the only
+              curve that fits, and why two classifiers that agree on the labels
+              can be a factor of ten apart on how sure they are.
+            </p>
+            <button class="content-button">
+              <a href="./probabilistic-classification/">Dive In</a>
+            </button>
+          </div>
+        </div>
+
+        <!-- card: geometric classification -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./geometric-classification/';" style="cursor: pointer">
+            <img src="assets/thumbnails/geometric-classification.svg"
+                 alt="Geometric Classification article image: two clouds of points separated by a shaded street, with the three points touching its kerbs circled as support vectors." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Geometric Classification</h2>
+            <p class="article-description">
+              Support vector machines and discriminant analysis: the widest
+              street between two crowds, the kernel that separates the
+              inseparable, and what that kernel is really worth.
+            </p>
+            <button class="content-button">
+              <a href="./geometric-classification/">Dive In</a>
+            </button>
+          </div>
+        </div>
       </div>
 
       <details class="roadmap" open>
@@ -223,10 +261,9 @@
         <div class="branch">
           <h4>1.2 Classification: predicting labels</h4>
           <div class="chips">
-            <span class="chip">Logistic Regression</span>
-            <span class="chip">Naive Bayes</span>
-            <span class="chip">SVM</span>
-            <span class="chip">LDA · QDA · KDA</span>
+            <span class="chip live"><a href="./probabilistic-classification/">Logistic Regression · Naive Bayes</a></span>
+            <span class="chip live"><a href="./geometric-classification/">SVM · LDA · QDA</a></span>
+            <span class="chip">Kernel Discriminant Analysis</span>
             <span class="chip">Decision Trees</span>
             <span class="chip">Random Forest</span>
             <span class="chip">ExtraTrees</span>

@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <rect width="400" height="300" fill="#f1f3f3" />
+  <defs>
+    <clipPath id="gc-plot"><rect x="40" y="25" width="320" height="250" /></clipPath>
+  </defs>
+  <g clip-path="url(#gc-plot)">
+    <!-- the street: the empty space the boundary is chosen to maximise -->
+    <path d="M30,268 L268,18 L336,18 L98,268 Z" fill="#4d7c0f" fill-opacity="0.14" />
+    <!-- the two kerbs -->
+    <line x1="30" y1="268" x2="268" y2="18" stroke="#4d7c0f" stroke-width="1.6"
+          stroke-dasharray="6 4" opacity="0.85" />
+    <line x1="98" y1="268" x2="336" y2="18" stroke="#4d7c0f" stroke-width="1.6"
+          stroke-dasharray="6 4" opacity="0.85" />
+    <!-- and the boundary down the middle -->
+    <line x1="64" y1="268" x2="302" y2="18" stroke="#4d7c0f" stroke-width="4" />
+
+    <!-- the class that lives above the street -->
+    <g fill="#007faa" fill-opacity="0.8" stroke="#ffffff" stroke-width="1">
+      <circle cx="72" cy="70" r="6" /><circle cx="108" cy="102" r="6" />
+      <circle cx="86" cy="140" r="6" /><circle cx="140" cy="66" r="6" />
+      <circle cx="60" cy="182" r="6" /><circle cx="132" cy="150" r="6" />
+      <circle cx="176" cy="94" r="6" />
+    </g>
+    <!-- and the one below it -->
+    <g fill="#df2a5d" fill-opacity="0.8" stroke="#ffffff" stroke-width="1">
+      <circle cx="228" cy="212" r="6" /><circle cx="272" cy="170" r="6" />
+      <circle cx="306" cy="122" r="6" /><circle cx="196" cy="252" r="6" />
+      <circle cx="316" cy="206" r="6" /><circle cx="252" cy="248" r="6" />
+    </g>
+
+    <!-- the three points holding the whole thing up -->
+    <g fill="none" stroke="#232f3e" stroke-width="2.4">
+      <circle cx="132" cy="150" r="11" />
+      <circle cx="176" cy="94" r="11" />
+      <circle cx="228" cy="212" r="11" />
+    </g>
+  </g>
+  <g stroke="#232f3e" stroke-width="2">
+    <line x1="40" y1="275" x2="360" y2="275" />
+    <line x1="40" y1="275" x2="40" y2="25" />
+  </g>
+</svg>
