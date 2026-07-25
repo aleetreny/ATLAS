@@ -1,0 +1,298 @@
+/* =========================================================================
+   ATLAS — landing page styles (clone of MLU-Explain landing)
+   ========================================================================= */
+
+body.landing {
+  font-family: var(--font-sans);
+  color: var(--squidink);
+  background-color: #f5f1f1;
+  background-image:
+    linear-gradient(217deg, rgba(247, 152, 128, 0.35), rgba(245, 241, 241, 0) 35.71%),
+    linear-gradient(0deg, rgba(247, 152, 128, 0.24), rgba(245, 241, 241, 0) 10.71%);
+  background-attachment: fixed;
+}
+
+body.landing main {
+  max-width: 1500px;
+  margin: auto;
+}
+
+/* ---- hero ---- */
+
+#hero {
+  min-height: 70vh;
+  display: flex;
+  align-items: center;
+}
+
+#hero-container {
+  display: grid;
+  grid-template-columns: 55% 42%;
+  gap: 1rem;
+  max-width: 70%;
+  margin: 0 auto;
+  align-items: center;
+}
+
+#hero .text h1 {
+  font-family: var(--font-heavy);
+  font-size: 3.5rem;
+  margin: 0 0 0.5rem 0;
+  letter-spacing: 2px;
+}
+
+#hero .text h1 .accent {
+  color: #fc6a49;
+}
+
+#hero .text .subtitle {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin: 0 0 1rem 0;
+}
+
+#hero .text p.lede {
+  font-size: 21px;
+  line-height: 29px;
+  letter-spacing: 0.1px;
+  margin: 0 0 1.75rem 0;
+}
+
+#hero .hero-img svg,
+#hero .hero-img img {
+  width: 100%;
+  height: auto;
+}
+
+/* CTA button with highlighter strip */
+button.content-button {
+  position: relative;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 1.35rem;
+  color: var(--squidink);
+  background: transparent;
+  border: 1px solid var(--squidink);
+  border-radius: 0;
+  padding: 4px 12px;
+  cursor: pointer;
+}
+
+button.content-button::before {
+  content: '';
+  position: absolute;
+  left: -0.25rem;
+  top: 0.3rem;
+  width: 100%;
+  height: 1.8rem;
+  background: rgba(252, 106, 73, 0.55);
+  z-index: -1;
+}
+
+button.content-button:hover {
+  box-shadow:
+    rgba(0, 0, 0, 0.24) 0 4px 8px,
+    rgba(0, 0, 0, 0.19) 0 5px 10px;
+}
+
+button.content-button a {
+  color: inherit;
+  font-family: inherit;
+  text-decoration: none;
+}
+
+/* ---- module sections ---- */
+
+#articles-section {
+  max-width: 75%;
+  margin: 0 auto;
+  padding-top: 2rem;
+  padding-bottom: 4rem;
+}
+
+.module-segue {
+  margin-top: 4rem;
+  border-bottom: 3px solid var(--squidink);
+  padding-bottom: 0.75rem;
+}
+
+.module-segue .module-kicker {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #fc6a49;
+  margin: 0;
+}
+
+.module-segue h2 {
+  font-family: var(--font-heavy);
+  font-size: 1.9rem;
+  margin: 0.25rem 0 0.5rem 0;
+}
+
+.module-segue p.module-desc {
+  font-size: 18px;
+  line-height: 26px;
+  max-width: 850px;
+  margin: 0;
+}
+
+/* ---- article cards ---- */
+
+.articles-container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  column-gap: 5rem;
+  row-gap: 4rem;
+  padding: 2.5rem 20px 1rem 20px;
+}
+
+.article-card .imgBx {
+  cursor: pointer;
+}
+
+.article-card .imgBx img,
+.article-card .imgBx svg {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  display: block;
+  border: 0.5px solid var(--squidink);
+  background: var(--paper);
+}
+
+.article-card .content {
+  padding-top: 1rem;
+}
+
+.article-card .article-title {
+  font-family: var(--font-heavy);
+  font-size: 1.8rem;
+  font-weight: 400;
+  color: var(--squidink);
+  text-transform: uppercase;
+  text-decoration: underline;
+  text-decoration-thickness: 3px;
+  margin: 0 0 0.5rem 0;
+}
+
+.article-card .article-description {
+  font-size: 21px;
+  line-height: 29px;
+  letter-spacing: 0.1px;
+  margin: 0 0 1rem 0;
+}
+
+/* ---- roadmap (upcoming techniques taxonomy) ---- */
+
+.roadmap {
+  margin-top: 1.5rem;
+  padding: 0 20px;
+}
+
+.roadmap summary {
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  color: var(--squidink);
+  opacity: 0.8;
+}
+
+.roadmap summary:hover {
+  color: #fc6a49;
+  opacity: 1;
+}
+
+.roadmap .branch {
+  margin: 1.25rem 0;
+}
+
+.roadmap .branch h4 {
+  font-family: var(--font-heavy);
+  font-weight: 400;
+  font-size: 1rem;
+  margin: 0 0 0.5rem 0;
+}
+
+.roadmap .chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.roadmap .chip {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  border: 1.5px solid var(--squidink);
+  background: rgba(255, 255, 255, 0.6);
+  padding: 3px 10px;
+  white-space: nowrap;
+}
+
+.roadmap .chip.live {
+  background: var(--squidink);
+  border-color: var(--squidink);
+}
+
+.roadmap .chip.live a {
+  color: var(--white);
+  font-family: var(--font-mono);
+}
+
+/* ---- footer ---- */
+
+footer.landing-footer {
+  margin-top: 2rem;
+  background: var(--squidink);
+  color: var(--stone);
+  padding: 2.5rem 1rem;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 14px;
+}
+
+footer.landing-footer a {
+  color: var(--smile);
+}
+
+/* ---- responsive ---- */
+
+@media (max-width: 1250px) {
+  #articles-section {
+    max-width: 90%;
+  }
+
+  #hero-container {
+    max-width: 85%;
+  }
+}
+
+@media (max-width: 950px) {
+  #articles-section {
+    max-width: 96%;
+  }
+
+  #hero-container {
+    grid-template-columns: 100%;
+    max-width: 90%;
+  }
+
+  #hero .hero-img {
+    display: none;
+  }
+}
+
+@media (max-width: 606px) {
+  .articles-container {
+    grid-template-columns: 1fr;
+    column-gap: 0;
+  }
+
+  .article-card .imgBx img,
+  .article-card .imgBx svg {
+    border: 2px solid var(--squidink);
+  }
+}

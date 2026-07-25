@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ATLAS — Visual Explanations of Machine Learning</title>
+  <meta name="description" content="ATLAS: interactive, visual explanations of machine learning algorithms and statistical techniques — from classical statistics to state-of-the-art generative AI." />
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="assets/styles/fonts.css" />
+  <link rel="stylesheet" href="assets/styles/global.css" />
+  <link rel="stylesheet" href="assets/styles/landing.css" />
+</head>
+<body class="landing">
+  <main>
+    <!-- ================= HERO ================= -->
+    <section id="hero">
+      <div id="hero-container">
+        <div class="text">
+          <h1>ATL<span class="accent">AS</span></h1>
+          <p class="subtitle">Algorithmic Techniques for Learning And Statistics</p>
+          <p class="lede">
+            Visual, interactive explanations of the algorithms that turn data into
+            decisions — from drawing straight lines through point clouds to modern
+            generative models. Every article builds the method from scratch, breaks
+            it on purpose, and tells you exactly when to reach for it.
+          </p>
+          <button class="content-button" onclick="location.href='./classical-regression/';">
+            <a href="./classical-regression/">Start the journey</a>
+          </button>
+        </div>
+        <div class="hero-img" aria-hidden="true">
+          <!-- topographic "data atlas" illustration -->
+          <svg viewBox="0 0 520 430" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <clipPath id="hero-clip"><rect x="10" y="10" width="500" height="410" /></clipPath>
+            </defs>
+            <rect x="10" y="10" width="500" height="410" fill="#ffffff" stroke="#232f3e" stroke-width="2" />
+            <g clip-path="url(#hero-clip)" stroke="#232f3e" fill="none" stroke-width="1.4" opacity="0.55">
+              <path d="M-20,120 C80,60 170,150 260,110 S430,40 540,90" />
+              <path d="M-20,160 C90,105 180,190 270,150 S440,85 540,130" />
+              <path d="M-20,200 C100,150 190,230 280,190 S450,130 540,170" />
+              <path d="M-20,250 C110,200 200,280 290,235 S460,180 540,215" />
+              <path d="M-20,300 C120,255 210,330 300,285 S470,235 540,265" />
+              <path d="M-20,350 C130,310 220,380 310,335 S480,290 540,315" />
+              <path d="M-20,400 C140,365 230,430 320,385 S490,345 540,365" />
+            </g>
+            <!-- data terrain: scatter -->
+            <g stroke="#232f3e" stroke-width="1.2">
+              <circle cx="80" cy="330" r="7" fill="#ff9900" />
+              <circle cx="130" cy="290" r="7" fill="#ff9900" />
+              <circle cx="165" cy="305" r="7" fill="#ff9900" />
+              <circle cx="205" cy="250" r="7" fill="#ff9900" />
+              <circle cx="250" cy="235" r="7" fill="#ff9900" />
+              <circle cx="285" cy="200" r="7" fill="#ff9900" />
+              <circle cx="330" cy="185" r="7" fill="#ff9900" />
+              <circle cx="365" cy="150" r="7" fill="#ff9900" />
+              <circle cx="405" cy="140" r="7" fill="#ff9900" />
+              <circle cx="440" cy="105" r="7" fill="#ff9900" />
+              <circle cx="305" cy="255" r="7" fill="#df2a5d" />
+              <circle cx="120" cy="350" r="7" fill="#df2a5d" />
+            </g>
+            <!-- the fitted path through the terrain -->
+            <path d="M55,355 C170,320 300,220 465,90" fill="none" stroke="#232f3e" stroke-width="3.5" stroke-dasharray="10 7" />
+            <!-- compass rose -->
+            <g transform="translate(447,357)" stroke="#232f3e" fill="#ffffff" stroke-width="2">
+              <circle r="34" />
+              <path d="M0,-26 L7,0 L0,26 L-7,0 Z" fill="#ff9900" stroke-width="1.5" />
+              <path d="M-26,0 L0,-7 L26,0 L0,7 Z" fill="#232f3e" stroke-width="1.5" />
+              <circle r="4" fill="#232f3e" />
+            </g>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= ARTICLES BY MODULE ================= -->
+    <section id="articles-section">
+
+      <!-- ===== MODULE 1 ===== -->
+      <div class="module-segue">
+        <p class="module-kicker">Module 1</p>
+        <h2>Supervised Inference</h2>
+        <p class="module-desc">
+          You have the questions (inputs) and the correct answers (labels). The goal:
+          learn a mapping so accurate it predicts answers for questions it has never
+          seen — from pricing a house to diagnosing a disease.
+        </p>
+      </div>
+
+      <div class="articles-container">
+        <!-- card: classical regression -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./classical-regression/';" style="cursor: pointer">
+            <img src="assets/thumbnails/classical-regression.svg"
+                 alt="Classical Regression article image: a scatter of points with a rigid straight line and a curved fit bending through them." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Classical Regression</h2>
+            <p class="article-description">
+              Straight lines, bent polynomials, link functions and latent
+              projections: the four pillars of classical statistics that still
+              power modern prediction — built from scratch, interactively.
+            </p>
+            <button class="content-button">
+              <a href="./classical-regression/">Dive In</a>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <details class="roadmap" open>
+        <summary>Full branch map — 1. Supervised Inference</summary>
+        <div class="branch">
+          <h4>1.1 Regression — predicting continuous values</h4>
+          <div class="chips">
+            <span class="chip live"><a href="./classical-regression/">OLS · Polynomial · GLMs · PLS</a></span>
+            <span class="chip">Lasso (L1)</span>
+            <span class="chip">Ridge (L2)</span>
+            <span class="chip">ElasticNet</span>
+            <span class="chip">RANSAC</span>
+            <span class="chip">Theil-Sen</span>
+            <span class="chip">Huber</span>
+            <span class="chip">KNN Regression</span>
+            <span class="chip">SVR</span>
+            <span class="chip">Kernel Ridge</span>
+            <span class="chip">Gaussian Processes</span>
+            <span class="chip">XGBoost / LightGBM</span>
+            <span class="chip">CatBoost</span>
+            <span class="chip">TabNet</span>
+            <span class="chip">Neural Additive Models</span>
+          </div>
+        </div>
+        <div class="branch">
+          <h4>1.2 Classification — predicting labels</h4>
+          <div class="chips">
+            <span class="chip">Logistic Regression</span>
+            <span class="chip">Naive Bayes</span>
+            <span class="chip">SVM</span>
+            <span class="chip">LDA · QDA · KDA</span>
+            <span class="chip">Decision Trees</span>
+            <span class="chip">Random Forest</span>
+            <span class="chip">ExtraTrees</span>
+            <span class="chip">SMOTE · ADASYN</span>
+            <span class="chip">Calibration</span>
+          </div>
+        </div>
+        <div class="branch">
+          <h4>1.3 Computer Vision — visual perception</h4>
+          <div class="chips">
+            <span class="chip">HOG · SIFT · ORB</span>
+            <span class="chip">Viola-Jones</span>
+            <span class="chip">LeNet · AlexNet</span>
+            <span class="chip">VGG · ResNet</span>
+            <span class="chip">EfficientNet · ConvNeXt</span>
+            <span class="chip">YOLO · SSD · Faster R-CNN</span>
+            <span class="chip">U-Net · Mask R-CNN · SAM</span>
+            <span class="chip">NeRF · Gaussian Splatting</span>
+          </div>
+        </div>
+      </details>
+
+      <!-- ===== MODULE 2 ===== -->
+      <div class="module-segue">
+        <p class="module-kicker">Module 2</p>
+        <h2>Unsupervised Structure Discovery</h2>
+        <p class="module-desc">
+          Piles of evidence, no answers. Discover hidden groups, simplify complex
+          data into something human-readable, and find the signal in the noise.
+        </p>
+      </div>
+      <details class="roadmap">
+        <summary>Full branch map — 2. Unsupervised Structure Discovery</summary>
+        <div class="branch">
+          <h4>2.1 Clustering</h4>
+          <div class="chips">
+            <span class="chip">K-Means</span>
+            <span class="chip">K-Medoids · K-Modes</span>
+            <span class="chip">DBSCAN · HDBSCAN</span>
+            <span class="chip">OPTICS · Mean Shift</span>
+            <span class="chip">GMM</span>
+            <span class="chip">Affinity Propagation</span>
+            <span class="chip">Agglomerative · BIRCH</span>
+            <span class="chip">Spectral Clustering</span>
+          </div>
+        </div>
+        <div class="branch">
+          <h4>2.2 Dimensionality Reduction &amp; Manifolds</h4>
+          <div class="chips">
+            <span class="chip">PCA · ICA · NMF</span>
+            <span class="chip">Factor Analysis · MDS</span>
+            <span class="chip">t-SNE · UMAP</span>
+            <span class="chip">Isomap · LLE · SOM</span>
+            <span class="chip">Autoencoders</span>
+          </div>
+        </div>
+        <div class="branch">
+          <h4>2.3 Anomaly Detection &nbsp;·&nbsp; 2.4 Association Rules</h4>
+          <div class="chips">
+            <span class="chip">Z-Score · IQR · Mahalanobis</span>
+            <span class="chip">Isolation Forest</span>
+            <span class="chip">One-Class SVM · LOF · MCD</span>
+            <span class="chip">Apriori · FP-Growth</span>
+          </div>
+        </div>
+      </details>
+
+      <!-- ===== MODULE 3 ===== -->
+      <div class="module-segue">
+        <p class="module-kicker">Module 3</p>
+        <h2>Generative AI</h2>
+        <p class="module-desc">
+          Learn the underlying distribution of reality to create new samples that
+          never existed. The shift from "classifying a cat" to "drawing a cat".
+        </p>
+      </div>
+      <details class="roadmap">
+        <summary>Full branch map — 3. Generative AI</summary>
+        <div class="branch">
+          <h4>3.1 Adversarial &nbsp;·&nbsp; 3.2 Probabilistic &amp; Flows &nbsp;·&nbsp; 3.3 Diffusion</h4>
+          <div class="chips">
+            <span class="chip">GANs · DCGAN · WGAN</span>
+            <span class="chip">StyleGAN</span>
+            <span class="chip">Pix2Pix · CycleGAN</span>
+            <span class="chip">VAEs · VQ-VAE · EBMs</span>
+            <span class="chip">Normalizing Flows · Glow</span>
+            <span class="chip">DDPM</span>
+            <span class="chip">Latent Diffusion</span>
+            <span class="chip">ControlNet</span>
+            <span class="chip">Consistency Models · Rectified Flow</span>
+          </div>
+        </div>
+      </details>
+
+      <!-- ===== MODULE 4 ===== -->
+      <div class="module-segue">
+        <p class="module-kicker">Module 4</p>
+        <h2>Sequential Intelligence</h2>
+        <p class="module-desc">
+          Data that flows: what happened before dictates what happens next.
+          Understanding human language and forecasting the future from history.
+        </p>
+      </div>
+      <details class="roadmap">
+        <summary>Full branch map — 4. Sequential Intelligence</summary>
+        <div class="branch">
+          <h4>4.1 NLP</h4>
+          <div class="chips">
+            <span class="chip">TF-IDF · N-Grams</span>
+            <span class="chip">LDA Topics</span>
+            <span class="chip">Word2Vec · GloVe · FastText</span>
+            <span class="chip">HMM · RNN · LSTM · GRU</span>
+            <span class="chip">Self-Attention</span>
+            <span class="chip">BERT · GPT · T5</span>
+            <span class="chip">Mamba / SSMs</span>
+          </div>
+        </div>
+        <div class="branch">
+          <h4>4.2 Time Series &nbsp;·&nbsp; 4.3 Audio</h4>
+          <div class="chips">
+            <span class="chip">ARIMA · SARIMA · ETS</span>
+            <span class="chip">VAR · GARCH</span>
+            <span class="chip">Prophet · XGBoost-TS</span>
+            <span class="chip">N-BEATS · TFT</span>
+            <span class="chip">TimeGPT · Chronos</span>
+            <span class="chip">Spectrograms · MFCCs</span>
+            <span class="chip">WaveNet · Whisper</span>
+          </div>
+        </div>
+      </details>
+
+      <!-- ===== MODULE 5 ===== -->
+      <div class="module-segue">
+        <p class="module-kicker">Module 5</p>
+        <h2>Agents &amp; Strategy</h2>
+        <p class="module-desc">
+          An agent in an environment taking actions to maximize reward. Not
+          "what is this?" but "what should I do next?".
+        </p>
+      </div>
+      <details class="roadmap">
+        <summary>Full branch map — 5. Agents &amp; Strategy</summary>
+        <div class="branch">
+          <h4>5.1 Optimization &nbsp;·&nbsp; 5.2 Bandits &nbsp;·&nbsp; 5.3 Reinforcement Learning</h4>
+          <div class="chips">
+            <span class="chip">Linear Programming · MILP</span>
+            <span class="chip">Genetic Algorithms</span>
+            <span class="chip">Simulated Annealing · PSO</span>
+            <span class="chip">Multi-Armed Bandits</span>
+            <span class="chip">Thompson Sampling · UCB</span>
+            <span class="chip">Q-Learning · SARSA</span>
+            <span class="chip">DQN</span>
+            <span class="chip">REINFORCE · A2C · PPO · SAC</span>
+            <span class="chip">MCTS · Dreamer</span>
+          </div>
+        </div>
+      </details>
+
+      <!-- ===== MODULE 6 ===== -->
+      <div class="module-segue">
+        <p class="module-kicker">Module 6</p>
+        <h2>Relational Intelligence</h2>
+        <p class="module-desc">
+          Entities defined by their connections. Graphs, recommender systems, and
+          the collective wisdom of the crowd.
+        </p>
+      </div>
+      <details class="roadmap">
+        <summary>Full branch map — 6. Relational Intelligence</summary>
+        <div class="branch">
+          <h4>6.1 Recommenders &nbsp;·&nbsp; 6.2 Graph Neural Networks</h4>
+          <div class="chips">
+            <span class="chip">Collaborative Filtering</span>
+            <span class="chip">Matrix Factorization (SVD/ALS)</span>
+            <span class="chip">Two-Tower · DeepFM</span>
+            <span class="chip">GCN · GAT · GraphSAGE</span>
+            <span class="chip">TransE · RotatE</span>
+          </div>
+        </div>
+      </details>
+
+      <!-- ===== MODULE 7 ===== -->
+      <div class="module-segue">
+        <p class="module-kicker">Module 7</p>
+        <h2>Scientific Intelligence</h2>
+        <p class="module-desc">
+          From correlation to causation, from confidence to guarantees, from black
+          boxes to explanations. Asking "why?" and "what if?".
+        </p>
+      </div>
+      <details class="roadmap">
+        <summary>Full branch map — 7. Scientific Intelligence</summary>
+        <div class="branch">
+          <h4>7.1 Causal Inference &nbsp;·&nbsp; 7.2 Uncertainty &nbsp;·&nbsp; 7.3 Explainable AI</h4>
+          <div class="chips">
+            <span class="chip">Confounders · Simpson's Paradox</span>
+            <span class="chip">Propensity Scores</span>
+            <span class="chip">Instrumental Variables</span>
+            <span class="chip">Do-Calculus · Causal Forests</span>
+            <span class="chip">Conformal Prediction</span>
+            <span class="chip">Bayesian Neural Nets</span>
+            <span class="chip">SHAP · LIME</span>
+            <span class="chip">Grad-CAM · Attention Viz</span>
+          </div>
+        </div>
+      </details>
+
+      <!-- ===== MODULE 8 ===== -->
+      <div class="module-segue">
+        <p class="module-kicker">Module 8</p>
+        <h2>The Engineering Toolkit</h2>
+        <p class="module-desc">
+          The bridge between a notebook and a production system: tuning,
+          validating, and deploying these engines efficiently.
+        </p>
+      </div>
+      <details class="roadmap">
+        <summary>Full branch map — 8. The Engineering Toolkit</summary>
+        <div class="branch">
+          <h4>8.1 Tuning &nbsp;·&nbsp; 8.2 Evaluation &nbsp;·&nbsp; 8.3 Vector Search</h4>
+          <div class="chips">
+            <span class="chip">Grid · Random · Bayesian Search</span>
+            <span class="chip">AutoML</span>
+            <span class="chip">Transfer Learning · Distillation</span>
+            <span class="chip">LoRA · QLoRA</span>
+            <span class="chip">K-Fold · TimeSeriesSplit</span>
+            <span class="chip">ROC-AUC · MCC · BLEU</span>
+            <span class="chip">ANN · HNSW · FAISS</span>
+            <span class="chip">Vector Databases</span>
+          </div>
+        </div>
+      </details>
+
+    </section>
+  </main>
+
+  <footer class="landing-footer">
+    <p>
+      ATLAS — Algorithmic Techniques for Learning And Statistics ·
+      <a href="https://github.com/aleetreny/ATLAS">source on GitHub</a>
+    </p>
+    <p>Aesthetic inspired by <a href="https://mlu-explain.github.io/">MLU-Explain</a>. Built with D3.js and KaTeX. No frameworks, no build step.</p>
+  </footer>
+</body>
+</html>
