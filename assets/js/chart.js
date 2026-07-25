@@ -33,15 +33,36 @@ export function makeChart(container, { width = 640, height = 460, margin = { top
   return { svg, g, plot, w, h, margin, width, height };
 }
 
+/* `.ticks(n)` is a hint, and a log scale feels free to ignore it: a domain
+ * narrower than one decade comes back with every integer multiple, so asking a
+ * 300px-tall axis for 4 ticks can return 600, 700, 800, 900, 1k, 2k, 3k and
+ * stack the top four labels on top of each other. Thin the list back down to
+ * the count that was requested, always keeping both ends.
+ *
+ * Returns null when d3 already behaved, which is what tickValues() wants in
+ * order to leave the automatic behaviour alone. */
+export function thinTicks(scale, n) {
+  if (typeof scale.ticks !== 'function') return null;
+  const vals = scale.ticks(n);
+  if (vals.length <= n) return null;
+  const step = Math.ceil(vals.length / n);
+  const kept = vals.filter((_, i) => i % step === 0);
+  const last = vals[vals.length - 1];
+  if (kept[kept.length - 1] !== last) kept.push(last);
+  return kept;
+}
+
 /* Bottom + left axes with the ATLAS look. Call again on scale change. */
 export function drawAxes(g, x, y, w, h, { xTicks = 6, yTicks = 6, xFmt = null, yFmt = null } = {}) {
   let gx = g.select('g.axis.x');
   if (gx.empty()) gx = g.append('g').attr('class', 'axis x');
-  gx.attr('transform', `translate(0,${h})`).call(d3.axisBottom(x).ticks(xTicks).tickFormat(xFmt).tickSizeOuter(0));
+  gx.attr('transform', `translate(0,${h})`).call(
+    d3.axisBottom(x).ticks(xTicks).tickValues(thinTicks(x, xTicks)).tickFormat(xFmt).tickSizeOuter(0)
+  );
 
   let gy = g.select('g.axis.y');
   if (gy.empty()) gy = g.append('g').attr('class', 'axis y');
-  gy.call(d3.axisLeft(y).ticks(yTicks).tickFormat(yFmt).tickSizeOuter(0));
+  gy.call(d3.axisLeft(y).ticks(yTicks).tickValues(thinTicks(y, yTicks)).tickFormat(yFmt).tickSizeOuter(0));
 }
 
 /* Faint background grid (MLU: stroke-opacity .075). */
@@ -49,9 +70,11 @@ export function drawGrid(g, x, y, w, h, { xTicks = 6, yTicks = 6 } = {}) {
   let gg = g.select('g.grid');
   if (gg.empty()) gg = g.insert('g', ':first-child').attr('class', 'grid');
   gg.selectAll('*').remove();
+  /* Same thinning as the axis, or the grid rules stop lining up with the tick
+   * labels that are supposed to name them. */
   gg.append('g')
     .selectAll('line')
-    .data(x.ticks(xTicks))
+    .data(thinTicks(x, xTicks) ?? x.ticks(xTicks))
     .join('line')
     .attr('x1', (d) => x(d))
     .attr('x2', (d) => x(d))
@@ -59,7 +82,7 @@ export function drawGrid(g, x, y, w, h, { xTicks = 6, yTicks = 6 } = {}) {
     .attr('y2', h);
   gg.append('g')
     .selectAll('line')
-    .data(y.ticks(yTicks))
+    .data(thinTicks(y, yTicks) ?? y.ticks(yTicks))
     .join('line')
     .attr('x1', 0)
     .attr('x2', w)

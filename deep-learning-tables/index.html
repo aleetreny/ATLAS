@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Deep Learning for Tables | ATLAS</title>
+  <meta name="description" content="A visual, interactive account of why neural networks keep losing to gradient boosting on tabular data, what TabNet and neural additive models actually contribute, and when a network is still the right call." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    /* Per-article theme. Everything else inherits from these two. */
+    :root {
+      --primary: #3b4cca;
+      --secondary: #2c3a9e;
+    }
+    /* Width only: a margin here would override .interactive-full's rhythm. */
+    .narrow-widget {
+      max-width: 780px;
+    }
+    .shape-grid {
+      max-width: 700px;
+    }
+  </style>
+</head>
+<body>
+  <!-- ======================= chrome ======================= -->
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <!-- ======================= hero ======================= -->
+  <section id="intro">
+    <h1 id="intro-hed">Deep Learning for Tables</h1>
+    <h1 id="intro-sub">The architecture that took images and language keeps losing to a pile of trees</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 1.1 · Regression</span>
+  </section>
+
+  <br />
+
+  <!-- ======================= introduction ======================= -->
+  <section>
+    <p class="body-text">
+      Between 2012 and 2020, deep learning took every field it touched. Image
+      classification, speech, translation, protein structure, text generation.
+      Each one fell to roughly the same recipe: stack differentiable layers, feed
+      them enough data, and let gradient descent find the features that decades
+      of hand engineering had missed.
+    </p>
+    <br />
+    <p class="body-text">
+      Then there are spreadsheets. Rows and columns, a few dozen features with
+      names like <i>carat</i> and <i>table %</i>, the most common data in the
+      world by a wide margin. On this data the recipe stalls. Not
+      catastrophically, and not everywhere, but reliably enough that after a
+      decade of dedicated architectures the practical advice has not changed:
+      start with gradient boosting.
+    </p>
+    <br />
+    <p class="body-text">
+      This page is about why. It is easy to write something flattering here and
+      easy to write something dismissive, so almost everything below is a
+      measurement rather than a claim. The same 53,920 diamonds from the previous
+      article, the same split, seven models, and three experiments designed to
+      answer the question rather than decorate it.
+    </p>
+    <br />
+    <p class="body-text">
+      The short version, and the rest of the page is the evidence: a plain neural
+      network gets within <span class="bold">25%</span> of boosting and takes
+      twenty times longer to get there. Two structural reasons explain most of
+      that gap, and both can be demonstrated in a few lines. And the genuinely
+      valuable contribution of the deep learning era to tabular data turns out
+      not to be accuracy at all.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= scrolly ======================= -->
+  <section>
+    <h1 class="body-header">A Room Seen From an Angle</h1>
+    <p class="body-text">
+      Start with the sharpest of the two reasons. It comes from Grinsztajn,
+      Oyallon and Varoquaux <a href="#resources">[1]</a>, it takes about ten
+      lines to run, and once you have seen it you cannot unsee it.
+    </p>
+    <br />
+    <p class="body-text">
+      Below is a made-up problem with a real property: its structure lines up
+      with the axes. Both models in the panel are written from scratch and fitted
+      in your browser as you scroll, so every number in the score box was
+      measured on your machine just now.
+    </p>
+  </section>
+
+  <section id="rot-scrolly">
+    <div class="scrolly-container">
+      <div class="steps-container">
+        <div class="step" data-index="0">
+          <div class="step-content">
+            <h3>Nine Blocks</h3>
+            <p>
+              Two features, and a label that depends only on which band of each
+              feature a point falls into. Nine blocks in a checkerboard. This is a
+              caricature of tabular data, and the caricature is deliberate: real
+              columns behave like this more often than not, because thresholds
+              are how humans record the world. Under 30. Over 65. Grade B or
+              better.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="1">
+          <div class="step-content">
+            <h3>A Tree Eats This For Breakfast</h3>
+            <p>
+              A depth-6 tree, fitted live. It recovers the blocks almost exactly,
+              because its whole vocabulary is <i>is this feature above that
+              value</i>, and the truth is written in precisely that vocabulary.
+              Four cuts would have been enough. Note the error in the panel on the
+              right.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="2">
+          <div class="step-content">
+            <h3>Now Turn The Room</h3>
+            <p>
+              The same points, rotated by 35 degrees. Think carefully about what
+              just happened: nothing was added, nothing was removed, and no two
+              points changed their distance from each other. A rotation is
+              invertible. Any model that reasons about how far apart things are is
+              looking at an identical problem.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="3">
+          <div class="step-content">
+            <h3>The Tree Cannot Follow</h3>
+            <p>
+              Refitted on the rotated data, at the same depth. Every boundary that
+              used to be one cut is now a staircase, and a staircase costs splits
+              that are no longer available for anything else. The error goes up by
+              a factor of nine. The tree did not get worse at its job. Its job
+              stopped matching the shape of the answer.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="4">
+          <div class="step-content">
+            <h3>No, It Was Not The Depth Limit</h3>
+            <p>
+              The obvious objection is that depth 6 was too mean, so here is the
+              same fit with the limit taken off entirely. It helps, and it does
+              not rescue anything: still six times the aligned error, from a tree
+              that now needs more than twice as many leaves to get there. Look at
+              the row above it. The aligned tree never wanted the extra depth. It
+              used thirteen leaves and stopped, because thirteen was enough.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="5">
+          <div class="step-content">
+            <h3>Distance Did Not Change</h3>
+            <p>
+              A 15-nearest-neighbour vote on the same rotated data, from the
+              article on non-parametric regression. Its error before and after the
+              rotation is identical, to the decimal, and it never had to be told
+              about the rotation. That is what rotation invariance buys, and a
+              neural network with a dense first layer has it for the same reason:
+              it can absorb the rotation into its weights.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="charts-container">
+        <div class="chart-wrap" id="rot-chart"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="body-text">
+      So there is the trade. Rotation invariance sounds like an unambiguous good,
+      the way translation invariance is an unambiguous good for images. On
+      spreadsheets it is the opposite. The columns of a table are not an
+      arbitrary basis that happens to have been chosen: each one is a quantity
+      somebody decided to measure, and the target usually depends on those
+      quantities individually. A model that treats the axes as sacred is
+      exploiting real information. A model that treats them as arbitrary is
+      throwing that information away, politely, at every layer.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= rotation on real data ======================= -->
+  <section>
+    <h1 class="body-header">The Same Test, On Diamonds</h1>
+    <p class="body-text">
+      The quilt was a caricature. Here is the identical experiment on the real
+      data: nine standardised columns multiplied by a random orthogonal matrix,
+      same training rows, same held-out rows, same models.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="rot-real-widget">
+    <div id="rot-real-chart"></div>
+    <div class="controls-row" style="justify-content: center">
+      <button class="atlas-btn" id="rot-real-mode">% change</button>
+    </div>
+    <div class="widget-readout" id="rot-real-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text">
+      The prediction holds. Boosting is the only model that cares, and it cares a
+      lot. But read the absolute view before drawing the obvious conclusion,
+      because it contains the correction that most retellings of this result
+      leave out: boosting <span class="bold">after</span> being handicapped is
+      still more accurate than the network was before. Rotation invariance
+      explains where the tree's advantage comes from. It does not hand the
+      advantage to anyone else.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= junk columns ======================= -->
+  <section>
+    <h1 class="body-header">Burying The Signal</h1>
+    <p class="body-text">
+      The second structural reason is less elegant and, in practice, more
+      expensive. Real datasets are full of columns that mean nothing: an ID that
+      leaked in, a field nobody filled, a measurement that turned out not to
+      matter. Nobody knows in advance which ones they are. So: keep the nine real
+      columns, add columns of pure noise, and watch.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="junk-widget">
+    <div id="junk-chart"></div>
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">noise columns</span>
+      <input type="range" min="0" max="3" step="1" value="0" class="atlas-range" id="junk-slider" />
+    </div>
+    <div class="widget-readout" id="junk-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text">
+      Sixty columns of nothing cost boosting <span class="bold">4%</span>. The
+      network is <span class="bold">63%</span> worse at the worst point on the
+      curve. The mechanism is not subtle. A split is chosen by scanning
+      every column and keeping whichever one reduces the loss most, so a column
+      that reduces nothing is quietly never selected, and the cost of carrying it
+      is a little compute. A dense layer has no equivalent veto. It begins by
+      mixing all sixty-nine columns into every hidden unit and has to learn its
+      way back out, using the same finite gradient signal it needed for the
+      actual problem.
+    </p>
+    <br />
+    <p class="body-text">
+      One honest note about that curve: the network's error at 60 junk columns is
+      lower than at 30. That is not a pattern, it is the variance of a single
+      run with early stopping, and the same instability shows up as the
+      <span class="bold">± 28.7</span> on its benchmark row below. Reading a
+      trend into non-monotonic points from one seed is how a lot of published
+      tabular comparisons go wrong.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the benchmark ======================= -->
+  <section>
+    <h1 class="body-header">Seven Models, One Picture</h1>
+    <p class="body-text">
+      Now the whole field at once. Fit time runs left to right, held-out error
+      runs bottom to top, so better is down and cheaper is left. Every point is
+      an average over independent seeds, and the vertical bar is one standard
+      deviation across those seeds, which on one model is large enough to be the
+      story.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="bench-widget" style="max-width: 900px">
+    <div id="bench-chart"></div>
+    <div class="controls-row" style="justify-content: center">
+      <button class="atlas-btn" id="bench-scale">log time</button>
+    </div>
+    <div class="widget-readout" id="bench-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text">
+      Four things in that picture are worth saying out loud.
+    </p>
+    <br />
+    <p class="body-text">
+      <span class="bold">The neural models are not embarrassed.</span> A plain
+      multi-layer perceptron on standardised columns reaches $660, which is far
+      closer to boosting than to the linear baseline at $1,202. Anyone who tells
+      you networks cannot do tabular data is overstating it. They can. They just
+      do not win.
+    </p>
+    <br />
+    <p class="body-text">
+      <span class="bold">TabNet's spread is its headline.</span> Its mean is
+      $700, respectable, but the standard deviation across seeds is
+      <span class="bold">$100</span>, roughly fourteen percent of its own score.
+      Boosting's is $2. A model whose result moves by a hundred dollars depending
+      on the random seed is a model you cannot trust a single run of, and single
+      runs are what benchmark tables are usually made of.
+    </p>
+    <br />
+    <p class="body-text">
+      <span class="bold">Nothing neural is fast.</span> The horizontal axis is
+      logarithmic for a reason. Press the button to see it linear: six of the
+      seven models collapse onto the left edge and TabNet sits alone at forty
+      seconds, roughly fifty times the cost of the model that beats it. On this
+      dataset that is the difference between an experiment you run and an
+      experiment you think about running.
+    </p>
+    <br />
+    <p class="body-text">
+      <span class="bold">And the interesting result is the blue one.</span>
+      Explainable boosting with pairwise terms lands at $588, within twelve
+      percent of the winner, and it is a model whose every component can be
+      plotted and read. Which brings us to the part of this story that is
+      genuinely a contribution.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Model</th>
+          <th>Held-out RMSE</th>
+          <th>Fit time</th>
+          <th>What it is</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Ridge</td>
+          <td>$1,201.6 ± 0.0</td>
+          <td>0.0 s</td>
+          <td>A straight line through the price surface. The floor.</td>
+        </tr>
+        <tr>
+          <td>Neural additive model</td>
+          <td>$1,070.3 ± 57.8</td>
+          <td>10.4 s</td>
+          <td>Nine small networks, one per feature, summed. Fully readable, and it pays for it.</td>
+        </tr>
+        <tr>
+          <td>Explainable boosting, additive</td>
+          <td>$1,001.6 ± 0.5</td>
+          <td>15.6 s</td>
+          <td>The same additive restriction, shape functions fitted by boosting instead of by gradient descent.</td>
+        </tr>
+        <tr>
+          <td>TabNet</td>
+          <td>$700.1 ± 100.5</td>
+          <td>38.4 s</td>
+          <td>Sequential attention over features, purpose-built for tables.</td>
+        </tr>
+        <tr>
+          <td>MLP, 256-128-64</td>
+          <td>$660.2 ± 28.7</td>
+          <td>13.9 s</td>
+          <td>A plain feed-forward network. The strongest neural entry, and it has no tabular tricks at all.</td>
+        </tr>
+        <tr>
+          <td>Explainable boosting, + pairs</td>
+          <td>$587.8 ± 0.8</td>
+          <td>48.6 s</td>
+          <td>Additive shape functions plus a budget of pairwise interactions. Still fully readable.</td>
+        </tr>
+        <tr>
+          <td>Gradient boosting</td>
+          <td><span class="bold">$526.2 ± 2.0</span></td>
+          <td><span class="bold">0.7 s</span></td>
+          <td>Histogram boosting, scikit-learn, 300 trees, defaults otherwise.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text">
+      <i>43,136 training rows, 10,784 held out, three seeds per row and two for
+      the slower models. Timings are wall clock on Windows AMD64 with torch
+      2.13.0 and scikit-learn 1.8.0 under Python 3.11.7, and will move with
+      hardware and thread count. The accuracy column will not.</i>
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= NAM ======================= -->
+  <section>
+    <h1 class="body-header">Nine Curves That Add Up</h1>
+    <p class="body-text">
+      Here is the idea worth the trouble. A neural additive model
+      <a href="#resources">[2]</a> gives each feature its own small network,
+      shows that network nothing but its one feature, and adds the outputs
+      together:
+    </p>
+    <p class="body-text">
+      $$ F(x) = \beta + \sum_{j=1}^{p} f_j(x_j) $$
+    </p>
+    <p class="body-text">
+      Every \(f_j\) is a genuine neural network, trained end to end by the same
+      gradient descent as any other, and free to learn any shape at all: a bend,
+      a plateau, a cliff. What it is not free to do is look at another feature.
+      That single restriction is what turns a black box into a picture, because a
+      function of one variable can simply be drawn.
+    </p>
+  </section>
+
+  <div class="interactive-full shape-grid" id="nam-widget">
+    <div id="nam-shapes"></div>
+    <div class="controls-row" style="justify-content: center">
+      <button class="atlas-btn ghost" id="nam-scale">shared scale</button>
+    </div>
+    <p class="body-text" style="text-align: center; font-size: 14px; margin-top: 0.5rem">
+      Pick a real stone from the held-out set and watch the nine dots move:
+    </p>
+    <div class="controls-row" id="nam-stones" style="justify-content: center">
+      <button class="atlas-btn ghost">$466</button>
+      <button class="atlas-btn ghost">$946</button>
+      <button class="atlas-btn ghost">$2,425</button>
+      <button class="atlas-btn ghost">$5,301</button>
+      <button class="atlas-btn ghost">$16,104</button>
+    </div>
+    <div id="nam-waterfall"></div>
+    <div class="widget-readout" id="nam-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text">
+      The bar chart is not an explanation of the model. It is the model. Because
+      the network is additive by construction, the prediction genuinely is the
+      average stone plus nine numbers, and the generator that produced this page
+      checks that identity to the cent before exporting. Compare that to what you
+      normally get from a black box: a post-hoc attribution method with its own
+      assumptions, its own failure modes and no guarantee that the numbers it
+      reports were ever computed by anything.
+    </p>
+    <br />
+    <p class="body-text">
+      Leave the panels on <span class="bold">shared scale</span> for a moment
+      before pressing the toggle. Carat swings the price by
+      <span class="bold">$8,103</span> across its range; table percentage swings
+      it by <span class="bold">$253</span>. On a common axis, five of the nine
+      curves are visibly almost flat, and that is the finding. Press
+      <span class="bold">own scale each</span> and every panel fills its box with
+      an interesting-looking wiggle. Both charts are honest. Only one of them
+      tells you what matters, which is a good general warning about small
+      multiples.
+    </p>
+    <br />
+    <p class="body-text">
+      There is a catch, and the benchmark already showed it. Additivity is a
+      real restriction, not a free lunch: the NAM lands at $1,070 against $526
+      for unrestricted boosting, so on this data readability costs about half the
+      accuracy. Diamond prices interact. The value of an extra carat depends on
+      the clarity it comes with, and no sum of one-feature curves can express
+      that.
+    </p>
+    <br />
+    <p class="body-text">
+      Which is why the most useful model on this page is probably the one that
+      splits the difference. Explainable boosting machines
+      <a href="#resources">[3]</a> fit exactly the same additive form, but with
+      boosted trees as the shape functions instead of neural networks, cycling
+      through features one at a time with a small learning rate so that credit is
+      shared rather than grabbed. Add a budget of explicit pairwise terms
+      \(f_{jk}(x_j, x_k)\), each of which is still a surface you can plot, and
+      the score goes from $1,002 to <span class="bold">$588</span>. That is
+      within twelve percent of the black box, from a model where every component
+      is a chart. If someone has to sign off on a decision, this is the trade to
+      reach for first.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= TabNet ======================= -->
+  <section>
+    <h1 class="body-header">What TabNet Is Actually Doing</h1>
+    <p class="body-text">
+      TabNet <a href="#resources">[4]</a> is the best known attempt to give a
+      network the thing trees have. Its argument is that a tree works by
+      selecting one feature at a time, in sequence, with each choice depending on
+      what happened before, so a network should do the same: several decision
+      steps, each attending to a subset of features, each seeing what the last
+      step already used.
+    </p>
+    <br />
+    <p class="body-text">
+      The mechanism that makes that more than a slogan is the normaliser. A
+      softmax cannot switch anything off, because \(e^{z}\) is strictly positive:
+      every feature always keeps some weight, however small, and "the model
+      ignored this column" is never literally true. TabNet uses
+      <span class="bold">sparsemax</span> <a href="#resources">[5]</a> instead,
+      which is defined as the Euclidean projection onto the simplex,
+    </p>
+    <p class="body-text">
+      $$ \operatorname{sparsemax}(z) = \operatorname*{arg\,min}_{p \in \Delta} \lVert p - z \rVert^2 $$
+    </p>
+    <p class="body-text">
+      and a projection lands on the boundary of a set whenever the point is
+      outside it. On the simplex, the boundary is exactly where some coordinates
+      are zero. Drag the slider: the feature scores below are real, taken from
+      how far the additive model above moves the price across each feature's
+      range.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="attn-widget">
+    <div id="attn-chart"></div>
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">score sharpness</span>
+      <input type="range" min="0.1" max="2.6" step="0.05" value="0.8" class="atlas-range" id="attn-slider" />
+    </div>
+    <div class="widget-readout" id="attn-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text">
+      At low sharpness the two normalisers agree, because nothing stands far
+      enough from the pack for the projection to leave the interior. Push it up
+      and sparsemax starts dropping features outright while softmax merely makes
+      them small. The closed form is a sort and a subtraction: find how many of
+      the top scores survive, subtract the same \(\tau\) from each, clip the rest
+      to zero. It is differentiable almost everywhere, which is the only property
+      that actually mattered for putting it in a network.
+    </p>
+    <br />
+    <p class="body-text">
+      This is a genuinely good idea, and it is worth separating from the question
+      of whether TabNet is worth running. On this dataset it is not: $700 against
+      $526, forty seconds against one, and a hundred-dollar spread across seeds.
+      The published results that favour it tend to involve datasets far larger
+      than 54,000 rows, and that is the honest boundary condition rather than a
+      dismissal.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= when to use a network ======================= -->
+  <section>
+    <h1 class="body-header">When The Network Is Right Anyway</h1>
+    <p class="body-text">
+      Everything above is about accuracy on a fixed table, which is the question
+      benchmarks ask and often not the question you have. There are four
+      situations where a network is the correct choice even knowing all of this,
+      and none of them are about beating boosting on RMSE.
+    </p>
+    <br />
+    <p class="body-text">
+      <span class="bold">The table is not the only input.</span> A listing with
+      a price, a description and a photograph is not a tabular problem. A network
+      can consume all three and learn a shared representation; boosting cannot,
+      and gluing a separate image model onto it means hand-designing the
+      interface between them. This is the most common good reason by a distance.
+    </p>
+    <br />
+    <p class="body-text">
+      <span class="bold">A column has enormous cardinality.</span> Half a million
+      product IDs, or user IDs, or postcodes. Target encoding works and is what
+      CatBoost does well, but a learned embedding puts similar entities near each
+      other in a space you can then reuse, which target encoding does not.
+    </p>
+    <br />
+    <p class="body-text">
+      <span class="bold">You need to transfer or to keep learning.</span> A
+      boosted ensemble is fitted once against one target. A network can be
+      pre-trained on unlabelled rows, fine-tuned for a new task, or updated on
+      new data without refitting from scratch. Where labels are scarce and raw
+      rows are abundant, that asymmetry is worth real accuracy.
+    </p>
+    <br />
+    <p class="body-text">
+      <span class="bold">The output is structured.</span> Multi-task heads,
+      sequences, embeddings consumed by something downstream, or a differentiable
+      loss that expresses a business rule rather than an error. Boosting fits one
+      scalar at a time.
+    </p>
+    <br />
+    <p class="body-text">
+      Notice the shape of that list. Every entry is about what surrounds the
+      model, not about the model's fit. On the narrow question of predicting one
+      number from a fixed set of columns, the evidence on this page points one
+      way and has for a decade.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= verdict ======================= -->
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text">
+      Fit gradient boosting first. It beat the best neural model here by $134 and
+      the best of everything else by $62, and it did it twenty times faster than
+      anything else that came close. That combination is what actually matters:
+      the cheap model is the one you get to tune, and tuning is where the
+      remaining accuracy lives.
+    </p>
+    <br />
+    <p class="body-text">
+      When somebody has to be able to read the model, reach for an explainable
+      boosting machine with pairwise terms before reaching for a post-hoc
+      explanation of a black box. Twelve percent of accuracy is a real price, but
+      it buys a model whose every component is a chart rather than an
+      approximation of one.
+    </p>
+    <br />
+    <p class="body-text">
+      Reach for a network when something in the problem is not a table: another
+      modality, a column with a million levels, a pre-training signal, a
+      structured output. Not because you expect it to fit better. It probably
+      will not.
+    </p>
+    <br />
+    <p class="body-text">
+      And treat the two experiments at the top of this page as the reason rather
+      than as trivia. Rotation invariance and robustness to junk columns are
+      properties, not accidents, and knowing which properties a model family has
+      is what lets you predict where it will do well before you have run
+      anything. That is worth more than any single benchmark.
+    </p>
+    <br />
+    <p class="body-text">
+      This closes module 1.1. Six articles, and the arc through them is a steady
+      surrender of assumptions: a straight line, then a line with its
+      coefficients pulled toward zero, then a line that stops trusting the
+      majority of its own data, then no line at all but a weighted vote among
+      neighbours, then a long sum of yes-or-no questions, and finally here, a
+      function assembled by gradient descent with no shape assumed anywhere. The
+      last of those is the most flexible and, on this data, not the best. That is
+      a fitting note to end a module on. The next one leaves regression behind
+      for classification, where the target stops being a number and becomes a
+      decision.
+    </p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! The rotation test and both models in the first panel
+      run live in your browser in about two hundred lines of JavaScript. Every
+      diamond number was produced by
+      <code>src/utils/generate_deeptabular_data.py</code>, which you can rerun.
+    </p>
+  </section>
+
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text">
+      All diamond measurements come from
+      <code>src/utils/generate_deeptabular_data.py</code> in the repository, run
+      on Windows AMD64 with torch 2.13.0, pytorch-tabnet, interpret 0.7.8 and
+      scikit-learn 1.8.0 under Python 3.11.7. The neural additive model is
+      implemented directly in torch in that file, ninety lines including
+      training, and its exported shape functions are the ones drawn above.
+    </p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/2207.08815">[1] Why Do Tree-Based Models Still Outperform Deep Learning on Tabular Data?</a><br />
+      (Grinsztajn, L., Oyallon, E., Varoquaux, G., NeurIPS Datasets and Benchmarks, 2022)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://papers.nips.cc/paper/2021/hash/251bd0442dfcc53b5a761e050f8022b8-Abstract.html">[2] Neural Additive Models: Interpretable Machine Learning with Neural Nets</a><br />
+      (Agarwal, R. et al., NeurIPS, 2021)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://dl.acm.org/doi/10.1145/2783258.2788613">[3] Intelligible Models for HealthCare: Predicting Pneumonia Risk and Hospital 30-day Readmission</a><br />
+      (Caruana, R. et al., KDD, 2015)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://ojs.aaai.org/index.php/AAAI/article/view/16826">[4] TabNet: Attentive Interpretable Tabular Learning</a><br />
+      (Arik, S. Ö. &amp; Pfister, T., AAAI, 2021)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://proceedings.mlr.press/v48/martins16.html">[5] From Softmax to Sparsemax: A Sparse Model of Attention and Multi-Label Classification</a><br />
+      (Martins, A. &amp; Astudillo, R., ICML, 2016)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/2106.11959">[6] Revisiting Deep Learning Models for Tabular Data</a><br />
+      (Gorishniy, Y., Rubachev, I., Khrulkov, V., Babenko, A., NeurIPS, 2021)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://www.kaggle.com/datasets/shivam2503/diamonds">[7] The Diamonds Dataset</a><br />
+      (53,940 stones, distributed with ggplot2 and seaborn)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>
