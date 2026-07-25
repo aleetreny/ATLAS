@@ -349,13 +349,22 @@ code {
   padding: 0 1rem;
 }
 
-/* Readouts that sit under a widget belong to it, so keep them tight to the
-   chart and clearly separated from the prose that follows. */
+/* A readout belongs to its widget, not to the article. Body prose is 16px mono
+   in the same ink, so an unstyled readout is indistinguishable from the
+   paragraph that follows it and the two read as one run-on block. Give it a
+   panel of its own: smaller type, a card background and an accent edge. */
 .widget-readout {
   max-width: var(--max-width);
   margin: 1.25rem auto 0 auto;
-  padding-top: 0.9rem;
-  border-top: 2px solid var(--stone);
+  padding: 0.85rem 1.1rem;
+  background: var(--white);
+  border-left: 4px solid var(--primary);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.widget-readout .slider-label {
+  font-size: 14px;
 }
 
 .interactive-full svg {
