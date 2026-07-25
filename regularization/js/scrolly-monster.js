@@ -24,10 +24,15 @@ export function initScrollyMonster(sine) {
     return grid.map((x, i) => [x, yMean + Xg[i].reduce((s, v, j) => s + v * b[j], 0)]);
   };
 
+  // The coefficient spectrum lives in the TOP margin, above the plot.
+  // On narrow screens the step cards overlay the lower third of the sticky
+  // chart, and one of the steps asks the reader to look at these bars, so they
+  // cannot live down there. Reading order also improves: here are the weights,
+  // and here is the curve they produce.
   const { g, w, h } = makeChart('#monster-chart', {
     width: 620,
-    height: 620,
-    margin: { top: 40, right: 24, bottom: 150, left: 58 },
+    height: 660,
+    margin: { top: 165, right: 24, bottom: 62, left: 58 },
   });
 
   const x = d3.scaleLinear().domain([-0.15, 5.15]).range([0, w]);
@@ -71,12 +76,12 @@ export function initScrollyMonster(sine) {
     .append('text')
     .attr('class', 'chart-annotation')
     .attr('x', w / 2)
-    .attr('y', -16)
+    .attr('y', -145)
     .attr('text-anchor', 'middle');
 
-  // ---------- coefficient spectrum panel ----------
-  const specTop = h + 62;
-  const specH = 68;
+  // ---------- coefficient spectrum panel (in the top margin) ----------
+  const specTop = -73;
+  const specH = 40;
   const spec = g.append('g').attr('transform', `translate(0,${specTop})`);
   const bx = d3.scaleBand().domain(d3.range(sine.degree)).range([0, w]).padding(0.25);
   const by = d3.scaleLinear().domain([-5.2, 5.2]).range([specH, -specH]);
@@ -89,9 +94,9 @@ export function initScrollyMonster(sine) {
 
   spec
     .append('text')
-    .attr('class', 'axis-label')
-    .attr('x', 0).attr('y', -specH - 12)
-    .style('font-size', '0.72rem')
+    .attr('class', 'chart-annotation')
+    .attr('x', 0).attr('y', specH + 20)
+    .style('font-size', '0.68rem')
     .text('coefficient size (symlog)');
 
   const bars = spec
@@ -108,7 +113,7 @@ export function initScrollyMonster(sine) {
     .append('text')
     .attr('class', 'chart-annotation')
     .attr('x', w)
-    .attr('y', specH + 26)
+    .attr('y', specH + 20)
     .attr('text-anchor', 'end');
 
   const t = () => d3.transition().duration(DUR).ease(d3.easeCubicOut);

@@ -595,13 +595,33 @@ a.on-end {
     max-width: var(--max-width);
   }
 
+  /* Narrow screens: the chart becomes a full-width sticky layer and the step
+     cards scroll over it.
+
+     This is done with `order` plus a negative margin that EXACTLY equals the
+     chart height, not with column-reverse. In a reversed flex column a negative
+     margin-top is measured against the reversed axis, so the steps column ended
+     up thousands of pixels off screen and no step text was visible at all on
+     any viewport under 950px. Ordering the chart first and pulling the steps up
+     by its own height is arithmetic that cannot drift. */
   .scrolly-container {
-    flex-direction: column-reverse;
+    flex-direction: column;
   }
 
+  .charts-container {
+    order: -1;
+    position: sticky;
+    top: 5vh;
+    width: 100%;
+    height: 60vh;
+    z-index: var(--z-middle);
+  }
+
+  /* Must stay exactly equal to the chart height above. */
   .steps-container {
+    margin-top: -60vh;
     pointer-events: none;
-    margin-top: -100vh;
+    z-index: var(--z-top);
   }
 
   .step {
@@ -609,18 +629,37 @@ a.on-end {
   }
 
   .step-content {
-    background: rgba(241, 243, 243, 0.913);
+    width: 88%;
+    background: rgba(241, 243, 243, 0.94);
     pointer-events: all;
-  }
-
-  .charts-container {
-    position: sticky;
-    top: 8vh;
-    width: 100%;
-    height: 80vh;
   }
 
   .interactive-container {
     grid-template-columns: 100%;
+  }
+}
+
+/* Phones: the step card competes with the chart for a very small screen, so
+   tighten it up to leave more of the graphic uncovered. */
+@media (max-width: 560px) {
+  .step-content {
+    font-size: 13.5px;
+    line-height: 1.35;
+    padding: 0.4rem 0.7rem;
+    border-width: 3px;
+  }
+
+  .step-content h3 {
+    font-size: 1rem;
+    margin: 0.35rem 0;
+  }
+
+  .charts-container {
+    top: 3vh;
+    height: 52vh;
+  }
+
+  .steps-container {
+    margin-top: -52vh;
   }
 }
