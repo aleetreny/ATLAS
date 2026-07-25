@@ -13,7 +13,7 @@ export function initGpWidget() {
   const { svg, g, w, h } = makeChart('#gp-chart', {
     width: 680,
     height: 430,
-    margin: { top: 30, right: 24, bottom: 58, left: 56 },
+    margin: { top: 30, right: 24, bottom: 58, left: 62 },
   });
   const x = d3.scaleLinear().domain([0, 10]).range([0, w]);
   const y = d3.scaleLinear().domain([-3.2, 4.6]).range([h, 0]);

@@ -9,10 +9,11 @@ export function initRansac(stars) {
   const xs = pts.map((d) => d.x);
   const ys = pts.map((d) => d.y);
 
-  const { g, w, h } = makeChart('#ransac-chart', {
+  const { g, plot, w, h } = makeChart('#ransac-chart', {
     width: 700,
     height: 430,
     margin: { top: 40, right: 26, bottom: 58, left: 60 },
+    clip: true,
   });
 
   const x = d3.scaleLinear().domain([3.35, 4.75]).range([0, w]);
@@ -22,9 +23,9 @@ export function initRansac(stars) {
   drawAxes(g, x, y, w, h);
   axisLabels(g, w, h, { x: 'log surface temperature', y: 'log light intensity' });
 
-  const bandG = g.append('g');
-  const candG = g.append('g');
-  const bestG = g.append('g');
+  const bandG = plot.append('g');
+  const candG = plot.append('g');
+  const bestG = plot.append('g');
   const dotsG = g.append('g');
 
   const bandArea = bandG

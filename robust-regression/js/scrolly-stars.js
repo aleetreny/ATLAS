@@ -26,10 +26,11 @@ export function initScrollyStars(stars) {
   if (off(fitClean.slope, ref.ols_giants_removed.slope) > 0.01) console.warn(`clean ols: ${fitClean.slope}`);
   if (off(ts.slope, ref.theilsen.slope) > 0.05) console.warn(`theil-sen: ${ts.slope} vs ${ref.theilsen.slope}`);
 
-  const { g, w, h } = makeChart('#stars-chart', {
+  const { g, plot, w, h } = makeChart('#stars-chart', {
     width: 600,
     height: 560,
     margin: { top: 46, right: 26, bottom: 62, left: 62 },
+    clip: true,
   });
 
   const x = d3.scaleLinear().domain([3.35, 4.75]).range([0, w]);
@@ -39,7 +40,7 @@ export function initScrollyStars(stars) {
   drawAxes(g, x, y, w, h);
   axisLabels(g, w, h, { x: 'log surface temperature', y: 'log light intensity' });
 
-  const linesG = g.append('g');
+  const linesG = plot.append('g');
   const dotsG = g.append('g');
   const annG = g.append('g');
 

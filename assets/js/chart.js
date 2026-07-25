@@ -3,10 +3,17 @@
  * Assumes d3 v7 is loaded globally (vendored, see assets/js/vendor/).
  */
 
+let clipSeq = 0;
+
 /* Create a responsive SVG inside `container` (selector or node) with a fixed
  * internal coordinate system via viewBox. Returns {svg, g, w, h} where g is
- * the inner group translated by margins and w/h the inner drawing size. */
-export function makeChart(container, { width = 640, height = 460, margin = { top: 32, right: 24, bottom: 52, left: 60 } } = {}) {
+ * the inner group translated by margins and w/h the inner drawing size.
+ *
+ * Pass {clip: true} to also get a `plot` group clipped to the drawing area.
+ * Anything whose geometry depends on a fitted slope belongs in there: a line
+ * drawn across the x domain of a badly conditioned fit can leave the canvas by
+ * thousands of pixels and paint over the rest of the page. */
+export function makeChart(container, { width = 640, height = 460, margin = { top: 32, right: 24, bottom: 52, left: 60 }, clip = false } = {}) {
   const svg = d3
     .select(typeof container === 'string' ? document.querySelector(container) : container)
     .append('svg')
@@ -15,7 +22,15 @@ export function makeChart(container, { width = 640, height = 460, margin = { top
   const w = width - margin.left - margin.right;
   const h = height - margin.top - margin.bottom;
   const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
-  return { svg, g, w, h, margin, width, height };
+
+  let plot = g;
+  if (clip) {
+    const id = `atlas-clip-${++clipSeq}`;
+    svg.append('clipPath').attr('id', id).append('rect')
+      .attr('x', -2).attr('y', -2).attr('width', w + 4).attr('height', h + 4);
+    plot = g.append('g').attr('clip-path', `url(#${id})`);
+  }
+  return { svg, g, plot, w, h, margin, width, height };
 }
 
 /* Bottom + left axes with the ATLAS look. Call again on scale change. */

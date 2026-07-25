@@ -23,10 +23,12 @@ export function initBoundaryWidget(mpg) {
   const p90 = d3.quantile([...allX].sort(d3.ascending), 0.9);
   const edgeMask = xte.map((v) => v < p10 || v > p90);
 
+  // The bottom margin has to hold the weighting profile AND its caption; at 90
+  // the caption fell 32px past the edge of the canvas and the profile 9px.
   const { g, w, h } = makeChart('#boundary-chart', {
     width: 660,
-    height: 470,
-    margin: { top: 30, right: 24, bottom: 90, left: 62 },
+    height: 500,
+    margin: { top: 30, right: 24, bottom: 132, left: 62 },
   });
   const x = d3.scaleLinear().domain([35, 235]).range([0, w]);
   const y = d3.scaleLinear().domain([5, 50]).range([h, 0]);

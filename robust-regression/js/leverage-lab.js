@@ -38,10 +38,11 @@ export function initLeverageLab() {
         ]
       : [];
 
-  const { g, w, h } = makeChart('#leverage-chart', {
+  const { g, plot, w, h } = makeChart('#leverage-chart', {
     width: 620,
     height: 470,
     margin: { top: 30, right: 24, bottom: 58, left: 62 },
+    clip: true,
   });
 
   const x = d3.scaleLinear().domain([0, 20]).range([0, w]);
@@ -51,7 +52,7 @@ export function initLeverageLab() {
   drawAxes(g, x, y, w, h);
   axisLabels(g, w, h, { x: 'x', y: 'y' });
 
-  const linesG = g.append('g');
+  const linesG = plot.append('g');
   const dotsG = g.append('g');
 
   const METHODS = [
