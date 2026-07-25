@@ -291,7 +291,7 @@
       <div class="controls-row">
         <button class="atlas-btn" id="lev-vertical">Vertical outlier</button>
         <button class="atlas-btn ghost" id="lev-leverage">Leverage point</button>
-        <button class="atlas-btn ghost" id="lev-reset">Back in the cloud</button>
+        <button class="atlas-btn ghost" id="lev-reset">Reset</button>
       </div>
       <div class="controls-row">
         <button class="atlas-btn ghost" id="lev-companions">Give it two companions</button>
@@ -357,7 +357,7 @@
       of the line through that pair, and report the median of all those slopes.
     </p>
     <p class="body-text">
-      $$ \hat{m} = \operatorname{median}_{i<j} \frac{y_j - y_i}{x_j - x_i}, \qquad \hat{b} = \operatorname{median}_i \left( y_i - \hat{m}\,x_i \right) $$
+      $$ \hat{m} = \operatorname{median}_{i&lt;j} \frac{y_j - y_i}{x_j - x_i}, \qquad \hat{b} = \operatorname{median}_i \left( y_i - \hat{m}\,x_i \right) $$
     </p>
     <p class="body-text">
       No threshold, no learning rate, no loss function to tune. Below, every one
@@ -386,7 +386,7 @@
       fewer than half the pairs are contaminated:
     </p>
     <p class="body-text">
-      $$ 1 - (1-\varepsilon)^2 < \tfrac{1}{2} \;\Longleftrightarrow\; \varepsilon < 1 - \tfrac{1}{\sqrt{2}} \approx 29.3\% $$
+      $$ 1 - (1-\varepsilon)^2 &lt; \tfrac{1}{2} \;\Longleftrightarrow\; \varepsilon &lt; 1 - \tfrac{1}{\sqrt{2}} \approx 29.3\% $$
     </p>
     <p class="body-text">
       So Theil-Sen tolerates just under thirty percent contamination, and no

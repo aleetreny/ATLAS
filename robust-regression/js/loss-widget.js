@@ -42,9 +42,12 @@ export function initLossWidget() {
   });
 
   const grid = d3.range(-R, R + 0.001, 0.02);
+  // --stone (#d4dada) on the --paper (#f1f3f3) background is a contrast ratio
+  // of about 1.15:1, which is invisible. The absolute-loss line needs to read
+  // as a real third series, so it gets ink with a dash instead.
   const SERIES = [
     { id: 'squared', label: 'squared', color: 'var(--cosmos)', dash: null },
-    { id: 'absolute', label: 'absolute', color: 'var(--stone)', dash: '6 5' },
+    { id: 'absolute', label: 'absolute', color: 'var(--squidink)', dash: '7 5' },
     { id: 'huber', label: 'huber', color: 'var(--primary)', dash: null },
   ];
 

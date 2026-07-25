@@ -283,6 +283,18 @@ code {
   font-size: 15px;
 }
 
+/* Park the card near the middle of the screen while its step scrolls past.
+   Without this the card is simply centred inside a 110vh slot, so it spends
+   most of that slot near the top or bottom edge: measured mid-step, the active
+   card sat 369px below the centre of the chart it was explaining, with its
+   lower half already off screen. Sticky keeps the two side by side. */
+@media (min-width: 951px) {
+  .step-content {
+    position: sticky;
+    top: 32vh;
+  }
+}
+
 .step-content h3 {
   font-family: var(--font-heavy);
   font-weight: 400;
