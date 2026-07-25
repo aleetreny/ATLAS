@@ -4,7 +4,7 @@
     {
       "name": "atlas-web",
       "runtimeExecutable": "python",
-      "runtimeArgs": ["-m", "http.server", "8737", "--directory", "C:\\Users\\Z0058EYW\\Workspace\\Atlas\\docs"],
+      "runtimeArgs": ["-m", "http.server", "8737", "--directory", "C:\\Users\\Z0058EYW\\Workspace\\Atlas"],
       "port": 8737
     }
   ]
