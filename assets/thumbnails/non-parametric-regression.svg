@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <rect width="400" height="300" fill="#f1f3f3" />
+  <g stroke="#232f3e" stroke-opacity="0.075">
+    <line x1="100" y1="40" x2="100" y2="250" /><line x1="160" y1="40" x2="160" y2="250" />
+    <line x1="220" y1="40" x2="220" y2="250" /><line x1="280" y1="40" x2="280" y2="250" />
+    <line x1="40" y1="80" x2="360" y2="80" /><line x1="40" y1="130" x2="360" y2="130" />
+    <line x1="40" y1="180" x2="360" y2="180" />
+  </g>
+  <g stroke="#232f3e" stroke-width="2">
+    <line x1="40" y1="250" x2="360" y2="250" />
+    <line x1="40" y1="250" x2="40" y2="40" />
+  </g>
+  <!-- the credible band: wide where there is no data, pinched where there is -->
+  <path d="M50,120 C90,60 130,96 175,104 C215,110 250,72 300,58 C325,52 340,48 355,44
+           L355,110 C340,102 325,100 300,110 C250,128 215,150 175,142 C130,134 90,150 50,190 Z"
+        fill="#0e8a55" fill-opacity="0.18" />
+  <path d="M50,155 C90,120 130,124 175,123 C215,122 250,110 300,84 C325,72 340,62 355,54"
+        fill="none" stroke="#0e8a55" stroke-width="4" />
+  <!-- observations, where the band pinches shut -->
+  <g fill="#df2a5d" stroke="#ffffff" stroke-width="1.6">
+    <circle cx="90" cy="138" r="7" /><circle cx="175" cy="123" r="7" />
+    <circle cx="248" cy="112" r="7" /><circle cx="300" cy="84" r="7" />
+  </g>
+  <!-- the neighbourhood window around one query -->
+  <rect x="150" y="40" width="52" height="210" fill="#232f3e" fill-opacity="0.07" />
+  <line x1="176" y1="40" x2="176" y2="250" stroke="#232f3e" stroke-width="1.5" stroke-dasharray="5 4" />
+</svg>

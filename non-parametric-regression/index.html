@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Non-Parametric Regression | ATLAS</title>
+  <meta name="description" content="A visual, interactive introduction to non-parametric regression: k-nearest neighbours, kernel smoothers, local linear regression and Gaussian processes. What happens when you stop assuming an equation and let the data answer for itself." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    /* Per-article theme. Everything else inherits from these two. */
+    :root {
+      --primary: #0e8a55;
+      --secondary: #0a6e44;
+    }
+    /* Width only: a margin here would override .interactive-full's rhythm. */
+    .stacked-charts {
+      max-width: 760px;
+    }
+    .np-table {
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      margin-top: 0.5rem;
+      width: 100%;
+    }
+    .np-table th,
+    .np-table td {
+      padding: 5px 10px 5px 0;
+      text-align: left;
+      font-weight: 400;
+    }
+    .np-table th {
+      font-family: var(--font-heavy);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .np-table td:first-child {
+      opacity: 0.75;
+    }
+  </style>
+</head>
+<body>
+  <!-- ======================= chrome ======================= -->
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <!-- ======================= hero ======================= -->
+  <section id="intro">
+    <h1 id="intro-hed">Non-Parametric</h1>
+    <h1 id="intro-sub">Regression without an equation: neighbours, kernels and Gaussian processes</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 1.1 · Regression</span>
+  </section>
+
+  <br />
+
+  <!-- ======================= introduction ======================= -->
+  <section>
+    <p class="body-text">
+      Every model so far has started with an act of faith. Least squares assumed
+      the relationship was a straight line. Polynomial regression assumed it was
+      a curve of a particular degree. GLMs assumed a distribution. Each time, we
+      wrote down a shape first and let the data pick its parameters afterwards.
+      That is what the word <span class="bold">parametric</span> means: the model
+      has a fixed number of knobs, decided before you look.
+    </p>
+    <br />
+    <p class="body-text">
+      This article does the opposite. Suppose you refuse to name a shape at all.
+      To predict the fuel efficiency of a 150 horsepower car, you do not solve
+      for a slope. You find the cars in your records with roughly 150 horsepower,
+      and you report what happened to them.
+    </p>
+    <br />
+    <p class="body-text">
+      That is the entire idea, and it sounds too simple to need a name. It has
+      several, because the details of <i>which</i> neighbours you consult and
+      <i>how much</i> each one counts turn out to matter enormously, and because
+      the price for assuming nothing is steep and specific. We will meet
+      <span class="bold">k-nearest neighbours</span>, <span class="bold">kernel
+      smoothers</span>, <span class="bold">local linear regression</span> and
+      <span class="bold">Gaussian processes</span>, in that order, and finish
+      with the reason none of them saved us from deep learning.
+    </p>
+    <br />
+    <p class="body-text">
+      We start with the same 392 cars the
+      <a href="../classical-regression/">first article</a> drew a straight line
+      through. You may remember the line did not fit.
+    </p>
+  </section>
+
+  <!-- ======================= scrolly ======================= -->
+  <section>
+    <h1 class="body-header">Ask the Neighbours</h1>
+    <p class="body-text">
+      Horsepower on the x-axis, miles per gallon on the y. The same banana-shaped
+      cloud, and a completely different way of approaching it.
+    </p>
+  </section>
+
+  <section id="neighbours-scrolly">
+    <div class="scrolly-container">
+      <div class="steps-container">
+        <div class="step" data-index="0">
+          <div class="step-content">
+            <h3>The Same Cars</h3>
+            <p>
+              Three hundred and ninety-two cars, exactly as before. Last time we
+              asked which equation describes this cloud. This time we are going
+              to refuse to answer that question.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="1">
+          <div class="step-content">
+            <h3>The Parametric Bargain</h3>
+            <p>
+              A straight line commits to a claim about the entire range before
+              seeing any particular car: that the relationship is constant
+              everywhere. All 392 observations get compressed into two numbers.
+              Efficient, interpretable, and here demonstrably wrong.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="2">
+          <div class="step-content">
+            <h3>A Local Question</h3>
+            <p>
+              Instead, take one query, 190 horsepower, and ask only the cars near
+              it. The dashed band holds its <span class="bold">15 nearest
+              neighbours</span>. Everything outside it is ignored completely.
+              Average their efficiency, and that is the prediction. Then repeat
+              for every value of x.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="3">
+          <div class="step-content">
+            <h3>Too Few Neighbours</h3>
+            <p>
+              With <span class="bold">k = 1</span>, every prediction is whichever
+              single car happens to be closest. The result passes through every
+              training point exactly, which is to say it has learned the noise
+              along with the signal. Zero training error, useless predictions.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="4">
+          <div class="step-content">
+            <h3>Too Many</h3>
+            <p>
+              With <span class="bold">k = 120</span>, every query consults roughly
+              a third of the dataset. Neighbouring queries return nearly identical
+              answers and the curve flattens towards the overall average. The
+              model has stopped being local at all.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="5">
+          <div class="step-content">
+            <h3>The Shape Nobody Specified</h3>
+            <p>
+              At <span class="bold">k = 15</span> the curve bends where the data
+              bends and flattens where the data flattens. Notice what did not
+              happen: nobody wrote down a quadratic, or a log, or an exponential.
+              The shape is a consequence of the data, not an assumption about it.
+            </p>
+          </div>
+        </div>
+        <div class="step-spacer"></div>
+      </div>
+      <div class="charts-container">
+        <div class="chart-wrap" id="neighbours-chart"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================= knn knob ======================= -->
+  <section>
+    <h1 class="body-header">One Knob, Two Failures</h1>
+    <p class="body-text">
+      k is not a nuisance parameter. It <i>is</i> the model. Small k means high
+      variance: each prediction rests on few opinions, so it swings with the
+      noise. Large k means high bias: the neighbourhood is so wide that genuinely
+      different regions get averaged together. There is no third failure mode and
+      no way to escape the trade, only a place to stand in the middle of it.
+    </p>
+    <br />
+    <p class="body-text">
+      There is also a second choice hiding here. Standard k-nearest neighbours
+      gives every one of the k an equal vote, which is strange: a car 2
+      horsepower away and one 40 horsepower away are not equally informative.
+      Weighting each neighbour by \(1/d\) fixes that, and lets you use a larger,
+      steadier k without blurring away local detail.
+    </p>
+    <p class="body-text">
+      $$ \hat{y}(x_q) = \frac{\sum_{i \in N_k} w_i\, y_i}{\sum_{i \in N_k} w_i}, \qquad w_i = \frac{1}{d(x_q, x_i)} $$
+    </p>
+    <p class="body-text">
+      Solid dots are training cars; hollow rings are the held-out quarter. Drag k
+      from one extreme to the other and watch both scores.
+    </p>
+  </section>
+
+  <div class="interactive-container" id="knn-widget">
+    <div class="equations-panel">
+      <div class="controls-row">
+        <span class="slider-label">k = <span class="value" id="knn-k-label">15</span></span>
+        <input type="range" class="atlas-range" id="knn-k" min="1" max="120" step="1" value="15" />
+      </div>
+      <div id="knn-stats"></div>
+      <p class="slider-label" style="margin-top: 0.9rem; line-height: 1.45">
+        At k = 1 the training error is exactly zero and the held-out error is at
+        its worst. That gap is the clearest possible statement that fitting your
+        own data is not the same as understanding it.
+      </p>
+    </div>
+    <div class="chart-panel" id="knn-chart"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= boundary bias ======================= -->
+  <section>
+    <h1 class="body-header">The Trouble at the Edges</h1>
+    <p class="body-text">
+      k-nearest neighbours has an abrupt quality: a car is either one of the k or
+      it is nothing. Kernel smoothing replaces that hard boundary with a
+      continuous weighting. Every point contributes, with an influence that
+      decays as it gets further away:
+    </p>
+    <p class="body-text">
+      $$ K_h(d) = \exp\!\left(-\frac{d^2}{2h^2}\right) $$
+    </p>
+    <p class="body-text">
+      The bandwidth \(h\) now plays the role k did. Take a kernel-weighted
+      average of the neighbours and you have the
+      <span class="bold">Nadaraya-Watson</span> estimator, the smooth cousin of
+      k-nearest neighbours:
+    </p>
+    <p class="body-text">
+      $$ \hat{y}(x_q) = \frac{\sum_i K_h(x_i - x_q)\, y_i}{\sum_i K_h(x_i - x_q)} $$
+    </p>
+    <br />
+    <p class="body-text">
+      And now a genuine flaw, one that is easy to state and easier to miss. A
+      weighted average is a <span class="bold">locally constant</span> model: it
+      answers every query with a number, implicitly assuming the truth is flat
+      inside the window. In the middle of the data that is harmless, because the
+      neighbours on the left and the right cancel out. At the edge of the data it
+      is not, because there are no neighbours on one side. Every point in the
+      window lies to the same side of the query, and their average is pulled
+      inward. The curve flattens exactly where the trend is steepest.
+    </p>
+    <br />
+    <p class="body-text">
+      <span class="bold">Local linear regression</span> repairs this by fitting a
+      short straight line inside each window instead of a single level, using
+      distances measured from the query itself:
+    </p>
+    <p class="body-text">
+      $$ \min_{a,\,b} \; \sum_i K_h(x_i - x_q)\,\bigl(y_i - a - b\,(x_i - x_q)\bigr)^2 $$
+    </p>
+    <p class="body-text">
+      The prediction is \(a\), the height of that local line at the query. Because
+      the line is free to tilt, a one-sided neighbourhood is no longer a problem:
+      it extrapolates the local trend instead of averaging it away.
+    </p>
+    <br />
+    <p class="body-text">
+      Below, both estimators on the same data. The shaded strips are the outer
+      10% at each end. Move the query marker into one of them, then widen the
+      window, and watch the orange curve bend towards the middle while the green
+      one holds its line.
+    </p>
+  </section>
+
+  <div class="interactive-full stacked-charts" id="boundary-widget">
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">window h = <span class="value" id="bnd-h-label">46</span></span>
+      <input type="range" class="atlas-range" id="bnd-h" min="0.03" max="0.3" step="0.005" value="0.25" />
+      <span class="slider-label">query at <span class="value" id="bnd-q-label">55</span> hp</span>
+      <input type="range" class="atlas-range" id="bnd-q" min="46" max="230" step="1" value="55" />
+    </div>
+    <div id="boundary-chart"></div>
+    <div class="widget-readout" id="boundary-stats"></div>
+  </div>
+
+  <section>
+    <p class="body-text">
+      The numbers are stark. At the widest window the kernel average is roughly
+      <span class="bold">84% worse</span> at the edges than local linear
+      regression, while in the middle 80% of the range the two are close. That is
+      the signature of boundary bias: not a general loss of accuracy, but a
+      specific failure in a specific place, caused by a specific assumption.
+    </p>
+    <br />
+    <p class="body-text">
+      Two footnotes worth carrying. First, local linear regression is what
+      <span class="bold">LOESS</span> does, so if you have ever added a smooth
+      trend line to a scatter plot, you have used this. Second, notice that k-NN
+      is really a kernel smoother in disguise: a box-shaped kernel whose width
+      adapts to keep the number of neighbours constant. All of these are the same
+      idea wearing different clothes.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= gaussian processes ======================= -->
+  <section>
+    <h1 class="body-header">A Model That Admits Doubt</h1>
+    <p class="body-text">
+      Every method so far shares a flaw so basic it is easy to overlook: they
+      answer with equal confidence everywhere. Ask a k-nearest neighbours model
+      about a region where you have no data at all and it will find the k
+      closest points, however far away, and hand you a number with a straight
+      face.
+    </p>
+    <br />
+    <p class="body-text">
+      A <span class="bold">Gaussian process</span> refuses to do that. Rather
+      than fitting a function, it maintains a probability distribution over
+      functions. The prior is the vague belief that the truth is some smooth
+      curve; observing data conditions that distribution, squeezing it tight
+      where you have measurements and leaving it loose where you do not. What
+      comes back is not a prediction but a mean and a variance at every point.
+    </p>
+    <br />
+    <p class="body-text">
+      The entire modelling decision lives in the <span class="bold">kernel</span>,
+      which states how strongly two points should be correlated as a function of
+      their separation. RBF says the world is very smooth. Matérn says it is
+      rougher and more jagged. Periodic says it repeats. The kernel is not a
+      technicality: it is your assumption about reality, written down honestly
+      for once.
+    </p>
+    <br />
+    <p class="body-text">
+      <span class="bold">Click on the chart to place observations.</span> The
+      dashed line is the truth being sampled, hidden from the model. Watch what
+      the shaded band does where you add data, and what it does where you do not.
+    </p>
+  </section>
+
+  <div class="interactive-full stacked-charts" id="gp-widget">
+    <div class="controls-row" style="justify-content: center">
+      <button class="atlas-btn" id="gp-rbf">RBF</button>
+      <button class="atlas-btn ghost" id="gp-matern">Matérn</button>
+      <button class="atlas-btn ghost" id="gp-periodic">Periodic</button>
+      <span class="slider-label">length scale <span class="value" id="gp-length-label">1.20</span></span>
+      <input type="range" class="atlas-range" id="gp-length" min="0.2" max="4" step="0.05" value="1.2" />
+    </div>
+    <div class="controls-row" style="justify-content: center">
+      <button class="atlas-btn ghost" id="gp-sample">Sample seven points</button>
+      <button class="atlas-btn ghost" id="gp-clear">Clear</button>
+    </div>
+    <div id="gp-chart"></div>
+    <div class="widget-readout" id="gp-stats"></div>
+  </div>
+
+  <section>
+    <p class="body-text">
+      This is worth more than it first appears. In a self-driving car or a
+      medical decision system, a model that can say <i>I have never seen anything
+      like this</i> is categorically more useful than one that cannot, because
+      that signal is what triggers a handover to a human. It is also the engine
+      of <span class="bold">Bayesian optimisation</span>: when each experiment is
+      expensive, the variance surface tells you where the next one will teach you
+      the most.
+    </p>
+    <br />
+    <p class="body-text">
+      Now the same idea over a map. Four hundred California districts, each with
+      a median house value, and a Gaussian process fitted on longitude and
+      latitude alone. One button shows what it predicts, the other shows how much
+      it trusts itself.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="spatial-widget" style="max-width: 700px">
+    <div class="controls-row" style="justify-content: center">
+      <button class="atlas-btn" id="spatial-std">What it does not know</button>
+      <button class="atlas-btn ghost" id="spatial-mean">What it predicts</button>
+    </div>
+    <div id="spatial-chart"></div>
+    <div class="widget-readout" id="spatial-caption"></div>
+  </div>
+
+  <section>
+    <p class="body-text">
+      <i>One honest caveat about that map. Distances here are computed on raw
+      longitude and latitude after standardising each axis, which is a
+      convenience, not a truth: at California's latitude a degree of longitude is
+      about 88 km against 111 km for a degree of latitude. A serious spatial
+      model would use great-circle distance. It is worth noticing that a method
+      advertised as assumption-free still smuggled in an assumption, and it was
+      hiding inside the word "distance".</i>
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the curse ======================= -->
+  <section>
+    <h1 class="body-header">Why This Does Not Scale</h1>
+    <p class="body-text">
+      Everything on this page rests on one word: <span class="bold">nearby</span>.
+      In one dimension that word is solid. Add features, and it quietly stops
+      meaning anything at all.
+    </p>
+    <br />
+    <p class="body-text">
+      The arithmetic is brutal and exact. Spread data uniformly through a unit
+      cube in \(d\) dimensions. To capture a fraction \(r\) of it, a
+      neighbourhood must have edge length \(r^{1/d}\) along every axis. In one
+      dimension, the closest 10% of your data lies within 10% of the range. With
+      ten features, that same 10% requires a box covering
+      <span class="bold">79%</span> of every axis. Your local neighbourhood is
+      now almost the entire dataset, and "local" has become a word with no
+      content.
+    </p>
+    <br />
+    <p class="body-text">
+      The second curve says the same thing from the other side. It plots the
+      distance to the nearest point divided by the distance to a typical one. In
+      one dimension the nearest neighbour is dramatically closer than average, so
+      it carries real information. By a hundred features that ratio has climbed
+      to <span class="bold">0.81</span>: the closest point is nearly as far away
+      as any other. There is no such thing as a neighbour any more.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="curse-widget" style="max-width: 700px">
+    <div id="curse-chart"></div>
+    <div class="widget-readout" id="curse-stats"></div>
+  </div>
+
+  <section>
+    <p class="body-text">
+      This is why non-parametric methods rule in one, two and three dimensions
+      and vanish above about ten, and why the next article is about a family that
+      does not measure distance at all. There is a cost story too: k-nearest
+      neighbours does no work at fit time and all of it at prediction time,
+      scanning the training set for every query, and an exact Gaussian process
+      needs to factorise an \(n \times n\) matrix, which is
+      \(\mathcal{O}(n^3)\) work and \(\mathcal{O}(n^2)\) memory. At ten thousand
+      points that is already uncomfortable. At a million it is out of the
+      question without approximations.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= verdict ======================= -->
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text">
+      Four ways to answer a question with the data itself, and one clear rule for
+      when any of them is the right idea: <span class="bold">few features,
+      enough data, and a relationship you cannot write down.</span>
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Method</th>
+          <th>Defines "nearby" as…</th>
+          <th>Cost</th>
+          <th>Reach for it when…</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>k-NN</td>
+          <td>A fixed count of closest points</td>
+          <td>Nothing to fit, O(n) per query</td>
+          <td>You want a baseline in an afternoon, on few features, with plenty of data.</td>
+          <td>Discontinuous predictions; needs feature scaling; k is the whole model.</td>
+        </tr>
+        <tr>
+          <td>Nadaraya-Watson</td>
+          <td>A fixed radius, weighted smoothly</td>
+          <td>O(n) per query</td>
+          <td>You want the same idea with a continuous, differentiable output.</td>
+          <td>Flattens badly at the edges of the data. Rarely the right final answer.</td>
+        </tr>
+        <tr>
+          <td>Local linear (LOESS)</td>
+          <td>Same, but fits a tilt not a level</td>
+          <td>A tiny solve per query</td>
+          <td>Almost always, over Nadaraya-Watson. It is the honest default smoother.</td>
+          <td>Slightly more variance in sparse regions; still one or two features only.</td>
+        </tr>
+        <tr>
+          <td>Gaussian process</td>
+          <td>A covariance function you choose</td>
+          <td>O(n³) to fit, O(n²) memory</td>
+          <td>You need calibrated uncertainty, or each observation is expensive.</td>
+          <td>Cubic scaling; the kernel is a strong assumption wearing a neutral name.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text">
+      The through-line of this module has been a slow retreat from assumption.
+      Least squares assumed a line, polynomials assumed a degree, GLMs assumed a
+      distribution, robust methods assumed most of the data was honest, and here
+      we assumed only that similar inputs give similar outputs. That last
+      assumption is the weakest of the lot, and it is still an assumption, and it
+      still fails, in high dimensions, for reasons that have nothing to do with
+      the amount of data you collected.
+    </p>
+    <br />
+    <p class="body-text">
+      Next in this module: the family that beat all of it on tabular data by
+      abandoning distance entirely and asking a different question, one yes-or-no
+      question at a time, thousands of times over. That story is called gradient
+      boosting.
+    </p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! The from-scratch NumPy implementations
+      (<code>ScratchKNN</code>, <code>ScratchNadarayaWatson</code>,
+      <code>ScratchLocalLinear</code>) live in the
+      <a href="https://github.com/aleetreny/ATLAS">ATLAS repository</a>. Every
+      curve on this page except the spatial map is computed in your browser, and
+      the k-nearest neighbours fits are checked against scikit-learn at load time.
+    </p>
+  </section>
+
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text">
+      The Gaussian process on this page is solved by Cholesky factorisation in
+      the browser, so the posterior band responds to every click. The California
+      surface is precomputed, because a 400-point process over a 3,600-cell grid
+      is not something to refit on hover.
+    </p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://gaussianprocess.org/gpml/">[1] Gaussian Processes for Machine Learning</a><br />
+      (Rasmussen, C. E. &amp; Williams, C. K. I., MIT Press, 2006. Freely available)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://www.jstor.org/stable/2286407">[2] Robust Locally Weighted Regression and Smoothing Scatterplots</a><br />
+      (Cleveland, W. S., Journal of the American Statistical Association, 1979. The LOESS paper)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://www.statlearning.com/">[3] An Introduction to Statistical Learning</a><br />
+      (James, G., Witten, D., Hastie, T., Tibshirani, R. Chapter 7, and section 3.5 on the curse of dimensionality)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://archive.ics.uci.edu/dataset/9/auto+mpg">[4] Auto MPG Dataset</a><br />
+      (Quinlan, R., UCI Machine Learning Repository, 1993. Via the seaborn data collection)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://www.dcc.fc.up.pt/~ltorgo/Regression/cal_housing.html">[5] California Housing</a><br />
+      (Pace, R. K. &amp; Barry, R., Statistics and Probability Letters, 1997. Via scikit-learn)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>
