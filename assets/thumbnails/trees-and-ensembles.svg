@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <rect width="400" height="300" fill="#f1f3f3" />
+  <defs>
+    <clipPath id="tr-plot"><rect x="40" y="25" width="320" height="250" /></clipPath>
+  </defs>
+  <g clip-path="url(#tr-plot)">
+    <!-- the model is a set of boxes, and every edge is one yes-or-no question -->
+    <g stroke="#ffffff" stroke-width="2">
+      <rect x="40" y="25" width="118" height="140" fill="#007faa" fill-opacity="0.30" />
+      <rect x="40" y="165" width="118" height="110" fill="#007faa" fill-opacity="0.44" />
+      <rect x="158" y="25" width="96" height="76" fill="#86198f" fill-opacity="0.22" />
+      <rect x="158" y="101" width="96" height="64" fill="#007faa" fill-opacity="0.24" />
+      <rect x="158" y="165" width="96" height="110" fill="#007faa" fill-opacity="0.38" />
+      <rect x="254" y="25" width="106" height="118" fill="#86198f" fill-opacity="0.46" />
+      <rect x="254" y="143" width="60" height="62" fill="#86198f" fill-opacity="0.30" />
+      <rect x="314" y="143" width="46" height="62" fill="#007faa" fill-opacity="0.22" />
+      <rect x="254" y="205" width="106" height="70" fill="#86198f" fill-opacity="0.34" />
+    </g>
+
+    <!-- the points the boxes were built around -->
+    <g stroke="#232f3e" stroke-width="0.8">
+      <g fill="#007faa">
+        <circle cx="72" cy="230" r="4.5" /><circle cx="104" cy="196" r="4.5" />
+        <circle cx="88" cy="142" r="4.5" /><circle cx="130" cy="252" r="4.5" />
+        <circle cx="60" cy="176" r="4.5" /><circle cx="140" cy="120" r="4.5" />
+        <circle cx="118" cy="216" r="4.5" /><circle cx="182" cy="238" r="4.5" />
+        <circle cx="206" cy="196" r="4.5" /><circle cx="176" cy="140" r="4.5" />
+        <circle cx="228" cy="252" r="4.5" /><circle cx="334" cy="176" r="4.5" />
+      </g>
+      <g fill="#86198f">
+        <circle cx="286" cy="62" r="4.5" /><circle cx="322" cy="96" r="4.5" />
+        <circle cx="270" cy="112" r="4.5" /><circle cx="340" cy="48" r="4.5" />
+        <circle cx="300" cy="240" r="4.5" /><circle cx="278" cy="176" r="4.5" />
+        <circle cx="196" cy="60" r="4.5" /><circle cx="222" cy="82" r="4.5" />
+        <circle cx="344" cy="228" r="4.5" /><circle cx="308" cy="130" r="4.5" />
+      </g>
+    </g>
+  </g>
+  <g stroke="#232f3e" stroke-width="2">
+    <line x1="40" y1="275" x2="360" y2="275" />
+    <line x1="40" y1="275" x2="40" y2="25" />
+  </g>
+</svg>

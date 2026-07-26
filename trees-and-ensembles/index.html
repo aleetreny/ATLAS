@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Trees and Ensembles | ATLAS</title>
+  <meta name="description" content="A visual, interactive account of decision trees, bagging, random forests and extra trees: why one tree is a terrible model, the one equation that explains why averaging fixes it and where averaging stops helping, and two ways feature importance will lie to you." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/trees-and-ensembles/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="Trees and Ensembles | ATLAS" />
+  <meta property="og:description" content="A visual, interactive account of decision trees, bagging, random forests and extra trees: why one tree is a terrible model, the one equation that explains why averaging fixes it and where averaging stops helping, and two ways feature importance will lie to you." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/trees-and-ensembles/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Trees and Ensembles | ATLAS" />
+  <meta name="twitter:description" content="A visual, interactive account of decision trees, bagging, random forests and extra trees: why one tree is a terrible model, the one equation that explains why averaging fixes it and where averaging stops helping, and two ways feature importance will lie to you." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    /* Per-article theme. Everything else inherits from these two. */
+    :root {
+      --primary: #86198f;
+      --secondary: #6b1470;
+    }
+    /* Width only: a margin here would override .interactive-full's rhythm. */
+    .stacked-charts {
+      max-width: 740px;
+    }
+    .narrow-widget {
+      max-width: 800px;
+    }
+    .tr-table {
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      margin-top: 0.5rem;
+      width: 100%;
+    }
+    .tr-table th,
+    .tr-table td {
+      padding: 5px 10px 5px 0;
+      text-align: left;
+      font-weight: 400;
+    }
+    .tr-table th {
+      font-family: var(--font-heavy);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .tr-table td:first-child {
+      opacity: 0.75;
+    }
+  </style>
+</head>
+<body>
+  <!-- ======================= chrome ======================= -->
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <!-- ======================= hero ======================= -->
+  <section id="intro">
+    <h1 id="intro-hed">Trees and Ensembles</h1>
+    <h1 id="intro-sub">One question at a time: why a single tree is a bad model, and the one equation that says how many you need</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 1.2 · Classification</span>
+  </section>
+
+  <br />
+
+  <!-- ======================= introduction ======================= -->
+  <section>
+    <p class="body-text">
+      Every model in this atlas so far has swallowed all of its features in one
+      gulp and produced an answer in a single shot. A weighted sum, a distance, a
+      dot product with a normal vector. None of them resembles how anyone
+      actually decides anything.
+    </p>
+    <br />
+    <p class="body-text">
+      A doctor does not evaluate a thirty-dimensional hyperplane. They ask a
+      question, look at the answer, and let it decide the next question. That is
+      a <span class="bold">decision tree</span>, and it is the only model in this
+      module you could execute with a pencil.
+    </p>
+    <br />
+    <p class="body-text">
+      It is also, on its own, one of the worst models here. A single tree grown
+      to completion memorises its training set, and refitting it on a slightly
+      different sample of the same data produces a visibly different model. The
+      cure is to grow hundreds and average them, which sounds like the kind of
+      thing that works because you did more of it.
+    </p>
+    <br />
+    <p class="body-text">
+      It is not. There is an exact equation for how much averaging buys, it has
+      two terms, and only one of them goes away when you add trees. That equation
+      is why a random forest samples features and not just rows, and this article
+      measures it on real data rather than quoting it. Along the way, two things
+      that will lie to you: a feature importance ranking that rewards a
+      pure-noise column <span class="bold">5.7 times</span> over another
+      pure-noise column for no reason but arithmetic, and a model that answers
+      questions outside its training range with a flat line.
+    </p>
+    <br />
+    <p class="body-text">
+      Same 569 biopsies as the
+      <a href="../probabilistic-classification/">previous two articles</a>, so
+      every number here is directly comparable to the ones there.
+    </p>
+  </section>
+
+  <!-- ======================= scrolly: growing a tree ======================= -->
+  <section>
+    <h1 class="body-header">Twenty Questions</h1>
+    <p class="body-text">
+      Two features, so the model can be drawn as what it literally is: a set of
+      boxes. Every split is a horizontal or vertical cut, every leaf is a
+      rectangle, and the prediction inside a rectangle is whatever the majority
+      of the training points in it were.
+    </p>
+  </section>
+
+  <section id="tree-scrolly" class="scrolly">
+    <div class="scrolly-container">
+      <div class="steps-container">
+        <div class="step" data-index="0">
+          <div class="step-content">
+            <h3>398 Biopsies</h3>
+            <p>
+              Perimeter across, concavity up. The malignant ones gather at the
+              top right and the benign ones at the bottom left, with a contested
+              band in between. No model yet, just the room the model has to
+              carve up.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="1">
+          <div class="step-content">
+            <h3>One Cut</h3>
+            <p>
+              The tree considers every threshold on every feature and keeps the
+              one that separates best. Here it is
+              <span class="bold">worst concave points at 0.142</span>, which
+              takes a room that was 45% malignant and produces two rooms that are
+              6% and 89%. That single question does most of the work.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="2">
+          <div class="step-content">
+            <h3>Then Recurse</h3>
+            <p>
+              Now the same procedure runs inside each box, independently, and
+              knows nothing about the other side. That is what
+              <span class="bold">greedy</span> means here: the first cut was
+              chosen without any idea what would be possible afterwards, and it
+              is never revisited.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="3">
+          <div class="step-content">
+            <h3>Depth Three</h3>
+            <p>
+              Eight boxes. The boundary is starting to trace the shape of the
+              contested band, and held-out accuracy is at its peak for this pair
+              of features. This is roughly as good as one tree gets here.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="4">
+          <div class="step-content">
+            <h3>Depth Five</h3>
+            <p>
+              Eighteen boxes, several of them slivers holding two or three points.
+              Training accuracy has climbed to <span class="bold">0.985</span>
+              and held-out accuracy has <i>fallen</i> to
+              <span class="bold">0.901</span>. Every one of those slivers is a
+              rule about one patient.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="5">
+          <div class="step-content">
+            <h3>Unpruned</h3>
+            <p>
+              Twenty-six boxes and a perfect score on the training set. There is
+              no error left to reduce, so the tree stops, having produced a map
+              of exactly the 398 people it was shown. Held-out accuracy:
+              <span class="bold">0.889</span>, the worst of any depth.
+            </p>
+          </div>
+        </div>
+        <div class="step-spacer"></div>
+      </div>
+      <div class="charts-container">
+        <div class="chart-wrap" id="tree-chart"></div>
+      </div>
+    </div>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the split ======================= -->
+  <section>
+    <h1 class="body-header">How a Question Gets Chosen</h1>
+    <p class="body-text">
+      Everything above rests on one word: "separates best". Making it precise
+      needs a number for how mixed a group is. The usual one is
+      <span class="bold">Gini impurity</span>, which is the probability that two
+      points drawn at random from the group have different labels:
+    </p>
+    <p class="body-text">
+      $$ G \;=\; 1 - \sum_{k} p_k^2 $$
+    </p>
+    <p class="body-text">
+      A pure group scores 0. A fifty-fifty mix scores 0.5, its worst. A candidate
+      split is then graded by how much impurity it removes, weighting each side
+      by how many points landed in it:
+    </p>
+    <p class="body-text">
+      $$ \Delta G \;=\; G_{\text{parent}} - \frac{n_L}{n}G_L - \frac{n_R}{n}G_R $$
+    </p>
+    <p class="body-text">
+      The tree tries every threshold on every feature and keeps the largest
+      \(\Delta G\). That is the entire learning algorithm, applied recursively.
+      There is no gradient, no objective being globally minimised, and no
+      guarantee that a locally best first question leads anywhere good.
+    </p>
+    <br />
+    <p class="body-text">
+      Below, all 211 candidate thresholds on the two features, with their
+      \(\Delta G\). Drag along and watch the split move. The tall spike is the
+      one the tree picked.
+    </p>
+  </section>
+
+  <div class="interactive-container" id="split-widget">
+    <div class="equations-panel">
+      <div class="controls-row">
+        <button class="atlas-btn" id="split-f0">worst perimeter</button>
+        <button class="atlas-btn ghost" id="split-f1">worst concave points</button>
+      </div>
+      <div class="controls-row">
+        <span class="slider-label">threshold #<span class="value" id="split-i-label">0</span></span>
+        <input type="range" class="atlas-range" id="split-i" aria-label="which candidate threshold to try"
+               min="0" max="100" step="1" value="50" />
+      </div>
+      <div id="split-stats"></div>
+      <div class="controls-row">
+        <button class="atlas-btn ghost" id="split-best">Jump to the best</button>
+      </div>
+    </div>
+    <div class="chart-panel" id="split-chart"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= the wobble ======================= -->
+  <section>
+    <h1 class="body-header">The Same Data, A Different Model</h1>
+    <p class="body-text">
+      Here is the property that makes a single tree unusable and every ensemble
+      in this article necessary. Take the same 398 patients, resample them with
+      replacement, and refit. Nothing about the problem changed. The model did.
+    </p>
+    <br />
+    <p class="body-text">
+      Press through eight bootstrap samples. The boxes rearrange, thresholds jump
+      by whole units, and held-out accuracy swings between
+      <span class="bold">0.860</span> and <span class="bold">0.936</span>. A
+      model this sensitive to which rows it happened to see is a model whose
+      output carries a large random component, and that component has a name:
+      <span class="bold">variance</span>.
+    </p>
+    <br />
+    <p class="body-text">
+      It is worth being clear about why trees in particular have so much of it.
+      The split at the root is chosen by a comparison between candidates that are
+      often nearly tied. Change a handful of rows, a different candidate wins by
+      a hair, and <i>every subsequent question in the entire tree</i> is now being
+      asked inside a different partition. The greediness that makes a tree fast
+      is exactly what makes it unstable.
+    </p>
+  </section>
+
+  <div class="interactive-full stacked-charts" id="wobble-widget">
+    <div class="controls-row" style="justify-content: center">
+      <button class="atlas-btn ghost" id="wobble-prev">Previous sample</button>
+      <button class="atlas-btn" id="wobble-play">Cycle through all eight</button>
+      <button class="atlas-btn ghost" id="wobble-next">Next sample</button>
+    </div>
+    <div id="wobble-chart"></div>
+    <div class="widget-readout" id="wobble-readout"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= the equation ======================= -->
+  <section>
+    <h1 class="body-header">What Averaging Actually Buys</h1>
+    <p class="body-text">
+      The fix is obvious enough that Breiman's 1996 paper is mostly about how
+      well it works rather than why anyone would try it: grow many trees on many
+      bootstrap samples and average their votes. <span class="bold">Bagging</span>,
+      for bootstrap aggregating.
+    </p>
+    <br />
+    <p class="body-text">
+      What is not obvious is <i>how much</i> it buys, and that has an exact
+      answer. Take \(B\) predictors, each with variance \(\sigma^2\), with
+      correlation \(\rho\) between any two of them. The variance of their average
+      is:
+    </p>
+    <p class="body-text">
+      $$ \operatorname{Var}\!\left(\frac{1}{B}\sum_{b=1}^{B} T_b\right) \;=\; \rho\,\sigma^2 \;+\; \frac{1-\rho}{B}\,\sigma^2 $$
+    </p>
+    <p class="body-text">
+      Read the two terms. The second is divided by \(B\), so it vanishes: that is
+      the free lunch, and it is why more trees never hurt. The first has no
+      \(B\) in it at all. <span class="bold">No number of trees removes it.</span>
+      Averaging a thousand copies of nearly the same opinion gives you nearly the
+      same opinion.
+    </p>
+    <br />
+    <p class="body-text">
+      Which turns the whole design problem into one question: how do you make the
+      trees disagree? Bootstrapping the rows is one answer, and Breiman's second
+      idea was better. At <i>every split</i>, hide most of the columns and force
+      the tree to choose from a random handful. A tree that is not allowed to see
+      the strongest feature has to find another way, and the forest stops being a
+      thousand near-copies of the same greedy first question. That is a
+      <span class="bold">random forest</span>, and
+      <span class="bold">extra trees</span> pushes further still by not even
+      optimising the threshold, just picking one at random.
+    </p>
+    <br />
+    <p class="body-text">
+      Everything below is measured rather than asserted. Twenty independent
+      training sets, one forest grown on each, and then the spread of their
+      predictions compared against what the equation says it should be. Neither
+      \(\rho\) nor \(\sigma^2\) is fitted to the curve: both are read off the
+      trees, and the curve is the prediction.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="var-widget">
+    <div class="controls-row" style="justify-content: center">
+      <button class="atlas-btn" id="var-bag">bagging · rows only</button>
+      <button class="atlas-btn ghost" id="var-rf">random forest · rows and columns</button>
+      <button class="atlas-btn ghost" id="var-et">extra trees · and random thresholds</button>
+    </div>
+    <div class="controls-row" style="justify-content: center">
+      <label class="slider-label"><input type="checkbox" id="var-all" /> compare all three</label>
+    </div>
+    <div id="var-chart"></div>
+    <div class="widget-readout" id="var-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text">
+      Three things worth pulling out of that chart.
+    </p>
+    <br />
+    <p class="body-text">
+      <span class="bold">The equation works.</span> With no free parameters it
+      tracks the measured variance to within 8% for bagging and 7% for the random
+      forest across three orders of magnitude of \(B\). At 200 trees the forest's
+      predicted variance is 0.001218 and the measured one is 0.001215.
+    </p>
+    <br />
+    <p class="body-text">
+      <span class="bold">Sampling columns does what it was designed to do.</span>
+      Bagging's trees correlate at \(\rho = 0.053\). Hide most of the columns at
+      every split and that falls to <span class="bold">0.018</span>, which drops
+      the floor from 0.00263 to 0.00096. Nothing else about the algorithm
+      changed. That single intervention is the difference between bagging and a
+      random forest, and the equation says exactly what it is worth.
+    </p>
+    <br />
+    <p class="body-text">
+      <span class="bold">And you pay for it.</span> Look at \(\sigma^2\) as you
+      move down the three: 0.0498, 0.0527, 0.0555. Each individual tree gets
+      <i>worse</i> as you handicap it, because a tree forced to split on a random
+      subset of columns is not choosing the best question available. The trade is
+      a slightly worse committee member in exchange for a less redundant
+      committee, and on this data it is worth taking: one tree averages 0.910 and
+      the forest of 200 reaches 0.949.
+    </p>
+    <br />
+    <p class="body-text">
+      <i>One honest caveat. On 569 rows with a strong signal the floor is small
+      in absolute terms, so most of the improvement here comes from the second
+      term, the one that was always going to vanish. The floor matters much more
+      when the trees are deep, the signal is weak, or one feature dominates so
+      hard that every tree opens with the same question. That case is exactly
+      what feature sampling was invented for.</i>
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= more trees ======================= -->
+  <section>
+    <h1 class="body-header">More Is Never Worse</h1>
+    <p class="body-text">
+      One consequence of that equation deserves its own heading, because it is
+      the sharpest contrast in this whole atlas.
+    </p>
+    <br />
+    <p class="body-text">
+      In <a href="../gradient-boosting/">gradient boosting</a>, every tree is
+      fitted to the previous ensemble's mistakes, so adding trees keeps changing
+      the model and eventually overfits: the number of trees is a
+      <span class="bold">regularisation parameter</span> you must tune, with a
+      held-out curve that turns back upward.
+    </p>
+    <br />
+    <p class="body-text">
+      A forest has no such curve. Its trees are independent draws from the same
+      distribution, so adding one more only ever moves the average closer to its
+      own limit. B is not a hyperparameter, it is a
+      <span class="bold">compute budget</span>. On this data the log loss falls
+      from 1.818 at one tree to 0.227 at fifty and then simply stops moving:
+      0.2263 at two hundred, 0.2263 at four hundred. Nothing turns around,
+      because there is nothing left to turn.
+    </p>
+  </section>
+
+  <div class="interactive-full stacked-charts" id="grow-widget">
+    <div class="controls-row" style="justify-content: center">
+      <button class="atlas-btn" id="grow-logloss">log loss</button>
+      <button class="atlas-btn ghost" id="grow-acc">accuracy</button>
+    </div>
+    <div id="grow-chart"></div>
+    <div class="widget-readout" id="grow-readout"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= importance ======================= -->
+  <section>
+    <h1 class="body-header">The Importance Ranking Is Not What You Think</h1>
+    <p class="body-text">
+      A forest hands you a feature importance ranking for free, and it is one of
+      the most widely quoted numbers in applied machine learning. The default one,
+      <span class="bold">mean decrease in impurity</span>, adds up the \(\Delta G\)
+      of every split made on a feature, weighted by how many samples passed
+      through. It is fast, it comes with the model, and it has a bias that is
+      easy to state and easy to demonstrate.
+    </p>
+    <br />
+    <p class="body-text">
+      A feature with more distinct values offers more candidate thresholds. More
+      candidates means more chances that one of them, by luck alone, splits the
+      training data slightly better than nothing. That lucky split earns a
+      \(\Delta G\) which goes into the total. <span class="bold">The more
+      granular a column is, the more importance it can accumulate from pure
+      chance.</span>
+    </p>
+    <br />
+    <p class="body-text">
+      So here is the experiment. Five extra columns were added to the 30 real
+      ones, and every single one is
+      <span class="bold">random noise, independent of the diagnosis</span>. They
+      differ only in how many distinct values they take: 2, 4, 10, 50, and one
+      per patient. Any importance any of them receives is undeserved by
+      construction. Watch what happens.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="imp-widget">
+    <div class="controls-row" style="justify-content: center">
+      <button class="atlas-btn" id="imp-gini">impurity importance</button>
+      <button class="atlas-btn ghost" id="imp-perm">permutation importance</button>
+    </div>
+    <div class="controls-row" style="justify-content: center">
+      <label class="slider-label"><input type="checkbox" id="imp-noise" checked /> highlight the planted noise</label>
+    </div>
+    <div id="imp-chart"></div>
+    <div class="widget-readout" id="imp-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text">
+      The five noise columns score 0.00053, 0.00056, 0.00115, 0.00159 and
+      0.00304. They contain exactly the same amount of information about the
+      diagnosis, which is none, and the finest-grained one is rated
+      <span class="bold">5.7 times</span> more important than the coarsest. The
+      ranking is measuring granularity.
+    </p>
+    <br />
+    <p class="body-text">
+      Two things stop this from being a scandal, and both are worth saying so the
+      warning stays proportionate. First, on this data no noise column beats even
+      the weakest real feature, which scores 0.00332: the bias is real and it is
+      not large enough here to overturn anything. Second, there is a fix.
+      <span class="bold">Permutation importance</span> asks a different question,
+      and a much better one: shuffle a column on the
+      <i>held-out</i> set and measure how much accuracy actually falls. A column
+      that contributes nothing loses nothing when scrambled, and all five planted
+      columns duly score essentially zero. It costs a refit-free pass per feature
+      and it answers the question people think they are asking.
+    </p>
+    <br />
+    <p class="body-text">
+      The failure mode this predicts is concrete and common: a user ID, a
+      timestamp, a postcode, a free-text hash. High cardinality, no signal, and a
+      confident position near the top of a chart somebody is about to put in a
+      slide.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= extrapolation ======================= -->
+  <section>
+    <h1 class="body-header">The Wall at the Edge of the Data</h1>
+    <p class="body-text">
+      One last property, and it follows from the very first picture in this
+      article. A tree's prediction is constant inside each box. The boxes at the
+      edge of the training data are unbounded, so the prediction out there is
+      constant too, forever.
+    </p>
+    <br />
+    <p class="body-text">
+      A tree cannot extrapolate. Not badly: <i>at all</i>. Below is a clean
+      upward trend, with the model trained only on the left portion and then
+      asked about the right. The straight line, which assumed a shape and can
+      therefore be wrong in an interesting way, tracks the truth out to the edge.
+      The tree and the forest return the last value they ever learned and hold it
+      flat to the horizon.
+    </p>
+  </section>
+
+  <div class="interactive-full stacked-charts" id="ext-widget">
+    <div class="controls-row" style="justify-content: center">
+      <button class="atlas-btn" id="ext-tree">one tree</button>
+      <button class="atlas-btn ghost" id="ext-forest">forest of 200</button>
+      <button class="atlas-btn ghost" id="ext-all">all three</button>
+    </div>
+    <div id="ext-chart"></div>
+    <div class="widget-readout" id="ext-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text">
+      This is not a bug and it is not fixable by adding trees, because averaging
+      a thousand flat lines gives a flat line. It is the direct consequence of a
+      model made of boxes, and it is the single most important thing to know
+      before putting a forest anywhere near a trend, a time series, or a price
+      that has never been this high before.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= verdict ======================= -->
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text">
+      Five models, one dataset, five-fold cross validation over all 569 biopsies.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Model</th>
+          <th>5-fold accuracy</th>
+          <th>Reach for it when…</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">One tree, unpruned</span></td>
+          <td>0.9244 ± 0.0145</td>
+          <td>You need a model a human can read out loud and act on without a computer.</td>
+          <td>It memorises. Refit on a resample and you get a visibly different model.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">One tree, depth 4</span></td>
+          <td>0.9209 ± 0.0200</td>
+          <td>Same, plus you want the rules to fit on one page.</td>
+          <td>Depth is a real hyperparameter here, unlike the number of trees below.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Bagging</span></td>
+          <td>0.9525 ± 0.0207</td>
+          <td>Rarely, now. It is the idea random forests improved on.</td>
+          <td>Every tree opens with the same question, so ρ stays high.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Random forest</span></td>
+          <td>0.9596 ± 0.0120</td>
+          <td>Almost always, as the baseline before anything clever. Two knobs, both forgiving.</td>
+          <td>Cannot extrapolate. Its default importances reward granularity.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Extra trees</span></td>
+          <td>0.9666 ± 0.0151</td>
+          <td>Same as above, faster to fit, and worth trying whenever a forest is.</td>
+          <td>Random thresholds mean each tree is weaker; it needs the ensemble more.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text">
+      The through-line of this module so far: three articles, one dataset, and
+      three completely different ways to draw a line through it. A probability, a
+      wall, and a stack of boxes. All three land between 0.93 and 0.97, which is
+      itself the lesson: on clean tabular data the choice of model family matters
+      far less than most tutorials imply, and what separates them is everything
+      else. Whether the probability means anything. Whether the boundary can
+      curve. Whether the answer survives a resample.
+    </p>
+    <br />
+    <p class="body-text">
+      Next in this module, the assumption every one of these nine articles has
+      quietly made: that the classes are roughly balanced and that accuracy is a
+      sensible thing to maximise. Both are usually false, and the fix that
+      everyone reaches for first makes the probabilities worse.
+    </p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! The from-scratch NumPy implementation
+      (<code>ScratchDecisionTree</code>, recursion and Gini and all) lives in the
+      <a href="https://github.com/aleetreny/ATLAS">ATLAS repository</a>. Every
+      number on this page comes from
+      <code>src/utils/generate_trees_data.py</code>, and the boxes, the impurity
+      arithmetic and the variance curve are all recomputed in your browser.
+    </p>
+  </section>
+
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text">
+      The variance measurement grows twenty forests of two hundred trees per
+      method, each on its own independent 70% subsample of the training split,
+      and reports the spread of their held-out predictions. ρ and σ² are pooled
+      ratios over test cases rather than averages of per-case correlations, which
+      with twenty repetitions would be far too noisy to mean anything. Produced
+      by <code>src/utils/generate_trees_data.py</code> with scikit-learn 1.8.0
+      under Python 3.11.7, seed 13.
+    </p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://link.springer.com/article/10.1007/BF00058655">[1] Bagging Predictors</a><br />
+      (Breiman, L., Machine Learning, 1996)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://link.springer.com/article/10.1023/A:1010933404324">[2] Random Forests</a><br />
+      (Breiman, L., Machine Learning, 2001)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://link.springer.com/article/10.1007/s10994-006-6226-1">[3] Extremely Randomized Trees</a><br />
+      (Geurts, P., Ernst, D., Wehenkel, L., Machine Learning, 2006)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-8-25">[4] Bias in Random Forest Variable Importance Measures</a><br />
+      (Strobl, C., Boulesteix, A.-L., Zeileis, A., Hothorn, T., BMC Bioinformatics, 2007)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://web.stanford.edu/~hastie/ElemStatLearn/">[5] The Elements of Statistical Learning</a><br />
+      (Hastie, T., Tibshirani, R., Friedman, J., chapter 15, where the variance equation lives)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://archive.ics.uci.edu/dataset/17/breast+cancer+wisconsin+diagnostic">[6] Breast Cancer Wisconsin (Diagnostic) Data Set</a><br />
+      (Street, W. N., Wolberg, W. H., Mangasarian, O. L., UCI Machine Learning Repository, 1995)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>

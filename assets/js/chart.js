@@ -99,7 +99,17 @@ export function drawGrid(g, x, y, w, h, { xTicks = 6, yTicks = 6 } = {}) {
     .attr('y2', (d) => y(d));
 }
 
-/* Uppercase axis labels, MLU style. */
+/* Uppercase axis labels, MLU style.
+ *
+ * The rotated y label used to be parked at a flat -44, which is fine until an
+ * axis prints something wide: "$1,000", "2.0e-3", "0.910". Then the label lands
+ * on top of its own ticks, and widening the chart's left margin does not help,
+ * because -44 is measured from the axis and not from the edge. It went wrong
+ * three times before this was worth fixing properly.
+ *
+ * So measure. If the y axis has already been drawn, put the label just clear of
+ * whatever it actually occupies, and never closer than the old default. Call
+ * axisLabels AFTER drawAxes and it places itself. */
 export function axisLabels(g, w, h, { x = '', y = '' } = {}) {
   if (x) {
     let lx = g.select('text.axis-label.x');
@@ -109,7 +119,23 @@ export function axisLabels(g, w, h, { x = '', y = '' } = {}) {
   if (y) {
     let ly = g.select('text.axis-label.y');
     if (ly.empty()) ly = g.append('text').attr('class', 'axis-label y');
-    ly.attr('transform', 'rotate(-90)').attr('x', -h / 2).attr('y', -44).attr('text-anchor', 'middle').text(y);
+    let dy = -44;
+    const ax = g.select('g.axis.y');
+    if (!ax.empty() && ax.node()) {
+      try {
+        const b = ax.node().getBBox();
+        if (b.width > 0) dy = Math.min(dy, b.x - 12);
+      } catch {
+        /* an axis with nothing rendered yet has no box; the default is fine */
+      }
+    }
+    /* But never past the edge of the canvas. Moving the label out to clear wide
+     * ticks is only an improvement while it still fits: on a chart with a tight
+     * left margin the cure would be worse than the overlap. The inner group is
+     * translated by the margin, so the margin is readable straight off it. */
+    const m = /translate\(\s*([-\d.]+)/.exec(g.attr('transform') || '');
+    if (m) dy = Math.max(dy, -(parseFloat(m[1]) - 16));
+    ly.attr('transform', 'rotate(-90)').attr('x', -h / 2).attr('y', dy).attr('text-anchor', 'middle').text(y);
   }
 }
 
