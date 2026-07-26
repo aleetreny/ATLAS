@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <rect width="400" height="300" fill="#f1f3f3" />
+  <!-- the haystack: a field of common grey, and the rare thing hiding in it -->
+  <g fill="#b9c2c6">
+    <circle cx="64" cy="52" r="5" /><circle cx="96" cy="52" r="5" /><circle cx="128" cy="52" r="5" /><circle cx="160" cy="52" r="5" /><circle cx="192" cy="52" r="5" /><circle cx="224" cy="52" r="5" /><circle cx="256" cy="52" r="5" /><circle cx="288" cy="52" r="5" /><circle cx="320" cy="52" r="5" />
+    <circle cx="64" cy="88" r="5" /><circle cx="96" cy="88" r="5" /><circle cx="128" cy="88" r="5" /><circle cx="160" cy="88" r="5" /><circle cx="224" cy="88" r="5" /><circle cx="256" cy="88" r="5" /><circle cx="288" cy="88" r="5" /><circle cx="320" cy="88" r="5" />
+    <circle cx="64" cy="124" r="5" /><circle cx="96" cy="124" r="5" /><circle cx="128" cy="124" r="5" /><circle cx="160" cy="124" r="5" /><circle cx="192" cy="124" r="5" /><circle cx="224" cy="124" r="5" /><circle cx="256" cy="124" r="5" /><circle cx="288" cy="124" r="5" /><circle cx="320" cy="124" r="5" />
+    <circle cx="64" cy="160" r="5" /><circle cx="96" cy="160" r="5" /><circle cx="128" cy="160" r="5" /><circle cx="192" cy="160" r="5" /><circle cx="224" cy="160" r="5" /><circle cx="256" cy="160" r="5" /><circle cx="288" cy="160" r="5" /><circle cx="320" cy="160" r="5" />
+    <circle cx="64" cy="196" r="5" /><circle cx="96" cy="196" r="5" /><circle cx="128" cy="196" r="5" /><circle cx="160" cy="196" r="5" /><circle cx="192" cy="196" r="5" /><circle cx="224" cy="196" r="5" /><circle cx="256" cy="196" r="5" /><circle cx="320" cy="196" r="5" />
+    <circle cx="64" cy="232" r="5" /><circle cx="96" cy="232" r="5" /><circle cx="128" cy="232" r="5" /><circle cx="160" cy="232" r="5" /><circle cx="192" cy="232" r="5" /><circle cx="224" cy="232" r="5" /><circle cx="256" cy="232" r="5" /><circle cx="288" cy="232" r="5" /><circle cx="320" cy="232" r="5" />
+  </g>
+  <!-- the three rare ones, found, missed, found -->
+  <g stroke="#232f3e" stroke-width="1.2">
+    <circle cx="192" cy="88" r="6.5" fill="#0f766e" />
+    <circle cx="288" cy="196" r="6.5" fill="#0f766e" />
+    <circle cx="160" cy="160" r="6.5" fill="#df2a5d" />
+  </g>
+  <g stroke="#232f3e" stroke-width="2">
+    <line x1="40" y1="275" x2="360" y2="275" />
+    <line x1="40" y1="275" x2="40" y2="25" />
+  </g>
+</svg>

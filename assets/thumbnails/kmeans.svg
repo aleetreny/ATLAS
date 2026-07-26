@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <rect width="400" height="300" fill="#f1f3f3" />
+  <!-- three voronoi territories, straight borders equidistant between centres -->
+  <g stroke="#232f3e" stroke-width="1.6" stroke-dasharray="6 5" fill="none" opacity="0.55">
+    <line x1="196" y1="25" x2="176" y2="150" />
+    <line x1="176" y1="150" x2="40" y2="216" />
+    <line x1="176" y1="150" x2="360" y2="196" />
+  </g>
+  <!-- cluster one -->
+  <g fill="#a16207" stroke="#232f3e" stroke-width="0.8">
+    <circle cx="92" cy="84" r="4.5" /><circle cx="120" cy="66" r="4.5" />
+    <circle cx="74" cy="118" r="4.5" /><circle cx="128" cy="108" r="4.5" />
+    <circle cx="102" cy="140" r="4.5" /><circle cx="66" cy="70" r="4.5" />
+    <circle cx="146" cy="86" r="4.5" /><circle cx="94" cy="52" r="4.5" />
+  </g>
+  <!-- cluster two -->
+  <g fill="#ca8a04" stroke="#232f3e" stroke-width="0.8">
+    <circle cx="268" cy="70" r="4.5" /><circle cx="300" cy="90" r="4.5" />
+    <circle cx="252" cy="102" r="4.5" /><circle cx="318" cy="60" r="4.5" />
+    <circle cx="288" cy="124" r="4.5" /><circle cx="330" cy="110" r="4.5" />
+    <circle cx="246" cy="56" r="4.5" /><circle cx="308" cy="140" r="4.5" />
+  </g>
+  <!-- cluster three -->
+  <g fill="#713f12" stroke="#232f3e" stroke-width="0.8">
+    <circle cx="176" cy="216" r="4.5" /><circle cx="208" cy="238" r="4.5" />
+    <circle cx="152" cy="244" r="4.5" /><circle cx="228" cy="210" r="4.5" />
+    <circle cx="190" cy="258" r="4.5" /><circle cx="146" cy="212" r="4.5" />
+    <circle cx="216" cy="184" r="4.5" /><circle cx="170" cy="188" r="4.5" />
+  </g>
+  <!-- the centres: rotated-square diamonds, the article's marker -->
+  <g fill="#232f3e" stroke="#ffffff" stroke-width="2">
+    <rect x="94" y="82" width="15" height="15" transform="rotate(45 101 90)" />
+    <rect x="281" y="86" width="15" height="15" transform="rotate(45 288 94)" />
+    <rect x="180" y="212" width="15" height="15" transform="rotate(45 187 220)" />
+  </g>
+  <g stroke="#232f3e" stroke-width="2">
+    <line x1="40" y1="275" x2="360" y2="275" />
+    <line x1="40" y1="275" x2="40" y2="25" />
+  </g>
+</svg>

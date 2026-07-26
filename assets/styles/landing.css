@@ -232,6 +232,13 @@ button.content-button a {
   white-space: nowrap;
 }
 
+/* On a phone the widest chips are wider than the screen; let them wrap. */
+@media (max-width: 560px) {
+  .roadmap .chip {
+    white-space: normal;
+  }
+}
+
 .roadmap .chip.live {
   background: var(--squidink);
   border-color: var(--squidink);

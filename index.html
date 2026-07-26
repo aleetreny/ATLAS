@@ -260,6 +260,63 @@
             </button>
           </div>
         </div>
+
+        <!-- card: imbalanced learning -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./imbalanced-learning/';" style="cursor: pointer">
+            <img src="assets/thumbnails/imbalanced-learning.svg"
+                 alt="Imbalanced Learning article image: a grid of common grey dots hiding three rare ones, two found in teal and one missed in crimson." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Imbalanced Learning</h2>
+            <p class="article-description">
+              Hunting the one cell in a hundred: the accuracy trap, precision
+              against recall, what SMOTE actually draws, and a measured
+              benchmark of what resampling buys and what it silently breaks.
+            </p>
+            <button class="content-button">
+              <a href="./imbalanced-learning/">Dive In</a>
+            </button>
+          </div>
+        </div>
+
+        <!-- card: calibration -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./calibration/';" style="cursor: pointer">
+            <img src="assets/thumbnails/calibration.svg"
+                 alt="Calibration article image: a reliability diagram where an overconfident curve bows far under the dashed diagonal of honesty and repaired points sit back on it." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Calibration</h2>
+            <p class="article-description">
+              A 90% that happens half the time is a lie. Reliability diagrams,
+              Platt scaling and isotonic regression running live: repairing
+              broken probabilities, and the thing repair can never buy.
+            </p>
+            <button class="content-button">
+              <a href="./calibration/">Dive In</a>
+            </button>
+          </div>
+        </div>
+
+        <!-- card: k-means -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./kmeans/';" style="cursor: pointer">
+            <img src="assets/thumbnails/kmeans.svg"
+                 alt="K-Means article image: three gold clusters of points with diamond centres and dashed straight borders dividing their territories." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">K-Means</h2>
+            <p class="article-description">
+              Clustering without a teacher: Lloyd's loop running live, the
+              initialisation lottery that k-means++ fixes, choosing k when
+              nobody tells you, and the three shapes of data that break it.
+            </p>
+            <button class="content-button">
+              <a href="./kmeans/">Dive In</a>
+            </button>
+          </div>
+        </div>
       </div>
 
       <details class="roadmap" open>
@@ -284,8 +341,8 @@
             <span class="chip live"><a href="./geometric-classification/">SVM · LDA · QDA</a></span>
             <span class="chip">Kernel Discriminant Analysis</span>
             <span class="chip live"><a href="./trees-and-ensembles/">Decision Trees · Random Forest · ExtraTrees</a></span>
-            <span class="chip">SMOTE · ADASYN</span>
-            <span class="chip">Calibration</span>
+            <span class="chip live"><a href="./imbalanced-learning/">SMOTE · ADASYN</a></span>
+            <span class="chip live"><a href="./calibration/">Calibration</a></span>
           </div>
         </div>
         <div class="branch">
@@ -317,7 +374,7 @@
         <div class="branch">
           <h4>2.1 Clustering</h4>
           <div class="chips">
-            <span class="chip">K-Means</span>
+            <span class="chip live"><a href="./kmeans/">K-Means</a></span>
             <span class="chip">K-Medoids · K-Modes</span>
             <span class="chip">DBSCAN · HDBSCAN</span>
             <span class="chip">OPTICS · Mean Shift</span>

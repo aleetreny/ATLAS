@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Imbalanced Learning | ATLAS</title>
+  <meta name="description" content="A visual, interactive tour of learning from imbalanced data: why 99% accuracy can mean a useless model, precision against recall, ROC against precision-recall, what SMOTE actually draws, and a measured benchmark showing what resampling buys and what it silently destroys." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/imbalanced-learning/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="Imbalanced Learning | ATLAS" />
+  <meta property="og:description" content="A visual, interactive tour of learning from imbalanced data: why 99% accuracy can mean a useless model, precision against recall, ROC against precision-recall, what SMOTE actually draws, and a measured benchmark showing what resampling buys and what it silently destroys." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/imbalanced-learning/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Imbalanced Learning | ATLAS" />
+  <meta name="twitter:description" content="A visual, interactive tour of learning from imbalanced data: why 99% accuracy can mean a useless model, precision against recall, ROC against precision-recall, what SMOTE actually draws, and a measured benchmark showing what resampling buys and what it silently destroys." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    /* Per-article theme. Everything else inherits from these two. */
+    :root {
+      --primary: #0f766e;
+      --secondary: #115e59;
+    }
+    /* Width only: a margin here would override .interactive-full's rhythm. */
+    .narrow-widget {
+      max-width: 800px;
+    }
+    .imb-table {
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      margin-top: 0.5rem;
+      width: 100%;
+    }
+    .imb-table th,
+    .imb-table td {
+      padding: 5px 10px 5px 0;
+      text-align: left;
+      font-weight: 400;
+    }
+    .imb-table th {
+      font-family: var(--font-heavy);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .imb-table td:first-child {
+      opacity: 0.75;
+    }
+  </style>
+</head>
+<body>
+  <!-- ======================= chrome ======================= -->
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <!-- ======================= hero ======================= -->
+  <section id="intro">
+    <h1 id="intro-hed">Imbalanced Learning</h1>
+    <h1 id="intro-sub">Ninety-nine percent accurate and completely useless: hunting 1,099 trees across 109,880 cells of forest</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 1.2 · Classification · Imbalance</span>
+  </section>
+
+  <br />
+
+  <!-- ======================= introduction ======================= -->
+  <section>
+    <p class="body-text">
+      Roosevelt National Forest, Colorado, mapped as
+      <span class="bold">581,012</span> cells of thirty by thirty metres, each
+      one labelled with the tree species that dominates it. The rarest label in
+      the entire forest is cover type 4, <span class="bold">cottonwood and
+      willow</span>: 2,747 cells, or 0.47% of everything. It is a riparian
+      species, and it will matter later that it only grows low and close to
+      water.
+    </p>
+    <br />
+    <p class="body-text">
+      The task of this article is the task of every fraud team, tumour screen
+      and defect detector: <i>find the rare thing</i>. To keep every experiment
+      on this page under a minute, the majority classes are thinned to make the
+      prevalence a round 1%, keeping all 2,747 positives among 274,700 cells.
+      Nothing about the phenomenon changes; only the wait does. A 60/40 split
+      leaves 164,820 cells for training (1,648 positive) and
+      <span class="bold">109,880 for the test set, of which 1,099</span> are the
+      tree we are hunting.
+    </p>
+    <br />
+    <p class="body-text">
+      Every habit this atlas has built so far was formed on balanced problems,
+      and on a problem like this one the habits turn treacherous. Accuracy
+      becomes a lie. The default decision threshold becomes a policy nobody
+      chose. And the most popular fixes, the resampling tricks with the
+      memorable names, buy their headline number by quietly breaking something
+      this atlas has spent three articles learning to care about. All of it is
+      measured here, on this forest, with the repo's own from-scratch samplers.
+    </p>
+  </section>
+
+  <!-- ======================= scrolly: the trap ======================= -->
+  <section>
+    <h1 class="body-header">The Accuracy Trap</h1>
+    <p class="body-text">
+      Before any model, look at the problem. Each dot below stands for roughly
+      eleven cells of the held-out test set; the teal ones are the cottonwood
+      stands. All the numbers are the real ones.
+    </p>
+  </section>
+
+  <section id="trap-scrolly" class="scrolly">
+    <div class="scrolly-container">
+      <div class="steps-container">
+        <div class="step" data-index="0">
+          <div class="step-content">
+            <h3>One in a Hundred</h3>
+            <p>
+              This is what 1% prevalence looks like: a hundred teal dots adrift
+              in ten thousand. Cover your screen with your palm almost anywhere
+              and you cover no tree at all. Any model that answers this question
+              spends nearly all of its life looking at grey.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="1">
+          <div class="step-content">
+            <h3>The Laziest Possible Model</h3>
+            <p>
+              A classifier that answers "not the tree" every single time, for
+              every cell, scores <span class="bold">99.00% accuracy</span>. It
+              finds none of the 1,099 stands. Zero. The score that graded every
+              classifier in the last three articles just awarded a near-perfect
+              grade to a rule that never once did the only job it was given.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="2">
+          <div class="step-content">
+            <h3>A Real Model Barely Moves It</h3>
+            <p>
+              Logistic regression on all 54 terrain features, read at the
+              default 0.5 threshold: <span class="bold">99.33%</span> accurate.
+              A third of a point above never-say-tree. Yet inside that sliver
+              the picture changed completely: 576 stands found, 523 still
+              missed, 216 false alarms. Accuracy compressed all of that into
+              nothing.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="3">
+          <div class="step-content">
+            <h3>Ask Two Questions Instead</h3>
+            <p>
+              <span class="bold">Precision</span>: when it says tree, how often
+              is it right? 576 of 792 alarms are real: 72.7%.
+              <span class="bold">Recall</span>: of the real trees, how many did
+              it find? 576 of 1,099: 52.4%. Both are about the rare class only,
+              so neither can be bribed by the grey ocean. Every serious decision
+              on this page is a negotiation between these two.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="4">
+          <div class="step-content">
+            <h3>Nothing About 0.5 Is Sacred</h3>
+            <p>
+              The model does not output "tree" or "not tree". It outputs a
+              probability, and 0.5 is just the cut nobody chose. Slide the cut
+              down and recall climbs while precision falls; slide it up and the
+              reverse. The whole trade is yours to pick, and the next section
+              hands you the dial.
+            </p>
+          </div>
+        </div>
+        <div class="step-spacer"></div>
+      </div>
+      <div class="charts-container">
+        <div class="chart-wrap" id="trap-chart"></div>
+      </div>
+    </div>
+  </section>
+
+  <hr />
+
+  <!-- ======================= threshold ======================= -->
+  <section>
+    <h1 class="body-header">One Model, Sixty-Three Thresholds</h1>
+    <p class="body-text">
+      The same fitted logistic, the same 109,880 test cells, and only the
+      decision cut moving. At \(t = 0.005\) it becomes a screening tool: 1,097
+      of 1,099 trees caught, at the price of 5,203 false alarms, roughly five
+      wasted field checks for every real find. At \(t = 0.95\) it becomes a
+      sniper: every one of its 25 alarms is a real tree, and 1,074 stands go
+      unfound. The F1 score, the harmonic mean of precision and recall, peaks
+      at \(t = 0.258\) with 0.683. None of these is "the correct" threshold.
+      Screening for tumours wants one end; triggering expensive audits wants the
+      other. The dataset cannot make that call, only the cost of each mistake
+      can.
+    </p>
+  </section>
+
+  <div class="interactive-container" id="thr-widget">
+    <div class="equations-panel">
+      <div class="controls-row">
+        <span class="slider-label">threshold t = <span class="value" id="thr-label">0.5</span></span>
+      </div>
+      <div class="controls-row">
+        <input type="range" class="atlas-range" id="thr-slider" aria-label="decision threshold" min="0" max="62" step="1" value="47" />
+      </div>
+      <div class="controls-row">
+        <button class="atlas-btn ghost" id="thr-screen">screen</button>
+        <button class="atlas-btn ghost" id="thr-f1">best F1</button>
+        <button class="atlas-btn ghost" id="thr-default">default 0.5</button>
+        <button class="atlas-btn ghost" id="thr-sniper">no false alarms</button>
+      </div>
+      <div id="thr-stats"></div>
+    </div>
+    <div class="chart-panel" id="thr-chart"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= roc vs pr ======================= -->
+  <section>
+    <h1 class="body-header">Two Curves, Two Very Different Stories</h1>
+    <p class="body-text">
+      Sweep the threshold from one end to the other and you trace a curve. The
+      classical one is <span class="bold">ROC</span>: recall (how many trees
+      found) against the false positive <i>rate</i> (false alarms as a share of
+      all 108,781 negatives). Summarised by the area under it, this model
+      scores <span class="bold">AUROC 0.996</span>. Frame it and hang it on the
+      wall.
+    </p>
+    <br />
+    <p class="body-text">
+      Now the same predictions on the <span class="bold">precision-recall</span>
+      plane: <span class="bold">AUPRC 0.723</span>. Same model, same test set,
+      same sweep. The difference is the denominator. At the threshold where
+      recall hits 0.99, there are 4,397 false alarms: divided by 108,781
+      negatives that is a false positive rate of 0.04, a barely visible nudge
+      on the ROC's x-axis. Divided by the 5,486 alarms actually raised, it
+      means <span class="bold">only one alarm in five is a real tree</span>,
+      and the PR curve says so out loud. ROC measures the ocean; PR measures
+      your alarm queue. When the classes are imbalanced, the queue is what you
+      live with, and the near-perfect AUROC is how imbalanced models get
+      shipped.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="curves-widget">
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">threshold t = <span class="value" id="cur-label">0.5</span></span>
+      <input type="range" class="atlas-range" id="cur-slider" aria-label="threshold along both curves" min="0" max="62" step="1" value="47" />
+    </div>
+    <div id="cur-chart"></div>
+    <div class="widget-readout" id="cur-readout"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= resampling geometry ======================= -->
+  <section>
+    <h1 class="body-header">Making the Rare Thing Common</h1>
+    <p class="body-text">
+      The oldest instinct on an imbalanced problem is to fix the data instead
+      of the threshold: feed the model a diet where the rare class is not rare.
+      <span class="bold">Undersampling</span> throws away negatives until the
+      classes match. <span class="bold">Oversampling</span> photocopies the
+      positives. And <span class="bold">SMOTE</span>, the famous one, draws new
+      synthetic positives along the straight lines between a real positive and
+      its nearest positive neighbours, on the theory that between two
+      cottonwood stands lies more cottonwood habitat.
+    </p>
+    <br />
+    <p class="body-text">
+      Below is what that actually looks like, on the two features that matter
+      most for a riparian tree: elevation and distance to the nearest water.
+      The positives huddle low and wet, between 1,996 and 2,520 metres and
+      never more than 543 metres from water. Watch where each method puts its
+      extra mass, because the geometry is the honest part: photocopies add
+      weight and zero information, while SMOTE's segments genuinely fill the
+      habitat band, and also cheerfully cut through regions where the grey
+      majority lives, planting synthetic trees on dry ground. Every synthetic
+      point here is generated live by this page's own SMOTE, the same recipe as
+      the repo's <code>ScratchSMOTE</code>.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="smote-widget">
+    <div class="controls-row" style="justify-content: center">
+      <button class="atlas-btn" id="sm-none">the data as it is</button>
+      <button class="atlas-btn ghost" id="sm-copy">oversampling: photocopies</button>
+      <button class="atlas-btn ghost" id="sm-smote">SMOTE: interpolation</button>
+    </div>
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">extra positives: <span class="value" id="sm-label">700</span></span>
+      <input type="range" class="atlas-range" id="sm-slider" aria-label="number of extra positive samples" min="100" max="1400" step="100" value="700" />
+    </div>
+    <div id="sm-chart"></div>
+    <div class="widget-readout" id="sm-readout"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= benchmark ======================= -->
+  <section>
+    <h1 class="body-header">Six Interventions, One Honest Benchmark</h1>
+    <p class="body-text">
+      Same logistic regression, same 109,880-cell test set, six training diets:
+      untouched data, class weights (each rare mistake costs 99 common ones),
+      random undersampling, random oversampling, SMOTE and ADASYN. The scratch
+      SMOTE was cross-checked against the <code>imbalanced-learn</code>
+      library's: their AUPRC differs by 0.0012, different random draws of the
+      same recipe. Pick a metric and watch the story change.
+    </p>
+    <br />
+    <p class="body-text">
+      Read the metrics in order and a pattern appears. At the fixed 0.5
+      threshold, every intervention sends recall from 0.52 to above 0.99, which
+      looks like a miracle. Precision pays for all of it, collapsing from 0.73
+      to roughly 0.22. But the ranking metrics barely move, and AUPRC actually
+      <i>drops</i> under every single intervention. The miracle was an illusion
+      of the threshold: rebalancing the training set teaches the model the
+      rare class is common, which shifts every probability upward, which is
+      just the previous widget's slider wearing a disguise. The recall you
+      bought with SMOTE at 0.5 was available from the untouched model at
+      \(t = 0.01\), for free, without retraining.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="bench-widget">
+    <div class="controls-row" style="justify-content: center" id="bench-buttons"></div>
+    <div id="bench-chart"></div>
+    <div class="widget-readout" id="bench-readout"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= calibration punchline ======================= -->
+  <section>
+    <h1 class="body-header">What Resampling Silently Destroys</h1>
+    <p class="body-text">
+      There is one place the damage is not subtle. The
+      <a href="../probabilistic-classification/">probabilistic classification
+      article</a> made the case that a good classifier's probabilities should
+      <i>mean something</i>: of the cells given 30%, about 30% should really be
+      the tree. The chart below tests that promise, method by method, by
+      binning the test predictions and comparing what was claimed against what
+      was true.
+    </p>
+    <br />
+    <p class="body-text">
+      The untouched baseline keeps its word almost perfectly: it reports an
+      average probability of 0.97% in a world where the true rate is 1.00%,
+      and its confident calls come true. Every intervention breaks the promise
+      the same way and for the same reason: a model trained at 50% prevalence
+      believes the world is half cottonwood. Class weights report an average
+      probability of 4.2%; the resamplers, 4.0% to 4.5%. Four times reality.
+      Worse, the confident calls rot: of the cells class weights marks as
+      90%+ certain, <span class="bold">only 41% are actually the tree</span>.
+      The Brier score, squared error on probabilities, comes out five to six
+      times worse for every intervention than for the baseline.
+    </p>
+    <br />
+    <p class="body-text">
+      This is the quiet cost nobody's tutorial mentions: resampling converts a
+      well-calibrated model into a confident liar, in exchange for a threshold
+      move you could have made honestly. If you only ever consume the yes/no
+      decision at one fixed operating point, that may be a price worth paying.
+      The moment anything downstream reads the probability itself, an expected
+      cost, a triage queue, a risk report, it is not.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="rel-widget">
+    <div class="controls-row" style="justify-content: center" id="rel-buttons"></div>
+    <div id="rel-chart"></div>
+    <div class="widget-readout" id="rel-readout"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= verdict ======================= -->
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text">
+      The benchmark's lesson, condensed into the decisions you actually face.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Situation</th>
+          <th>Do this</th>
+          <th>Why</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">Reporting results</span></td>
+          <td>Precision, recall and AUPRC, never accuracy alone</td>
+          <td>Accuracy gave 99.00% to a model that found nothing. AUPRC is the summary that felt the imbalance.</td>
+          <td>AUROC of 0.996 on this very page describes the same model as AUPRC 0.723.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">You need more recall</span></td>
+          <td>Move the threshold first</td>
+          <td>Free, instant, honest: t = 0.01 gives recall 0.99 from the untouched model, no retraining.</td>
+          <td>Someone still has to choose the operating point, and that is a cost decision, not a data one.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Tempted by resampling</span></td>
+          <td>Know what you are buying</td>
+          <td>Measured here: AUPRC dropped under all five interventions (0.72 to 0.60-0.67). The recall jump was an implicit threshold shift.</td>
+          <td>Stronger claims exist for weak learners on tiny minorities; for a linear model on 165k rows, nothing was gained.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Anything reads the probabilities</span></td>
+          <td>Do not resample, or recalibrate after</td>
+          <td>Every intervention reported a ~4% base rate in a 1% world and Brier got five to six times worse.</td>
+          <td>The damage is invisible in recall and AUROC, the two numbers most tutorials print.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Training cost hurts</span></td>
+          <td>Undersampling, eyes open</td>
+          <td>3,296 rows instead of 164,820: it fitted in 0.03s against the baseline's 0.6s and SMOTE's 2.28s.</td>
+          <td>It pays with the biggest variance: here it cost 0.11 of AUPRC against the baseline.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text">
+      One loose end remains, and it is the biggest one. The baseline's
+      probabilities survived this article because logistic regression was left
+      alone on data whose prevalence was real. But the five broken models are
+      not hopeless: a model that is consistently four times too confident is
+      wrong in a <i>fixable</i> way. Repairing probabilities after the fact,
+      with a held-out set and two classical tools, is the entire subject of the
+      <a href="../calibration/">next article</a>, which closes this module by
+      finishing the story these reliability curves started.
+    </p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! Every number in this article, every curve, every
+      confusion matrix cell, was measured by
+      <code>src/utils/generate_imbalanced_data.py</code> on the real Forest
+      Covertypes data, using the repo's own scratch samplers, and the SMOTE
+      you watched draw segments runs live in this page's JavaScript.
+    </p>
+  </section>
+
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text">
+      The benchmark fits scikit-learn 1.8.0 logistic regressions (seed 17
+      throughout); undersampling, oversampling and SMOTE come from the repo's
+      <code>src/models/imbalanced_learning.py</code>, ADASYN from
+      imbalanced-learn 0.14.2, with the scratch SMOTE cross-checked against the
+      library implementation on the same data.
+    </p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://www.jair.org/index.php/jair/article/view/10302">[1] SMOTE: Synthetic Minority Over-sampling Technique</a><br />
+      (Chawla, N. et al., Journal of Artificial Intelligence Research, 2002)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://ieeexplore.ieee.org/document/4633969">[2] ADASYN: Adaptive Synthetic Sampling Approach for Imbalanced Learning</a><br />
+      (He, H. et al., IEEE IJCNN, 2008)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0118432">[3] The Precision-Recall Plot Is More Informative than the ROC Plot on Imbalanced Datasets</a><br />
+      (Saito, T. &amp; Rehmsmeier, M., PLOS ONE, 2015)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://dl.acm.org/doi/10.1145/1143844.1143874">[4] The Relationship Between Precision-Recall and ROC Curves</a><br />
+      (Davis, J. &amp; Goadrich, M., ICML, 2006)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://archive.ics.uci.edu/dataset/31/covertype">[5] The Forest Covertypes Dataset</a><br />
+      (Blackard, J. &amp; Dean, D., UCI Machine Learning Repository, 581,012 cells of Roosevelt National Forest)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://imbalanced-learn.org/">[6] imbalanced-learn</a><br />
+      (the reference library for resampling methods, used here to cross-check the scratch implementations)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>

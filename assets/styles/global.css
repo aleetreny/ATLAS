@@ -231,6 +231,8 @@ code {
   background: var(--stone);
   padding: 0.1em 0.35em;
   font-size: 0.9em;
+  /* Long paths like src/utils/generate_x.py must break on phones. */
+  overflow-wrap: anywhere;
 }
 
 /* KaTeX sizing inside body text */
@@ -373,6 +375,8 @@ code {
   border-left: 4px solid var(--primary);
   font-size: 14px;
   line-height: 1.45;
+  /* Mono-font readout tables can exceed a phone screen; scroll, not bleed. */
+  overflow-x: auto;
 }
 
 .widget-readout .slider-label {
@@ -616,7 +620,9 @@ a.on-end {
 
 @media (max-width: 950px) {
   #intro-hed {
-    font-size: 3.1rem;
+    /* The vw term keeps one-word titles (REGULARIZATION) inside a phone
+     * viewport; the cap keeps tablets at the old size. */
+    font-size: clamp(1.8rem, 8.5vw, 3.1rem);
   }
 
   .body-text,

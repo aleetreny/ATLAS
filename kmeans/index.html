@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>K-Means | ATLAS</title>
+  <meta name="description" content="A visual, interactive introduction to k-means clustering: Lloyd's algorithm running live, why initialisation decides everything and how k-means++ fixes it, how to choose k when nobody tells you, and the three shapes of data that break the algorithm entirely." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/kmeans/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="K-Means | ATLAS" />
+  <meta property="og:description" content="A visual, interactive introduction to k-means clustering: Lloyd's algorithm running live, why initialisation decides everything and how k-means++ fixes it, how to choose k when nobody tells you, and the three shapes of data that break the algorithm entirely." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/kmeans/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="K-Means | ATLAS" />
+  <meta name="twitter:description" content="A visual, interactive introduction to k-means clustering: Lloyd's algorithm running live, why initialisation decides everything and how k-means++ fixes it, how to choose k when nobody tells you, and the three shapes of data that break the algorithm entirely." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    /* Per-article theme. Everything else inherits from these two. */
+    :root {
+      --primary: #a16207;
+      --secondary: #713f12;
+    }
+    /* Width only: a margin here would override .interactive-full's rhythm. */
+    .stacked-charts {
+      max-width: 720px;
+    }
+    .narrow-widget {
+      max-width: 800px;
+    }
+    .km-table {
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      margin-top: 0.5rem;
+      width: 100%;
+    }
+    .km-table th,
+    .km-table td {
+      padding: 5px 10px 5px 0;
+      text-align: left;
+      font-weight: 400;
+    }
+    .km-table th {
+      font-family: var(--font-heavy);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .km-table td:first-child {
+      opacity: 0.75;
+    }
+  </style>
+</head>
+<body>
+  <!-- ======================= chrome ======================= -->
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <!-- ======================= hero ======================= -->
+  <section id="intro">
+    <h1 id="intro-hed">K-Means</h1>
+    <h1 id="intro-sub">Clustering without a teacher: two alternating steps, and everything that follows from them</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 2.1 · Clustering</span>
+  </section>
+
+  <br />
+
+  <!-- ======================= introduction ======================= -->
+  <section>
+    <p class="body-text">
+      Every one of the eleven articles before this one had an answer key. A price, a
+      diagnosis, a cover type: some column of truth to fit against, and every
+      model was graded on how well it reproduced it. This module throws the
+      answer key away.
+    </p>
+    <br />
+    <p class="body-text">
+      <span class="bold">Unsupervised learning</span> gets a pile of evidence and
+      no verdicts, and the first question it asks is the most natural one there
+      is: <i>do these points come in groups?</i> Customers, cells, documents,
+      pixels. Nobody labels them. Something still structures them.
+    </p>
+    <br />
+    <p class="body-text">
+      K-means is the oldest, fastest and most-used answer, and it is two steps
+      in a loop. Guess where the group centres are. Assign every point to its
+      nearest centre. Move each centre to the middle of its points. Repeat until
+      nothing moves. That loop runs live in this page, every run of it, in about
+      thirty lines of JavaScript.
+    </p>
+    <br />
+    <p class="body-text">
+      The catch is that the loop always converges and never promises to converge
+      anywhere good. Where it lands depends on where it started, which turns a
+      clean algorithm into a lottery, and the fix for that lottery,
+      <span class="bold">k-means++</span>, is measured here across three hundred
+      restarts. Then the two questions everyone actually hits: how do you choose
+      \(k\) when nobody tells you, and what shapes of data quietly break the
+      whole idea. And at the end, the honest test: the 178 wines from the
+      <a href="../classical-regression/">first article</a>, clustered blind,
+      against cultivar labels the algorithm never saw.
+    </p>
+  </section>
+
+  <!-- ======================= scrolly: lloyd ======================= -->
+  <section>
+    <h1 class="body-header">Two Steps, Repeated</h1>
+    <p class="body-text">
+      Three hundred points with three visible groups. The algorithm does not know
+      that. It knows only distances, and the number three, which we gave it.
+    </p>
+  </section>
+
+  <section id="lloyd-scrolly" class="scrolly">
+    <div class="scrolly-container">
+      <div class="steps-container">
+        <div class="step" data-index="0">
+          <div class="step-content">
+            <h3>No Labels Anywhere</h3>
+            <p>
+              This is what the algorithm sees: coordinates, and nothing else. No
+              colours, no answer key. Before scrolling on, decide for yourself
+              where the three groups are, because in a moment you can check the
+              machine against your eyes.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="1">
+          <div class="step-content">
+            <h3>Guess Three Centres</h3>
+            <p>
+              Drop three centres at random data points. This is the entire
+              initialisation of classic k-means, and it is the step everything
+              else in this article comes back to, because these three guesses
+              are terrible and one cluster has been given two of them.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="2">
+          <div class="step-content">
+            <h3>Step One: Assign</h3>
+            <p>
+              Every point joins its nearest centre, which carves the plane into
+              territories with straight-line borders. The colouring you see is
+              not a model of the data. It is a map of <i>who is closest to
+              whom</i>, and at this stage it is visibly wrong.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="3">
+          <div class="step-content">
+            <h3>Step Two: Update</h3>
+            <p>
+              Each centre moves to the mean of the points it just claimed. The
+              crowded centre gets pulled toward the mass it owns, the stranded
+              one drifts toward whatever it can reach. Nothing clever happened:
+              two averages and a move.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="4">
+          <div class="step-content">
+            <h3>Loop</h3>
+            <p>
+              Assign, update, assign, update. Watch the borders sweep across the
+              contested ground and settle. Each full pass can only ever
+              <span class="bold">lower</span> the total squared distance, which
+              is why the loop must stop: a number that only falls and cannot go
+              below zero has nowhere to go forever.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="5">
+          <div class="step-content">
+            <h3>Converged</h3>
+            <p>
+              Nothing moves any more. The final grouping agrees with the eye,
+              and the browser's inertia matches scikit-learn's reference answer
+              for this dataset to the decimal shown below the chart. Keep that
+              number in mind: the next section is about runs where it comes out
+              four times worse.
+            </p>
+          </div>
+        </div>
+        <div class="step-spacer"></div>
+      </div>
+      <div class="charts-container">
+        <div class="chart-wrap" id="lloyd-chart"></div>
+      </div>
+    </div>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the objective ======================= -->
+  <section>
+    <h1 class="body-header">What Is Being Minimised</h1>
+    <p class="body-text">
+      The loop is not arbitrary. Both steps are coordinate descent on one
+      quantity, the <span class="bold">inertia</span>: the sum of squared
+      distances from every point to its assigned centre.
+    </p>
+    <p class="body-text">
+      $$ J \;=\; \sum_{i=1}^{n} \big\lVert x_i - \mu_{c(i)} \big\rVert^2 $$
+    </p>
+    <p class="body-text">
+      Hold the centres fixed, and the assignment that minimises \(J\) is
+      "nearest centre", which is step one. Hold the assignments fixed, and the
+      centre that minimises \(J\) for a group is its mean, which is step two.
+      Each step lowers \(J\) or leaves it alone, so the loop terminates. That is
+      the entire convergence proof, and note what it does not say: nothing about
+      <i>which</i> resting place you reach. \(J\) has many local minima, and
+      Lloyd's loop stops at whichever one is downhill from the start.
+    </p>
+    <br />
+    <p class="body-text">
+      Two consequences hide in that formula and both will matter later. Squared
+      Euclidean distance means the centre is a <i>mean</i>, and means chase
+      outliers. And distance treats every direction alike, which is a quiet
+      assumption that the groups are round. Neither is a bug. Both are choices,
+      and the failure gallery below is what happens when the world declines
+      them.
+    </p>
+    <br />
+    <p class="body-text">
+      Run the loop yourself. One button per step, or let it run; the inertia
+      readout only ever falls.
+    </p>
+  </section>
+
+  <div class="interactive-container" id="step-widget">
+    <div class="equations-panel">
+      <div class="controls-row">
+        <button class="atlas-btn" id="st-assign">Assign</button>
+        <button class="atlas-btn" id="st-update">Update</button>
+        <button class="atlas-btn ghost" id="st-run">Run to convergence</button>
+      </div>
+      <div class="controls-row">
+        <button class="atlas-btn ghost" id="st-reseed">New random start</button>
+      </div>
+      <div id="st-stats"></div>
+    </div>
+    <div class="chart-panel" id="st-chart"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= init ======================= -->
+  <section>
+    <h1 class="body-header">The Lottery of the First Guess</h1>
+    <p class="body-text">
+      Press "new random start" above a few times and you will eventually see it:
+      two centres landing in one cluster, splitting it, while two real clusters
+      share a single centre. The loop converges, the inertia stops falling, and
+      the answer is wrong. Converged does not mean correct.
+    </p>
+    <br />
+    <p class="body-text">
+      Measured over <span class="bold">300 restarts</span> on this data, purely
+      random initialisation finds the good answer 92% of the time. The other 8%
+      of runs land in bad basins, the worst of them at an inertia of
+      <span class="bold">2,134</span> against the true optimum's
+      <span class="bold">502</span>: four times worse, from nothing but an
+      unlucky first guess.
+    </p>
+    <br />
+    <p class="body-text">
+      <span class="bold">k-means++</span> fixes the lottery by making the guesses
+      repel each other: the first centre is a random point, and each further
+      centre is drawn with probability proportional to the <i>squared distance</i>
+      from the nearest centre already placed. Points far from every existing
+      centre are exactly where a missing cluster lives, so that is where the next
+      guess tends to land. Same loop afterwards, different opening move. Across
+      the same 300 restarts it landed in the good basin
+      <span class="bold">every single time</span>.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="init-widget">
+    <div class="controls-row" style="justify-content: center">
+      <button class="atlas-btn" id="init-both">both distributions</button>
+      <button class="atlas-btn ghost" id="init-demo">watch k-means++ choose</button>
+    </div>
+    <div id="init-chart"></div>
+    <div class="widget-readout" id="init-readout"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= choosing k ======================= -->
+  <section>
+    <h1 class="body-header">Nobody Tells You k</h1>
+    <p class="body-text">
+      We handed the algorithm the number three, which was cheating: in real
+      unsupervised work nobody knows the number of groups, and k-means will
+      happily produce whatever number you ask for. Ask for five and it will cut
+      the data into five. The question is how to notice the data disagrees.
+    </p>
+    <br />
+    <p class="body-text">
+      The classic tool is the <span class="bold">elbow</span>: fit every k, plot
+      the inertia, and look for the bend where adding a cluster stops paying.
+      The trouble is that inertia <i>always</i> falls as k grows, all the way to
+      zero at k = n, so you are squinting for a change of slope in a curve with
+      no peak. It works when the structure is blatant and turns into palm
+      reading when it is not.
+    </p>
+    <br />
+    <p class="body-text">
+      The <span class="bold">silhouette</span> asks a sharper question, per
+      point: how close am I to my own cluster, against how close I am to the
+      nearest other one? It rewards tight-and-separated, punishes both
+      over-splitting and under-splitting, and therefore actually
+      <span class="bold">peaks</span>. On this data it peaks at k = 3 with
+      0.683, and everything past 4 falls off a cliff.
+    </p>
+  </section>
+
+  <div class="interactive-full stacked-charts" id="k-widget">
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">k = <span class="value" id="k-label">3</span></span>
+      <input type="range" class="atlas-range" id="k-slider" aria-label="number of clusters k"
+             min="2" max="8" step="1" value="3" />
+    </div>
+    <div id="k-chart"></div>
+    <div class="widget-readout" id="k-readout"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= failures ======================= -->
+  <section>
+    <h1 class="body-header">Three Ways to Break It</h1>
+    <p class="body-text">
+      Everything above worked because the data was round blobs of similar size,
+      which is precisely what the squared-distance objective assumes. Here is
+      what happens when it is not, on three datasets built to violate one
+      assumption each. In every panel k-means gets the right k handed to it and
+      still fails, because the failure is in the geometry, not in the count.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="fail-widget">
+    <div class="controls-row" style="justify-content: center" id="fail-buttons"></div>
+    <div class="controls-row" style="justify-content: center">
+      <button class="atlas-btn" id="fail-km">what k-means finds</button>
+      <button class="atlas-btn ghost" id="fail-true">what is actually there</button>
+    </div>
+    <div id="fail-chart"></div>
+    <div class="widget-readout" id="fail-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text">
+      The common thread: k-means draws straight borders equidistant between
+      centres, so any structure that is not "round islands of similar spread"
+      gets carved against its grain. Stretched clusters get sliced across the
+      short axis. Rings get cut into half-moons, an ARI of -0.003 against the
+      truth: random guessing territory. A huge diffuse cluster loses its edge to a small tight
+      neighbour, because a mean-based centre cannot say "my cluster is wider
+      than yours". The models that can say that, mixtures of Gaussians with
+      their own covariances, are where this module goes next.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= wine ======================= -->
+  <section>
+    <h1 class="body-header">The Blind Test</h1>
+    <p class="body-text">
+      Synthetic blobs are a rigged demo, so here is the honest one. The 178
+      Italian wines from the <a href="../classical-regression/">first
+      article</a>: thirteen chemical measurements each, standardised, and this
+      time the cultivar column is <span class="bold">deleted</span>. K-means
+      gets coordinates and the number three, and nothing else.
+    </p>
+    <br />
+    <p class="body-text">
+      Then the reveal. Its three clusters are matched against the three
+      cultivars it never saw, and they agree on
+      <span class="bold">172 of the 178 bottles</span>, an adjusted Rand index
+      of 0.897. Six bottles sit on the wrong side of a boundary. The grouping
+      that took an agronomist a label and a season to certify is, to a first
+      approximation, already present in the chemistry, and two averages in a
+      loop found it.
+    </p>
+    <br />
+    <p class="body-text">
+      One honest caveat before the picture convinces you too much: this worked
+      because the cultivars really are three roughly-round clouds in the
+      standardised 13-dimensional space, which the previous eleven articles
+      spent a lot of ink establishing. K-means did not discover that the data
+      was clusterable. It confirmed it, cheaply. When it disagrees with a
+      labelling, that is where the interesting questions start, not where they
+      end.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="wine-widget">
+    <div class="controls-row" style="justify-content: center">
+      <button class="atlas-btn" id="wine-km">the clusters it found</button>
+      <button class="atlas-btn ghost" id="wine-true">the cultivars it never saw</button>
+      <button class="atlas-btn ghost" id="wine-diff">the six disagreements</button>
+    </div>
+    <div id="wine-chart"></div>
+    <div class="widget-readout" id="wine-readout"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= verdict ======================= -->
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text">
+      One algorithm this time, so the table is about decisions rather than
+      rivals.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Decision</th>
+          <th>Default</th>
+          <th>Why</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">Initialisation</span></td>
+          <td>k-means++, several restarts</td>
+          <td>300 measured restarts here: random hit a bad basin 8% of the time, k-means++ never did.</td>
+          <td>One restart of anything is a lottery ticket, however good the opening move.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Choosing k</span></td>
+          <td>Silhouette peak, elbow as a sanity check</td>
+          <td>Inertia always falls with k; the silhouette actually peaks, here at 3 with 0.683.</td>
+          <td>Both assume clusters k-means can represent. On rings every k is wrong.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Preprocessing</span></td>
+          <td>Standardise every feature</td>
+          <td>Distance adds coordinates; an unscaled feature in thousands owns the objective.</td>
+          <td>The wine result needs this: raw proline alone would have decided everything.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">When not to use it</span></td>
+          <td>Non-round structure, wild size ratios, outliers</td>
+          <td>Measured above: ARI 0.53 sheared, 0.00 on rings, 0.31 with unequal spreads.</td>
+          <td>It will still return k tidy clusters. Nothing in the output warns you.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text">
+      The deepest thing about this module is what disappeared with the answer
+      key: the word "wrong". A supervised model can be graded; a clustering can
+      only be judged useful, stable and consistent with what you already know.
+      That is why every claim on this page leaned on measurements, restarts and
+      a blind test rather than on a single score. It is also why the next
+      article matters: k-means gives every point to exactly one cluster with
+      total confidence, and confidence was exactly the thing this atlas has
+      spent three articles learning to distrust. A model that can say "this
+      point is probably-A-but-maybe-B" is called a mixture of Gaussians, and it
+      is where the boxes of this article grow soft edges.
+    </p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! Lloyd's loop, k-means++ and the silhouette all run
+      live in your browser in this page's own JavaScript, checked at load time
+      against scikit-learn reference results from
+      <code>src/utils/generate_kmeans_data.py</code>. The datasets are seeded,
+      so what you see is what was measured.
+    </p>
+  </section>
+
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text">
+      The initialisation experiment runs 300 single-start fits per method with
+      scikit-learn 1.8.0 (seed 19) and ships every final inertia; the browser
+      draws the distributions and re-runs the loop itself. The anisotropic
+      failure case uses the shear matrix from the scikit-learn documentation at
+      a seed where the failure genuinely occurs.
+    </p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://ieeexplore.ieee.org/document/1056489">[1] Least Squares Quantization in PCM</a><br />
+      (Lloyd, S., IEEE Transactions on Information Theory, 1982; the memo dates to 1957)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://dl.acm.org/doi/10.5555/1283383.1283494">[2] k-means++: The Advantages of Careful Seeding</a><br />
+      (Arthur, D. &amp; Vassilvitskii, S., SODA, 2007)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://www.sciencedirect.com/science/article/pii/0377042787901257">[3] Silhouettes: A Graphical Aid to the Interpretation and Validation of Cluster Analysis</a><br />
+      (Rousseeuw, P., Journal of Computational and Applied Mathematics, 1987)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://link.springer.com/article/10.1007/BF01908075">[4] Comparing Partitions</a><br />
+      (Hubert, L. &amp; Arabie, P., Journal of Classification, 1985; the adjusted Rand index)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://archive.ics.uci.edu/dataset/109/wine">[5] The Wine Recognition Dataset</a><br />
+      (Forina, M. et al., UCI Machine Learning Repository, 178 samples, 3 cultivars)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>

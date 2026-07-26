@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Calibration | ATLAS</title>
+  <meta name="description" content="A visual, interactive guide to probability calibration: reliability diagrams built step by step, four models that lie in four different ways, Platt scaling and isotonic regression running live in the browser, and the measured difference between being honest and being useful." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/calibration/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="Calibration | ATLAS" />
+  <meta property="og:description" content="A visual, interactive guide to probability calibration: reliability diagrams built step by step, four models that lie in four different ways, Platt scaling and isotonic regression running live in the browser, and the measured difference between being honest and being useful." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/calibration/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Calibration | ATLAS" />
+  <meta name="twitter:description" content="A visual, interactive guide to probability calibration: reliability diagrams built step by step, four models that lie in four different ways, Platt scaling and isotonic regression running live in the browser, and the measured difference between being honest and being useful." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    /* Per-article theme. Everything else inherits from these two. */
+    :root {
+      --primary: #9f1239;
+      --secondary: #881337;
+    }
+    /* Width only: a margin here would override .interactive-full's rhythm. */
+    .narrow-widget {
+      max-width: 800px;
+    }
+    .cal-table {
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      margin-top: 0.5rem;
+      width: 100%;
+    }
+    .cal-table th,
+    .cal-table td {
+      padding: 5px 10px 5px 0;
+      text-align: left;
+      font-weight: 400;
+    }
+    .cal-table th {
+      font-family: var(--font-heavy);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .cal-table td:first-child {
+      opacity: 0.75;
+    }
+  </style>
+</head>
+<body>
+  <!-- ======================= chrome ======================= -->
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <!-- ======================= hero ======================= -->
+  <section id="intro">
+    <h1 id="intro-hed">Calibration</h1>
+    <h1 id="intro-sub">When a model says 90%, it should happen nine times out of ten: repairing broken probabilities</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 1.2 · Classification · Probabilities</span>
+  </section>
+
+  <br />
+
+  <!-- ======================= introduction ======================= -->
+  <section>
+    <p class="body-text">
+      The <a href="../imbalanced-learning/">previous article</a> ended with five
+      confident liars: models whose rankings were intact but whose probabilities
+      claimed a 4% world where reality held 1%. It promised the damage was
+      fixable. This article is the fix, and it is the last piece of the
+      classification story this module set out to tell, because a classifier's
+      real output was never the label. It was always the number in front of it.
+    </p>
+    <br />
+    <p class="body-text">
+      The setting is the same forest: all 2,747 cottonwood stands among 274,700
+      cells at a true prevalence of 1%. One new cut matters more than anything
+      else on this page: a quarter of the training data,
+      <span class="bold">41,205 cells</span>, is held out as a
+      <span class="bold">calibration set</span>. Both repairs below are
+      themselves fitted models, and fitting them on the data they will be
+      judged on would be the oldest sin in this atlas. So: 123,615 cells to
+      train, 41,205 to calibrate, 109,880 to keep everyone honest.
+    </p>
+    <br />
+    <p class="body-text">
+      Four patients, four different diseases. A logistic regression that tells
+      the truth out of the box. A naive Bayes so overconfident it only ever
+      says "certainly" in both directions. A random forest that knows the
+      terrain better than anything else here and mumbles about it. And the
+      SMOTE-inflated logistic carried over from last article, wrong by a
+      near-constant factor. Two classical repairs, <span class="bold">Platt
+      scaling</span> and <span class="bold">isotonic regression</span>, get
+      applied to all four, with the isotonic algorithm running live in this
+      page so you can watch it pool its way to a staircase.
+    </p>
+    <br />
+    <p class="body-text">
+      And at the end, the catch that gives this article its second half:
+      calibration can make any model honest, and honesty is not the same as
+      knowing anything. A dummy that answers "1%" forever is almost perfectly
+      calibrated. The difference between that dummy and a good model has a
+      name, a number and a decomposition, and it closes the loop this module
+      opened when the <a href="../probabilistic-classification/">first
+      classification article</a> asked what a probability is worth.
+    </p>
+  </section>
+
+  <!-- ======================= scrolly: the promise ======================= -->
+  <section>
+    <h1 class="body-header">What a Probability Promises</h1>
+    <p class="body-text">
+      A claimed probability is a testable statement about frequency. The test
+      is called a <span class="bold">reliability diagram</span>, and here is
+      one being assembled, on the real test-set claims of the SMOTE model the
+      last article broke.
+    </p>
+  </section>
+
+  <section id="promise-scrolly" class="scrolly">
+    <div class="scrolly-container">
+      <div class="steps-container">
+        <div class="step" data-index="0">
+          <div class="step-content">
+            <h3>The Claims</h3>
+            <p>
+              For every one of the 109,880 held-out cells, the model states a
+              probability that the tree is there. Group the claims into ten
+              bands. Nearly 104,000 cells hear "under 10%", and 2,348 hear
+              "over 90%". Each claim is a promise about how often the tree
+              should turn out to be real.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="1">
+          <div class="step-content">
+            <h3>The Audit</h3>
+            <p>
+              For each band, plot the average claim against the measured truth:
+              how often the tree actually stood in those cells. Ten promises,
+              ten verdicts. The claims marched up toward certainty; the
+              measured rate crawled along near zero until the very end.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="2">
+          <div class="step-content">
+            <h3>The Standard</h3>
+            <p>
+              An honest model sits on the diagonal: cells told "55%" contain
+              the tree 55% of the time. This model told 401 cells "about 55%"
+              and the true rate in them was <span class="bold">1%</span>. The
+              ranking behind these numbers is nearly perfect, which is exactly
+              what makes the lie dangerous: nothing else about the model warns
+              you.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="3">
+          <div class="step-content">
+            <h3>The Gaps</h3>
+            <p>
+              Every dashed vertical is a broken promise: claimed on one end,
+              true on the other. Note the top one: 2,348 cells told "97%"
+              where the measured rate is 42%. It is not even the longest gap
+              drawn, but weighted by the crowd that heard it, it does the most
+              damage, which is exactly where the next step goes. If a triage
+              queue, an expected cost, or a human decision reads that number,
+              it inherits the gap.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="4">
+          <div class="step-content">
+            <h3>One Number</h3>
+            <p>
+              Weight each gap by the cells that heard it and average:
+              the <span class="bold">expected calibration error</span>. This
+              model's ECE is 0.029, which reads small until you remember the
+              base rate is 0.01: the average claim is off by three times the
+              entire phenomenon. The rest of this article is about driving
+              that number to zero and what doing so cannot buy.
+            </p>
+          </div>
+        </div>
+        <div class="step-spacer"></div>
+      </div>
+      <div class="charts-container">
+        <div class="chart-wrap" id="promise-chart"></div>
+      </div>
+    </div>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the four patients ======================= -->
+  <section>
+    <h1 class="body-header">Four Ways to Get It Wrong</h1>
+    <p class="body-text">
+      Miscalibration is not one disease. The same training data produced these
+      four models, and each distorts its probabilities in its own
+      characteristic shape, for its own structural reason. The shapes matter
+      because the repair has to be able to represent the inverse of the
+      distortion: a lesson the before-and-after section below will make
+      concrete.
+    </p>
+    <br />
+    <p class="body-text">
+      Two are worth singling out. Naive Bayes multiplies 54 correlated
+      features as if they were independent witnesses, so its certainty
+      compounds until only 0 and 1 remain: ECE 0.059, the worst on the page,
+      despite a respectable AUROC of 0.970. The random forest is its opposite
+      in every way: the best ranker this forest has ever seen in this atlas,
+      AUROC <span class="bold">0.9995</span>, exactly as the
+      <a href="../trees-and-ensembles/">ensembles article</a> would predict,
+      yet its vote-share probabilities compress toward the middle from both
+      ends. Knowing and saying are different skills.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="models-widget">
+    <div class="controls-row" style="justify-content: center" id="models-buttons"></div>
+    <div id="models-chart"></div>
+    <div class="widget-readout" id="models-readout"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= the two repairs ======================= -->
+  <section>
+    <h1 class="body-header">The Two Classical Repairs</h1>
+    <p class="body-text">
+      Both repairs learn a function from the model's raw score to a corrected
+      probability, using only the calibration set. The difference is how much
+      freedom that function gets.
+    </p>
+    <br />
+    <p class="body-text">
+      <span class="bold">Platt scaling</span> assumes the distortion is a
+      stretched or shifted sigmoid and fits exactly two numbers:
+    </p>
+    <p class="body-text">
+      $$ q \;=\; \sigma\!\big(a\,z + b\big), \qquad z = \operatorname{logit}(p) $$
+    </p>
+    <p class="body-text">
+      Two parameters cannot overfit much of anything, which is Platt's whole
+      personality: fast, stable, and wrong whenever the distortion is not
+      sigmoid-shaped.
+    </p>
+    <br />
+    <p class="body-text">
+      <span class="bold">Isotonic regression</span> assumes only one thing:
+      <i>a higher score should never mean a lower probability</i>. Subject to
+      that single constraint, it finds the least-squares fit, which turns out
+      to be a staircase, and the algorithm that builds it is a small marvel
+      called <span class="bold">pool adjacent violators</span>. Sort the
+      calibration points by score, give every point its own block, and merge
+      any adjacent pair of blocks that violates the ordering, replacing both
+      with their pooled average. Repeat until nothing violates. That is the
+      entire algorithm, and it is running below on 300 real calibration cells.
+      One deliberate twist: the score being calibrated is not a model at all.
+      It is elevation plus distance to water, negated and rescaled, the
+      hand-made hunch that a riparian tree lives low and wet. Any actual model
+      from this page orders these cells almost perfectly and leaves the
+      algorithm nothing to pool; the crude score leaves real violations, and
+      it makes isotonic regression's quietest selling point concrete: it asks
+      for an ordering, not a model. The draw is balanced, half tree and half
+      not, so the merging is visible rather than pinned to the floor.
+    </p>
+  </section>
+
+  <div class="interactive-container" id="pav-widget">
+    <div class="equations-panel">
+      <div class="controls-row">
+        <button class="atlas-btn" id="pav-step">Merge once</button>
+        <button class="atlas-btn ghost" id="pav-run">Run to monotone</button>
+      </div>
+      <div class="controls-row">
+        <button class="atlas-btn ghost" id="pav-reset">Reset</button>
+      </div>
+      <div id="pav-stats"></div>
+    </div>
+    <div class="chart-panel" id="pav-chart"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= before and after ======================= -->
+  <section>
+    <h1 class="body-header">Before and After</h1>
+    <p class="body-text">
+      Every patient, every treatment, measured on the untouched test set. The
+      headline: naive Bayes goes from ECE 0.059 to
+      <span class="bold">0.0001</span> under either repair. The SMOTE model
+      drops from 0.029 to 0.0013 and its implied base rate returns from 3.9%
+      to 0.99%, closing the wound the last article opened. The random forest's
+      S-shaped mumble is the one case where the extra freedom of the staircase
+      visibly beats Platt's fixed sigmoid shape, exactly as the shapes
+      predicted.
+    </p>
+    <br />
+    <p class="body-text">
+      Watch two things that do <i>not</i> move. AUROC survives every repair,
+      because both corrections are monotone: relabelling the rungs of a ladder
+      reorders nothing (isotonic's flat treads can tie a few cells together
+      and shave a fraction of a point). And the logistic baseline is immune:
+      already on the diagonal, both repairs return it essentially unchanged,
+      which is the sound a well-specified model makes.
+    </p>
+    <br />
+    <p class="body-text">
+      The SMOTE patient has one extra button. When the distortion is a
+      <i>known</i> prior shift, trained at 50%, deployed at 1%, the exact undo
+      is arithmetic: subtract the log odds of the distortion from every logit.
+      No calibration data at all, and it lands within a whisker of the fitted
+      repairs. Breaking a model in a way you can write down is half of
+      already having fixed it.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="repair-widget">
+    <div class="controls-row" style="justify-content: center" id="repair-patients"></div>
+    <div class="controls-row" style="justify-content: center" id="repair-treatments"></div>
+    <div id="repair-chart"></div>
+    <div class="widget-readout" id="repair-readout"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= size ======================= -->
+  <section>
+    <h1 class="body-header">How Much Data Does Honesty Cost</h1>
+    <p class="body-text">
+      Holding out 41,205 cells was a luxury. The real question in practice is
+      how small the calibration set can get before the repair itself becomes
+      the unreliable part. So: repair the SMOTE logistic, the patient with the
+      most to gain, on ever-smaller slices, eleven seeded draws per size, and
+      measure the test ECE each time. The shape of this curve is the practical
+      answer to "which method, and how much data should I reserve for it".
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="size-widget">
+    <div id="size-chart"></div>
+    <div class="widget-readout" id="size-readout"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= sharpness ======================= -->
+  <section>
+    <h1 class="body-header">Calibrated Is Not the Same as Useful</h1>
+    <p class="body-text">
+      Now the catch. The dummy that answers "1%" for every cell has an ECE of
+      0.0000: it is the most honest model on this page, and it knows nothing
+      at all. Calibration is a promise about frequencies, not a measure of
+      knowledge, and a score exists that holds both at once. The Brier score
+      decomposes, bin by bin, into
+    </p>
+    <p class="body-text">
+      $$ \text{Brier} \;=\; \underbrace{\text{reliability}}_{\text{lies, penalised}}
+         \;-\; \underbrace{\text{resolution}}_{\text{knowledge, rewarded}}
+         \;+\; \underbrace{\text{uncertainty}}_{\text{the world's own noise}} $$
+    </p>
+    <p class="body-text">
+      Uncertainty is the base rate's variance, 0.0099 here: the floor nobody
+      escapes. Reliability is the calibration failure this article has been
+      repairing. Resolution measures how far the model's bins pull away from
+      the base rate: how much <i>sorting</i> of the world it actually does.
+      The repairs drove every reliability penalty toward zero. They moved
+      resolution barely at all, because no relabelling of claims can create
+      distinctions the model never made. Honest and sharp are bought in
+      different shops: sharpness in training, honesty in calibration, and a
+      model worth deploying needs both receipts.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="decomp-widget">
+    <div id="decomp-chart"></div>
+    <div class="widget-readout" id="decomp-readout"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= verdict ======================= -->
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text">
+      The whole article as the decisions it leaves you with.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Situation</th>
+          <th>Do this</th>
+          <th>Why</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">Anything reads your probabilities</span></td>
+          <td>Plot the reliability diagram before shipping</td>
+          <td>AUROC hid every disease on this page: 0.970 and 0.9995 both looked fine while ECE ran from 0.001 to 0.059.</td>
+          <td>ECE alone can hide a two-bin extremist; look at the picture, not just the number.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Choosing the repair</span></td>
+          <td>Platt when calibration data is scarce, isotonic when it is not</td>
+          <td>Two parameters against a free staircase: on the forest's S-shaped distortion isotonic won, 0.0002 against 0.0004 of ECE.</td>
+          <td>Isotonic's treads tie scores together and can shave a little AUROC; Platt never does.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">You resampled for imbalance</span></td>
+          <td>Recalibrate, or undo the prior shift analytically</td>
+          <td>The SMOTE model went from claiming 3.9% worlds to 0.98%; the pure-arithmetic logit shift got over 90% of the benefit with zero data.</td>
+          <td>The shift only works when you know the resampling ratio; SMOTE-with-cleaning variants blur it.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Where the repair is fitted</span></td>
+          <td>A held-out calibration split, never train or test</td>
+          <td>The repair is a model. Fitted on training data it inherits the optimism; fitted on test data it is a leak.</td>
+          <td>The split costs training data: here a quarter, and the models survived it fine.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Judging the result</span></td>
+          <td>Demand honesty and sharpness together</td>
+          <td>Repaired naive Bayes is honest (ECE 0.0001) and nearly useless (resolution 0.0014 against the forest's 0.0082).</td>
+          <td>A perfectly calibrated model can still be the dummy. Calibration is necessary, never sufficient.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text">
+      This closes module 1.2, and with it the atlas's account of supervised
+      classification: from the sigmoid's first principled probability, through
+      walls and kernels and forests, into imbalance, and out the other side
+      with probabilities that can be trusted because they were tested. One
+      chip in the branch stays unlit, kernel discriminant analysis, waiting
+      beside SVR the way pending things do in this project; the atlas will
+      circle back. What comes next abandons something more fundamental than a
+      technique: the <a href="../kmeans/">next article</a> throws away the
+      answer key itself, and asks what a model can find in data that nobody
+      labelled at all.
+    </p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! Every number here was measured by
+      <code>src/utils/generate_calibration_data.py</code> on the same seeded
+      forest as the previous article, and the isotonic staircase you built by
+      pressing "merge once" is checked at load time against scikit-learn's
+      answer on the same 300 points.
+    </p>
+  </section>
+
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text">
+      Models fitted with scikit-learn 1.8.0 (seed 17): logistic regression and
+      naive Bayes as in article 7, a 200-tree random forest, and the repo's
+      <code>ScratchSMOTE</code> feeding the imbalanced patient. Platt scaling
+      is a logistic regression on the model's logits; isotonic regression is
+      scikit-learn's, and the browser reimplements pool-adjacent-violators
+      from scratch for the live widget.
+    </p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://home.cs.colorado.edu/~mozer/Teaching/syllabi/6622/papers/Platt1999.pdf">[1] Probabilistic Outputs for Support Vector Machines</a><br />
+      (Platt, J., Advances in Large Margin Classifiers, 1999)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://dl.acm.org/doi/10.1145/775047.775151">[2] Transforming Classifier Scores into Accurate Multiclass Probability Estimates</a><br />
+      (Zadrozny, B. &amp; Elkan, C., KDD, 2002; isotonic calibration)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://dl.acm.org/doi/10.1145/1102351.1102430">[3] Predicting Good Probabilities with Supervised Learning</a><br />
+      (Niculescu-Mizil, A. &amp; Caruana, R., ICML, 2005; why forests mumble and boosting shouts)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://proceedings.mlr.press/v70/guo17a.html">[4] On Calibration of Modern Neural Networks</a><br />
+      (Guo, C. et al., ICML, 2017; the problem did not go away with depth)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://journals.ametsoc.org/view/journals/apme/12/4/1520-0450_1973_012_0595_anvpotp_2_0_co_2.xml">[5] A New Vector Partition of the Probability Score</a><br />
+      (Murphy, A., Journal of Applied Meteorology, 1973; the Brier decomposition)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://archive.ics.uci.edu/dataset/31/covertype">[6] The Forest Covertypes Dataset</a><br />
+      (Blackard, J. &amp; Dean, D., UCI Machine Learning Repository)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>
