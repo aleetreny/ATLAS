@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Convolutional Networks | ATLAS</title>
+  <meta name="description" content="The moment the features stopped being designed: type your own nine weights and watch them repaint a photograph, meet the six filters a network invented for itself, and measure what convolution really buys by sliding the digits until both networks fall over." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/lenet/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="Convolutional Networks | ATLAS" />
+  <meta property="og:description" content="The moment the features stopped being designed: type your own nine weights and watch them repaint a photograph, meet the six filters a network invented for itself, and measure what convolution really buys by sliding the digits until both networks fall over." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/lenet/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Convolutional Networks | ATLAS" />
+  <meta name="twitter:description" content="The moment the features stopped being designed: type your own nine weights and watch them repaint a photograph, meet the six filters a network invented for itself, and measure what convolution really buys by sliding the digits until both networks fall over." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    /* Per-article theme. Everything else inherits from these two. */
+    :root {
+      --primary: #15803d;
+      --secondary: #166534;
+    }
+    .narrow-widget {
+      max-width: 800px;
+    }
+    canvas.atlas-canvas {
+      background: var(--paper);
+      max-width: 100%;
+    }
+    /* the nine editable weights, laid out as the grid they are */
+    .kernel-pad {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    #kernel-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 62px);
+      gap: 6px;
+    }
+    .kernel-cell {
+      width: 62px;
+      padding: 6px 4px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      text-align: center;
+      color: var(--ink);
+      background: var(--paper);
+      border: 1px solid rgba(35, 47, 62, 0.35);
+      border-radius: 3px;
+    }
+    .kernel-cell:focus {
+      outline: 2px solid var(--primary);
+      outline-offset: 1px;
+      border-color: var(--primary);
+    }
+    .kernel-hint {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      opacity: 0.65;
+    }
+  </style>
+</head>
+<body>
+  <!-- ======================= chrome ======================= -->
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <!-- ======================= hero ======================= -->
+  <section id="intro">
+    <h1 id="intro-hed">Convolutional Networks</h1>
+    <h1 id="intro-sub">Nine numbers dragged across a picture: how a model stopped being told what to look for and worked it out instead</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 1.3 · Computer Vision · Learned Features</span>
+  </section>
+
+  <br />
+
+  <!-- ======================= introduction ======================= -->
+  <section>
+    <p class="body-text">
+      Everything in this branch so far has been designed by a person. HOG
+      counts gradient directions because someone decided gradient directions
+      were the thing to count. Viola-Jones compares rectangles because
+      rectangles are the shapes an integral image makes free. In both cases a
+      human chose the vocabulary and the algorithm chose only which words to
+      use.
+    </p>
+    <br />
+    <p class="body-text">
+      This article is where that stops. The operation underneath is the same
+      one those methods already used, a small grid of weights slid across the
+      image, but the weights are no longer written down by hand. They start as
+      noise and are pushed around by gradient descent until they become
+      whatever the task needed, which turns out to include an edge detector
+      nobody asked for.
+    </p>
+    <br />
+    <p class="body-text">
+      Two networks were trained for this page, on
+      <span class="bold">12,000</span> handwritten digits and tested on
+      <span class="bold">5,000</span> more. One is a convolutional network in
+      the arrangement Yann LeCun published in 1998, built from modern parts;
+      the other is an ordinary fully connected network sized so that both have
+      almost exactly the same number of parameters. Every filter, every accuracy and every collapse below is
+      what those two runs produced.
+    </p>
+  </section>
+
+  <!-- ======================= scrolly ======================= -->
+  <section>
+    <h1 class="body-header">Nine Weights, Dragged Everywhere</h1>
+    <p class="body-text">
+      Start with the operation itself, which is smaller than its reputation.
+    </p>
+  </section>
+
+  <section id="conv-scrolly" class="scrolly">
+    <div class="scrolly-container">
+      <div class="steps-container">
+        <div class="step" data-index="0">
+          <div class="step-content">
+            <h3>An Image Is a Grid of Numbers</h3>
+            <p>
+              A photograph, close enough that the pixels are visible squares.
+              Each one is a single brightness value between 0 and 1. There is
+              nothing else in there: no edges, no objects, no face, just the
+              grid.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="1">
+          <div class="step-content">
+            <h3>One Position</h3>
+            <p>
+              Put a 3 &times; 3 grid of weights over one small patch, multiply
+              each weight by the pixel underneath it, add the nine results.
+              That single number goes into the output at the position the
+              window was centred on. That is the entire operation, written out
+              below the panels.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="2">
+          <div class="step-content">
+            <h3>Every Position</h3>
+            <p>
+              Now slide the window one pixel at a time and repeat, using the
+              <i>same</i> nine weights at every stop. This is the part that
+              matters later: the weights do not know where they are, so
+              whatever they detect, they detect anywhere.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="3">
+          <div class="step-content">
+            <h3>An Edge Map, from Nine Numbers</h3>
+            <p>
+              These particular nine weights are a centre of 4 surrounded by
+              four &minus;1s. Flat regions cancel to zero and come out mid
+              grey; places where a pixel disagrees with its neighbours survive.
+              Nobody had to define what an edge is.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="4">
+          <div class="step-content">
+            <h3>Move the Input, the Output Moves</h3>
+            <p>
+              Shift the picture nine pixels and the whole edge map shifts nine
+              pixels with it. This property has a name,
+              <span class="bold">equivariance</span>, and it is the reason
+              convolution is worth building a network out of. It is also
+              routinely oversold, which the measurement further down settles.
+              The bright rim along the top and left is not a glitch: filling
+              the vacated strip with background made a real new edge there, and
+              the filter did its job and reported it.
+            </p>
+          </div>
+        </div>
+        <div class="step-spacer"></div>
+      </div>
+      <div class="charts-container">
+        <div class="chart-wrap" id="conv-scrolly-chart"></div>
+      </div>
+    </div>
+  </section>
+
+  <hr />
+
+  <!-- ======================= kernel editor ======================= -->
+  <section>
+    <h1 class="body-header">Choose the Nine Yourself</h1>
+    <p class="body-text">
+      Before a network is allowed to pick the weights, it is worth spending a
+      minute picking them by hand, because the famous kernels stop being
+      incantations once you have typed one. Every cell below is editable, and
+      the photograph on the right is recomputed on every keystroke:
+      25,600 output pixels, in this page, from your nine numbers.
+    </p>
+    <br />
+    <p class="body-text">
+      One quantity predicts most of what you will see. Add the nine weights up.
+      If they sum to 1, a flat region keeps its brightness and the kernel only
+      rearranges detail. If they sum to 0, flat regions cancel exactly and only
+      disagreement survives, which is what every edge detector in the presets
+      has in common. The clearest way to feel it: load
+      <span class="bold">sharpen</span>, whose weights sum to 1, and walk the
+      centre cell down from 5 to 4. The sum reaches zero, and the photograph
+      turns into its own edges without a single other cell changing.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="kernel-widget">
+    <div class="controls-row" style="justify-content: center" id="kernel-presets"></div>
+    <div class="kernel-pad">
+      <span class="kernel-hint">the nine weights</span>
+      <div id="kernel-grid"></div>
+    </div>
+    <div id="kernel-chart"></div>
+    <div class="widget-readout" id="kernel-readout"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= why not fully connected ======================= -->
+  <section>
+    <h1 class="body-header">Why Not Just Connect Everything?</h1>
+    <p class="body-text">
+      A fully connected layer is more general than a convolution: it can learn
+      any linear map, including every kernel above. So why constrain it? The
+      answer is a counting argument, and the numbers are brutal.
+    </p>
+    <br />
+    <p class="body-text">
+      The first layer of the network on this page produces 6 feature maps of
+      28 &times; 28, which is <span class="bold">4,704</span> output numbers
+      from 784 input pixels. A fully connected layer of that shape needs
+      784 &times; 4,704 weights plus 4,704 biases:
+      <span class="bold">3,692,640</span> parameters. The convolution produces
+      the same 4,704 numbers with 6 filters of 5 &times; 5 plus 6 biases, which
+      is <span class="bold">156</span>. That is a factor of roughly 23,700, and
+      it comes from two decisions:
+    </p>
+    <br />
+    <p class="body-text">
+      <span class="bold">Locality.</span> A pixel in the top-left corner is not
+      wired to a pixel in the bottom-right one, because in an image the
+      informative relationships are between neighbours. <span class="bold">Weight
+      sharing.</span> The detector used at the top-left is the same detector
+      used at the bottom-right, because a stroke is a stroke wherever it lands.
+      Neither is a law of nature; both are assumptions about images, and they
+      are right often enough to be worth the enormous saving.
+    </p>
+    <br />
+    <p class="body-text">
+      To make the saving concrete rather than theoretical, both networks here
+      were given the <i>same budget</i>. The convolutional net has
+      <span class="bold">61,706</span> parameters. The fully connected one was
+      sized to match, with 78 hidden units and
+      <span class="bold">62,020</span> parameters, 314 more. Same data, same
+      optimiser, same eight epochs, same seed:
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Network</th>
+          <th>Parameters</th>
+          <th>Test accuracy</th>
+          <th>Training time</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">Convolutional</span></td>
+          <td>61,706</td>
+          <td>96.98%</td>
+          <td>4.8 s</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Fully connected</span></td>
+          <td>62,020</td>
+          <td>93.50%</td>
+          <td>0.7 s</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text">
+      Three and a half points does not sound like much until you count errors
+      instead of successes: <span class="bold">151</span> mistakes out of 5,000
+      against <span class="bold">325</span>, which is 53.5% of the errors
+      removed, with 314 fewer parameters to do it with. The structure
+      is worth more than the capacity. It is also seven times slower per run,
+      which is the honest price and the reason the fully connected net was
+      still competitive on small problems for years.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= learned filters ======================= -->
+  <section>
+    <h1 class="body-header">The Filters Nobody Wrote</h1>
+    <p class="body-text">
+      Those 156 first-layer parameters started as random noise. Below they are
+      after training, which is the point of the whole article: six 5 &times; 5
+      kernels, arrived at by gradient descent, with nobody having specified
+      what any of them should detect. Click a filter or one of its maps to
+      enlarge its weights, and switch digits along the top.
+    </p>
+    <br />
+    <p class="body-text">
+      Watch the sum of the weights as you click through them, because it is
+      the same quantity that governed the kernel editor. Exactly one of the six
+      nearly cancels: filter 1 sums to <span class="bold">+0.01</span>, which
+      makes it an edge detector in precisely the sense you were building by
+      hand two sections ago, blind to flat regions by construction. The other
+      five do not. They run from +0.56 up to
+      <span class="bold">+2.01</span>, so they respond to how much ink is under
+      them as well as to how it is arranged. Nobody asked for an edge detector
+      and one appeared anyway, alongside five things that have no name.
+    </p>
+    <br />
+    <p class="body-text">
+      The black regions are the <span class="bold">ReLU</span>, which keeps
+      positive responses and sets every negative one to zero, so a filter
+      reports where it agreed with what it was looking for and says nothing at
+      all elsewhere. How much it discards is a property of the filter: on the
+      zero the widget opens with, one map comes back 2.6% zero and another
+      72.8%.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="filters-widget">
+    <div class="controls-row" style="justify-content: center" id="filters-digits"></div>
+    <div class="controls-row" style="justify-content: center" id="filters-pick"></div>
+    <div id="filters-chart"></div>
+    <div class="widget-readout" id="filters-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text">
+      These maps are not decoration. They are computed in your browser from the
+      exported weights, by the same padded cross-correlation the training
+      library ran, and checked at load time against feature maps recorded
+      straight out of the trained model. The agreement is printed in the
+      readout above.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= translation ======================= -->
+  <section>
+    <h1 class="body-header">What Sliding Actually Buys</h1>
+    <p class="body-text">
+      Here is the claim you will read everywhere: convolutional networks are
+      translation invariant, so they recognise an object wherever it appears.
+      It is half true, and the half that is false is easy to measure. Both
+      networks were trained on centred digits and never saw a shifted one. The
+      slider moves the <i>test</i> digits diagonally, one pixel at a time.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="shift-widget">
+    <div class="slider-row">
+      <span class="slider-label">the test digits, moved: <span class="value" id="shift-value">not at all</span></span>
+      <input type="range" class="atlas-range" id="shift-range" aria-label="how far to shift the test digits" min="0" max="6" step="1" value="0" />
+    </div>
+    <div id="shift-pixels"></div>
+    <div id="shift-chart"></div>
+    <div class="widget-readout" id="shift-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text">
+      At one pixel the convolutional net loses 2.7 points and the fully
+      connected one loses 14.6. At two pixels it is 96.98% down to 77.00%
+      against 93.50% down to 37.90%. So the structure genuinely helps, and the
+      feature map in the widget shows why: it travelled with the digit instead
+      of arriving at a different set of weights.
+    </p>
+    <br />
+    <p class="body-text">
+      And then <span class="bold">both of them fall off a cliff</span>. By four
+      pixels the convolutional net is at 9.76%, which is what guessing would
+      give you, and by five and six the two curves have crossed: both sit so
+      far below chance that neither is uncertain, they are confidently wrong,
+      and the remaining gap says which way each one fails rather than which one
+      still recognises a digit. Four pixels, a seventh of the width of the
+      image, is enough to destroy a network that was supposed to be translation
+      invariant.
+    </p>
+    <br />
+    <p class="body-text">
+      The distinction the slogan loses is between
+      <span class="bold">equivariance</span> and
+      <span class="bold">invariance</span>. Convolution is equivariant: move
+      the input and the feature maps move identically, as the scrolly showed.
+      But the classifier sitting on top of those maps is a fully connected
+      layer reading a flattened grid, and to it a stroke at position 40 and the
+      same stroke at position 96 are different inputs entirely. Pooling buys
+      back a pixel or two of tolerance. It does not buy invariance, and nothing
+      in the architecture does.
+    </p>
+    <br />
+    <p class="body-text">
+      What does buy it is showing the network the shifts. Retrained with random
+      shifts of up to two pixels applied during training, and nothing else
+      changed, the same architecture scores <span class="bold">49.42%</span> on
+      four-pixel shifts instead of 9.76%, a factor of five, while giving up
+      nothing on centred digits (97.24% against 96.98%). The invariance was
+      never in the model. It was in the data all along.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= alexnet ======================= -->
+  <section>
+    <h1 class="body-header">What Changed by 2012</h1>
+    <p class="body-text">
+      LeNet worked in 1998 and then convolutional networks spent a decade as a
+      speciality. What broke the drought in 2012 was AlexNet, and the honest
+      summary of what it contributed is: more data, much more compute, and a
+      short list of engineering ingredients. The scale is not something this
+      page can reproduce, but the ingredients are, one at a time, on the same
+      network, changing nothing else.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Ingredient</th>
+          <th>Without it</th>
+          <th>With it</th>
+          <th>What the measurement says</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">ReLU instead of tanh</span></td>
+          <td>97.58%</td>
+          <td>96.98%</td>
+          <td>Backwards. On this network tanh converged sooner and scored higher.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Dropout in the head</span></td>
+          <td>93.88%</td>
+          <td>95.44%</td>
+          <td>Worth 1.6 points, but only once the training set is small enough to overfit.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Shifts during training</span></td>
+          <td>9.76%</td>
+          <td>49.42%</td>
+          <td>Five times better on shifted digits, and free on clean ones.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text">
+      The first row is the interesting one, because it contradicts the story
+      everyone tells, including the story this article was going to tell. ReLU
+      is supposed to converge faster than tanh. Here it did not: same network,
+      same seed, same data, only the nonlinearity swapped, and tanh reached a
+      shared training-loss target in 4 epochs against ReLU's 6, then finished
+      ahead on the test set by 0.6 points.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="curves-widget">
+    <div id="curves-chart"></div>
+    <div class="widget-readout" id="curves-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text">
+      That result is real and it is also narrow, and both halves matter. ReLU's
+      advantage is a story about <i>deep</i> networks: a saturating activation
+      squashes gradients towards zero at every layer it passes through, so the
+      damage compounds with depth, and AlexNet was eight layers trained for
+      six days on two GPUs. The network on this page is two convolutional
+      layers deep, trained for eight epochs by Adam, which adapts its step
+      sizes and papers over exactly the problem ReLU was solving. At this size
+      there is nothing for ReLU to fix, so it wins nothing.
+    </p>
+    <br />
+    <p class="body-text">
+      The lesson is not that ReLU is overrated. It is that an ingredient's
+      value is a property of the regime it is used in, and quoting a benchmark
+      result from a different regime is how a technique becomes a superstition.
+      ReLU is kept everywhere else in this article because it is what the
+      reference architectures use, and because the next article, where depth
+      is the whole subject, is where its advantage should actually appear. If
+      it does not, that measurement will get the same treatment as this one.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= verdict ======================= -->
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text">
+      What convolution gives you, and what it does not.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Idea</th>
+          <th>What it buys</th>
+          <th>Measured here</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">Weight sharing</span></td>
+          <td>Detectors that work anywhere, almost free</td>
+          <td>156 parameters where a fully connected layer of the same shape needs 3,692,640.</td>
+          <td>It assumes the same feature is worth looking for everywhere, which is false for aligned data like faces in passport photos.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Learned filters</span></td>
+          <td>The vocabulary comes from the data</td>
+          <td>96.98% against 93.50% at equal parameter count, over half the errors removed.</td>
+          <td>Seven times slower to train here, and what the filters learn is only as good as what the data contains.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Equivariance</span></td>
+          <td>Move the input, the features move with it</td>
+          <td>A one-pixel shift costs 2.7 points instead of the 14.6 it costs a fully connected net.</td>
+          <td>It is not invariance. Four pixels drops this network to what guessing would give.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Augmentation</span></td>
+          <td>The invariance the architecture never had</td>
+          <td>49.42% against 9.76% on four-pixel shifts, at no cost on centred digits.</td>
+          <td>You only get invariance to the transformations you thought to apply.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text">
+      The hand-designed era ended here, but notice what did not change. Someone
+      still chose 5 &times; 5 filters, six of them, two convolutional layers,
+      max pooling of stride two. The vocabulary is learned; the shape of the
+      network that learns it is still a human decision, and for the next decade
+      that decision was where the whole field's effort went.
+    </p>
+    <br />
+    <p class="body-text">
+      The <a href="../">next article in this branch</a> takes the most obvious
+      of those decisions, how many layers, and pushes on it until it breaks. It
+      breaks in a way nobody expected: past a certain depth, adding layers makes
+      the network worse on its <i>training</i> data, which is not overfitting
+      and cannot be fixed by more of it. The fix is one of the shortest ideas in
+      the field.
+    </p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! Every convolution on this page runs in its
+      JavaScript, and the trained weights, accuracies and reference feature
+      maps come from
+      <code>src/utils/generate_lenet_data.py</code>, which trains all six
+      networks from scratch in 33 seconds on a laptop CPU.
+    </p>
+  </section>
+
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text">
+      Data: MNIST, 12,000 training digits and 5,000 test digits drawn with a
+      fixed seed, stratified by class. Both networks trained with Adam at a
+      learning rate of 0.001, batch size 128, for 8 epochs, seed 19. The
+      convolutional network is LeNet-5's arrangement with modern parts: two
+      convolutional layers of 6 and 16 filters of 5 &times; 5, max pooling, and
+      a 120-84-10 head. Dropout and augmentation runs change one thing each and
+      nothing else.
+    </p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://ieeexplore.ieee.org/document/726791">[1] Gradient-Based Learning Applied to Document Recognition</a><br />
+      (LeCun, Y., Bottou, L., Bengio, Y. &amp; Haffner, P., Proceedings of the IEEE, 1998; LeNet-5)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://papers.nips.cc/paper_files/paper/2012/hash/c399862d3b9d6b76c8436e924a68c45b-Abstract.html">[2] ImageNet Classification with Deep Convolutional Neural Networks</a><br />
+      (Krizhevsky, A., Sutskever, I. &amp; Hinton, G., NeurIPS, 2012; AlexNet)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://www.cs.toronto.edu/~hinton/absps/JMLRdropout.pdf">[3] Dropout: A Simple Way to Prevent Neural Networks from Overfitting</a><br />
+      (Srivastava, N. et al., JMLR, 2014)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://link.springer.com/article/10.1007/BF00344251">[4] Neocognitron: A Self-Organizing Neural Network Model for a Mechanism of Pattern Recognition Unaffected by Shift in Position</a><br />
+      (Fukushima, K., Biological Cybernetics, 1980; the ancestor)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>

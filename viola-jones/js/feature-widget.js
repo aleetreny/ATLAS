@@ -78,8 +78,9 @@ export async function initFeatureWidget(data, base) {
       ctx.strokeRect(10 + c0 * ZOOM + 0.5, 24 + r0 * ZOOM + 0.5,
         (c1 - c0 + 1) * ZOOM - 1, (r1 - r0 + 1) * ZOOM - 1);
     });
-    canvasLabel(ctx, 'subtracted (dark) minus added (light), on the average face',
-      (panel + 20) / 2, 14, { size: 10 });
+    /* Short enough to fit the panel: the red-against-white convention is
+       spelled out in the readout below, where there is room for it. */
+    canvasLabel(ctx, 'the feature on the average face', (panel + 20) / 2, 14, { size: 10 });
 
     /* the same feature's response on every tile, live */
     const vals = tiles.map((t) => featureValue(t.ii, N + 1, 0, 0, f.rects));
@@ -113,7 +114,10 @@ export async function initFeatureWidget(data, base) {
     chart.g.append('text').attr('class', 'chart-annotation')
       .attr('x', chart.w / 2).attr('y', -10).attr('text-anchor', 'middle')
       .style('font-size', '0.56rem').style('text-transform', 'none')
-      .text('faces in blue, background in grey, the learned threshold dashed');
+      /* the shared annotation style adds 2px between letters, which at this
+         length pushes the caption past both edges of its own svg */
+      .style('letter-spacing', 'normal')
+      .text('faces in blue, background in grey, threshold dashed');
 
     btns.forEach((b, i) => b.classList.toggle('ghost', i !== state.i));
 
@@ -129,6 +133,7 @@ export async function initFeatureWidget(data, base) {
              <td>weighted error when chosen</td><td><span class="value">${f.weighted_error.toFixed(3)}</span></td>
              <td>vote weight</td><td><span class="value">${f.alpha.toFixed(2)}</span></td></tr>
          <tr><td>alone, on these 200 crops</td><td colspan="5"><span class="value">${(ok / tiles.length * 100).toFixed(1)}%</span> correct</td></tr>
+         <tr><td>reading the panel</td><td colspan="5">red is the rectangle the feature subtracts, white the one it adds</td></tr>
        </table>` +
       `<div class="slider-label" style="margin-top:.6rem;line-height:1.5">${
         state.i === 0
