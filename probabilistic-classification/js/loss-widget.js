@@ -35,10 +35,13 @@ export function initLossWidget(data) {
   drawAxes(g, x, y, w, h, { xTicks: 5, yTicks: 5 });
   axisLabels(g, w, h, { x: 'β₀  (intercept)', y: 'β₁  (slope)' });
 
-  /* Sample both surfaces once. 64 x 64 x 398 sigmoids is about a tenth of a
-   * second per surface and the values never change, so it is paid at load. */
+  /* Each surface is 64 x 64 x 398 sigmoids, around 80ms. The cross-entropy one
+   * is needed the moment the page draws, but the squared-error one is only
+   * needed if the reader presses its toggle, so it is computed on first use
+   * rather than taxing every page load for a view many will never open. */
   const grids = {};
-  for (const kind of ['ce', 'mse']) {
+  function gridFor(kind) {
+    if (grids[kind]) return grids[kind];
     const vals = new Array(RES * RES);
     for (let j = 0; j < RES; j++) {
       const b1 = -B_LIM + (2 * B_LIM * j) / (RES - 1);
@@ -48,6 +51,7 @@ export function initLossWidget(data) {
       }
     }
     grids[kind] = vals;
+    return vals;
   }
 
   /* The reference optimum: a long cross-entropy run from the origin. Used to
@@ -89,7 +93,7 @@ export function initLossWidget(data) {
 
   function drawSurface() {
     const kind = state.kind;
-    const vals = grids[kind];
+    const vals = gridFor(kind);
     const ext = d3.extent(vals);
     /* Thresholds on a power scale: the interesting structure of both surfaces
      * is near the floor, and even steps would spend every contour on the walls. */

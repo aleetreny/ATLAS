@@ -92,24 +92,34 @@ export function initRateWidget(dia) {
     // The verdict is read off the measured error, not guessed from the
     // settings. On a smooth, lightly-noised curve a large learning rate is not
     // automatically punished, and saying otherwise while the number on screen
-    // disagrees would be worse than saying nothing.
-    const best = bestError();
-    const excess = errTruth / best - 1;
-    const verdict =
-      effort < 3
-        ? 'Under-trained: the ensemble has barely moved off the mean. Take bigger steps or take more of them.'
-        : excess < 0.06
-          ? `Within ${(excess * 100).toFixed(0)}% of the best this curve allows. Notice how many different combinations of ν and trees land here: it is the product that matters far more than either one alone.`
-          : excess < 0.25
-            ? `About ${(excess * 100).toFixed(0)}% worse than the best reachable fit. Either direction will help.`
-            : `${(excess * 100).toFixed(0)}% off the best reachable fit. ${lr > 0.6 ? 'Large steps overshoot and the later trees spend their time undoing it.' : 'Too few steps taken, at too small a size.'}`;
+    // disagrees would be worse than saying nothing. Until the background sweep
+    // that establishes the floor has finished, the comparative half of the
+    // readout simply is not shown, rather than being shown against a floor that
+    // does not exist yet.
+    const best = bestCache;
+    let tail = '';
+    let refNote = ' <span style="opacity:.7">(finding the floor of this curve…)</span>';
+    if (best !== null) {
+      const excess = errTruth / best - 1;
+      const verdict =
+        effort < 3
+          ? 'Under-trained: the ensemble has barely moved off the mean. Take bigger steps or take more of them.'
+          : excess < 0.06
+            ? `Within ${(excess * 100).toFixed(0)}% of the best this curve allows. Notice how many different combinations of ν and trees land here: it is the product that matters far more than either one alone.`
+            : excess < 0.25
+              ? `About ${(excess * 100).toFixed(0)}% worse than the best reachable fit. Either direction will help.`
+              : `${(excess * 100).toFixed(0)}% off the best reachable fit. ${lr > 0.6 ? 'Large steps overshoot and the later trees spend their time undoing it.' : 'Too few steps taken, at too small a size.'}`;
+      tail = `<div class="slider-label" style="margin-top:.45rem;line-height:1.45">${verdict}</div>`;
+      refNote = ` <span style="opacity:.7">(best reachable ${best.toFixed(3)})</span>`;
+    }
 
     stats.innerHTML =
       `<div class="slider-label">error against the true curve: <span class="value">${errTruth.toFixed(3)}</span>` +
-      ` <span style="opacity:.7">(best reachable ${best.toFixed(3)})</span></div>` +
+      refNote +
+      `</div>` +
       `<div class="slider-label">learning rate × trees = <span class="value">${effort.toFixed(1)}</span>` +
       ` <span style="opacity:.7">(roughly how far the ensemble has travelled)</span></div>` +
-      `<div class="slider-label" style="margin-top:.45rem;line-height:1.45">${verdict}</div>`;
+      tail;
   }
 
   /* Sweep the two knobs once to find the floor, so "how good is this?" has a
@@ -123,10 +133,10 @@ export function initRateWidget(dia) {
    * trees.
    *
    * Fifty learning rates by three hundred tree counts is fifteen thousand
-   * evaluations, which is only affordable because the ensemble is accumulated
-   * one stump at a time instead of re-summed from scratch at every n. That
-   * turns the inner loop from quadratic into linear and the whole sweep runs in
-   * about a tenth of a second, once, on first use. */
+   * evaluations, affordable because the ensemble is accumulated one stump at a
+   * time instead of re-summed from scratch at every n. It still costs a few
+   * hundred milliseconds of model fitting, which is why it runs in idle time
+   * after the first paint rather than inside it. */
   let bestCache = null;
   function bestError() {
     if (bestCache !== null) return bestCache;
@@ -146,4 +156,14 @@ export function initRateWidget(dia) {
   lrSlider.addEventListener('input', render);
   nSlider.addEventListener('input', render);
   render();
+
+  /* The floor sweep fits fifty ensembles and costs around 400ms, which was the
+   * bulk of this page's load time when it ran synchronously in the first
+   * render. Kicked to idle time instead: the widget appears at once with the
+   * comparative verdict held back, and fills it in as soon as the sweep lands. */
+  const idle = window.requestIdleCallback || ((f) => setTimeout(f, 80));
+  idle(() => {
+    bestError();
+    render();
+  });
 }

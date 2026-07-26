@@ -278,7 +278,7 @@
     <p class="body-text">
       Press through eight bootstrap samples. The boxes rearrange, thresholds jump
       by whole units, and held-out accuracy swings between
-      <span class="bold">0.860</span> and <span class="bold">0.936</span>. A
+      <span class="bold">0.901</span> and <span class="bold">0.936</span>. A
       model this sensitive to which rows it happened to see is a model whose
       output carries a large random component, and that component has a name:
       <span class="bold">variance</span>.
@@ -374,7 +374,7 @@
     <br />
     <p class="body-text">
       <span class="bold">The equation works.</span> With no free parameters it
-      tracks the measured variance to within 8% for bagging and 7% for the random
+      tracks the measured variance to within 9% for bagging and 8% for the random
       forest across three orders of magnitude of \(B\). At 200 trees the forest's
       predicted variance is 0.001218 and the measured one is 0.001215.
     </p>
@@ -394,7 +394,7 @@
       <i>worse</i> as you handicap it, because a tree forced to split on a random
       subset of columns is not choosing the best question available. The trade is
       a slightly worse committee member in exchange for a less redundant
-      committee, and on this data it is worth taking: one tree averages 0.910 and
+      committee, and on this data it is worth taking: one tree averages 0.912 and
       the forest of 200 reaches 0.949.
     </p>
     <br />
@@ -434,6 +434,16 @@
       from 1.818 at one tree to 0.227 at fifty and then simply stops moving:
       0.2263 at two hundred, 0.2263 at four hundred. Nothing turns around,
       because there is nothing left to turn.
+    </p>
+    <br />
+    <p class="body-text">
+      <i>Press the accuracy button and you will catch the one honest wrinkle in
+      that sentence: 0.9532 at a hundred trees, 0.9474 at two hundred. That is a
+      single patient of the 171 crossing the 0.5 threshold as the averaged
+      probabilities settle, and it is a fact about thresholds, not about
+      forests. The probabilities themselves, which the log loss watches, never
+      look back. "Never worse" is a statement in expectation, and on any one
+      split a coin can land oddly once.</i>
     </p>
   </section>
 

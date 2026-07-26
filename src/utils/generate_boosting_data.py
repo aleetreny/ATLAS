@@ -232,13 +232,12 @@ print("\n  how you feed categories in (same library, same settings):")
 for r in cat_results:
     print(f"    {r['name']:32s} {r['n_features']:3d} features   rmse {r['rmse']:7.1f}   {r['seconds']:5.2f}s")
 
-# a small, honest sample of the data for the article to draw
-samp = df.sample(1400, random_state=3)
+# No raw sample of the stones is exported: no widget on the page draws one, and
+# the 1,400 pairs it used to ship were 38 of the file's 45 kilobytes.
 out = {
     "n_rows": int(len(df)),
     "dropped_zero_dims": int(dropped),
     "features": LABELS,
-    "sample": [{"carat": rnd(a, 2), "price": int(b)} for a, b in zip(samp["carat"], samp["price"])],
     "benchmark": results,
     "categoricals": cat_results,
     "speedup": rnd(speedup, 2),

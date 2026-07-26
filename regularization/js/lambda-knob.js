@@ -88,12 +88,17 @@ export function initLambdaKnob(sine) {
    *
    * Warm starting down the path from the strongest penalty, and giving each
    * step a real iteration budget, fixes it: measured against every reference
-   * alpha the agreement is now to four decimals. Solved once for all 69 stops
-   * it costs a tenth of a second, and the slider stays instant while dragging. */
+   * alpha the agreement is now to four decimals.
+   *
+   * The full path costs around a quarter of a second of coordinate descent, so
+   * it is computed in idle time after the first paint. Until it lands, the two
+   * arrays hold a direct fit at the slider's starting stop, where the problem
+   * is well enough conditioned that the one-shot solve matches the warm-started
+   * one, so nothing on screen jumps when the path arrives. */
   const stops = [];
   for (let lv = +sliderEl.min; lv <= +sliderEl.max + 1e-9; lv += +sliderEl.step) stops.push(10 ** lv);
-  const lassoFits = model.path(stops, 1, { maxIter: 20000, tol: 1e-13 });
-  const ridgeFits = stops.map((a) => model.fit(a, 0));
+  let lassoFits = null;
+  let ridgeFits = null;
   const nearest = (a) => {
     let best = 0;
     for (let i = 1; i < stops.length; i++) if (Math.abs(stops[i] - a) < Math.abs(stops[best] - a)) best = i;
@@ -103,12 +108,11 @@ export function initLambdaKnob(sine) {
   /* Size the bar scale to the coefficients this slider can actually produce.
    * A fixed symlog domain borrowed from the unregularized fit (which reaches
    * into the hundreds) squashed every bar here into a few invisible pixels,
-   * because nothing on this widget exceeds about 10. */
-  let peak = 0;
-  for (let i = 0; i < stops.length; i++) {
-    peak = Math.max(peak, d3.max(ridgeFits[i], (v) => Math.abs(v)), d3.max(lassoFits[i], (v) => Math.abs(v)));
-  }
-  const by = d3.scaleLinear().domain([0, symlog(peak) * 1.04]).range([0, BAR_MAX]).clamp(true);
+   * because nothing on this widget exceeds about 3 at the slider's floor of
+   * lambda = 1e-3 (the sklearn reference says 2.68 there). The cap is a
+   * constant rather than a sweep so the scale exists before the idle-time path
+   * computation lands. */
+  const by = d3.scaleLinear().domain([0, symlog(3.2) * 1.04]).range([0, BAR_MAX]).clamp(true);
 
   for (const yb of [RIDGE_BASE, LASSO_BASE]) {
     spec.append('line').attr('x1', 0).attr('x2', w).attr('y1', yb).attr('y2', yb)
@@ -147,8 +151,12 @@ export function initLambdaKnob(sine) {
     alphaLabel.textContent = alpha < 0.001 ? alpha.toExponential(0) : alpha.toPrecision(2);
 
     const i = nearest(alpha);
-    const bR = ridgeFits[i];
-    const bL = lassoFits[i];
+    /* Before the idle-time path lands, fall back to a direct solve at the
+     * requested stop. Ridge is exact either way; lasso's one-shot solve is
+     * only trusted here because the slider floor sits where the problem is
+     * well conditioned, which is itself something the article explains. */
+    const bR = ridgeFits ? ridgeFits[i] : model.fit(stops[i], 0);
+    const bL = lassoFits ? lassoFits[i] : model.fit(stops[i], 1);
 
     const dR = line(curveFor(bR));
     const dL = line(curveFor(bL));
@@ -198,4 +206,14 @@ export function initLambdaKnob(sine) {
 
   slider.addEventListener('input', render);
   render();
+
+  /* The full warm-started path, computed off the critical path and swapped in.
+   * Re-rendering after it lands is a no-op visually at the starting stop, and
+   * from then on every drag reads the converged fits. */
+  const idle = window.requestIdleCallback || ((f) => setTimeout(f, 80));
+  idle(() => {
+    lassoFits = model.path(stops, 1, { maxIter: 20000, tol: 1e-13 });
+    ridgeFits = stops.map((a) => model.fit(a, 0));
+    render();
+  });
 }

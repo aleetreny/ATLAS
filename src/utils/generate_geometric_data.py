@@ -144,7 +144,8 @@ margin_panel = {
     "points": [{"x": rnd(a, 4), "y": rnd(b, 4), "c": int(c)} for (a, b), c in zip(Xm, ym)],
     "rogue_index": ROGUE_IDX,
     "runs": margin_runs,
-    "clean_runs": clean_runs,
+    # clean_runs itself stays local: the scrolly only needs the hard-margin fit
+    # and the alternatives derived from it, and nothing quotes the full sweep.
     "hard_clean": hard_clean,
     "hard_rogue": hard_rogue,
     "alternatives": alts,
@@ -219,7 +220,8 @@ for gval in [0.03, 1, 100]:
 rings["train_idx"] = sorted(int(i) for i in idx_tr)
 rings["test_idx"] = sorted(int(i) for i in idx_te)
 rings["gamma_surfaces"] = gsurf
-rings["gamma_grid"] = surface
+# The full gamma-by-C sweep stays in this script's printout only: the page
+# draws the three chosen surfaces, and nothing quotes the grid.
 rings["gamma_values"] = G_GRID
 rings["C_values"] = C_GRID2
 
