@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <rect width="400" height="300" fill="#f1f3f3" />
+  <!-- three tilted gaussians: solid 1-sigma, dashed 2-sigma -->
+  <g fill="none" stroke-width="2.5">
+    <ellipse cx="120" cy="105" rx="52" ry="26" transform="rotate(-24 120 105)" stroke="#155e75" />
+    <ellipse cx="120" cy="105" rx="88" ry="44" transform="rotate(-24 120 105)" stroke="#155e75" stroke-dasharray="7 5" stroke-width="1.6" />
+    <ellipse cx="280" cy="120" rx="46" ry="30" transform="rotate(18 280 120)" stroke="#df2a5d" />
+    <ellipse cx="280" cy="120" rx="78" ry="51" transform="rotate(18 280 120)" stroke="#df2a5d" stroke-dasharray="7 5" stroke-width="1.6" />
+    <ellipse cx="205" cy="215" rx="50" ry="24" transform="rotate(-8 205 215)" stroke="#003181" />
+    <ellipse cx="205" cy="215" rx="84" ry="41" transform="rotate(-8 205 215)" stroke="#003181" stroke-dasharray="7 5" stroke-width="1.6" />
+  </g>
+  <!-- points, tinted by responsibility: pure inside, blended where bells overlap -->
+  <g stroke="#ffffff" stroke-width="0.8">
+    <circle cx="102" cy="96" r="4.5" fill="#155e75" /><circle cx="132" cy="118" r="4.5" fill="#155e75" />
+    <circle cx="88" cy="120" r="4.5" fill="#155e75" /><circle cx="146" cy="92" r="4.5" fill="#155e75" />
+    <circle cx="118" cy="82" r="4.5" fill="#155e75" />
+    <circle cx="292" cy="106" r="4.5" fill="#df2a5d" /><circle cx="266" cy="136" r="4.5" fill="#df2a5d" />
+    <circle cx="302" cy="140" r="4.5" fill="#df2a5d" /><circle cx="258" cy="102" r="4.5" fill="#df2a5d" />
+    <circle cx="192" cy="226" r="4.5" fill="#003181" /><circle cx="224" cy="206" r="4.5" fill="#003181" />
+    <circle cx="180" cy="202" r="4.5" fill="#003181" /><circle cx="232" cy="228" r="4.5" fill="#003181" />
+    <!-- the torn ones, wearing their doubt as blended colour -->
+    <circle cx="196" cy="140" r="5.5" fill="#8b4868" /><circle cx="176" cy="160" r="5.5" fill="#10617b" />
+    <circle cx="238" cy="168" r="5.5" fill="#712f57" />
+  </g>
+  <g stroke="#232f3e" stroke-width="2">
+    <line x1="40" y1="275" x2="360" y2="275" />
+    <line x1="40" y1="275" x2="40" y2="25" />
+  </g>
+</svg>

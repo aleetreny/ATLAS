@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gaussian Mixtures | ATLAS</title>
+  <meta name="description" content="A visual, interactive introduction to Gaussian mixture models: expectation-maximisation running live, soft assignments you can freeze into k-means with one slider, covariance shapes that redeem the failure gallery, BIC choosing k, and the wine test rerun with a model that hesitates." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/gmm/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="Gaussian Mixtures | ATLAS" />
+  <meta property="og:description" content="A visual, interactive introduction to Gaussian mixture models: expectation-maximisation running live, soft assignments you can freeze into k-means with one slider, covariance shapes that redeem the failure gallery, BIC choosing k, and the wine test rerun with a model that hesitates." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/gmm/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Gaussian Mixtures | ATLAS" />
+  <meta name="twitter:description" content="A visual, interactive introduction to Gaussian mixture models: expectation-maximisation running live, soft assignments you can freeze into k-means with one slider, covariance shapes that redeem the failure gallery, BIC choosing k, and the wine test rerun with a model that hesitates." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    /* Per-article theme. Everything else inherits from these two. */
+    :root {
+      --primary: #155e75;
+      --secondary: #164e63;
+    }
+    /* Width only: a margin here would override .interactive-full's rhythm. */
+    .narrow-widget {
+      max-width: 800px;
+    }
+    .mix-table {
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      margin-top: 0.5rem;
+      width: 100%;
+    }
+    .mix-table th,
+    .mix-table td {
+      padding: 5px 10px 5px 0;
+      text-align: left;
+      font-weight: 400;
+    }
+    .mix-table th {
+      font-family: var(--font-heavy);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .mix-table td:first-child {
+      opacity: 0.75;
+    }
+  </style>
+</head>
+<body>
+  <!-- ======================= chrome ======================= -->
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <!-- ======================= hero ======================= -->
+  <section id="intro">
+    <h1 id="intro-hed">Gaussian Mixtures</h1>
+    <h1 id="intro-sub">Clusters with soft edges: the model that says "probably this one, but maybe that one", and learns every group's shape</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 2.1 · Clustering · Mixtures</span>
+  </section>
+
+  <br />
+
+  <!-- ======================= introduction ======================= -->
+  <section>
+    <p class="body-text">
+      The <a href="../kmeans/">previous article</a> ended with two confessions.
+      K-means hands every point to exactly one cluster with total confidence,
+      and it draws every territory as a round island. Both defects have the
+      same cure, and it is one idea, not two: stop assigning points to
+      clusters, and start asking <i>which mixture of overlapping populations
+      most plausibly generated this data</i>.
+    </p>
+    <br />
+    <p class="body-text">
+      A <span class="bold">Gaussian mixture model</span> says the data came
+      from \(k\) Gaussian bells, each with its own centre, its own
+      <span class="bold">shape</span> (a full covariance matrix, so any tilt
+      and stretch), and its own share of the data. Under that story, a point
+      near the boundary of two bells is not a hard call to make. It is a
+      probability to report: 60% this cultivar, 40% that one. The soft answer
+      is not a hedge, it is extra information, and this article measures
+      exactly what it is worth.
+    </p>
+    <br />
+    <p class="body-text">
+      Everything runs on data the previous article already measured: the same
+      300 blobs, the same failure gallery, the same 178 wines. The algorithm,
+      <span class="bold">expectation-maximisation</span>, runs live in this
+      page's JavaScript, checked at load time against scikit-learn. You will
+      drag its starting guesses around with your own hands, freeze its soft
+      answers into k-means with a slider, and watch the failure gallery get
+      two redemptions and one honest refusal.
+    </p>
+  </section>
+
+  <!-- ======================= scrolly: EM ======================= -->
+  <section>
+    <h1 class="body-header">Two Steps, Again, But Softer</h1>
+    <p class="body-text">
+      The same 300 points. This time the three guesses are not just centres:
+      each is a full Gaussian, drawn below as its 1σ and 2σ ellipses, starting
+      as three overlapping shrugs in the middle of the data.
+    </p>
+  </section>
+
+  <section id="em-scrolly" class="scrolly">
+    <div class="scrolly-container">
+      <div class="steps-container">
+        <div class="step" data-index="0">
+          <div class="step-content">
+            <h3>Guess Three Bells</h3>
+            <p>
+              A mixture is a recipe: three Gaussians, each with a centre, a
+              covariance (the ellipse), and a weight (its share of the data).
+              These three start deliberately crowded in the middle, all shape
+              and no opinion, so you can watch opinion form.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="1">
+          <div class="step-content">
+            <h3>E-step: Share, Don't Assign</h3>
+            <p>
+              For every point, Bayes' rule asks: given where the bells are,
+              what share of this point belongs to each? No point is handed
+              over whole. The colour of every dot is the literal blend of its
+              shares, and in this crowded start almost everything is a muddy
+              mixture, which is the honest description of a bad model.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="2">
+          <div class="step-content">
+            <h3>M-step: Refit to the Shares</h3>
+            <p>
+              Each Gaussian refits itself to <i>all</i> the points, weighted
+              by its shares: weighted mean, weighted covariance, weighted
+              share of the data. Where k-means moved a centre, this moves a
+              centre, reshapes an ellipse and renegotiates a weight, all in
+              one step of arithmetic.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="3">
+          <div class="step-content">
+            <h3>Climb</h3>
+            <p>
+              Share, refit, share, refit. Each pass can only ever
+              <span class="bold">raise</span> the data's log-likelihood under
+              the model, the mirror image of inertia only ever falling, and
+              for the same reason: both steps are exact best-responses to the
+              other's output. Watch the tints separate as the bells pull
+              apart.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="4">
+          <div class="step-content">
+            <h3>Converged, and Checked</h3>
+            <p>
+              The mixture lands within a whisker of the truth (ARI 0.980
+              against the generating labels) and this browser's final
+              log-likelihood matches scikit-learn's answer to the fourth
+              decimal. Note what the tints keep that k-means threw away: the
+              points between two bells still wear their doubt.
+            </p>
+          </div>
+        </div>
+        <div class="step-spacer"></div>
+      </div>
+      <div class="charts-container">
+        <div class="chart-wrap" id="em-chart"></div>
+      </div>
+    </div>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the objective ======================= -->
+  <section>
+    <h1 class="body-header">What Is Being Climbed</h1>
+    <p class="body-text">
+      The quantity is the log-likelihood of the data under the mixture:
+    </p>
+    <p class="body-text">
+      $$ \log L \;=\; \sum_{i=1}^{n} \log \sum_{c=1}^{k} \pi_c \,
+         \mathcal{N}\!\big(x_i \,\big|\, \mu_c, \Sigma_c\big) $$
+    </p>
+    <p class="body-text">
+      The sum inside the log is what makes this hard: nobody knows which bell
+      produced which point. EM's move is to treat those memberships as the
+      missing information, estimate them from the current model (E-step), then
+      refit the model as if they were known (M-step). Each step is exact, each
+      pass climbs, and the loop stops at a local maximum, with the same fine
+      print as Lloyd's loop: <i>a</i> local maximum, not <i>the</i> one. The
+      lottery of the first guess did not go away when the assignments went
+      soft. So run it yourself.
+    </p>
+  </section>
+
+  <div class="interactive-container" id="drag-widget">
+    <div class="equations-panel">
+      <div class="controls-row">
+        <button class="atlas-btn" id="drag-run">Run EM from here</button>
+      </div>
+      <div class="controls-row">
+        <button class="atlas-btn ghost" id="drag-shuffle">Random start</button>
+        <button class="atlas-btn ghost" id="drag-corner">Pile into a corner</button>
+      </div>
+      <div id="drag-stats"></div>
+    </div>
+    <div class="chart-panel" id="drag-chart"></div>
+  </div>
+
+  <section>
+    <p class="body-text">
+      Those diamonds are yours: <span class="bold">drag them anywhere</span>,
+      then run. Every run animates this page's own EM, iteration by
+      iteration, and the readout compares your landing against scikit-learn's
+      optimum. Most starts make it. Some do not, and when they do not, the
+      failure is silent: the likelihood still climbed, the ellipses still
+      settled, and only the comparison against a better run gives it away.
+      Which is why real fits restart several times and keep the best, exactly
+      as k-means did.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= thermostat ======================= -->
+  <section>
+    <h1 class="body-header">K-Means Is a Frozen Mixture</h1>
+    <p class="body-text">
+      The relationship between the two articles is not an analogy. Take the
+      converged mixture's responsibilities, raise every one to the power
+      \(1/T\), renormalise, and lower the temperature \(T\) toward zero:
+      every share snaps to 0 or 1, every point goes wholly to its likeliest
+      bell, and the picture becomes the previous article. K-means is this
+      model with the thermostat at zero (and the ellipses forced round: the
+      next section prices that part). Slide it yourself and watch the doubt
+      freeze out.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="temp-widget">
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">temperature T = <span class="value" id="temp-label">1.00</span></span>
+      <input type="range" class="atlas-range" id="temp-slider" aria-label="assignment temperature" min="0" max="100" step="1" value="0" />
+    </div>
+    <div id="temp-chart"></div>
+    <div class="widget-readout" id="temp-readout"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= covariance wardrobe ======================= -->
+  <section>
+    <h1 class="body-header">The Covariance Wardrobe</h1>
+    <p class="body-text">
+      The other half of the promise: shape. Scikit-learn offers four
+      constraints on \(\Sigma_c\), from "circles only" to "anything goes",
+      and the sheared blobs that humiliated k-means (ARI 0.529) are the
+      perfect judge of what each is worth. Two results below deserve staring
+      at. Spherical scores 0.509: <i>a mixture with round covariances is
+      k-means with paperwork</i>. And the winner by BIC is not the freest
+      model but <span class="bold">tied</span>: all three clusters sharing one
+      learned shape. These blobs really were sheared by a single matrix, tied
+      says exactly that with six fewer parameters, and the criterion rewards
+      the model that matches how the data was actually made.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="shape-widget">
+    <div class="controls-row" style="justify-content: center" id="shape-buttons"></div>
+    <div id="shape-chart"></div>
+    <div class="widget-readout" id="shape-readout"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= bic ======================= -->
+  <section>
+    <h1 class="body-header">How Many Bells</h1>
+    <p class="body-text">
+      Choosing \(k\) tortured the previous article: inertia falls forever, so
+      the elbow is a squint, and the silhouette had to be imported as a second
+      opinion. A likelihood model carries its own answer. The
+      <span class="bold">Bayesian information criterion</span> is the fit's
+      log-likelihood charged for every parameter it spends
+      (\(\mathrm{BIC} = p\ln n - 2\log L\), lower is better), and unlike
+      inertia it genuinely <span class="bold">bottoms out</span>: on these
+      blobs at k = 3 with 2,339, rising again to 2,368 at k = 4. Slide k and
+      watch the criterion refuse ellipses the eye might have accepted.
+    </p>
+  </section>
+
+  <div class="interactive-full stacked-charts narrow-widget" id="bic-widget">
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">k = <span class="value" id="bic-label">3</span></span>
+      <input type="range" class="atlas-range" id="bic-slider" aria-label="number of mixture components" min="1" max="8" step="1" value="3" />
+    </div>
+    <div id="bic-chart"></div>
+    <div class="widget-readout" id="bic-readout"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= gallery revisited ======================= -->
+  <section>
+    <h1 class="body-header">The Failure Gallery, Revisited</h1>
+    <p class="body-text">
+      The three datasets built to break k-means, refit with full-covariance
+      mixtures and the same k as before. Two of the three failures were never
+      about the data at all: give the model a vocabulary for shape and for
+      unequal spread, and the stretched clusters go from ARI 0.529 to
+      <span class="bold">1.000</span>, the mismatched pair from 0.306 to
+      <span class="bold">0.925</span>. The rings stay broken, 0.002, and they
+      should: a weighted sum of bells is still bells. That refusal is the
+      honest edge of this whole family of models, and the next article walks
+      over it.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="redeem-widget">
+    <div class="controls-row" style="justify-content: center" id="redeem-buttons"></div>
+    <div class="controls-row" style="justify-content: center">
+      <button class="atlas-btn" id="redeem-gmm">what the mixture finds</button>
+      <button class="atlas-btn ghost" id="redeem-true">what is actually there</button>
+    </div>
+    <div id="redeem-chart"></div>
+    <div class="widget-readout" id="redeem-readout"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= wine ======================= -->
+  <section>
+    <h1 class="body-header">The Blind Test, With Doubt Allowed</h1>
+    <p class="body-text">
+      The 178 wines again, all 13 standardised dimensions, labels deleted,
+      three components. One modelling decision first: in 13 dimensions a full
+      covariance per cluster costs 314 parameters against 178 bottles, and it
+      overfits (ARI 0.880). BIC picks the <span class="bold">diagonal</span>
+      family at 80 parameters, and that model scores
+      <span class="bold">ARI 0.915, 173 of 178 bottles</span>: one better
+      than k-means on every count, from the same information.
+    </p>
+    <br />
+    <p class="body-text">
+      The bottle count is not the point, though. The point is the five
+      bottles the mixture is <i>unsure</i> about, because now unsureness is
+      an output. Among the 173 bottles holding at least 90% membership in one
+      cluster, the model agrees with the cultivar label 98.3% of the time.
+      Among the five below that bar: 60%. The doubt lands exactly where the
+      errors live, which is what it is for.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="wine-widget">
+    <div class="controls-row" style="justify-content: center">
+      <button class="atlas-btn" id="winegmm-soft">the memberships</button>
+      <button class="atlas-btn ghost" id="winegmm-unsure">the hesitations</button>
+      <button class="atlas-btn ghost" id="winegmm-wrong">the mistakes</button>
+    </div>
+    <div id="wine-chart"></div>
+    <div class="widget-readout" id="winegmm-readout"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= verdict ======================= -->
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text">
+      One model family, so the table is about the decisions it demands.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Decision</th>
+          <th>Default</th>
+          <th>Why</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">Covariance family</span></td>
+          <td>Let BIC choose among all four</td>
+          <td>Measured twice here: tied beat full on the sheared blobs, diagonal beat full on the wine. Freedom is not free.</td>
+          <td>Full covariance in d dimensions costs k·d(d+1)/2 parameters; on small data it memorises.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Choosing k</span></td>
+          <td>BIC minimum, several restarts per k</td>
+          <td>An actual minimum (2,339 at k = 3 here), against inertia's endless slide.</td>
+          <td>BIC assumes the data is roughly a mixture of Gaussians. On rings, every k is wrong.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Initialisation</span></td>
+          <td>Multiple restarts, keep the best likelihood</td>
+          <td>The drag widget is the proof: some starts land in worse optima, silently.</td>
+          <td>A component can also collapse onto a few points; the ridge on the covariance is not optional.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Using the output</span></td>
+          <td>Keep the probabilities, not just the argmax</td>
+          <td>On the wine: 98.3% right when sure, 60% when hesitant. The hesitations are a free triage list.</td>
+          <td>They are model beliefs, not calibrated frequencies; the calibration article's warnings apply.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">When not to use it</span></td>
+          <td>Non-blob structure</td>
+          <td>Rings: 0.002. A sum of bells cannot draw a hole.</td>
+          <td>It will still converge, report tidy ellipses and raise no alarm. Nothing in the output warns you.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text">
+      Every model so far in this module has answered "which cluster?" with
+      geometry: distances to centres, bells around means. The rings are the
+      standing rebuke, twice unfixed, and they point at the missing idea. What
+      makes both rings feel like two groups is not their shape and not any
+      centre. It is that each ring is <i>dense inside and empty around</i>.
+      The <a href="../dbscan/">next article</a> starts from that observation
+      alone, defines a cluster as a connected region of high density, and the
+      rings fall in one move, along with two questions this article quietly
+      dodged: what to do with points that belong to <i>no</i> cluster, and
+      how to find clusters when nobody, not even BIC, will tell you k.
+    </p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! Expectation-maximisation, the responsibilities, the
+      ellipses and the temperature trick all run live in this page's
+      JavaScript, checked at load time against scikit-learn references from
+      <code>src/utils/generate_gmm_data.py</code>. The datasets are the
+      previous article's, seeded, so every comparison is like for like.
+    </p>
+  </section>
+
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text">
+      Reference fits use scikit-learn 1.8.0 GaussianMixture with ten
+      initialisations per configuration (seed 19). The browser's EM is the
+      textbook algorithm with log-sum-exp responsibilities and a 1e-6 ridge
+      on every covariance diagonal.
+    </p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://rss.onlinelibrary.wiley.com/doi/10.1111/j.2517-6161.1977.tb01600.x">[1] Maximum Likelihood from Incomplete Data via the EM Algorithm</a><br />
+      (Dempster, A., Laird, N. &amp; Rubin, D., JRSS B, 1977)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://onlinelibrary.wiley.com/doi/book/10.1002/0471721182">[2] Finite Mixture Models</a><br />
+      (McLachlan, G. &amp; Peel, D., Wiley, 2000)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://projecteuclid.org/journals/annals-of-statistics/volume-6/issue-2/Estimating-the-Dimension-of-a-Model/10.1214/aos/1176344136.full">[3] Estimating the Dimension of a Model</a><br />
+      (Schwarz, G., Annals of Statistics, 1978; the BIC)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://www.tandfonline.com/doi/abs/10.1198/016214502760047131">[4] Model-Based Clustering, Discriminant Analysis, and Density Estimation</a><br />
+      (Fraley, C. &amp; Raftery, A., JASA, 2002)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://archive.ics.uci.edu/dataset/109/wine">[5] The Wine Recognition Dataset</a><br />
+      (Forina, M. et al., UCI Machine Learning Repository, 178 samples, 3 cultivars)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>

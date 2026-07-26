@@ -317,6 +317,63 @@
             </button>
           </div>
         </div>
+
+        <!-- card: gaussian mixtures -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./gmm/';" style="cursor: pointer">
+            <img src="assets/thumbnails/gmm.svg"
+                 alt="Gaussian Mixtures article image: three tilted covariance ellipses with points tinted by membership, blended colours where the bells overlap." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Gaussian Mixtures</h2>
+            <p class="article-description">
+              Clusters with soft edges: expectation-maximisation live under
+              your mouse, a slider that freezes the mixture into k-means, and
+              the failure gallery redeemed twice out of three.
+            </p>
+            <button class="content-button">
+              <a href="./gmm/">Dive In</a>
+            </button>
+          </div>
+        </div>
+
+        <!-- card: dbscan -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./dbscan/';" style="cursor: pointer">
+            <img src="assets/thumbnails/dbscan.svg"
+                 alt="DBSCAN article image: two interleaved moons of points found by chaining, a dashed epsilon ball around one core point, and crossed-out noise points." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">DBSCAN</h2>
+            <p class="article-description">
+              A cluster is where the points are thick: density under two live
+              dials, the rings finally solved, "belongs to nothing" as an
+              answer, and the trap that earns HDBSCAN its H.
+            </p>
+            <button class="content-button">
+              <a href="./dbscan/">Dive In</a>
+            </button>
+          </div>
+        </div>
+
+        <!-- card: hierarchical -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./hierarchical/';" style="cursor: pointer">
+            <img src="assets/thumbnails/hierarchical.svg"
+                 alt="Hierarchical clustering article image: a dendrogram coloured below a dashed draggable cut line and grey above it." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Hierarchical Clustering</h2>
+            <p class="article-description">
+              All 178 wines as one tree and a blade you drag: agglomerative
+              clustering built pair by pair, four linkages with one famous
+              disaster, and BIRCH for when the tree stops fitting.
+            </p>
+            <button class="content-button">
+              <a href="./hierarchical/">Dive In</a>
+            </button>
+          </div>
+        </div>
       </div>
 
       <details class="roadmap" open>
@@ -376,11 +433,11 @@
           <div class="chips">
             <span class="chip live"><a href="./kmeans/">K-Means</a></span>
             <span class="chip">K-Medoids · K-Modes</span>
-            <span class="chip">DBSCAN · HDBSCAN</span>
+            <span class="chip live"><a href="./dbscan/">DBSCAN · HDBSCAN</a></span>
             <span class="chip">OPTICS · Mean Shift</span>
-            <span class="chip">GMM</span>
+            <span class="chip live"><a href="./gmm/">GMM</a></span>
             <span class="chip">Affinity Propagation</span>
-            <span class="chip">Agglomerative · BIRCH</span>
+            <span class="chip live"><a href="./hierarchical/">Agglomerative · BIRCH</a></span>
             <span class="chip">Spectral Clustering</span>
           </div>
         </div>

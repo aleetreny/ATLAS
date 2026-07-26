@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hierarchical Clustering | ATLAS</title>
+  <meta name="description" content="A visual, interactive introduction to agglomerative clustering: merges watched one by one, the full 178-wine dendrogram with a draggable cut blade, four linkages including single linkage's famous chaining disaster, and BIRCH for when the tree stops fitting in memory." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/hierarchical/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="Hierarchical Clustering | ATLAS" />
+  <meta property="og:description" content="A visual, interactive introduction to agglomerative clustering: merges watched one by one, the full 178-wine dendrogram with a draggable cut blade, four linkages including single linkage's famous chaining disaster, and BIRCH for when the tree stops fitting in memory." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/hierarchical/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Hierarchical Clustering | ATLAS" />
+  <meta name="twitter:description" content="A visual, interactive introduction to agglomerative clustering: merges watched one by one, the full 178-wine dendrogram with a draggable cut blade, four linkages including single linkage's famous chaining disaster, and BIRCH for when the tree stops fitting in memory." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    /* Per-article theme. Everything else inherits from these two. */
+    :root {
+      --primary: #b91c1c;
+      --secondary: #991b1b;
+    }
+    /* Width only: a margin here would override .interactive-full's rhythm. */
+    .narrow-widget {
+      max-width: 800px;
+    }
+    .hier-table {
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      margin-top: 0.5rem;
+      width: 100%;
+    }
+    .hier-table th,
+    .hier-table td {
+      padding: 5px 10px 5px 0;
+      text-align: left;
+      font-weight: 400;
+    }
+    .hier-table th {
+      font-family: var(--font-heavy);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .hier-table td:first-child {
+      opacity: 0.75;
+    }
+  </style>
+</head>
+<body>
+  <!-- ======================= chrome ======================= -->
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <!-- ======================= hero ======================= -->
+  <section id="intro">
+    <h1 id="intro-hed">Hierarchical Clustering</h1>
+    <h1 id="intro-sub">Every clustering at once: 177 merges, one tree, and a blade you drag to decide where the story stops</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 2.1 · Clustering · Hierarchies</span>
+  </section>
+
+  <br />
+
+  <!-- ======================= introduction ======================= -->
+  <section>
+    <p class="body-text">
+      The <a href="../dbscan/">previous article</a> ended on a confession:
+      to beat a single radius, HDBSCAN secretly consulted a richer object, a
+      tree of clusters nested inside clusters, and then flattened it before
+      showing it to you. This article refuses to flatten. The tree is the
+      answer.
+    </p>
+    <br />
+    <p class="body-text">
+      The recipe, <span class="bold">agglomerative clustering</span>, is the
+      simplest in the whole module. Start with every point as its own
+      cluster. Find the two closest clusters. Merge them. Repeat until one
+      remains. That is all: no k, no radius, no initialisation, no lottery,
+      and the 177 merges it takes to fuse 178 wines record themselves as a
+      <span class="bold">dendrogram</span>, the tree of the entire history.
+      Cut the tree low and you have many clusters; cut it high, a few; and
+      every possible cut was computed before you asked.
+    </p>
+    <br />
+    <p class="body-text">
+      The single phrase hiding all the trouble is "the two closest clusters".
+      Between points, distance is distance. Between <i>groups</i>, closeness
+      is a choice, called the <span class="bold">linkage</span>, and this
+      article measures four of them on the same wines, including the one that
+      fails so famously the failure has a name. All of it, the merging, the
+      trees, the cuts, runs in this page's own Lance-Williams implementation,
+      checked at load time against scipy's answers on all 178 bottles.
+    </p>
+  </section>
+
+  <!-- ======================= scrolly ======================= -->
+  <section>
+    <h1 class="body-header">Watch It Merge</h1>
+    <p class="body-text">
+      Twenty-four points, three visible clumps, and the algorithm doing the
+      only thing it knows how to do, while the tree writes itself on the
+      right.
+    </p>
+  </section>
+
+  <section id="agg-scrolly" class="scrolly">
+    <div class="scrolly-container">
+      <div class="steps-container">
+        <div class="step" data-index="0">
+          <div class="step-content">
+            <h3>Everyone Starts Alone</h3>
+            <p>
+              Twenty-four clusters of size one. No parameters have been
+              chosen, because there are none to choose: the algorithm needs
+              only a way to measure distance, and it already has one.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="1">
+          <div class="step-content">
+            <h3>The First Merge</h3>
+            <p>
+              The two closest points in the whole dataset fuse, and the
+              dendrogram records the event: a bracket joining two leaves, at
+              a height equal to the distance the merge cost. Height is the
+              tree's unit of meaning. Everything else is bookkeeping.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="2">
+          <div class="step-content">
+            <h3>Half Way</h3>
+            <p>
+              Twelve merges in, the clumps are assembling themselves from the
+              inside out: cheap short merges first, always. Notice the tree is
+              still short and flat. The expensive decisions have not happened
+              yet.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="3">
+          <div class="step-content">
+            <h3>Three Clusters, If You Stop Here</h3>
+            <p>
+              Twenty-one merges in, exactly three clusters remain, and they
+              are the three clumps. Nobody asked for three. It is simply what
+              the data holds at this height, and stopping here is nothing
+              deeper than cutting the tree at this storey.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="4">
+          <div class="step-content">
+            <h3>One Cluster, and a History</h3>
+            <p>
+              The last merges are long and expensive: the tree's tallest
+              storeys, fusing things that were genuinely far apart. The final
+              object is not a clustering. It is every clustering this data
+              admits, stacked, with the cost of each fusion recorded as
+              height. Now for a tree worth cutting.
+            </p>
+          </div>
+        </div>
+        <div class="step-spacer"></div>
+      </div>
+      <div class="charts-container">
+        <div class="chart-wrap" id="agg-chart"></div>
+      </div>
+    </div>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the dendrogram ======================= -->
+  <section>
+    <h1 class="body-header">The Blade</h1>
+    <p class="body-text">
+      All 178 wines, all 13 standardised dimensions, all 177 merges: the
+      complete ward tree, and the horizontal line across it is yours to
+      <span class="bold">drag</span>. Wherever you leave it, the branches
+      below become the clusters, the projection underneath recolours, and the
+      adjusted Rand index against the cultivar labels (which no tree ever
+      saw) is computed live. Cut through the tall storey and ward's k = 3
+      scores <span class="bold">0.790</span>: a step behind k-means' 0.897
+      and the mixture's 0.915 on these same bottles, because a merge, once
+      made, is forever, and greed occasionally regrets. What the fee buys is
+      the whole hierarchy: every k at once, and the tree's tall gaps saying
+      which splits are load-bearing.
+    </p>
+    <br />
+    <p class="body-text">
+      Then press <span class="bold">single</span> and meet the comb. Single
+      linkage calls two clusters as close as their two closest members, so
+      one giant cluster grows by accreting its nearest neighbour, one bottle
+      at a time, and no cut anywhere in that tree beats an ARI of -0.005.
+      Average linkage hides a subtler vice: its early cuts just peel off lone
+      outliers (ARI -0.005 at k = 3), and only by k = 8 has it shed enough
+      strays to reach 0.793. Same distances, same wines, four different
+      trees: the linkage is not a detail, it is the model.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="dendro-widget">
+    <div class="controls-row" style="justify-content: center" id="dendro-buttons"></div>
+    <div id="dendro-chart"></div>
+    <div id="dendro-proj"></div>
+    <div class="widget-readout" id="dendro-readout"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= the bridge ======================= -->
+  <section>
+    <h1 class="body-header">What "Close" Means Between Groups</h1>
+    <p class="body-text">
+      The comb deserves a controlled demonstration. Two clean blobs of 55
+      points, and twelve stepping stones laid between them, each about 0.4
+      from the next. Ask for two clusters. Single linkage, which only ever
+      asks "who is nearest", walks the bridge like a corridor and fuses the
+      blobs; the split it offers instead is one stray point against
+      everything else. Ward, which charges every merge by the variance it
+      adds, finds absorbing a chain four units long into a compact blob
+      exorbitant, and refuses: the blobs stay whole and the bridge is split
+      between them. Twelve points, two opposite verdicts, and the only thing
+      that changed is the definition of "close".
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="chain-widget">
+    <div class="controls-row" style="justify-content: center" id="chain-buttons"></div>
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">cut at k = <span class="value" id="chain-k-label">2</span></span>
+      <input type="range" class="atlas-range" id="chain-k" aria-label="number of clusters to cut" min="2" max="6" step="1" value="2" />
+    </div>
+    <div id="chain-chart"></div>
+    <div class="widget-readout" id="chain-readout"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= birch ======================= -->
+  <section>
+    <h1 class="body-header">When the Tree Stops Fitting</h1>
+    <p class="body-text">
+      The tree's honesty has a cost sheet: agglomeration wants every pairwise
+      distance, and the measured bill below curves upward fast, 8.2 seconds
+      already at twenty thousand points and hopeless well before a million.
+      <span class="bold">BIRCH</span> is the classic escape: stream the data
+      once into a compact tree of running summaries (a count, a sum and a sum
+      of squares per node: enough to know each subcluster's centre and
+      radius), then hand the few hundred summaries, not the points, to any
+      clusterer you like. On five 10-dimensional blobs it matches the full
+      tree's answer exactly, ARI 1.000 at every size, and clusters
+      <span class="bold">200,000 points in 2.3 seconds</span>, a size where
+      the full tree is simply out of reach. One honest asterisk: at two
+      thousand points the full tree is still faster, because BIRCH's
+      machinery has a fixed cost. Summarising only pays once there is
+      something worth summarising.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="birch-widget">
+    <div id="birch-chart"></div>
+    <div class="widget-readout" id="birch-readout"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= verdict ======================= -->
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text">
+      The tree against the module, and the tree against itself.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Decision</th>
+          <th>Default</th>
+          <th>Why</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">Linkage</span></td>
+          <td>Ward, unless clusters are non-compact</td>
+          <td>Measured on the wine: ward 0.790 at k = 3, complete 0.577, average -0.005, single -0.007.</td>
+          <td>Ward assumes euclidean distance and compact clusters: it is k-means' worldview, inherited.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Choosing the cut</span></td>
+          <td>Cut where the storeys are tall</td>
+          <td>A tall gap means the next merge was expensive: the data resisted it. The wine tree's three-branch storey is unmistakable.</td>
+          <td>A comb has no storeys. If no gap looks special, the tree is telling you the linkage failed.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Single linkage</span></td>
+          <td>Only when chains ARE the structure</td>
+          <td>Twelve stepping stones defeated 110 points on the bridge. Its nearest-neighbour logic follows filaments.</td>
+          <td>On anything blob-like it builds the comb, and no cut of a comb means anything.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Flat answer needed</span></td>
+          <td>k-means or the mixture, once k is known</td>
+          <td>The tree costs accuracy for history: 0.790 against 0.897 and 0.915 on the same wines.</td>
+          <td>Use the tree to DISCOVER the k and the structure; refit flat if the single partition is the product.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Data too big for a tree</span></td>
+          <td>BIRCH first, cluster the summaries</td>
+          <td>200,000 points in 2.3 seconds at ARI 1.000, via 1,453 summaries, where the full tree cannot run.</td>
+          <td>The summaries are spheres. Non-compact structure needs the density tools of the previous article.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text">
+      This closes a four-article arc through clustering: hard spheres, soft
+      bells, connected density, and now the full nested history. Four answers
+      to "what is a cluster", each breaking exactly where its definition runs
+      out, and every break measured on the same shared datasets. The branch
+      map still holds unlit chips, K-Medoids, OPTICS and Mean Shift, Affinity
+      Propagation, Spectral Clustering, and the atlas will return for them.
+      But the deeper pull is sideways: this whole module has assumed the
+      structure worth finding is <i>groups</i>. Sometimes it is directions,
+      the few combinations of features along which the data actually varies,
+      and finding those, with principal components and their descendants, is
+      module 2.2's opening move.
+    </p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! The agglomeration you watched, the dendrograms, the
+      cuts and the live ARI all run in this page's own JavaScript
+      (Lance-Williams, all four linkages), checked at load time against scipy
+      linkage matrices from <code>src/utils/generate_hierarchical_data.py</code>,
+      which also measured the scaling benchmark on one machine, cold.
+    </p>
+  </section>
+
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text">
+      Trees from scipy 1.x <code>linkage</code> on the 178 standardised wines
+      (coordinates rounded to four decimals before anything is measured, so
+      the browser and the reference share identical numbers); benchmark with
+      scikit-learn 1.8.0 AgglomerativeClustering and Birch (threshold 3.5),
+      seed 19.
+    </p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://www.tandfonline.com/doi/abs/10.1080/01621459.1963.10500845">[1] Hierarchical Grouping to Optimize an Objective Function</a><br />
+      (Ward, J., JASA, 1963)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://academic.oup.com/comjnl/article/9/4/373/390966">[2] A General Theory of Classificatory Sorting Strategies</a><br />
+      (Lance, G. &amp; Williams, W., The Computer Journal, 1967; the update formula this page runs)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://dl.acm.org/doi/10.1145/235968.233324">[3] BIRCH: An Efficient Data Clustering Method for Very Large Databases</a><br />
+      (Zhang, T., Ramakrishnan, R. &amp; Livny, M., SIGMOD, 1996)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://wires.onlinelibrary.wiley.com/doi/10.1002/widm.53">[4] Algorithms for Hierarchical Clustering: An Overview</a><br />
+      (Murtagh, F. &amp; Contreras, P., WIREs Data Mining, 2012)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://archive.ics.uci.edu/dataset/109/wine">[5] The Wine Recognition Dataset</a><br />
+      (Forina, M. et al., UCI Machine Learning Repository, 178 samples, 3 cultivars)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>

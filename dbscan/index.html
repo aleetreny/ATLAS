@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DBSCAN | ATLAS</title>
+  <meta name="description" content="A visual, interactive introduction to density-based clustering: DBSCAN running live under two draggable dials, the k-distance knee made testable, the rings finally solved, the varying-density trap no single radius survives, and HDBSCAN's answer to it." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/dbscan/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="DBSCAN | ATLAS" />
+  <meta property="og:description" content="A visual, interactive introduction to density-based clustering: DBSCAN running live under two draggable dials, the k-distance knee made testable, the rings finally solved, the varying-density trap no single radius survives, and HDBSCAN's answer to it." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/dbscan/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="DBSCAN | ATLAS" />
+  <meta name="twitter:description" content="A visual, interactive introduction to density-based clustering: DBSCAN running live under two draggable dials, the k-distance knee made testable, the rings finally solved, the varying-density trap no single radius survives, and HDBSCAN's answer to it." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    /* Per-article theme. Everything else inherits from these two. */
+    :root {
+      --primary: #6d28d9;
+      --secondary: #5b21b6;
+    }
+    /* Width only: a margin here would override .interactive-full's rhythm. */
+    .narrow-widget {
+      max-width: 800px;
+    }
+    .den-table {
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      margin-top: 0.5rem;
+      width: 100%;
+    }
+    .den-table th,
+    .den-table td {
+      padding: 5px 10px 5px 0;
+      text-align: left;
+      font-weight: 400;
+    }
+    .den-table th {
+      font-family: var(--font-heavy);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .den-table td:first-child {
+      opacity: 0.75;
+    }
+  </style>
+</head>
+<body>
+  <!-- ======================= chrome ======================= -->
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <!-- ======================= hero ======================= -->
+  <section id="intro">
+    <h1 id="intro-hed">DBSCAN</h1>
+    <h1 id="intro-sub">A cluster is where the points are thick: density instead of distance, "none of the above" as an answer, and nobody chooses k</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 2.1 · Clustering · Density</span>
+  </section>
+
+  <br />
+
+  <!-- ======================= introduction ======================= -->
+  <section>
+    <p class="body-text">
+      Two articles, two defeats, one dataset. The concentric rings scored ARI
+      -0.003 under <a href="../kmeans/">k-means</a> and 0.002 under the
+      <a href="../gmm/">Gaussian mixture</a>: not "hard", but <i>impossible</i>,
+      because both models describe a cluster by where its middle is, and a
+      ring's middle is the one place it never visits.
+    </p>
+    <br />
+    <p class="body-text">
+      What actually makes each ring feel like a group has nothing to do with
+      centres or shapes. Each ring is <span class="bold">dense inside and
+      empty around</span>. DBSCAN is that sentence turned into an algorithm:
+      pick a radius \(\varepsilon\) and a count <i>minPts</i>, call a point a
+      <span class="bold">core</span> if its \(\varepsilon\)-ball holds at
+      least <i>minPts</i> points, chain overlapping cores into clusters, adopt
+      the stragglers on each chain's edge as <span class="bold">border</span>
+      points, and call everything else <span class="bold">noise</span>.
+    </p>
+    <br />
+    <p class="body-text">
+      Three things fall out of that definition that nothing earlier in this
+      module could do. Clusters can be any shape, because chains follow the
+      data instead of a formula. Nobody chooses k: the number of clusters is
+      discovered, not requested. And for the first time, a point can belong to
+      <i>nothing</i>, which every real dataset deserves. The price is two new
+      dials, and this article is honest about them: the whole algorithm runs
+      live in this page, every reference answer is checked against
+      scikit-learn at load, and the last section is a dataset where
+      <span class="bold">no radius works at all</span>, with the fix that
+      earns HDBSCAN its H.
+    </p>
+  </section>
+
+  <!-- ======================= scrolly ======================= -->
+  <section>
+    <h1 class="body-header">Cores, Borders, Noise</h1>
+    <p class="body-text">
+      The two moons, the shape the density idea is usually sold on, and with
+      reason: k-means scored 0.275 here, the mixture 0.434, and both drew
+      straight or elliptical borders through the middle of each crescent.
+    </p>
+  </section>
+
+  <section id="den-scrolly" class="scrolly">
+    <div class="scrolly-container">
+      <div class="steps-container">
+        <div class="step" data-index="0">
+          <div class="step-content">
+            <h3>The Shape That Breaks Centres</h3>
+            <p>
+              Each moon's own points sit close together; the two moons
+              interleave so deeply that each crescent's centre of mass lies
+              closer to the other moon's tips than to its own. Any
+              centre-based model is doomed from the geometry alone. Forget
+              centres. Look at spacing.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="1">
+          <div class="step-content">
+            <h3>One Ball, One Question</h3>
+            <p>
+              Around every point, draw a ball of radius 0.3 and count. The
+              solid ball sits in a crowd; the dashed one, on a thin fringe,
+              holds barely a handful. That count is the entire local
+              machinery: no model, no fit, one number per point.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="2">
+          <div class="step-content">
+            <h3>The Cores</h3>
+            <p>
+              Every point whose ball holds at least 5 becomes a core: the
+              crossed-out points are the ones that fail the test. Notice the
+              cores already trace both moons. Density found the skeleton
+              before any clustering happened.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="3">
+          <div class="step-content">
+            <h3>Chain, Adopt, Reject</h3>
+            <p>
+              Cores whose balls overlap are chained into one cluster.
+              Non-cores within reach of a chain are adopted as border points
+              (ringed). The rest are noise, and at this tight radius 6 points
+              get that verdict: honest strays on the thin fringes.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="4">
+          <div class="step-content">
+            <h3>The Right Radius</h3>
+            <p>
+              At \(\varepsilon = 0.45\) the chains span each moon without
+              bridging the gap between them: two clusters,
+              <span class="bold">ARI 0.987</span>, from an algorithm that
+              never once computed a centre. Everything now rides on that
+              phrase "the right radius", which is the rest of this article.
+            </p>
+          </div>
+        </div>
+        <div class="step-spacer"></div>
+      </div>
+      <div class="charts-container">
+        <div class="chart-wrap" id="den-chart"></div>
+      </div>
+    </div>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the lab ======================= -->
+  <section>
+    <h1 class="body-header">The Two Dials</h1>
+    <p class="body-text">
+      Everything DBSCAN does is decided by \(\varepsilon\) (how far
+      "neighbouring" reaches) and <i>minPts</i> (how crowded a ball must be to
+      count as dense). Below, both dials drive this page's own implementation,
+      live, on all four of this article's datasets. Two moments to hunt for.
+      On the rings: the redemption. Between \(\varepsilon = 0.6\) and 1.55 the
+      score sits at a flat <span class="bold">ARI 1.000</span>, and below 0.6
+      the sparse outer ring shatters into fragments (15 of them at 0.3),
+      because a chain is only as connected as its longest gap. On the
+      impostors: 30 uniform background points seeded among the familiar three
+      blobs. At \(\varepsilon = 0.8\), minPts 8, DBSCAN hands 18 of the 30 to
+      the noise bin while keeping all three blobs whole. The other 12
+      impostors landed inside a blob by luck, where no algorithm, and no
+      oracle, could tell them from citizens.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="lab-widget">
+    <div class="controls-row" style="justify-content: center" id="lab-buttons"></div>
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">&epsilon; = <span class="value" id="lab-eps-label">0.45</span></span>
+      <input type="range" class="atlas-range" id="lab-eps" aria-label="epsilon radius" min="0.06" max="1.2" step="0.02" value="0.45" />
+      <span class="slider-label">minPts = <span class="value" id="lab-mp-label">5</span></span>
+      <input type="range" class="atlas-range" id="lab-minpts" aria-label="minimum points per ball" min="2" max="15" step="1" value="5" />
+    </div>
+    <div id="lab-chart"></div>
+    <div class="widget-readout" id="lab-readout"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= k-distance ======================= -->
+  <section>
+    <h1 class="body-header">Reading the Radius off the Data</h1>
+    <p class="body-text">
+      The classic recipe for choosing \(\varepsilon\) is almost folklore: sort
+      every point by the distance to its 4th neighbour, plot the curve, and
+      put the radius at the knee, where the flat shelf of in-cluster spacing
+      turns into the climb of emptiness. Below, the folklore becomes an
+      instrument: the dashed line <span class="bold">is</span> the epsilon.
+      Drag it and the moons re-cluster on the right in real time. What the
+      exercise actually teaches is gentler than the recipe implies: the knee
+      is not a point but a plateau, and any radius on the shelf works. The
+      curve's real job is telling you where the shelf ends.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="kd-widget">
+    <div id="kd-chart"></div>
+    <div class="widget-readout" id="kd-readout"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= the trap ======================= -->
+  <section>
+    <h1 class="body-header">One Radius Cannot Serve Two Densities</h1>
+    <p class="body-text">
+      Now the honest failure, built by search so that it genuinely bites: two
+      tight clusters a small gap apart, and one diffuse, populous cluster far
+      away. The radius that keeps the diffuse cluster in one piece (0.64 and
+      up) is wider than the gap between the tight pair, which fuses from 0.48.
+      The best any single \(\varepsilon\) manages, over an exhaustive sweep,
+      is the compromise at 0.44: pair separated, but the diffuse cluster in
+      six pieces with only 59% of it in the largest one, ARI 0.749.
+    </p>
+    <br />
+    <p class="body-text">
+      One measurement trap to name before you trust any score here: at
+      \(\varepsilon = 0.16\) the ARI reads a spectacular 0.973, earned by
+      declaring the diffuse cluster <i>entirely noise</i>. The index rewards
+      the coincidence that "the noise class" and "cluster three" contain the
+      same points. Calling something nonexistent is not finding it, which is
+      why the right panel tracks the two goals that matter instead: is the
+      tight pair still separate, and how much of the diffuse cluster survives
+      in one piece. Watch them never succeed together.
+    </p>
+    <br />
+    <p class="body-text">
+      <span class="bold">HDBSCAN</span> dissolves the dilemma by refusing to
+      fix a radius at all. Conceptually it runs DBSCAN at <i>every</i>
+      \(\varepsilon\) at once, watches clusters be born, merge and die as the
+      radius grows, and keeps the ones that stay recognisable the longest,
+      each at its own density. One knob remains, the minimum cluster size,
+      and it is far more forgiving: press its three values below and watch the
+      same three clusters survive all of them.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="trap-widget">
+    <div class="controls-row" style="justify-content: center">
+      <button class="atlas-btn" id="trap-db">one radius (DBSCAN)</button>
+      <button class="atlas-btn ghost" id="trap-hdb">every radius (HDBSCAN)</button>
+      <span id="trap-mcs" style="display: contents"></span>
+    </div>
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">&epsilon; = <span class="value" id="trap-eps-label">0.44</span></span>
+      <input type="range" class="atlas-range" id="trap-eps" aria-label="epsilon for the trap dataset" min="0.08" max="1.4" step="0.04" value="0.44" />
+    </div>
+    <div id="trap-chart"></div>
+    <div class="widget-readout" id="trap-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text">
+      The measured verdict: HDBSCAN at minimum size 10 delivers all three
+      clusters, 91% of the diffuse one held together, ARI
+      <span class="bold">0.934</span>, against the 0.749 ceiling of the best
+      possible single radius. For completeness: the Gaussian mixture also
+      solves this particular dataset (ARI 1.0), because these clusters happen
+      to be Gaussian blobs. Bend them into moons or rings and the mixture is
+      gone, while density does not care. That indifference to shape, plus the
+      refusal to fix a scale, is the pairing that makes HDBSCAN the default
+      density tool today.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= verdict ======================= -->
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text">
+      Density against everything the module has so far.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Decision</th>
+          <th>Default</th>
+          <th>Why</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">Arbitrary shapes</span></td>
+          <td>Density, not centres</td>
+          <td>Measured across three articles: rings went -0.003 (k-means), 0.002 (mixture), 1.000 (DBSCAN).</td>
+          <td>Chains also connect what you meant to keep apart: one bridge point can fuse two clusters.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Choosing &epsilon;</span></td>
+          <td>The k-distance shelf, then verify</td>
+          <td>On the moons, everything from 0.3 to 0.6 works: the knee is a plateau, not a needle.</td>
+          <td>The plateau exists only when all clusters share a density. When they do not, no &epsilon; exists.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Outliers in the data</span></td>
+          <td>Let noise be an answer</td>
+          <td>18 of 30 planted impostors correctly rejected here; k-means dealt every one into a cluster.</td>
+          <td>Noise is a verdict about density, not truth: 12 impostors sat inside blobs and were absorbed.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Densities differ per cluster</span></td>
+          <td>HDBSCAN</td>
+          <td>The trap: best single radius 0.749, HDBSCAN 0.934, and its one knob tolerated all three tested values.</td>
+          <td>It prunes sparse fringes as noise by design; expect fewer, cleaner members than you drew.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Scoring a noise-producing model</span></td>
+          <td>Never a single index blindly</td>
+          <td>ARI 0.973 at &epsilon; = 0.16 was earned by erasing a cluster. Track per-goal metrics too.</td>
+          <td>Any scalar can be gamed by a degenerate answer; this article's sweep charts the goals separately.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text">
+      There is a quiet admission inside HDBSCAN worth sitting with. To beat
+      the single radius, it had to consider every radius, and at every radius
+      the data had a <i>different</i> clustering: clusters inside clusters,
+      merging as the scale grew. The flat answer it returns is a summary of a
+      richer object, a <span class="bold">tree</span> of nested groupings,
+      chosen by a rule about persistence. The
+      <a href="../hierarchical/">next article</a> stops summarising and builds
+      that tree explicitly, pair by pair, for all 178 wines at once, and hands
+      you the blade that cuts it wherever you decide the story should stop.
+    </p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! DBSCAN, the k-distance curve and every score on this
+      page run live in this page's JavaScript, checked at load time against
+      scikit-learn 1.8.0 references from
+      <code>src/utils/generate_dbscan_data.py</code>, including the exhaustive
+      epsilon sweeps. The trap dataset was placed by search, not by eye, and
+      the generator's docstring says exactly how.
+    </p>
+  </section>
+
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text">
+      HDBSCAN labels come from scikit-learn 1.8.0's implementation
+      (min_cluster_size 10, 15 and 25, all shipped); DBSCAN reference answers
+      cover ten (&epsilon;, minPts) pairs across the four datasets and the
+      browser implementation must match every one at load time.
+    </p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://www.aaai.org/Papers/KDD/1996/KDD96-037.pdf">[1] A Density-Based Algorithm for Discovering Clusters in Large Spatial Databases with Noise</a><br />
+      (Ester, M., Kriegel, H.-P., Sander, J. &amp; Xu, X., KDD, 1996)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://link.springer.com/chapter/10.1007/978-3-642-37456-2_14">[2] Density-Based Clustering Based on Hierarchical Density Estimates</a><br />
+      (Campello, R., Moulavi, D. &amp; Sander, J., PAKDD, 2013; HDBSCAN)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://dl.acm.org/doi/10.1145/3068335">[3] DBSCAN Revisited, Revisited: Why and How You Should (Still) Use DBSCAN</a><br />
+      (Schubert, E., Sander, J., Ester, M., Kriegel, H.-P. &amp; Xu, X., ACM TODS, 2017)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://joss.theoj.org/papers/10.21105/joss.00205">[4] hdbscan: Hierarchical Density Based Clustering</a><br />
+      (McInnes, L., Healy, J. &amp; Astels, S., Journal of Open Source Software, 2017)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>

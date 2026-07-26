@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <rect width="400" height="300" fill="#f1f3f3" />
+  <!-- a small dendrogram, coloured below the cut, grey above -->
+  <g fill="none" stroke-width="2.5">
+    <!-- left clade (brick) -->
+    <path d="M70 275 L70 210 L110 210 L110 275" stroke="#b91c1c" />
+    <path d="M90 210 L90 172 L140 172 L140 275" stroke="#b91c1c" />
+    <!-- middle clade (pink) -->
+    <path d="M180 275 L180 226 L214 226 L214 275" stroke="#df2a5d" />
+    <path d="M197 226 L197 186 L246 186 L246 275" stroke="#df2a5d" />
+    <!-- right clade (blue) -->
+    <path d="M290 275 L290 200 L330 200 L330 275" stroke="#003181" />
+    <!-- the grey storeys above the cut -->
+    <path d="M115 172 L115 120 L221 120 L221 186" stroke="#9aa5aa" />
+    <path d="M168 120 L168 62 L310 62 L310 200" stroke="#9aa5aa" />
+  </g>
+  <!-- the draggable blade -->
+  <line x1="46" y1="146" x2="356" y2="146" stroke="#232f3e" stroke-width="2.4" stroke-dasharray="9 6" />
+  <g stroke="#232f3e" stroke-width="2">
+    <line x1="40" y1="275" x2="360" y2="275" />
+    <line x1="40" y1="275" x2="40" y2="25" />
+  </g>
+</svg>
