@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <rect width="400" height="300" fill="#f1f3f3" />
+  <!-- two interleaved moons -->
+  <g stroke="#ffffff" stroke-width="0.8">
+    <g fill="#007faa">
+      <circle cx="100" cy="120" r="5" /><circle cx="118" cy="96" r="5" /><circle cx="142" cy="78" r="5" />
+      <circle cx="170" cy="68" r="5" /><circle cx="198" cy="66" r="5" /><circle cx="226" cy="74" r="5" />
+      <circle cx="250" cy="90" r="5" /><circle cx="268" cy="110" r="5" /><circle cx="128" cy="118" r="5" />
+      <circle cx="158" cy="94" r="5" /><circle cx="190" cy="84" r="5" /><circle cx="224" cy="94" r="5" />
+    </g>
+    <g fill="#df2a5d">
+      <circle cx="152" cy="188" r="5" /><circle cx="172" cy="206" r="5" /><circle cx="196" cy="218" r="5" />
+      <circle cx="224" cy="222" r="5" /><circle cx="252" cy="216" r="5" /><circle cx="276" cy="200" r="5" />
+      <circle cx="294" cy="178" r="5" /><circle cx="170" cy="182" r="5" /><circle cx="200" cy="196" r="5" />
+      <circle cx="232" cy="200" r="5" /><circle cx="262" cy="188" r="5" /><circle cx="288" cy="158" r="5" />
+    </g>
+  </g>
+  <!-- the failed straight projection direction, and the curved kernel boundary -->
+  <line x1="90" y1="240" x2="310" y2="60" stroke="#232f3e" stroke-width="2" stroke-dasharray="8 6" opacity="0.5" />
+  <path d="M 84 160 C 140 118, 190 132, 224 150 C 262 170, 300 156, 330 118"
+        fill="none" stroke="#0c4a6e" stroke-width="4" />
+  <g stroke="#232f3e" stroke-width="2">
+    <line x1="40" y1="275" x2="360" y2="275" />
+    <line x1="40" y1="275" x2="40" y2="25" />
+  </g>
+</svg>

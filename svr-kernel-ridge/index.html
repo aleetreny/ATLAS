@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SVR and Kernel Ridge | ATLAS</title>
+  <meta name="description" content="A visual, interactive account of the last two regression machines of module 1.1: support vector regression's epsilon-tube under two dials, kernel ridge refitting live in the browser with every slider tick, and the measured identity between kernel ridge and the Gaussian process posterior mean." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/svr-kernel-ridge/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="SVR and Kernel Ridge | ATLAS" />
+  <meta property="og:description" content="A visual, interactive account of the last two regression machines of module 1.1: support vector regression's epsilon-tube under two dials, kernel ridge refitting live in the browser with every slider tick, and the measured identity between kernel ridge and the Gaussian process posterior mean." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/svr-kernel-ridge/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="SVR and Kernel Ridge | ATLAS" />
+  <meta name="twitter:description" content="A visual, interactive account of the last two regression machines of module 1.1: support vector regression's epsilon-tube under two dials, kernel ridge refitting live in the browser with every slider tick, and the measured identity between kernel ridge and the Gaussian process posterior mean." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    /* Per-article theme. Everything else inherits from these two. */
+    :root {
+      --primary: #475569;
+      --secondary: #334155;
+    }
+    /* Width only: a margin here would override .interactive-full's rhythm. */
+    .narrow-widget {
+      max-width: 800px;
+    }
+    .svr-table {
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      margin-top: 0.5rem;
+      width: 100%;
+    }
+    .svr-table th,
+    .svr-table td {
+      padding: 5px 10px 5px 0;
+      text-align: left;
+      font-weight: 400;
+    }
+    .svr-table th {
+      font-family: var(--font-heavy);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .svr-table td:first-child {
+      opacity: 0.75;
+    }
+  </style>
+</head>
+<body>
+  <!-- ======================= chrome ======================= -->
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <!-- ======================= hero ======================= -->
+  <section id="intro">
+    <h1 id="intro-hed">SVR and Kernel Ridge</h1>
+    <h1 id="intro-sub">The unfinished business of regression: a tube that ignores small errors, a ridge gone nonlinear, and the Gaussian process hiding inside it</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 1.1 · Regression · Kernel machines</span>
+  </section>
+
+  <br />
+
+  <!-- ======================= introduction ======================= -->
+  <section>
+    <p class="body-text">
+      Module 1.1 has owed two debts since its own articles announced them. The
+      <a href="../regularization/">regularization article</a> taxed
+      coefficients but only ever drew straight lines. The
+      <a href="../geometric-classification/">SVM article</a> built the widest
+      street and the kernel trick, then spent them entirely on classification.
+      This article pays both debts on the dataset the whole branch grew up on:
+      the 392 cars, horsepower against fuel economy, the same 294/98 split the
+      <a href="../non-parametric-regression/">non-parametric article</a>
+      measured its neighbours on.
+    </p>
+    <br />
+    <p class="body-text">
+      The two machines answer one question two ways: <i>what should an error
+      cost?</i> Every regression so far said "its square, from the first
+      millimetre". <span class="bold">Support vector regression</span> answers
+      with a tube: misses smaller than \(\varepsilon\) cost exactly nothing,
+      and only the cars that touch or leave the tube, the
+      <span class="bold">support vectors</span>, hold the curve up. The reward
+      for institutionalised indifference is sparsity, and it is measured here:
+      the best fit of the whole sweep keeps 125 cars of 294 on the payroll.
+    </p>
+    <br />
+    <p class="body-text">
+      <span class="bold">Kernel ridge</span> keeps the squared loss and
+      instead upgrades the geometry: article 2's ridge penalty, applied in
+      the kernel feature space of article 8. No tube, no sparsity, every car
+      on the books forever, and in exchange, a luxury nothing else in this
+      module has: a <span class="bold">closed form</span>. The whole model is
+      one linear solve, which is why on this page it refits live under your
+      fingers, 294 equations per slider tick, checked against scikit-learn at
+      load. And hiding inside that solve is an old friend from article 4,
+      revealed at the end to thirteen decimal places.
+    </p>
+  </section>
+
+  <!-- ======================= scrolly ======================= -->
+  <section>
+    <h1 class="body-header">The Tube</h1>
+    <p class="body-text">
+      Third appearance of the banana. A straight line failed it in article 1
+      and neighbours traced it in article 4; now watch a tube learn which
+      cars matter.
+    </p>
+  </section>
+
+  <section id="tube-scrolly" class="scrolly">
+    <div class="scrolly-container">
+      <div class="steps-container">
+        <div class="step" data-index="0">
+          <div class="step-content">
+            <h3>What an Error Costs</h3>
+            <p>
+              Every model in this branch so far paid squared loss on every
+              residual: be off by half a mile per gallon and you owe a
+              quarter. The straight line is what that buys on curved data.
+              The question this article opens with: what if small errors
+              simply did not matter?
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="1">
+          <div class="step-content">
+            <h3>Declare Them Free</h3>
+            <p>
+              Wrap the curve in a tube of half-width \(\varepsilon\) = 2 mpg.
+              Any car inside pays nothing at all, exactly zero, and only cars
+              outside pay, linearly, for the distance by which they escape.
+              This is the \(\varepsilon\)-insensitive loss, and it changes
+              who has power over the fit.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="2">
+          <div class="step-content">
+            <h3>The Payroll</h3>
+            <p>
+              Because interior cars cost nothing, they exert nothing: the
+              highlighted cars, the ones on or outside the tube wall, are the
+              only points whose removal would move the curve. Everything
+              grey is deadweight in the best sense: representable,
+              deletable, free.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="3">
+          <div class="step-content">
+            <h3>Squeeze It</h3>
+            <p>
+              Tighten the tube to half a mile per gallon and the free zone
+              nearly vanishes: 252 of 294 cars are back on the payroll. The
+              model has become a near-interpolator with extra steps, and the
+              test error is no better for all that staffing.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="4">
+          <div class="step-content">
+            <h3>The Sweet Spot Is Wide</h3>
+            <p>
+              At \(\varepsilon = 3\), C = 10, the sweep's best test error
+              (4.800 mpg) comes from just 125 support vectors. Ignoring small
+              errors is not an approximation to the right answer. On noisy
+              data it <i>is</i> the right answer: the tube is a form of
+              regularisation, and the dials below let you feel it.
+            </p>
+          </div>
+        </div>
+        <div class="step-spacer"></div>
+      </div>
+      <div class="charts-container">
+        <div class="chart-wrap" id="tube-chart"></div>
+      </div>
+    </div>
+  </section>
+
+  <hr />
+
+  <!-- ======================= loss + dials ======================= -->
+  <section>
+    <h1 class="body-header">Two Dials, One Payroll</h1>
+    <p class="body-text">
+      The loss that produces all of this is a flat floor with two ramps:
+    </p>
+    <p class="body-text">
+      $$ L_\varepsilon(r) \;=\; \max\!\big(0,\; |r| - \varepsilon\big) $$
+    </p>
+    <p class="body-text">
+      \(\varepsilon\) sets the tube's width in mpg: how big a miss has to be
+      before it exists. C prices the misses that do: article 8's slack
+      budget, unchanged. Between them they trade error for sparsity, and the
+      right panel shows the whole measured trade at once: the support-vector
+      count collapsing from 252 to 21 as the tube widens from 0.5 to 8, while
+      the test error dips at 3 and then pays for the emptiness. Every state
+      is a real scikit-learn fit.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="tube-widget">
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">&epsilon; = <span class="value" id="dial-eps-label">2</span> mpg</span>
+      <input type="range" class="atlas-range" id="dial-eps" aria-label="tube half-width epsilon" min="0" max="7" step="1" value="3" />
+      <span class="slider-label">C = <span class="value" id="dial-c-label">10</span></span>
+      <input type="range" class="atlas-range" id="dial-c" aria-label="slack price C" min="0" max="3" step="1" value="2" />
+    </div>
+    <div id="dial-chart"></div>
+    <div class="widget-readout" id="dial-readout"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= kernel ridge live ======================= -->
+  <section>
+    <h1 class="body-header">Kernel Ridge, Refit Under Your Fingers</h1>
+    <p class="body-text">
+      The other machine keeps squared loss and upgrades the space instead.
+      Ridge regression in the kernel's feature space collapses, through the
+      same representer logic as the SVM, to one equation:
+    </p>
+    <p class="body-text">
+      $$ \alpha \;=\; \big(K + \lambda I\big)^{-1} y, \qquad
+         \hat{f}(x) \;=\; \sum_{i} \alpha_i\, k(x, x_i) $$
+    </p>
+    <p class="body-text">
+      No margin, no tube, no quadratic program: one symmetric linear system,
+      294 equations for 294 cars, every car a coefficient forever. The
+      closed form is not a footnote, it is the product, and this widget
+      proves it the only honest way: every tick of these sliders rebuilds
+      the kernel matrix and re-solves the system in your browser, in about a
+      millisecond, with the result checked against twelve scikit-learn
+      reference fits at load. Push \(\gamma\) high and watch the curve start
+      memorising individual cars; push \(\lambda\) high and watch article
+      2's tax flatten it toward the prior.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="krr-widget">
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">&gamma; = <span class="value" id="krr-gamma-label">0.5</span></span>
+      <input type="range" class="atlas-range" id="krr-gamma" aria-label="kernel width gamma, log scale" min="-1.5" max="1" step="0.05" value="-0.3" />
+      <span class="slider-label">&lambda; = <span class="value" id="krr-lambda-label">0.1</span></span>
+      <input type="range" class="atlas-range" id="krr-lambda" aria-label="ridge strength lambda, log scale" min="-3" max="1.5" step="0.05" value="-1" />
+    </div>
+    <div id="krr-chart"></div>
+    <div class="widget-readout" id="krr-readout"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= the twins ======================= -->
+  <section>
+    <h1 class="body-header">The Twins</h1>
+    <p class="body-text">
+      One reveal to close the machinery. Article 4's Gaussian process
+      produced its elegant posterior mean from priors, likelihoods and
+      marginalisation. Take that GP, same RBF kernel, same noise level
+      \(\lambda\) on the diagonal, zero-mean prior, and compare its posterior
+      mean with the kernel ridge fit at the same settings: the curves agree
+      to <span class="bold">less than 10<sup>-12</sup> mpg</span> everywhere,
+      because they are the same linear system solved under two vocabularies.
+      Bayes bought the error bands and the principled hyperparameters;
+      algebra bought the same curve for one solve. Knowing that the two
+      dialects name one object is worth more than either dialect.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="twin-widget">
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">pry them apart: offset <span class="value" id="twin-off-label"></span></span>
+      <input type="range" class="atlas-range" id="twin-off" aria-label="artificial vertical offset to separate the twin curves" min="0" max="6" step="0.5" value="0" />
+    </div>
+    <div id="twin-chart"></div>
+    <div class="widget-readout" id="twin-readout"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= verdict ======================= -->
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text">
+      Measured on all six numeric features, five-fold, against the branch's
+      own baseline: ridge 3.440 mpg of error, kernel ridge
+      <span class="bold">2.651</span>, SVR 2.695 with roughly 197 support
+      vectors per fold. On these cars the kernel genuinely pays (the
+      relationship really is curved, as article 1's polynomial first
+      showed), and the two kernel machines land within noise of each other.
+      Which one to reach for is therefore not about accuracy:
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Decision</th>
+          <th>Default</th>
+          <th>Why</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">Accuracy on curved data</span></td>
+          <td>Either kernel machine</td>
+          <td>Measured: 2.651 and 2.695 against linear ridge's 3.440. A statistical tie with each other.</td>
+          <td>On data that is genuinely linear, the kernel buys nothing and costs tuning: article 8's lesson transfers.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Model must stay small</span></td>
+          <td>SVR</td>
+          <td>125 of 294 cars at the sweep's best; predictions touch only support vectors.</td>
+          <td>Sparsity depends on &epsilon;: squeeze the tube and 252 cars are back on the payroll.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Refitting constantly</span></td>
+          <td>Kernel ridge</td>
+          <td>Closed form: this page re-solves it live per slider tick. No convergence, no initialisation.</td>
+          <td>The solve is O(n&sup3;) and the kernel matrix O(n&sup2;): at big n, neither fits. BIRCH-style thinking returns.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">You need uncertainty</span></td>
+          <td>The GP costume</td>
+          <td>Same curve, measured to 10<sup>-12</sup>: but only the Bayesian reading hands you the bands.</td>
+          <td>The bands trust the kernel: article 4's caveats apply unchanged.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Outliers in y</span></td>
+          <td>SVR's linear ramps</td>
+          <td>Outside the tube the loss grows linearly, not quadratically: a robustness echo of article 3's Huber.</td>
+          <td>&epsilon; does not remove leverage in x; RANSAC thinking still applies there.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text">
+      With that, module 1.1 is complete: every chip in the regression branch
+      is lit. Eight articles ago this branch opened with a straight line
+      through these same cars; it closes with two machines that agree the
+      line should curve, disagree about who pays for errors, and between
+      them contain most of the ideas the branch taught: penalties, kernels,
+      margins, robustness, closed forms and honest priors. One chip remains
+      in all of module 1, on the classification side: the
+      <a href="../kda/">next article</a> gives discriminant analysis the same
+      kernel upgrade this one gave ridge, and turns the last light on.
+    </p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! Kernel ridge runs genuinely live in this page
+      (kernel matrix, Cholesky solve and all), checked at load time against
+      scikit-learn references from <code>src/utils/generate_svr_data.py</code>;
+      every SVR state is a real fit from the shipped grid, on article 4's
+      exact train/test split.
+    </p>
+  </section>
+
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text">
+      Fits with scikit-learn 1.8.0 (SVR, KernelRidge,
+      GaussianProcessRegressor with a fixed kernel and no optimiser for the
+      identity), seed 7 to match the non-parametric article's split. The
+      benchmark is 5-fold on the six numeric columns of the Auto MPG data.
+    </p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://papers.nips.cc/paper/1238-support-vector-regression-machines">[1] Support Vector Regression Machines</a><br />
+      (Drucker, H., Burges, C., Kaufman, L., Smola, A. &amp; Vapnik, V., NeurIPS, 1996)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://link.springer.com/article/10.1023/B:STCO.0000035301.49549.88">[2] A Tutorial on Support Vector Regression</a><br />
+      (Smola, A. &amp; Sch&ouml;lkopf, B., Statistics and Computing, 2004)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://www.cs.cmu.edu/~epxing/Class/10715/reading/kernel_ridge.pdf">[3] Ridge Regression Learning Algorithm in Dual Variables</a><br />
+      (Saunders, C., Gammerman, A. &amp; Vovk, V., ICML, 1998; kernel ridge)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://gaussianprocess.org/gpml/">[4] Gaussian Processes for Machine Learning</a><br />
+      (Rasmussen, C. &amp; Williams, C., MIT Press, 2006; chapter 6 draws the identity)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://archive.ics.uci.edu/dataset/9/auto+mpg">[5] The Auto MPG Dataset</a><br />
+      (UCI Machine Learning Repository, 392 complete cars)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>

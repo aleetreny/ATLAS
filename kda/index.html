@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kernel Discriminant Analysis | ATLAS</title>
+  <meta name="description" content="A visual, interactive account of kernel discriminant analysis: turn a dial through every projection angle and hit the measured linear ceiling yourself, then watch Fisher's discriminant take the kernel upgrade, from secretly-linear to memorisation, with the honest benchmark that closes module 1." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/kda/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="Kernel Discriminant Analysis | ATLAS" />
+  <meta property="og:description" content="A visual, interactive account of kernel discriminant analysis: turn a dial through every projection angle and hit the measured linear ceiling yourself, then watch Fisher's discriminant take the kernel upgrade, from secretly-linear to memorisation, with the honest benchmark that closes module 1." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/kda/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Kernel Discriminant Analysis | ATLAS" />
+  <meta name="twitter:description" content="A visual, interactive account of kernel discriminant analysis: turn a dial through every projection angle and hit the measured linear ceiling yourself, then watch Fisher's discriminant take the kernel upgrade, from secretly-linear to memorisation, with the honest benchmark that closes module 1." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    /* Per-article theme. Everything else inherits from these two. */
+    :root {
+      --primary: #0c4a6e;
+      --secondary: #0a3a56;
+    }
+    /* Width only: a margin here would override .interactive-full's rhythm. */
+    .narrow-widget {
+      max-width: 800px;
+    }
+    .kda-table {
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      margin-top: 0.5rem;
+      width: 100%;
+    }
+    .kda-table th,
+    .kda-table td {
+      padding: 5px 10px 5px 0;
+      text-align: left;
+      font-weight: 400;
+    }
+    .kda-table th {
+      font-family: var(--font-heavy);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .kda-table td:first-child {
+      opacity: 0.75;
+    }
+  </style>
+</head>
+<body>
+  <!-- ======================= chrome ======================= -->
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <!-- ======================= hero ======================= -->
+  <section id="intro">
+    <h1 id="intro-hed">Kernel Discriminants</h1>
+    <h1 id="intro-sub">The last light of module 1: prove the linear ceiling with your own hands, then give Fisher's projection the kernel it was owed</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 1.2 · Classification · Kernel discriminants</span>
+  </section>
+
+  <br />
+
+  <!-- ======================= introduction ======================= -->
+  <section>
+    <p class="body-text">
+      One chip in module 1 is still dark. The
+      <a href="../geometric-classification/">geometric classification
+      article</a> taught discriminant analysis as a projection: LDA hunts the
+      single direction along which two classes, squashed to one dimension,
+      separate best. It also taught the kernel trick, and then gave it to the
+      SVM alone. Discriminant analysis never got its upgrade. This short
+      article pays that debt and, with it, closes the module.
+    </p>
+    <br />
+    <p class="body-text">
+      The demonstration data is a reunion: the two moons the
+      <a href="../dbscan/">DBSCAN article</a> clustered without labels, now
+      with their labels restored, 210 training points and 90 held out. Moons
+      are the canonical linear-projection killer, and this article does not
+      ask you to take that on authority. It hands you the projection direction
+      as a dial, lets you try <i>every angle yourself</i>, and tells you the
+      measured ceiling you are chasing: over a sweep of 721 directions, the
+      best any straight projection scores on the held-out moons is
+      <span class="bold">0.878</span>. LDA, to its credit, finds that exact
+      ceiling on its own. It simply cannot go higher, because no line can.
+    </p>
+    <br />
+    <p class="body-text">
+      Then Fisher's same objective, between-class distance over within-class
+      spread, is taken in the kernel's feature space instead, and the ceiling
+      stops applying: <span class="bold">0.989</span> held-out, from the same
+      projection idea. Everything on this page runs from the fitted dual
+      coefficients live in your browser, boundaries and histograms alike, and
+      the accuracies are re-derived at load time as a check.
+    </p>
+  </section>
+
+  <!-- ======================= scrolly ======================= -->
+  <section>
+    <h1 class="body-header">A Projection Can Only Do So Much</h1>
+    <p class="body-text">
+      The story in five steps: what a direction is, what the best one
+      achieves, and what changes when the direction lives somewhere bigger.
+    </p>
+  </section>
+
+  <section id="angle-scrolly" class="scrolly">
+    <div class="scrolly-container">
+      <div class="steps-container">
+        <div class="step" data-index="0">
+          <div class="step-content">
+            <h3>The Moons, Labelled</h3>
+            <p>
+              Two interleaved crescents. The density article grouped them
+              with no labels at all; today the labels are the point, because
+              the question is not "are there groups" but "can a projection
+              tell them apart".
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="1">
+          <div class="step-content">
+            <h3>What LDA Does</h3>
+            <p>
+              LDA picks one direction (the dark line), drops every point's
+              shadow onto it, and hopes the two colours land apart. The
+              histogram below the scatter is those shadows, and the pile-up
+              in the middle is the interleaving doing its damage: held-out
+              accuracy 0.878.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="2">
+          <div class="step-content">
+            <h3>The Ceiling Is Measured</h3>
+            <p>
+              Maybe LDA chose badly? No: this is the best of 721 swept
+              directions, and it scores the same 0.878. The failure is not
+              the choice of angle. It is the concept of angle: every straight
+              shadow folds part of each moon onto the other. In the next
+              widget, the dial is yours.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="3">
+          <div class="step-content">
+            <h3>Fisher, Kernelised</h3>
+            <p>
+              Keep the objective, change the space: separate the class means
+              relative to the class spreads, but for a projection direction
+              living in the kernel's feature space, expressed through weights
+              on the training points. The shadows land in two clean islands,
+              and the pile-up is gone.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="4">
+          <div class="step-content">
+            <h3>Back in Two Dimensions</h3>
+            <p>
+              Seen from the original plane, the kernel direction is a curved
+              boundary hugging both crescents: held-out accuracy 0.989
+              against the linear 0.878. One idea, one upgrade, eleven points
+              of accuracy that no rotation of a line could ever buy.
+            </p>
+          </div>
+        </div>
+        <div class="step-spacer"></div>
+      </div>
+      <div class="charts-container">
+        <div class="chart-wrap" id="angle-chart"></div>
+      </div>
+    </div>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the dial ======================= -->
+  <section>
+    <h1 class="body-header">Beat 0.878 If You Can</h1>
+    <p class="body-text">
+      The projection direction is now yours. Every position of the slider
+      projects all 210 training points onto that angle, grants the projection
+      the most charitable threshold that exists (the dashed cut), and scores
+      the 90 held-out points. The widget keeps your personal best. It also
+      knows, from the sweep, that the record is 0.878, and the interesting
+      part of playing is feeling <i>why</i>: whichever way you turn, the tips
+      of one crescent cross the other's shadow before the bodies separate.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="dial-widget">
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">projection angle = <span class="value" id="angle-label">0</span> degrees</span>
+      <input type="range" class="atlas-range" id="angle-slider" aria-label="projection direction in degrees" min="0" max="180" step="1" value="0" />
+    </div>
+    <div id="dial-chart"></div>
+    <div class="widget-readout" id="angle-readout"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= the objective ======================= -->
+  <section>
+    <h1 class="body-header">Fisher's Ratio, Then the Upgrade</h1>
+    <p class="body-text">
+      Everything here maximises one ratio: how far apart the projected class
+      means land, against how much the projected classes spread,
+    </p>
+    <p class="body-text">
+      $$ J(w) \;=\; \frac{\big(w^{\top} m_1 - w^{\top} m_0\big)^2}
+                        {\,w^{\top} S_W\, w\,} $$
+    </p>
+    <p class="body-text">
+      The kernel version replaces \(w\) with a direction in feature space
+      written as a weighted sum over training points,
+      \(w = \sum_i \alpha_i\, \phi(x_i)\), after which every quantity in the
+      ratio becomes an expression in the kernel matrix and the whole problem
+      collapses, exactly as ridge did last article, to one regularised linear
+      solve for \(\alpha\). Same representer logic, third appearance. What
+      the solution buys, and what it costs at the extremes, is one dial away.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="gamma-widget">
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">&gamma; = <span class="value" id="gam-label">0.3</span></span>
+      <input type="range" class="atlas-range" id="gam-slider" aria-label="kernel width gamma across the seven measured stops" min="0" max="6" step="1" value="2" />
+    </div>
+    <div id="gam-chart"></div>
+    <div class="widget-readout" id="gam-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text">
+      The dial's two ends are the article's fine print. At \(\gamma = 0.01\)
+      the kernel bumps are wider than the whole dataset and KDA collapses
+      onto the linear ceiling <i>to the decimal</i>: 0.878. Every kernel
+      machine carries its linear ancestor inside it. At \(\gamma = 1000\)
+      the bumps are narrower than the gaps between points, training accuracy
+      is a perfect 1.000, and the held-out score has fallen to 0.711: the
+      overfitting cliff of article 8, re-enacted by a discriminant. The
+      plateau between 0.1 and 30, two orders of magnitude wide, is why the
+      middle of this dial feels so safe.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= verdict ======================= -->
+  <section>
+    <h1 class="body-header">The Verdict, and the Module's Last Audit</h1>
+    <p class="body-text">
+      On the moons the kernel is worth eleven points. On real tabular data,
+      the module's closing audit repeats article 8's sober finding. Five-fold
+      on the 569 biopsies: LDA 0.956, QDA 0.967, KDA (with its
+      \(\gamma\) chosen by inner cross-validation) 0.967, the RBF support
+      vector machine 0.981. The kernel discriminant buys the same two points
+      QDA already had, and the SVM, which spends its kernel on a margin
+      rather than on scatter matrices, keeps the crown it won nine articles
+      ago.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Model</th>
+          <th>5-fold accuracy</th>
+          <th>Reach for it when…</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">LDA</span></td>
+          <td>0.9561 ± 0.0078</td>
+          <td>You want the projection itself: an interpretable axis, a picture, a fast baseline.</td>
+          <td>The ceiling is real: on interleaved structure no angle exists, and 0.878 is a measurement.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">QDA</span></td>
+          <td>0.9666 ± 0.0129</td>
+          <td>Classes plausibly Gaussian with different spreads: article 8's advice stands.</td>
+          <td>Needs regularising here (30 features): the covariances are hungry.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">KDA</span></td>
+          <td>0.9667 ± 0.0203</td>
+          <td>You want Fisher's picture on data a line cannot serve: the moons' eleven points are real.</td>
+          <td>An O(n&sup2;) kernel matrix, a gamma to tune, and on tabular data no edge over QDA: measured.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">SVM rbf</span></td>
+          <td>0.9807 ± 0.0103</td>
+          <td>Accuracy is the product: the margin spends the same kernel better on this data.</td>
+          <td>No projection, no picture: you trade Fisher's interpretability for the margin's score.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text">
+      And with that, <span class="bold">module 1 is complete</span>: every
+      chip in supervised inference's regression and classification branches
+      is lit, seventeen articles from a straight line through 392 cars to a
+      discriminant that curls around two moons. The honest through-line of
+      the whole module fits in one sentence: the powerful ideas were few
+      (loss functions, penalties, kernels, margins, probabilities, trees),
+      and most named methods are those few ideas recombined, which is exactly
+      why every article measured its subject against relatives instead of
+      taking its name at face value. The atlas is already deep into
+      <a href="../kmeans/">module 2</a>, where the answer key disappears; the
+      computer-vision branch of module 1 waits further out. The map, as
+      always, is on the <a href="../">front page</a>.
+    </p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! The kernel Fisher discriminant was implemented in
+      numpy by <code>src/utils/generate_kda_data.py</code> (scikit-learn has
+      never shipped one), the browser re-derives every accuracy from the
+      shipped dual coefficients at load time, and the 0.878 ceiling is an
+      exhaustive sweep, not a claim.
+    </p>
+  </section>
+
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text">
+      LDA, QDA and the SVM from scikit-learn 1.8.0; the kernel discriminant
+      is the classical kernel Fisher formulation with a 10<sup>-3</sup> ridge
+      on the within-class matrix, seed 19 throughout, on the same moons
+      construction as the density article.
+    </p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://onlinelibrary.wiley.com/doi/10.1111/j.1469-1809.1936.tb02137.x">[1] The Use of Multiple Measurements in Taxonomic Problems</a><br />
+      (Fisher, R., Annals of Eugenics, 1936; the original discriminant)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://ieeexplore.ieee.org/document/788121">[2] Fisher Discriminant Analysis with Kernels</a><br />
+      (Mika, S., R&auml;tsch, G., Weston, J., Sch&ouml;lkopf, B. &amp; M&uuml;ller, K.-R., IEEE NNSP, 1999)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://link.springer.com/article/10.1023/A:1012450327387">[3] Generalized Discriminant Analysis Using a Kernel Approach</a><br />
+      (Baudat, G. &amp; Anouar, F., Neural Computation, 2000)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://archive.ics.uci.edu/dataset/17/breast+cancer+wisconsin+diagnostic">[4] The Breast Cancer Wisconsin Dataset</a><br />
+      (Wolberg, W., Street, W. &amp; Mangasarian, O., UCI Machine Learning Repository, 569 biopsies)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>
