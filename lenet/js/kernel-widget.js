@@ -32,7 +32,12 @@ export async function initKernelWidget(data, base) {
   for (let i = 0; i < 9; i++) {
     const inp = document.createElement('input');
     inp.type = 'number';
-    inp.step = '0.25';
+    /* A step of one, so the arrow keys do what the section above asks for:
+       walk the centre weight from 5 down to 4 in a single press. Typing any
+       decimal still works, since the step only constrains the arrows.
+       ("any" would be the other candidate, but it disables the arrows
+       entirely.) */
+    inp.step = '1';
     inp.className = 'kernel-cell';
     inp.setAttribute('aria-label', `weight at row ${Math.floor(i / 3) + 1}, column ${(i % 3) + 1}`);
     inp.addEventListener('input', () => {
