@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <rect width="400" height="300" fill="#f1f3f3" />
+  <!-- the HOG rose: one star of oriented lines per cell, longer where an edge lives -->
+  <g stroke="#78350f" stroke-linecap="round" fill="none">
+    <g stroke-width="1" opacity="0.35">
+      <path d="M70 60 L94 60 M82 48 L82 72 M73 51 L91 69 M91 51 L73 69" />
+      <path d="M130 60 L154 60 M142 48 L142 72 M133 51 L151 69 M151 51 L133 69" />
+      <path d="M310 240 L334 240 M322 228 L322 252 M313 231 L331 249 M331 231 L313 249" />
+      <path d="M70 240 L94 240 M82 228 L82 252 M73 231 L91 249 M91 231 L73 249" />
+    </g>
+    <!-- the cells that sit on a real edge: one direction dominates -->
+    <g stroke-width="3.4">
+      <path d="M190 44 L190 76" /><path d="M250 44 L250 76" />
+      <path d="M178 104 L202 128" /><path d="M262 104 L238 128" />
+      <path d="M166 164 L190 164" /><path d="M250 164 L274 164" />
+      <path d="M190 224 L214 200" /><path d="M250 224 L226 200" />
+      <path d="M204 254 L236 254" />
+    </g>
+    <g stroke-width="1.8" opacity="0.7">
+      <path d="M142 104 L166 104" /><path d="M274 104 L298 104" />
+      <path d="M142 164 L142 188" /><path d="M298 164 L298 188" />
+      <path d="M166 224 L154 200" /><path d="M274 224 L286 200" />
+    </g>
+  </g>
+  <!-- the cell grid the histograms are pooled over -->
+  <g stroke="#232f3e" stroke-width="0.6" opacity="0.22">
+    <path d="M130 30 H310 M130 90 H310 M130 150 H310 M130 210 H310 M130 270 H310" />
+    <path d="M130 30 V270 M190 30 V270 M250 30 V270 M310 30 V270" />
+  </g>
+  <g stroke="#232f3e" stroke-width="2">
+    <line x1="40" y1="275" x2="360" y2="275" />
+    <line x1="40" y1="275" x2="40" y2="25" />
+  </g>
+</svg>

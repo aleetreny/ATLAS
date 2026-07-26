@@ -412,6 +412,44 @@
             </button>
           </div>
         </div>
+
+        <!-- card: classical features -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./classical-features/';" style="cursor: pointer">
+            <img src="assets/thumbnails/classical-features.svg"
+                 alt="Features Before Learning article image: a grid of cells, each holding a star of oriented lines, longer where an edge runs through the cell." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Features Before Learning</h2>
+            <p class="article-description">
+              How vision worked when a person designed the representation:
+              HOG rebuilt live from pixels, and the invariance of SIFT and
+              ORB measured against a ground truth instead of asserted.
+            </p>
+            <button class="content-button">
+              <a href="./classical-features/">Dive In</a>
+            </button>
+          </div>
+        </div>
+
+        <!-- card: viola-jones -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./viola-jones/';" style="cursor: pointer">
+            <img src="assets/thumbnails/viola-jones.svg"
+                 alt="Viola-Jones article image: a schematic face with the classic two-band Haar feature across the eyes, a red detection box, and scattered dots where windows were rejected early." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Viola-Jones</h2>
+            <p class="article-description">
+              Ten thousand windows per photograph, answered in milliseconds:
+              the integral image under your mouse, the features boosting
+              picks, and a real cascade running live in your browser.
+            </p>
+            <button class="content-button">
+              <a href="./viola-jones/">Dive In</a>
+            </button>
+          </div>
+        </div>
       </div>
 
       <details class="roadmap" open>
@@ -443,8 +481,8 @@
         <div class="branch">
           <h4>1.3 Computer Vision: visual perception</h4>
           <div class="chips">
-            <span class="chip">HOG · SIFT · ORB</span>
-            <span class="chip">Viola-Jones</span>
+            <span class="chip live"><a href="./classical-features/">HOG · SIFT · ORB</a></span>
+            <span class="chip live"><a href="./viola-jones/">Viola-Jones</a></span>
             <span class="chip">LeNet · AlexNet</span>
             <span class="chip">VGG · ResNet</span>
             <span class="chip">EfficientNet · ConvNeXt</span>

@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Viola-Jones | ATLAS</title>
+  <meta name="description" content="The 2001 detector that made face detection real time: drag a rectangle and watch the integral image answer any sum in four lookups, see which Haar features boosting actually picks, and run a real trained cascade over ten thousand windows live in your browser." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/viola-jones/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="Viola-Jones | ATLAS" />
+  <meta property="og:description" content="The 2001 detector that made face detection real time: drag a rectangle and watch the integral image answer any sum in four lookups, see which Haar features boosting actually picks, and run a real trained cascade over ten thousand windows live in your browser." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/viola-jones/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Viola-Jones | ATLAS" />
+  <meta name="twitter:description" content="The 2001 detector that made face detection real time: drag a rectangle and watch the integral image answer any sum in four lookups, see which Haar features boosting actually picks, and run a real trained cascade over ten thousand windows live in your browser." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    /* Per-article theme. Everything else inherits from these two. */
+    :root {
+      --primary: #1e40af;
+      --secondary: #1a3691;
+    }
+    .narrow-widget {
+      max-width: 800px;
+    }
+    .vj-table {
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      margin-top: 0.5rem;
+      width: 100%;
+    }
+    .vj-table th,
+    .vj-table td {
+      padding: 5px 10px 5px 0;
+      text-align: left;
+      font-weight: 400;
+    }
+    .vj-table th {
+      font-family: var(--font-heavy);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .vj-table td:first-child {
+      opacity: 0.75;
+    }
+    canvas.atlas-canvas {
+      background: var(--paper);
+      max-width: 100%;
+    }
+    /* the feature panel and its histogram sit side by side on a wide screen */
+    .feat-pair {
+      display: grid;
+      grid-template-columns: minmax(0, 240px) minmax(0, 1fr);
+      gap: 1rem;
+      align-items: center;
+    }
+    @media (max-width: 720px) {
+      .feat-pair {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- ======================= chrome ======================= -->
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <!-- ======================= hero ======================= -->
+  <section id="intro">
+    <h1 id="intro-hed">Viola-Jones</h1>
+    <h1 id="intro-sub">Ten thousand questions per photograph, answered in milliseconds: the detector that put a face box in every camera</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 1.3 · Computer Vision · Detection</span>
+  </section>
+
+  <br />
+
+  <!-- ======================= introduction ======================= -->
+  <section>
+    <p class="body-text">
+      The <a href="../classical-features/">previous article</a> asked what is
+      in an image. This one asks a harder question:
+      <span class="bold">where</span>. Nobody hands a detector a neat crop, so
+      it must consider every place a face could be, at every size, and the
+      arithmetic gets away from you immediately. The small photograph below is
+      128 pixels square, and even at a single fixed size it contains
+      <span class="bold">10,816</span> possible 25-pixel windows. A video
+      frame at 30 per second contains millions.
+    </p>
+    <br />
+    <p class="body-text">
+      In 2001 Paul Viola and Michael Jones published a detector that did this
+      in real time on a 700 MHz desktop, and it worked so well that it shipped
+      in point-and-shoot cameras for a decade. It has three ideas in it, and
+      every one of them is about <i>cost</i>: features cheap enough to be
+      worth evaluating, an arithmetic trick that makes a big feature cost the
+      same as a small one, and an arrangement that spends almost nothing on
+      the overwhelming majority of windows, because the overwhelming majority
+      of windows are obviously not faces.
+    </p>
+    <br />
+    <p class="body-text">
+      All three are rebuilt here. The classifier on this page was trained from
+      scratch, by AdaBoost over decision stumps, on 100 face crops and 2,000
+      background patches mined from ten face-free photographs, and the cascade
+      it produced runs <span class="bold">live in your browser</span> over
+      every window of a real picture. The counts you will see are not
+      illustrations; the page computes them while you watch.
+    </p>
+  </section>
+
+  <!-- ======================= scrolly ======================= -->
+  <section>
+    <h1 class="body-header">Where Is the Face?</h1>
+    <p class="body-text">
+      Start by feeling the size of the problem.
+    </p>
+  </section>
+
+  <section id="vj-scrolly" class="scrolly">
+    <div class="scrolly-container">
+      <div class="steps-container">
+        <div class="step" data-index="0">
+          <div class="step-content">
+            <h3>A Photograph</h3>
+            <p>
+              No labels, no crops, no help. Somewhere in this picture there may
+              be a face, and a detector has to decide not only whether but
+              where, without being told either.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="1">
+          <div class="step-content">
+            <h3>One Window</h3>
+            <p>
+              The trick that makes detection tractable is to turn it back into
+              classification: cut out a small square and ask the yes-or-no
+              question this atlas has been answering since module 1.2. Is this
+              patch a face?
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="2">
+          <div class="step-content">
+            <h3>Ten Thousand Windows</h3>
+            <p>
+              Now ask it everywhere. Each dot is one window position, and at
+              one fixed size there are 10,816 of them. If answering costs 40
+              feature evaluations, that is 432,640 evaluations for a single
+              small picture at a single scale, and a real detector has several
+              scales to get through, thirty times a second.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="3">
+          <div class="step-content">
+            <h3>The First Four Features</h3>
+            <p>
+              So do not answer properly. Answer <i>cheaply</i>, and only for
+              long enough to throw the window away: the cascade's first stage
+              costs four features and eliminates 43% of everything on the
+              first pass. Those windows are now finished forever.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="4">
+          <div class="step-content">
+            <h3>What Survives</h3>
+            <p>
+              Eight stages later, 132 windows remain, and the average window
+              in this picture cost <span class="bold">6.51</span> feature
+              evaluations rather than 40. The boxes are not all faces, and the
+              article is honest about that at the end. The economy is the
+              point, and it is exact.
+            </p>
+          </div>
+        </div>
+        <div class="step-spacer"></div>
+      </div>
+      <div class="charts-container">
+        <div class="chart-wrap" id="vj-scrolly-chart"></div>
+      </div>
+    </div>
+  </section>
+
+  <hr />
+
+  <!-- ======================= integral image ======================= -->
+  <section>
+    <h1 class="body-header">Any Rectangle, Four Lookups</h1>
+    <p class="body-text">
+      The features are differences of rectangle sums: how much brighter is
+      this band than the one below it. Adding up a rectangle costs one
+      operation per pixel, which for a face-sized rectangle is hundreds, and
+      there are tens of thousands of candidate features. That is the wall the
+      whole method is built to walk around.
+    </p>
+    <br />
+    <p class="body-text">
+      The way around it is one preprocessing pass. Build a table where each
+      entry holds the sum of everything above and to the left of it, the
+      <span class="bold">integral image</span>. After that, the sum over any
+      rectangle at all is
+    </p>
+    <p class="body-text">
+      $$ \text{sum} \;=\; D - B - C + A $$
+    </p>
+    <p class="body-text">
+      four lookups at its corners, no matter how large it is. Drag a rectangle
+      over the face below and watch the left counter grow with the area while
+      the right one stays stubbornly at four. The table on the right lights up
+      exactly the four cells being read.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="integral-widget">
+    <div id="integral-chart"></div>
+    <div class="widget-readout" id="integral-readout"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= features ======================= -->
+  <section>
+    <h1 class="body-header">Which Features Get Picked</h1>
+    <p class="body-text">
+      At 25 by 25 pixels there are <span class="bold">166,400</span> possible
+      two- and three-rectangle features, and this page's classifier was
+      trained on a seeded random draw of 12,000 of them. AdaBoost, from
+      <a href="../gradient-boosting/">the boosting article</a>, does the
+      choosing: at each round it takes the single feature and threshold that
+      best fixes the mistakes the previous ones made, then reweights the
+      training crops so the next round attends to what is still wrong.
+    </p>
+    <br />
+    <p class="body-text">
+      The first feature it picked is worth a long look. It is a pair of wide
+      horizontal bands across the middle of the face, and it fires when the
+      lower band is brighter than the upper one: the eye region is darker than
+      the cheekbones below it. That is, essentially, the feature on the first
+      page of the original paper. Nobody told the algorithm about eyes; it
+      searched twelve thousand rectangle patterns and this is what won.
+    </p>
+    <br />
+    <p class="body-text">
+      Look at the two histograms, computed in your browser from the 200 crops
+      in the sprite: they overlap. On its own, that best-in-twelve-thousand
+      feature gets <span class="bold">88.6%</span> of the held-out crops right
+      and lets 12% of the background through. A single Haar feature is not a
+      face detector. It is a cheap filter that is usually right, and the rest
+      of the method is about what to do with a pile of those.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="feature-widget">
+    <div class="controls-row" style="justify-content: center" id="feat-buttons"></div>
+    <div class="feat-pair">
+      <div id="feat-face"></div>
+      <div id="feat-hist"></div>
+    </div>
+    <div class="widget-readout" id="feat-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text">
+      Stacking them works, and the measured gain is where you would expect it:
+      not in accuracy, which starts high, but in false alarms. One feature
+      passes 12.1% of background windows. Forty features pass
+      <span class="bold">0.5%</span>, a twenty-four-fold reduction, while
+      detection goes from 95.5% to 97.7%. In detection the false-alarm rate is
+      the number that matters, because there are so many more windows than
+      faces: at 12% a small photograph produces a thousand false boxes.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= cascade ======================= -->
+  <section>
+    <h1 class="body-header">The Cascade</h1>
+    <p class="body-text">
+      Forty features on ten thousand windows is still 432,640 evaluations,
+      and the third idea removes almost all of it. Nearly every window is
+      obviously not a face, so do not spend forty features proving it. Run a
+      few, and if the window fails, stop. Only the survivors go on to the next
+      test, and only the survivors of that go further.
+    </p>
+    <br />
+    <p class="body-text">
+      The stages here were grown the way the paper describes: keep adding
+      features to the current stage until it keeps
+      <span class="bold">98%</span> of the faces while passing at most half
+      the background still standing, then start a new one. That produced
+      eight stages of 4, 1, 1, 3, 19, 1, 2 and 9 features. One detail matters
+      for honesty: the thresholds were set on a <span class="bold">held-out
+      calibration split</span>, never on the data the detector is judged on,
+      for exactly the reason the <a href="../calibration/">calibration
+      article</a> spent a page on. A threshold is a fitted quantity too.
+    </p>
+    <br />
+    <p class="body-text">
+      Slide through the stages below. Your browser builds one integral image
+      of the photograph and runs the real trained cascade at all 10,816
+      positions, in a few milliseconds.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="cascade-widget">
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">stages applied: <span class="value" id="scan-stage-label">none yet</span></span>
+      <input type="range" class="atlas-range" id="scan-stage" aria-label="how many cascade stages to apply" min="0" max="8" step="1" value="0" />
+    </div>
+    <div id="scan-chart"></div>
+    <div id="scan-funnel" style="margin-top: 0.5rem"></div>
+    <div class="widget-readout" id="scan-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text">
+      Two measurements make the cascade's case, and one keeps it honest.
+    </p>
+    <br />
+    <p class="body-text">
+      The economy: on the held-out crops the cascade spends
+      <span class="bold">8.05</span> feature evaluations per window on average
+      and <span class="bold">4.84</span> on the background ones, against 40
+      for running the whole ensemble everywhere. On the photograph, where
+      background dominates as it does in real life, the average window costs
+      <span class="bold">6.51</span> of 40, and the whole ten-thousand-window
+      scan takes a few milliseconds in your browser. The consistency: the
+      cascade returns a strict subset of what the full ensemble would have
+      accepted, 132 of its 276 positive windows, with
+      <span class="bold">zero</span> windows accepted by the cascade that the
+      ensemble would have rejected. It is an accelerator, not a different
+      classifier.
+    </p>
+    <br />
+    <p class="body-text">
+      And the cost, stated plainly: those 144 windows the cascade drops that
+      the full ensemble would have kept are the price of early exits. On the
+      held-out crops the cascade detects 40 of 44 faces where the monolithic
+      ensemble detects 43, while halving the false positives. A little
+      detection, traded for a sixfold speedup, is exactly the bargain Viola
+      and Jones proposed, and here it is with numbers on it.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= verdict ======================= -->
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text">
+      What survives from 2001, and what this page's own detector cannot do.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Idea</th>
+          <th>What it buys</th>
+          <th>Measured here</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">Integral image</span></td>
+          <td>Rectangle sums in constant time</td>
+          <td>Four lookups against one per pixel, at any size, after a single pass over the image.</td>
+          <td>It only helps features made of axis-aligned rectangles, which is why the features look like that.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Boosting as feature selection</span></td>
+          <td>40 useful features out of 12,000</td>
+          <td>False alarms fall from 12.1% to 0.5% as the ensemble grows.</td>
+          <td>Training scans every candidate every round: the selection, not the detector, is the slow part.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">The cascade</span></td>
+          <td>Almost nothing spent on background</td>
+          <td>6.51 features per window instead of 40 on a real photograph, output a strict subset of the ensemble's.</td>
+          <td>Early exits are irreversible: 4 of 44 faces lost here that the full ensemble would have kept.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">This page's detector</span></td>
+          <td>A demonstration, not a product</td>
+          <td>132 surviving windows on one photograph, most of them not faces.</td>
+          <td>100 face crops and 40 features. The original used thousands of faces and 38 stages of 6,000.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text">
+      That last row deserves its own sentence, because it is the honest end of
+      this story. Everything on this page is real: real features, real
+      boosting, a real cascade, real counts. What it is not is a face
+      detector you would ship, and the gap is not cleverness but scale, in
+      both data and stages. It is also the last article in this atlas where a
+      person decides what the features may look like. Rectangles were chosen
+      because integral images make rectangles free, and the model was allowed
+      to pick among them but never to invent one.
+    </p>
+    <br />
+    <p class="body-text">
+      The <a href="../">next articles in this branch</a> hand that decision
+      over: a model that starts from small random filters and adjusts them by
+      gradient descent until they become whatever the data needed, which turns
+      out to include edge detectors nobody asked for. That is where module
+      1.3 goes next, and where the hand-designed era ends.
+    </p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! The integral image, the Haar responses and the
+      cascade all run in this page's JavaScript, checked at load time against
+      the counts in
+      <code>src/utils/generate_violajones_data.py</code>, which trains the
+      classifier from scratch and verifies its own feature values against
+      scikit-image to 3.8 &times; 10<sup>-6</sup>.
+    </p>
+  </section>
+
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text">
+      Training data: the 100 face crops shipped with scikit-image's
+      <code>lfw_subset</code> plus their mirror images, against 2,000 patches
+      drawn at random from ten face-free photographs in the same library
+      (brick, coins, grass, gravel, moon, page, text, rocket, hubble deep
+      field, checkerboard). Split 60/20/20 into training, threshold
+      calibration and test, seed 19. AdaBoost over decision stumps,
+      implemented here in numpy, 40 rounds.
+    </p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://ieeexplore.ieee.org/document/990517">[1] Rapid Object Detection using a Boosted Cascade of Simple Features</a><br />
+      (Viola, P. &amp; Jones, M., CVPR, 2001)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://link.springer.com/article/10.1023/B:VISI.0000013087.49260.fb">[2] Robust Real-Time Face Detection</a><br />
+      (Viola, P. &amp; Jones, M., International Journal of Computer Vision, 2004; the long version)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://www.sciencedirect.com/science/article/pii/S002200009791504X">[3] A Decision-Theoretic Generalization of On-Line Learning and an Application to Boosting</a><br />
+      (Freund, Y. &amp; Schapire, R., JCSS, 1997; the AdaBoost this page runs)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://www.merl.com/publications/TR2004-043">[4] An Extended Set of Haar-like Features for Rapid Object Detection</a><br />
+      (Lienhart, R. &amp; Maydell, J., ICIP, 2002)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>
