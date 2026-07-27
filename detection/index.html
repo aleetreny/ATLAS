@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Where | ATLAS</title>
+  <meta name="description" content="Detection turns a label into a list of boxes. A sliding window and a grid cell are the same computation measured twice, anchors are about diversity rather than count, and the number with the most leverage is a suppression threshold nobody reports. With a detector running live in your browser." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/detection/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="Where | ATLAS" />
+  <meta property="og:description" content="Detection turns a label into a list of boxes. A sliding window and a grid cell are the same computation measured twice, anchors are about diversity rather than count, and the number with the most leverage is a suppression threshold nobody reports. With a detector running live in your browser." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/detection/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Where | ATLAS" />
+  <meta name="twitter:description" content="Detection turns a label into a list of boxes. A sliding window and a grid cell are the same computation measured twice, anchors are about diversity rather than count, and the number with the most leverage is a suppression threshold nobody reports. With a detector running live in your browser." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    /* Per-article theme. Everything else inherits from these two. */
+    :root {
+      --primary: #0891b2;
+      --secondary: #0e7490;
+    }
+    /* Two panels that have to be read together: a picture and the curve it
+       sits on. Declared here because nothing in global.css pairs a canvas
+       with a chart. */
+    .side-by-side {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 1.5rem;
+      align-items: center;
+    }
+    .side-by-side.lean {
+      grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    }
+    /* A 700-unit viewBox stretched across the full 1000px container renders its
+       annotations at 15px, larger than the body text. Holding these two widgets
+       at 800px keeps the internal scale near 1 in both directions, which is
+       also what keeps the same labels above 5px on a phone. */
+    .narrow-widget {
+      max-width: 800px;
+    }
+    @media (max-width: 950px) {
+      .side-by-side,
+      .side-by-side.lean {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+    .pixel-figure {
+      max-width: 640px;
+      margin: 2rem auto 0 auto;
+      padding: 0 1rem;
+    }
+    .pixel-figure img {
+      width: 100%;
+      height: auto;
+      display: block;
+      image-rendering: pixelated;
+      background: #000;
+    }
+    .figure-caption {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: #5b6572;
+      margin-top: 0.6rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <!-- ======================= chrome ======================= -->
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <!-- ======================= hero ======================= -->
+  <section id="intro">
+    <h1 id="intro-hed">Where</h1>
+    <h1 id="intro-sub">The output stops being a label and becomes a list: what overlap costs, why a sliding window and a grid cell are the same computation, and a detector running in your browser</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 1.3 · Computer Vision · Detection</span>
+  </section>
+
+  <br />
+
+  <!-- ======================= introduction ======================= -->
+  <section>
+    <p class="body-text">
+      Every network in this module so far has answered the same question: given
+      a picture, which of these labels is it. The <a href="../convnext/">previous
+      article</a> spent a lot of measurement on how to build that network well.
+      This one changes the question, and almost everything about the machinery
+      changes with it.
+    </p>
+    <br />
+    <p class="body-text">
+      A detector does not output a label. It outputs a <span class="bold">list
+      of variable length</span>, where each entry is a box, a class and a
+      confidence, and the list may be empty. That single change breaks the loss
+      function, the metric, the training targets and the output layer all at
+      once. There is no cross entropy against a list. There is no accuracy
+      against a set of rectangles. And a network that ends in a fixed number of
+      units cannot emit a variable number of answers.
+    </p>
+    <br />
+    <p class="body-text">
+      What follows is the repair, one piece at a time, measured on pictures
+      where the right answer is known exactly rather than annotated by hand.
+      Three families get named along the way, YOLO, SSD and Faster R-CNN, but
+      the useful thing is not the names: it is that most of what separates them
+      turns out to matter less than a constant applied after the network has
+      stopped computing.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the data ======================= -->
+  <section>
+    <h1 class="body-header">Pictures Where the Answer Is Known</h1>
+    <p class="body-text" id="dataset-note">Measured below.</p>
+  </section>
+
+  <div class="pixel-figure">
+    <img src="./img/trainset.png" width="512" height="256"
+         alt="Thirty-two training canvases, each 64 by 64 pixels, holding one to three Fashion-MNIST garments pasted at random positions and sizes on a black background." />
+    <p class="figure-caption">
+      Thirty-two of the training canvases, at their real size. Every garment
+      here carries a box that is exact by construction.
+    </p>
+  </div>
+
+  <hr />
+
+  <!-- ======================= IoU ======================= -->
+  <section>
+    <h1 class="body-header">What Counts as Right</h1>
+    <p class="body-text" id="iou-note">Measured below.</p>
+    <br />
+    <p class="body-text">
+      Drag the dashed box. The shaded region is what the two boxes share, and
+      the number under them is that area divided by the area they cover between
+      them:
+    </p>
+    <div style="text-align: center; margin: 1.2rem 0">
+      \( \mathrm{IoU}(A, B) = \dfrac{|A \cap B|}{|A \cup B|} \)
+    </div>
+    <p class="body-text">
+      Try to hold it above 0.75 while moving. Then switch the object size and
+      try again: the same slip in pixels is a different mistake depending on
+      how big the thing is.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="iou-widget">
+    <div class="controls-row" style="justify-content: center" id="iou-size-buttons"></div>
+    <div class="side-by-side">
+      <div id="iou-field"></div>
+      <div>
+        <div class="controls-row" style="justify-content: center" id="iou-view-buttons"></div>
+        <div id="iou-chart"></div>
+      </div>
+    </div>
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">predicted size: <span class="value" id="iou-f-value">1.00×</span></span>
+      <input type="range" class="atlas-range" id="iou-f" aria-label="size of the predicted box as a factor of the true box" min="50" max="200" step="5" value="100" />
+    </div>
+    <div class="widget-readout" id="iou-readout"></div>
+  </div>
+
+  <section>
+    <h1 class="body-header">How These Numbers Are Made</h1>
+    <p class="body-text" id="protocol-note">Measured below.</p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the window bill ======================= -->
+  <section>
+    <h1 class="body-header">The Bill for Looking Everywhere</h1>
+    <p class="body-text" id="windows-note">Measured below.</p>
+    <br />
+    <p class="body-text">
+      The widget starts with the full enumeration. Take sizes away, take aspect
+      ratios away, coarsen the stride, and see how much of the bill you can
+      argue off before the scan stops being able to find things: it never gets
+      close to one pass of the detector. Then switch to the second view, because
+      those fifteen shapes were chosen without looking at a single garment, and
+      the data has opinions about which shapes are worth having.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="windows-widget">
+    <div class="controls-row" style="justify-content: center" id="windows-view-buttons"></div>
+    <div id="windows-bill-controls">
+      <div class="controls-row" style="justify-content: center">
+        <span class="slider-label">sizes: <span class="value" id="win-sizes-value">5</span></span>
+        <input type="range" class="atlas-range" id="win-sizes" aria-label="how many window sizes to enumerate" min="1" max="5" step="1" value="5" />
+        <span class="slider-label">aspect ratios: <span class="value" id="win-aspects-value">3</span></span>
+        <input type="range" class="atlas-range" id="win-aspects" aria-label="how many aspect ratios to enumerate" min="1" max="3" step="1" value="3" />
+        <span class="slider-label">stride: <span class="value" id="win-stride-value">1</span></span>
+        <input type="range" class="atlas-range" id="win-stride" aria-label="stride of the scan in pixels" min="0" max="3" step="1" value="0" />
+      </div>
+    </div>
+    <div id="windows-shape-controls" style="display: none">
+      <div class="controls-row" style="justify-content: center">
+        <span class="slider-label">shapes fitted to the data: <span class="value" id="win-k-value">3</span></span>
+        <input type="range" class="atlas-range" id="win-k" aria-label="how many shapes to fit to the training boxes" min="1" max="8" step="1" value="3" />
+      </div>
+    </div>
+    <div id="windows-chart"></div>
+    <div class="widget-readout" id="windows-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="equivalence-note">Measured below.</p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= sliding is not detecting ======================= -->
+  <section>
+    <h1 class="body-header">A Window Classifier Is Not a Detector</h1>
+    <p class="body-text" id="sliding-note">Measured below.</p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the grid ======================= -->
+  <section>
+    <h1 class="body-header">Who Is Responsible for Each Object</h1>
+    <p class="body-text" id="grid-note">Measured below.</p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Stride</th>
+          <th>Slots per cell</th>
+          <th>Candidates per canvas</th>
+          <th>Objects sharing a cell</th>
+          <th>Objects with no slot</th>
+          <th>Recall ceiling</th>
+          <th>Prior-only IoU</th>
+          <th>Prior-only recall</th>
+        </tr>
+      </thead>
+      <tbody id="grid-table-body"></tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="loss-note">Measured below.</p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">Anchors: Diversity, Not Count</h1>
+    <p class="body-text" id="arms-note">Measured below.</p>
+    <br />
+    <p class="body-text">
+      Click any arm to read what it changed and whether the change survived.
+      The grey band is the width of a random seed, measured by training two of
+      these arms three times each, and it moves to whichever arm is selected:
+      anything inside it is a difference this experiment cannot resolve.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="arms-widget">
+    <div class="controls-row" style="justify-content: center" id="arms-view-buttons"></div>
+    <div class="side-by-side lean">
+      <div id="arms-chart"></div>
+      <div id="arms-cells"></div>
+    </div>
+    <div class="widget-readout" id="arms-readout"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= the detector ======================= -->
+  <section>
+    <h1 class="body-header">The Detector, in Your Browser</h1>
+    <p class="body-text" id="detector-note">Measured below.</p>
+    <br />
+    <p class="body-text">
+      Pick a canvas and raise the confidence until only the boxes you would
+      keep are left, then drop the suppression threshold and watch real objects
+      start disappearing instead. The readout says how far your two settings
+      are from the best pair reachable on the same picture.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="detector-widget">
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">canvas: <span class="value" id="det-canvas-value">1 / 12</span></span>
+      <input type="range" class="atlas-range" id="det-canvas-slider" aria-label="which test canvas to run the detector on" min="0" max="11" step="1" value="0" />
+    </div>
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">confidence: <span class="value" id="det-conf-value">0.25</span></span>
+      <input type="range" class="atlas-range" id="det-conf" aria-label="confidence floor below which detections are hidden" min="1" max="99" step="1" value="25" />
+      <span class="slider-label">suppression: <span class="value" id="det-nms-value">0.40</span></span>
+      <input type="range" class="atlas-range" id="det-nms" aria-label="suppression threshold, overlap above which the weaker box is dropped" min="5" max="100" step="5" value="40" />
+    </div>
+    <div class="controls-row" style="justify-content: center" id="det-grid-buttons"></div>
+    <div id="detector-canvas"></div>
+    <div class="widget-readout" id="detector-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="confidence-note">Measured below.</p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= suppression ======================= -->
+  <section>
+    <h1 class="body-header">The Number Nobody Reports</h1>
+    <p class="body-text">
+      Suppression is the least glamorous line in a detector and the only one
+      that is neither learned nor evaluated: sort the boxes by confidence, walk
+      down the list, and delete anything that overlaps a box you have already
+      kept by more than some threshold. One constant, chosen once, usually
+      copied from whichever repository the code came from.
+    </p>
+    <br />
+    <p class="body-text">
+      Below, the detections never change. Only the threshold does. The lower
+      panel is how much overlap these pictures actually contain, which is what
+      that constant is really guessing at.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="nms-widget">
+    <div class="controls-row" style="justify-content: center" id="nms-view-buttons"></div>
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">threshold: <span class="value" id="nms-t-value">0.40</span></span>
+      <input type="range" class="atlas-range" id="nms-t" aria-label="suppression threshold" min="0" max="17" step="1" value="7" />
+    </div>
+    <div id="nms-chart"></div>
+    <div id="nms-hist"></div>
+    <div class="widget-readout" id="nms-readout"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= two stages ======================= -->
+  <section>
+    <h1 class="body-header">Looking Twice</h1>
+    <p class="body-text" id="twostage-note">Measured below.</p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= failures ======================= -->
+  <section>
+    <h1 class="body-header">What It Gets Wrong</h1>
+    <p class="body-text" id="failures-note">Measured below.</p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= verdict ======================= -->
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text">
+      What each idea in this article is actually worth, at this scale, on these
+      pictures.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Idea</th>
+          <th>What it buys</th>
+          <th>Measured here</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">A dense grid instead of a scan</span></td>
+          <td>Every window, evaluated once, for the price of one pass</td>
+          <td>The bill for an exhaustive scan against one pass of the detector, driven live, with the three factors that make up the ratio.</td>
+          <td>The equivalence between a crop and a cell is exact only without padding. The detector pads, and the disagreement lives on the border cells.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Anchors, or slots</span></td>
+          <td>More than one answer per cell, each starting from a different shape</td>
+          <td>A factorial that separates how many slots there are from how different they are, against a measured seed spread.</td>
+          <td id="verdict-anchors">Measured above.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Grid resolution</span></td>
+          <td>Fewer collisions, finer localisation</td>
+          <td>The same network with the pooling moved, at three strides, plus the assignment ceiling each one implies before training.</td>
+          <td id="verdict-stride">Measured above.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Non-maximum suppression</span></td>
+          <td>One box per object instead of a pile</td>
+          <td>A sweep of the threshold over fixed detections, chosen on validation and reported on test, split by how crowded the scene is.</td>
+          <td id="verdict-nms">Measured above.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">A second stage</span></td>
+          <td>A proper look at each proposal, on the shared feature map</td>
+          <td>A region head on the same trunk, split into its classification and box-refinement halves, against a one-stage control given the same extra epochs.</td>
+          <td>Most of what a second stage buys here shows up at strict overlap, not at 0.5. On small pictures where an object covers a couple of cells, expect little.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="limits-note">Measured below.</p>
+    <br />
+    <p class="body-text" id="runtime-note">Measured below.</p>
+    <br />
+    <p class="body-text" id="closing-note">Measured below.</p>
+    <br />
+    <p class="body-text">
+      The <a href="../">next article in this branch</a> keeps the question and
+      sharpens the answer: a box is a crude thing to say about a shape, and
+      segmentation replaces it with a mask, one label per pixel, all the way to
+      a model that will segment something it was never trained on.
+    </p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! Every number here comes from
+      <code>src/utils/generate_detection_data.py</code>, which times its own
+      training step before committing to a schedule, caches every trained
+      network so an interrupted run resumes, and exports the weights the
+      detector above is running on together with the reference boxes it is
+      checked against.
+    </p>
+  </section>
+
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text">
+      Data: Fashion-MNIST garments composited onto 64 by 64 canvases with exact
+      boxes, five classes learned and five held out as distractors, seeded and
+      frozen across every run in the file. Deliberately excluded: feature
+      pyramids, focal loss and heavy augmentation, all of which matter at scale
+      and would confound the comparisons made here.
+    </p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1312.6229">[1] OverFeat: Integrated Recognition, Localization and Detection using Convolutional Networks</a><br />
+      (Sermanet, P. et al., ICLR, 2014; sliding a classifier is a convolution)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1506.02640">[2] You Only Look Once: Unified, Real-Time Object Detection</a><br />
+      (Redmon, J. et al., CVPR, 2016)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1512.02325">[3] SSD: Single Shot MultiBox Detector</a><br />
+      (Liu, W. et al., ECCV, 2016)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1506.01497">[4] Faster R-CNN: Towards Real-Time Object Detection with Region Proposal Networks</a><br />
+      (Ren, S. et al., NeurIPS, 2015)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1612.08242">[5] YOLO9000: Better, Faster, Stronger</a><br />
+      (Redmon, J. &amp; Farhadi, A., CVPR, 2017; anchors by k-means on the training boxes)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1708.02002">[6] Focal Loss for Dense Object Detection</a><br />
+      (Lin, T.-Y. et al., ICCV, 2017; on the imbalance a dense grid creates)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1704.04503">[7] Soft-NMS: Improving Object Detection With One Line of Code</a><br />
+      (Bodla, N. et al., ICCV, 2017)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1405.0312">[8] Microsoft COCO: Common Objects in Context</a><br />
+      (Lin, T.-Y. et al., ECCV, 2014; where the mAP conventions used here come from)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>
