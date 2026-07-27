@@ -112,8 +112,8 @@
     <br />
     <p class="body-text">
       Two networks were trained for this page, on
-      <span class="bold">12,000</span> handwritten digits and tested on
-      <span class="bold">5,000</span> more. One is a convolutional network in
+      <span class="bold" id="p-ntrain">12,000</span> handwritten digits and tested on
+      <span class="bold" id="p-ntest">5,000</span> more. One is a convolutional network in
       the arrangement Yann LeCun published in 1998, built from modern parts;
       the other is an ordinary fully connected network sized so that both have
       almost exactly the same number of parameters. Every filter, every accuracy and every collapse below is
@@ -267,7 +267,7 @@
       are right often enough to be worth the enormous saving.
     </p>
     <br />
-    <p class="body-text">
+    <p class="body-text" id="p-budget">
       To make the saving concrete rather than theoretical, both networks here
       were given the <i>same budget</i>. The convolutional net has
       <span class="bold">61,706</span> parameters. The fully connected one was
@@ -284,28 +284,28 @@
           <th>Network</th>
           <th>Parameters</th>
           <th>Test accuracy</th>
-          <th>Training time</th>
+          <th>Training time, same CPU</th>
         </tr>
       </thead>
       <tbody>
         <tr>
           <td><span class="bold">Convolutional</span></td>
-          <td>61,706</td>
-          <td>96.98%</td>
-          <td>4.4 s</td>
+          <td id="t-cnn-params">61,706</td>
+          <td id="t-cnn-acc">96.98%</td>
+          <td id="t-cnn-time">4.4 s</td>
         </tr>
         <tr>
           <td><span class="bold">Fully connected</span></td>
-          <td>62,020</td>
-          <td>93.50%</td>
-          <td>0.7 s</td>
+          <td id="t-mlp-params">62,020</td>
+          <td id="t-mlp-acc">93.50%</td>
+          <td id="t-mlp-time">0.7 s</td>
         </tr>
       </tbody>
     </table>
   </div>
 
   <section>
-    <p class="body-text">
+    <p class="body-text" id="p-errors">
       Three and a half points does not sound like much until you count errors
       instead of successes: <span class="bold">151</span> mistakes out of 5,000
       against <span class="bold">325</span>, which is 53.5% of the errors
@@ -393,7 +393,7 @@
   </div>
 
   <section>
-    <p class="body-text">
+    <p class="body-text" id="p-shift-cost">
       At one pixel the convolutional net loses 2.7 points and the fully
       connected one loses 14.6. At two pixels it is 96.98% down to 77.00%
       against 93.50% down to 37.90%. So the structure genuinely helps, and the
@@ -401,7 +401,7 @@
       of arriving at a different set of weights.
     </p>
     <br />
-    <p class="body-text">
+    <p class="body-text" id="p-cliff">
       And then <span class="bold">both of them fall off a cliff</span>. By four
       pixels the convolutional net is at 9.76%, which is what guessing would
       give you, and by five and six the two curves have crossed: both sit so
@@ -424,7 +424,7 @@
       in the architecture does.
     </p>
     <br />
-    <p class="body-text">
+    <p class="body-text" id="p-augment">
       What does buy it is showing the network the shifts. Retrained with random
       shifts of up to two pixels applied during training, and nothing else
       changed, the same architecture scores <span class="bold">49.42%</span> on
@@ -462,21 +462,21 @@
       <tbody>
         <tr>
           <td><span class="bold">ReLU instead of tanh</span></td>
-          <td>97.58%</td>
-          <td>96.98%</td>
-          <td>Backwards. On this network tanh converged sooner and scored higher.</td>
+          <td id="t-relu-without">97.58%</td>
+          <td id="t-relu-with">96.98%</td>
+          <td id="t-relu-verdict">Backwards. On this network tanh converged sooner and scored higher.</td>
         </tr>
         <tr>
           <td><span class="bold">Dropout in the head</span></td>
-          <td>93.88%</td>
-          <td>95.44%</td>
-          <td>Worth 1.6 points, but only once the training set is small enough to overfit.</td>
+          <td id="t-drop-without">93.88%</td>
+          <td id="t-drop-with">95.44%</td>
+          <td id="t-drop-verdict">Worth 1.6 points, but only once the training set is small enough to overfit.</td>
         </tr>
         <tr>
           <td><span class="bold">Shifts during training</span></td>
-          <td>9.76%</td>
-          <td>49.42%</td>
-          <td>Five times better on shifted digits, and free on clean ones.</td>
+          <td id="t-aug-without">9.76%</td>
+          <td id="t-aug-with">49.42%</td>
+          <td id="t-aug-verdict">Five times better on shifted digits, and free on clean ones.</td>
         </tr>
       </tbody>
     </table>
@@ -545,25 +545,25 @@
         <tr>
           <td><span class="bold">Weight sharing</span></td>
           <td>Detectors that work anywhere, almost free</td>
-          <td>156 parameters where a fully connected layer of the same shape needs 3,692,640.</td>
+          <td id="t-share-measured">156 parameters where a fully connected layer of the same shape needs 3,692,640.</td>
           <td>It assumes the same feature is worth looking for everywhere, which is false for aligned data like faces in passport photos.</td>
         </tr>
         <tr>
           <td><span class="bold">Learned filters</span></td>
           <td>The vocabulary comes from the data</td>
-          <td>96.98% against 93.50% at equal parameter count, over half the errors removed.</td>
-          <td>Six times slower to train here, and what the filters learn is only as good as what the data contains.</td>
+          <td id="t-filters-measured">96.98% against 93.50% at equal parameter count, over half the errors removed.</td>
+          <td id="t-filters-watch">Six times slower to train here, and what the filters learn is only as good as what the data contains.</td>
         </tr>
         <tr>
           <td><span class="bold">Equivariance</span></td>
           <td>Move the input, the features move with it</td>
-          <td>A one-pixel shift costs 2.7 points instead of the 14.6 it costs a fully connected net.</td>
+          <td id="t-equi-measured">A one-pixel shift costs 2.7 points instead of the 14.6 it costs a fully connected net.</td>
           <td>It is not invariance. Four pixels drops this network to what guessing would give.</td>
         </tr>
         <tr>
           <td><span class="bold">Augmentation</span></td>
           <td>The invariance the architecture never had</td>
-          <td>49.42% against 9.76% on four-pixel shifts, at no cost on centred digits.</td>
+          <td id="t-aug-measured">49.42% against 9.76% on four-pixel shifts, at no cost on centred digits.</td>
           <td>You only get invariance to the transformations you thought to apply.</td>
         </tr>
       </tbody>
@@ -588,12 +588,12 @@
       the field.
     </p>
     <br />
-    <p class="body-text">
+    <p class="body-text" id="p-signoff">
       Thanks for reading! Every convolution on this page runs in its
       JavaScript, and the trained weights, accuracies and reference feature
       maps come from
-      <code>src/utils/generate_lenet_data.py</code>, which trains all six
-      networks from scratch in 33 seconds on a laptop CPU.
+      <code>src/utils/generate_lenet_data.py</code>, which trains every network
+      here from scratch on a laptop CPU.
     </p>
   </section>
 
@@ -601,9 +601,10 @@
   <section id="resources">
     <h3 class="body-header">References + Open Source</h3>
     <p class="body-text">
-      Data: MNIST, 12,000 training digits and 5,000 test digits drawn with a
-      fixed seed, stratified by class. Both networks trained with Adam at a
-      learning rate of 0.001, batch size 128, for 8 epochs, seed 19. The
+      <span id="p-refs-data">Data: MNIST, 12,000 training digits and 5,000 test
+      digits drawn with a fixed seed, stratified by class. Both networks trained
+      with Adam at a learning rate of 0.001, batch size 128, for 8 epochs,
+      seed 19.</span> The
       convolutional network is LeNet-5's arrangement with modern parts: two
       convolutional layers of 6 and 16 filters of 5 &times; 5, max pooling, and
       a 120-84-10 head. Dropout and augmentation runs change one thing each and

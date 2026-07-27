@@ -4,6 +4,7 @@ import { initKernelWidget } from './kernel-widget.js';
 import { initFiltersWidget } from './filters-widget.js';
 import { initShiftWidget } from './shift-widget.js';
 import { initCurvesWidget } from './curves-widget.js';
+import { initProse } from './prose.js';
 
 const IMG_BASE = './img/';
 
@@ -30,6 +31,7 @@ async function safely(name, fn) {
 async function boot() {
   renderMath();
   const data = await fetch('./data/conv.json').then((r) => r.json());
+  await safely('prose', () => initProse(data));
   await safely('convolution scrolly', () => initScrollyConv(data, IMG_BASE));
   await safely('kernel editor', () => initKernelWidget(data, IMG_BASE));
   await safely('learned filters', () => initFiltersWidget(data, IMG_BASE));
