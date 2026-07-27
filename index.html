@@ -631,6 +631,26 @@
             </button>
           </div>
         </div>
+
+        <!-- card: directions -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./directions/';" style="cursor: pointer">
+            <img src="assets/thumbnails/directions.svg"
+                 alt="Directions article image: a tilted cloud of points with a bold line through its long axis, short stubs dropping from points onto that line, and a dashed perpendicular." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Directions</h2>
+            <p class="article-description">
+              PCA, ICA and NMF are one factorisation under three constraints.
+              Drag a direction and watch variance trade against error, turn one
+              dial until two mixed signals come apart, then rebuild a digit out
+              of atoms that may cancel or may not.
+            </p>
+            <button class="content-button">
+              <a href="./directions/">Dive In</a>
+            </button>
+          </div>
+        </div>
       </div>
       <details class="roadmap">
         <summary>Full branch map: 2. Unsupervised Structure Discovery</summary>
@@ -650,7 +670,7 @@
         <div class="branch">
           <h4>2.2 Dimensionality Reduction &amp; Manifolds</h4>
           <div class="chips">
-            <span class="chip">PCA · ICA · NMF</span>
+            <span class="chip live"><a href="./directions/">PCA · ICA · NMF</a></span>
             <span class="chip">Factor Analysis · MDS</span>
             <span class="chip">t-SNE · UMAP</span>
             <span class="chip">Isomap · LLE · SOM</span>

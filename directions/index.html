@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Directions | ATLAS</title>
+  <meta name="description" content="A visual, interactive introduction to PCA, ICA and NMF: one factorisation under three constraints. Drag a direction and watch variance trade against error, turn a single dial until two mixed voices come apart, and rebuild a digit out of atoms that are allowed to cancel or not." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/directions/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="Directions | ATLAS" />
+  <meta property="og:description" content="A visual, interactive introduction to PCA, ICA and NMF: one factorisation under three constraints. Drag a direction and watch variance trade against error, turn a single dial until two mixed voices come apart, and rebuild a digit out of atoms that are allowed to cancel or not." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/directions/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Directions | ATLAS" />
+  <meta name="twitter:description" content="A visual, interactive introduction to PCA, ICA and NMF: one factorisation under three constraints. Drag a direction and watch variance trade against error, turn a single dial until two mixed voices come apart, and rebuild a digit out of atoms that are allowed to cancel or not." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    /* Per-article theme. Everything else inherits from these two. */
+    :root {
+      --primary: #365314;
+      --secondary: #2a4110;
+    }
+    /* Width only: a margin here would override .interactive-full's rhythm. */
+    .narrow-widget {
+      max-width: 820px;
+    }
+    .dir-table {
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      margin-top: 0.4rem;
+      width: 100%;
+    }
+    .dir-table th,
+    .dir-table td {
+      padding: 4px 10px 4px 0;
+      text-align: left;
+      font-weight: 400;
+      white-space: nowrap;
+    }
+    .dir-table th {
+      font-family: var(--font-heavy);
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .dir-table td:first-child,
+    .dir-table th:first-child {
+      opacity: 0.75;
+    }
+    .dir-note {
+      margin-top: 0.6rem;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+    /* The digit picker is ten small square buttons, not ten wide ones. */
+    #atoms-digits button {
+      padding: 6px 11px;
+      min-width: 34px;
+    }
+  </style>
+</head>
+<body>
+  <!-- ======================= chrome ======================= -->
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <!-- ======================= hero ======================= -->
+  <section id="intro">
+    <h1 id="intro-hed">Directions</h1>
+    <h1 id="intro-sub">One factorisation, three constraints: ask it for orthogonality, for independence, or for nothing negative, and it hands back three different worlds</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 2.2 · Dimensionality Reduction · Linear Factorisations</span>
+  </section>
+
+  <br />
+
+  <!-- ======================= introduction ======================= -->
+  <section>
+    <p class="body-text">
+      The <a href="../hierarchical/">previous article</a> closed a four-article
+      arc through clustering and then pointed sideways. Every method in that
+      module assumed the structure worth finding is <i>groups</i>: this bottle
+      belongs with those bottles. Sometimes it is not groups. Sometimes the
+      structure is <span class="bold">directions</span>, the handful of
+      combinations along which the data actually varies, and the thirteen
+      numbers you measured are thirteen noisy views of three or four things.
+    </p>
+    <br />
+    <p class="body-text">
+      Three methods open this module, and it is worth seeing early that they are
+      not three ideas. They are one idea and three constraints. Each one takes
+      the data matrix and splits it into a small dictionary of building blocks
+      and the amount of each block every row uses:
+    </p>
+    <p class="body-text">
+      $$ \underbrace{X}_{n \times p} \;\approx\; \underbrace{W}_{n \times k}\;\underbrace{H}_{k \times p} \qquad k \ll p $$
+    </p>
+    <p class="body-text">
+      The rows of \(H\) are the building blocks, the atoms. The rows of \(W\)
+      are the recipes: how much of each atom this particular row is made of.
+      Pick \(k\) far smaller than \(p\) and you have compressed the data; pick
+      the atoms well and you have explained it. Written like this,
+      <span class="bold">principal component analysis</span>,
+      <span class="bold">independent component analysis</span> and
+      <span class="bold">non-negative matrix factorisation</span> are the same
+      sentence with three different endings.
+    </p>
+    <br />
+    <p class="body-text">
+      What separates them is what you are allowed to demand of \(W\) and \(H\),
+      and the whole article is about how much that choice changes. PCA wants the
+      atoms perpendicular to each other and ordered by how much variance they
+      capture. ICA does not care about variance at all and wants the recipes
+      <i>statistically independent</i>. NMF forbids a single negative number
+      anywhere, so nothing can ever be built by cancellation. Three constraints,
+      three answers, and one dataset at a time to tell them apart.
+    </p>
+    <br />
+    <p class="body-text" id="opening-note"></p>
+  </section>
+
+  <!-- ======================= scrolly ======================= -->
+  <section>
+    <h1 class="body-header">The Best Line</h1>
+    <p class="body-text">
+      Start with the smallest version of the problem that still has one:
+      <span class="bold">two</span> numbers per bottle, and the question of
+      whether one would do. These are the same 178 wines the clustering module
+      spent four articles on, and for now only two of their thirteen
+      measurements.
+    </p>
+  </section>
+
+  <section id="line-scrolly" class="scrolly">
+    <div class="scrolly-container">
+      <div class="steps-container">
+        <div class="step" data-index="0">
+          <div class="step-content">
+            <h3>Two Numbers Per Bottle</h3>
+            <p>
+              Flavanoid content across the bottom, colour absorbance up the
+              side, one dot per wine. The cloud leans, which is another way of
+              saying the two measurements are not telling you two independent
+              things. Both axes are drawn at the same scale, so an angle on the
+              screen is an angle in the data.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="1">
+          <div class="step-content">
+            <h3>Pick a Direction, Any Direction</h3>
+            <p>
+              A line through the middle of the cloud, and every bottle's
+              <span class="bold">shadow</span> on it: the closest point of the
+              line to that bottle. Reading a wine off that line means one number
+              instead of two. The question is which line, and what "best" could
+              possibly mean before anyone has said what the number is for.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="2">
+          <div class="step-content">
+            <h3>What the Shadow Costs</h3>
+            <p>
+              The pink stubs are what the shadow throws away: the part of each
+              bottle at right angles to the line, which the single number cannot
+              carry. Add up their squared lengths and you have the
+              <span class="bold">reconstruction error</span>, the honest price
+              of the compression.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="3">
+          <div class="step-content">
+            <h3>One Number Buys the Other</h3>
+            <p>
+              Now turn the line and watch two quantities move: the spread of the
+              shadows, and the total length of the stubs. They are not two
+              quantities. Every unit of variance the line captures is a unit of
+              error it does not pay, exactly, at every angle, because the shadow
+              and the stub meet at a right angle and Pythagoras does the rest.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="4">
+          <div class="step-content">
+            <h3>The Best Line Has a Name</h3>
+            <p id="scrolly-step-best"></p>
+          </div>
+        </div>
+        <div class="step-spacer"></div>
+      </div>
+      <div class="charts-container">
+        <div class="chart-wrap" id="line-chart"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="body-text">
+      That equivalence is worth stating once in symbols, because it is the
+      reason a single method answers two different questions. For a unit
+      direction \(u\) and centred data:
+    </p>
+    <p class="body-text">
+      $$ \underbrace{\operatorname{Var}(Xu)}_{\text{captured}} \;+\; \underbrace{\tfrac{1}{n}\textstyle\sum_i \lVert x_i - (x_i^{\top} u)\,u \rVert^2}_{\text{thrown away}} \;=\; \underbrace{\tfrac{1}{n}\textstyle\sum_i \lVert x_i \rVert^2}_{\text{total, and fixed}} $$
+    </p>
+    <p class="body-text" id="identity-note"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="dial-widget">
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">direction <span class="value" id="dial-angle-label">0</span></span>
+      <input type="range" class="atlas-range" id="dial-angle" aria-label="direction of the projection line, in degrees" min="0" max="179.5" step="0.5" value="0" />
+      <button class="atlas-btn ghost" id="dial-snap">snap to the best</button>
+    </div>
+    <div class="controls-row" style="justify-content: center" id="dial-scale-buttons"></div>
+    <div id="dial-chart"></div>
+    <div class="widget-readout" id="dial-readout"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= the spectrum ======================= -->
+  <section>
+    <h1 class="body-header">Variance Has Units</h1>
+    <p class="body-text" id="scale-note"></p>
+    <br />
+    <p class="body-text">
+      So here is the whole wine, all thirteen measurements, with a button that
+      does nothing but divide each column by its own standard deviation. The
+      bars are the share of the total variance each component captures, the line
+      is the running total, and the strip underneath is what the first component
+      is actually <i>made of</i>: its thirteen weights, one per original
+      measurement. The eigendecomposition runs in the page, on the numbers you
+      can see, and checks itself against scikit-learn at load time.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="spectrum-widget">
+    <div class="controls-row" style="justify-content: center" id="spectrum-buttons"></div>
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">keep <span class="value" id="spectrum-k-label">2</span> components</span>
+      <input type="range" class="atlas-range" id="spectrum-k" aria-label="number of principal components to keep" min="1" max="13" step="1" value="2" />
+    </div>
+    <div id="spectrum-chart"></div>
+    <div class="widget-readout" id="spectrum-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="spectrum-note"></p>
+    <br />
+    <p class="body-text" id="usefulness-note"></p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= ICA ======================= -->
+  <section>
+    <h1 class="body-header">What a Covariance Cannot Know</h1>
+    <p class="body-text">
+      PCA looks at exactly one thing: the covariance matrix. Means and
+      pairwise co-variation, and nothing else. That is an enormous amount of
+      information and it is also a hard ceiling, because plenty of very
+      different datasets share a covariance matrix, and PCA cannot tell them
+      apart even in principle. Here is the classic case where the difference is
+      the entire point.
+    </p>
+    <br />
+    <p class="body-text" id="ica-note"></p>
+    <br />
+    <p class="body-text">
+      Whitening is where PCA's contribution ends and where the interesting part
+      starts. Once the data has been rotated onto its principal axes and each
+      axis divided by its own standard deviation, the covariance is the identity
+      matrix, and it <i>stays</i> the identity matrix under any further rotation
+      whatsoever. Second-order statistics have said everything they have to say,
+      and there is exactly one degree of freedom left. So put it on a dial.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="ica-widget">
+    <div class="controls-row" style="justify-content: center" id="ica-view-buttons"></div>
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">rotation <span class="value" id="ica-angle-label">0</span></span>
+      <input type="range" class="atlas-range" id="ica-angle" aria-label="rotation applied to the whitened microphones, in degrees" min="0" max="179.5" step="0.5" value="0" />
+      <button class="atlas-btn ghost" id="ica-snap">run FastICA</button>
+    </div>
+    <div class="controls-row" style="justify-content: center" id="ica-source-buttons"></div>
+    <div id="ica-chart"></div>
+    <div class="widget-readout" id="ica-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="gauss-note"></p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= NMF ======================= -->
+  <section>
+    <h1 class="body-header">Nothing Negative</h1>
+    <p class="body-text" id="nmf-note"></p>
+    <br />
+    <p class="body-text">
+      The widget below fits all three, live, against the same atoms. Pick a
+      digit and a number of atoms; the page solves for that digit's recipe
+      itself, by least squares for PCA and ICA and by the multiplicative update
+      rule for NMF, and checks its answers against the generator's at load time.
+      The strip under each reconstruction is the recipe: how much of each atom
+      went in, and in which direction.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="atoms-widget">
+    <div class="controls-row" style="justify-content: center" id="atoms-digits"></div>
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">atoms: <span class="value" id="atoms-rank-label">16</span></span>
+      <input type="range" class="atlas-range" id="atoms-rank" aria-label="number of atoms in the factorisation" min="0" max="4" step="1" value="3" />
+      <button class="atlas-btn ghost" id="atoms-negatives">show impossible ink</button>
+    </div>
+    <div id="atoms-canvas"></div>
+    <div class="widget-readout" id="atoms-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="parts-note"></p>
+    <br />
+    <p class="body-text" id="nesting-note"></p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= verdict ======================= -->
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text">
+      Same equation, three constraints, and the constraint is the model.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Decision</th>
+          <th>Default</th>
+          <th>Why</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">Standardise first?</span></td>
+          <td>Yes, unless the units are already comparable</td>
+          <td id="verdict-scale"></td>
+          <td>Standardising is itself a modelling choice: it declares every measurement equally important, which is a claim, not a neutral act.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Choosing k</span></td>
+          <td>Cumulative variance, then check the task</td>
+          <td id="verdict-k"></td>
+          <td id="verdict-k-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">Compression</span></td>
+          <td>PCA, and nothing else</td>
+          <td id="verdict-pca"></td>
+          <td>The atoms are ordered by variance and blind to your labels, and the sign of each one is arbitrary.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Separating mixed sources</span></td>
+          <td>ICA, after PCA has whitened</td>
+          <td id="verdict-ica"></td>
+          <td id="verdict-ica-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">Atoms a person must read</span></td>
+          <td>NMF, when the data is non-negative</td>
+          <td id="verdict-nmf"></td>
+          <td id="verdict-nmf-warn"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="closing-note"></p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! The eigendecompositions, the rotation sweep, the
+      whitening and every reconstruction above are computed by this page in
+      JavaScript, checked at load time against the scikit-learn answers that
+      <code>src/utils/generate_directions_data.py</code> measured, which is also
+      where the mixing desk, the sparsity figures and the nesting comparison
+      come from. The next articles in this module drop the word
+      <i>linear</i>, and that turns out to change everything.
+    </p>
+  </section>
+
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text">
+      The 178 wines are the UCI wine recognition set, the same bottles and the
+      same rounding the clustering module used. The digits are 2,000 stratified
+      MNIST images; the faces are the 400 Olivetti portraits at half
+      resolution. PCA, FastICA and NMF references from scikit-learn 1.8.0,
+      seed 19, with every atom quantised to 8 bits before any figure on this
+      page was measured, because 8 bits is what the browser downloads.
+    </p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://www.tandfonline.com/doi/abs/10.1080/14786440109462720">[1] On Lines and Planes of Closest Fit to Systems of Points in Space</a><br />
+      (Pearson, K., Philosophical Magazine, 1901; the projection error version of PCA, twenty-two years before the variance one)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://link.springer.com/article/10.1007/BF02288367">[2] The Approximation of One Matrix by Another of Lower Rank</a><br />
+      (Eckart, C. &amp; Young, G., Psychometrika, 1936; why no rank-k factorisation beats PCA's error)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://www.sciencedirect.com/science/article/pii/S0893608000000265">[3] Independent Component Analysis: Algorithms and Applications</a><br />
+      (Hyvärinen, A. &amp; Oja, E., Neural Networks, 2000; the FastICA fixed point and the gaussian impossibility)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://www.nature.com/articles/44565">[4] Learning the Parts of Objects by Non-Negative Matrix Factorization</a><br />
+      (Lee, D. &amp; Seung, H., Nature, 1999; the parts figure this article puts a number on)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://papers.nips.cc/paper/1861-algorithms-for-non-negative-matrix-factorization">[5] Algorithms for Non-negative Matrix Factorization</a><br />
+      (Lee, D. &amp; Seung, H., NIPS, 2000; the multiplicative update rule this page runs)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://archive.ics.uci.edu/dataset/109/wine">[6] The Wine Recognition Dataset</a><br />
+      (Forina, M. et al., UCI Machine Learning Repository, 178 samples, 3 cultivars)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>
