@@ -49,7 +49,7 @@ export function initProse(data) {
     + `bandwidths checked; and k-modes settles ${Math.abs(M.kmodes.cost - M.kmodes.pkg_cost)} mismatch `
     + `${M.kmodes.cost < M.kmodes.pkg_cost ? 'below' : 'above'} the <code>kmodes</code> package's `
     + `Cao-initialised run, ${M.kmodes.cost} against ${M.kmodes.pkg_cost} out of ${n0(cells)} `
-    + `category values.`);
+    + `category values. Nothing on this page is a claim about what the algorithm would do.`);
 
   /* ------------------------------------------------------------- medoids, clean */
   const same = Math.abs(data.medoids.ari - data.medoids.km_ari) < 0.0005;
