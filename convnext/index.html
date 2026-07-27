@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>After Depth | ATLAS</title>
+  <meta name="description" content="Once stacking layers stopped paying, progress came from spending the same budget differently. Seven ways to spend a tripled budget, eleven modernisations applied one at a time, and a noise floor drawn on the ablation table so you can see how many of them are real." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/convnext/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="After Depth | ATLAS" />
+  <meta property="og:description" content="Once stacking layers stopped paying, progress came from spending the same budget differently. Seven ways to spend a tripled budget, eleven modernisations applied one at a time, and a noise floor drawn on the ablation table so you can see how many of them are real." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/convnext/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="After Depth | ATLAS" />
+  <meta name="twitter:description" content="Once stacking layers stopped paying, progress came from spending the same budget differently. Seven ways to spend a tripled budget, eleven modernisations applied one at a time, and a noise floor drawn on the ablation table so you can see how many of them are real." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    /* Per-article theme. Everything else inherits from these two. */
+    :root {
+      --primary: #b45309;
+      --secondary: #92400e;
+    }
+    .narrow-widget {
+      max-width: 800px;
+    }
+  </style>
+</head>
+<body>
+  <!-- ======================= chrome ======================= -->
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <!-- ======================= hero ======================= -->
+  <section id="intro">
+    <h1 id="intro-hed">After Depth</h1>
+    <h1 id="intro-sub">The same compute, spent differently: where to put a budget, what a modern block is made of, and how much of an ablation table is noise</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 1.3 · Computer Vision · Architecture</span>
+  </section>
+
+  <br />
+
+  <!-- ======================= introduction ======================= -->
+  <section>
+    <p class="body-text">
+      The <a href="../resnet/">previous article</a> ended where the depth race
+      did. Once a shortcut made a network of any depth trainable, adding layers
+      stopped being an idea and became a dial, and turning it further stopped
+      paying. What followed were two different answers to the same question:
+      given a fixed amount of computation, what is the best thing to do with
+      it?
+    </p>
+    <br />
+    <p class="body-text">
+      EfficientNet's answer, in 2019, was about <span class="bold">allocation</span>:
+      a network has three dimensions you can grow, depth, width and input
+      resolution, and there is a right ratio between them. ConvNeXt's answer,
+      in 2022, was about <span class="bold">arrangement</span>: take a residual
+      network and apply, one at a time, every design change the transformer era
+      had made ordinary, and see how far a convolutional network gets.
+    </p>
+    <br />
+    <p class="body-text">
+      Both are ablation tables, and ablation tables are where this atlas has to
+      be careful. A row that says "+0.4 points" means nothing without knowing
+      what the same experiment gives when you change only the random seed. So
+      before anything else, this page measures that, at three different model
+      sizes, and every result below is drawn against it.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= compound scaling ======================= -->
+  <section>
+    <h1 class="body-header">Where to Spend a Budget</h1>
+    <p class="body-text" id="scaling-note">Measured below.</p>
+    <br />
+    <p class="body-text">
+      Click any allocation to read it. The horizontal axis is what each network
+      actually costs, not what it was asked to cost, and the grey band is one
+      measured noise floor either side of the network they all started from.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="scaling-widget">
+    <div id="scaling-chart"></div>
+    <div class="widget-readout" id="scaling-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="compound-note">Measured below.</p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= resolution ======================= -->
+  <section>
+    <h1 class="body-header">The Axis That Costs No Parameters</h1>
+    <p class="body-text">
+      Of the three dimensions, resolution is the strange one. Growing depth or
+      width adds weights; growing the input does not add a single one, and
+      still costs more to run. That makes it the cheapest axis to scale and the
+      easiest one to misread, so this ladder ships with two controls.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="resolution-widget">
+    <div id="resolution-chart"></div>
+    <div class="widget-readout" id="resolution-readout"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= the ladder ======================= -->
+  <section>
+    <h1 class="body-header">Eleven Changes, One at a Time</h1>
+    <p class="body-text" id="ladder-note">Measured below.</p>
+    <br />
+    <p class="body-text">
+      Switch to <span class="bold">what each change bought</span> and the
+      shaded band appears: that is the width of a random seed. Click any bar to
+      read what its rung changed, what it cost, and whether it survived.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="ladder-widget">
+    <div class="controls-row" style="justify-content: center" id="ladder-buttons"></div>
+    <div id="ladder-chart"></div>
+    <div class="widget-readout" id="ladder-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="matched-note">Measured below.</p>
+    <br />
+    <p class="body-text" id="isolated-note">Measured below.</p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= separable ======================= -->
+  <section>
+    <h1 class="body-header">The Saving That Is Capped by the Kernel</h1>
+    <p class="body-text">
+      One rung of that ladder deserves its own section, because it is the
+      change that made all the others affordable. A dense convolution mixes
+      space and channels in one operation and costs
+      \(k^2 C_{\text{in}} C_{\text{out}}\). A depthwise separable convolution
+      splits it in two, one filter per channel and then a 1 &times; 1 mixing
+      step, for \(k^2 C_{\text{in}} + C_{\text{in}} C_{\text{out}}\).
+    </p>
+    <br />
+    <p class="body-text">
+      Drive both sliders. The ratio falls as the channels grow and then stops
+      falling, and where it stops is set by the kernel alone.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="separable-widget">
+    <div class="slider-row">
+      <span class="slider-label">kernel: <span class="value" id="sep-k-value">3×3</span></span>
+      <input type="range" class="atlas-range" id="sep-k" aria-label="kernel size" min="3" max="9" step="2" value="7" />
+    </div>
+    <div class="slider-row">
+      <span class="slider-label">channels: <span class="value" id="sep-c-value">64</span></span>
+      <input type="range" class="atlas-range" id="sep-c" aria-label="channels in and out" min="8" max="512" step="8" value="64" />
+    </div>
+    <div id="sep-chart"></div>
+    <div class="widget-readout" id="sep-readout"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= verdict ======================= -->
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text">
+      What survives from both papers at this scale, and what does not.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Idea</th>
+          <th>What it buys</th>
+          <th>Measured here</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">Compound scaling</span></td>
+          <td>A rule for splitting a budget between depth, width and resolution</td>
+          <td>Seven allocations of the same budget, with the spread between best and worst reported in the chart above.</td>
+          <td>The exponents multiply the cost by 1.92 per step, not 2, and integer block counts mean the arms never land on the same budget anyway.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Resolution</span></td>
+          <td>Capacity without parameters</td>
+          <td>A ladder from the smallest input to the largest, with a compute control and an information control beside it.</td>
+          <td>A resolution ladder alone cannot separate more information from more computation. That is what the two controls are for.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Depthwise separable</span></td>
+          <td>Most of the arithmetic, gone</td>
+          <td>The closed form, driven live, with its 1/k² floor; and a stopwatch that disagrees with it.</td>
+          <td>Fewer multiply-accumulates is not fewer seconds. On this machine the disagreement moves with the thread count, so the article states that they disagree and refuses to state by how much.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">The modernisation ladder</span></td>
+          <td>A path from a 2015 block to a 2022 one</td>
+          <td>Eleven rungs against a measured noise floor, with the count of rungs that cleared it stated above.</td>
+          <td>The rungs are cumulative and they interact: the parts do not add up to the whole, and the gap is measured rather than assumed away.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="limits-note">Measured below.</p>
+    <br />
+    <p class="body-text" id="closing-note">Measured below.</p>
+    <br />
+    <p class="body-text">
+      The <a href="../">next article in this branch</a> stops asking what is in
+      the picture and starts asking where: object detection, where the output
+      is not a label but a list of boxes, and where the arithmetic of
+      <a href="../viola-jones/">sliding a window</a> comes back with a
+      vengeance.
+    </p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! Every number here comes from
+      <code>src/utils/generate_convnext_data.py</code>, which prices its own
+      schedule before running it, prints what it had to cut to fit, and caches
+      every trained network so an interrupted run resumes.
+    </p>
+  </section>
+
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text">
+      Data: Fashion-MNIST, a seeded class-stratified training subset frozen
+      across every run in the file, judged on the full official test split.
+      Deliberately excluded: LayerScale, stochastic depth, label smoothing and
+      heavy augmentation, all of which matter at three hundred epochs and would
+      confound a block ablation at six.
+    </p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1905.11946">[1] EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks</a><br />
+      (Tan, M. &amp; Le, Q., ICML, 2019)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/2201.03545">[2] A ConvNet for the 2020s</a><br />
+      (Liu, Z. et al., CVPR, 2022; ConvNeXt)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1704.04861">[3] MobileNets: Efficient Convolutional Neural Networks for Mobile Vision Applications</a><br />
+      (Howard, A. et al., 2017; depthwise separable convolutions)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1801.04381">[4] MobileNetV2: Inverted Residuals and Linear Bottlenecks</a><br />
+      (Sandler, M. et al., CVPR, 2018)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1711.10337">[5] Are GANs Created Equal? A Large-Scale Study</a><br />
+      (Lucic, M. et al., NeurIPS, 2018; on what a difference smaller than the seed spread is worth)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>
