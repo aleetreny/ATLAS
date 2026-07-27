@@ -52,17 +52,22 @@ export function thinTicks(scale, n) {
   return kept;
 }
 
-/* Bottom + left axes with the ATLAS look. Call again on scale change. */
-export function drawAxes(g, x, y, w, h, { xTicks = 6, yTicks = 6, xFmt = null, yFmt = null } = {}) {
+/* Bottom + left axes with the ATLAS look. Call again on scale change.
+ *
+ * `xValues`/`yValues` take over from the automatic choice. A log axis over a
+ * range that crosses 1 is where this earns its keep: d3's own list plus the
+ * `~s` format prints "500m" for 0.5, which reads as milli-anything and is the
+ * same family of bug as the "900m" an axis of counts once printed. */
+export function drawAxes(g, x, y, w, h, { xTicks = 6, yTicks = 6, xFmt = null, yFmt = null, xValues = null, yValues = null } = {}) {
   let gx = g.select('g.axis.x');
   if (gx.empty()) gx = g.append('g').attr('class', 'axis x');
   gx.attr('transform', `translate(0,${h})`).call(
-    d3.axisBottom(x).ticks(xTicks).tickValues(thinTicks(x, xTicks)).tickFormat(xFmt).tickSizeOuter(0)
+    d3.axisBottom(x).ticks(xTicks).tickValues(xValues ?? thinTicks(x, xTicks)).tickFormat(xFmt).tickSizeOuter(0)
   );
 
   let gy = g.select('g.axis.y');
   if (gy.empty()) gy = g.append('g').attr('class', 'axis y');
-  gy.call(d3.axisLeft(y).ticks(yTicks).tickValues(thinTicks(y, yTicks)).tickFormat(yFmt).tickSizeOuter(0));
+  gy.call(d3.axisLeft(y).ticks(yTicks).tickValues(yValues ?? thinTicks(y, yTicks)).tickFormat(yFmt).tickSizeOuter(0));
 }
 
 /* Tick positions for a grid line. A band or point scale has no `.ticks()`, and
@@ -75,15 +80,16 @@ function gridTicks(scale, n) {
 }
 
 /* Faint background grid (MLU: stroke-opacity .075). */
-export function drawGrid(g, x, y, w, h, { xTicks = 6, yTicks = 6 } = {}) {
+export function drawGrid(g, x, y, w, h, { xTicks = 6, yTicks = 6, xValues = null, yValues = null } = {}) {
   let gg = g.select('g.grid');
   if (gg.empty()) gg = g.insert('g', ':first-child').attr('class', 'grid');
   gg.selectAll('*').remove();
   /* Same thinning as the axis, or the grid rules stop lining up with the tick
-   * labels that are supposed to name them. */
+   * labels that are supposed to name them. Explicit values are passed through
+   * for the same reason: whatever the axis was given, the grid gets. */
   gg.append('g')
     .selectAll('line')
-    .data(gridTicks(x, xTicks))
+    .data(xValues ?? gridTicks(x, xTicks))
     .join('line')
     .attr('x1', (d) => x(d))
     .attr('x2', (d) => x(d))
@@ -91,7 +97,7 @@ export function drawGrid(g, x, y, w, h, { xTicks = 6, yTicks = 6 } = {}) {
     .attr('y2', h);
   gg.append('g')
     .selectAll('line')
-    .data(gridTicks(y, yTicks))
+    .data(yValues ?? gridTicks(y, yTicks))
     .join('line')
     .attr('x1', 0)
     .attr('x2', w)

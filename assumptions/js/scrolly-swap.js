@@ -33,8 +33,10 @@ export function initScrollySwap(data) {
 
   const spokeG = g.append('g');
   const dotG = g.append('g');
-  const medG = g.append('g');
+  /* means below, medoids above: the last step puts both on the same points and
+     the ring has to be readable with the diamond sitting in it */
   const meanG = g.append('g');
+  const medG = g.append('g');
   const arrowG = g.append('g');
   const title = g.append('text').attr('class', 'chart-annotation')
     .attr('x', w / 2).attr('y', -18).attr('text-anchor', 'middle').style('font-size', '0.66rem');
@@ -58,8 +60,8 @@ export function initScrollySwap(data) {
   function show(med, { spokes = true, labelled = true, arrow = null, means = false } = {}) {
     const labels = med.length && labelled ? assign(med) : null;
     drawPoints(dotG, pts, labels, x, y, { r: 4.4 });
-    drawMedoids(medG, med.map((m) => pts[m]), x, y, { r: 10 });
-    drawMeans(meanG, means ? km.centers : [], x, y, { size: 13 });
+    drawMedoids(medG, med.map((m) => pts[m]), x, y, { r: 12 });
+    drawMeans(meanG, means ? km.centers : [], x, y, { size: 12 });
 
     const lines = spokes && med.length
       ? pts.map((p, i) => ({ p, m: pts[med[labels ? labels[i] : 0]], c: labels ? labels[i] : 0 }))

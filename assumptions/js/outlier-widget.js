@@ -29,13 +29,15 @@ export function initOutlierWidget(data) {
   const x = d3.scaleLinear().range([0, main.w]);
   const y = d3.scaleLinear().range([main.h, 0]);
   const dotG = main.g.append('g');
-  const medG = main.g.append('g');
+  /* Means first, medoids over them: on clean data the two coincide, and the
+     ring has to survive the diamond landing inside it. */
   const meanG = main.g.append('g');
+  const medG = main.g.append('g');
   const outG = main.g.append('g');
   legend(main.g, [
-    { colour: 'var(--squidink)', label: 'k-means, diamonds' },
-    { colour: 'var(--primary)', label: 'medoids, rings' },
-  ], { x0: 2, y0: -16, gap: 168 });
+    { colour: 'var(--squidink)', shape: 'diamond', label: 'k-means' },
+    { colour: 'var(--squidink)', shape: 'ring', label: 'medoids' },
+  ], { x0: 4, y0: -16, gap: 110 });
 
   /* ---- the swept curve underneath ---- */
   const cur = makeChart('#outlier-curve', {
@@ -43,8 +45,11 @@ export function initOutlierWidget(data) {
   });
   const cx = d3.scaleLog().domain([grid[0], grid[grid.length - 1]]).range([0, cur.w]);
   const cy = d3.scaleLinear().domain([-0.05, 1.02]).range([cur.h, 0]);
-  drawGrid(cur.g, cx, cy, cur.w, cur.h, { xTicks: 5, yTicks: 5 });
-  drawAxes(cur.g, cx, cy, cur.w, cur.h, { xTicks: 5, yTicks: 5, xFmt: d3.format('~s') });
+  /* Explicit ticks: the automatic ones on a log axis that starts below 1 come
+     out as 500m, 2, 50, 200, 600, and "500m" reads as a fifth of nothing. */
+  const XT = [1, 3, 10, 30, 100, 300];
+  drawGrid(cur.g, cx, cy, cur.w, cur.h, { xValues: XT, yTicks: 5 });
+  drawAxes(cur.g, cx, cy, cur.w, cur.h, { xValues: XT, yTicks: 5, xFmt: d3.format('d') });
   axisLabels(cur.g, cur.w, cur.h, { x: 'distance of the outlier', y: 'ari, the other 300' });
 
   const line = d3.line().x((d, i) => cx(grid[i])).y((d) => cy(d));
@@ -121,7 +126,7 @@ export function initOutlierWidget(data) {
        never mistaken for one of them */
     drawPoints(dotG, base, km.labels.slice(0, 300), x, y, { r: zoom > 2 ? 2.4 : 3.4 });
     drawMeans(meanG, km.centers, x, y);
-    drawMedoids(medG, pm.medoids.map((i) => pts[i]), x, y, { r: 8 });
+    drawMedoids(medG, pm.medoids.map((i) => pts[i]), x, y);
 
     const inside = out[0] <= x.domain()[1] && out[1] <= y.domain()[1];
     const pad = (x.domain()[1] - x.domain()[0]) * 0.03;

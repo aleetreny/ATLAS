@@ -55,8 +55,11 @@ export function drawMeans(g, centers, x, y, { size = 15 } = {}) {
   return merged;
 }
 
-/* A medoid: a ring drawn around one of the points already on screen. */
-export function drawMedoids(g, centers, x, y, { r = 9 } = {}) {
+/* A medoid: a ring drawn around one of the points already on screen. Wide
+ * enough to stay visible when a mean lands in the same place, which on clean
+ * data is most of the time, and which is exactly the moment the reader is
+ * being asked to compare the two. */
+export function drawMedoids(g, centers, x, y, { r = 11 } = {}) {
   const sel = g.selectAll('circle.medoid').data(centers, (d, i) => i);
   sel.exit().remove();
   const merged = sel.enter().append('circle').attr('class', 'medoid').merge(sel);
@@ -72,18 +75,32 @@ export function drawMedoids(g, centers, x, y, { r = 9 } = {}) {
 }
 
 /* Legend chips in the top margin: cheaper than a key off to one side, and it
- * survives a phone. */
+ * survives a phone.
+ *
+ * The mark is the actual glyph, not a dot standing in for it. A round dot
+ * beside the words "medoids, rings" is a key that has to be read twice, and it
+ * was worse than that here: the marks on the chart are tinted per cluster, so
+ * a single-coloured dot was inviting the reader to look for a magenta ring
+ * that does not exist. */
 export function legend(g, items, { x0 = 0, y0 = -12, gap = 118 } = {}) {
   const sel = g.selectAll('g.legend-chip').data(items);
   sel.exit().remove();
   const enter = sel.enter().append('g').attr('class', 'legend-chip');
-  enter.append('circle').attr('r', 4);
-  enter.append('text').attr('x', 9).attr('dy', '0.32em')
+  enter.append('path').attr('class', 'mark');
+  enter.append('text').attr('x', 11).attr('dy', '0.32em')
     .attr('class', 'chart-annotation').style('font-size', '0.62rem')
     .style('letter-spacing', '1px');
   const merged = enter.merge(sel);
   merged.attr('transform', (d, i) => `translate(${x0 + i * gap},${y0})`);
-  merged.select('circle').attr('fill', (d) => d.colour);
+  merged.select('path.mark')
+    .attr('d', (d) => (d.shape === 'diamond'
+      ? 'M0,-5 L5,0 L0,5 L-5,0 Z'
+      : d.shape === 'ring'
+        ? 'M-5,0 A5,5 0 1,0 5,0 A5,5 0 1,0 -5,0'
+        : 'M-4,0 A4,4 0 1,0 4,0 A4,4 0 1,0 -4,0'))
+    .attr('fill', (d) => (d.shape === 'ring' ? 'none' : d.colour))
+    .attr('stroke', (d) => (d.shape === 'ring' ? d.colour : 'none'))
+    .attr('stroke-width', 2.2);
   merged.select('text').text((d) => d.label);
   return merged;
 }

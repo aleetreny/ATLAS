@@ -23,9 +23,13 @@ export function initOpticsWidget(data) {
   const cache = {};
   const state = { i: 0, mode: 'cut', xi: 2 };
 
+  /* The bottom margin holds two things, not one: the axis, and below it a lane
+     for xi's brackets. At the old 54 the brackets were drawn straight through
+     the tick labels and read as a magenta line struck across "0 100 200 300". */
   const reach = makeChart('#optics-reach', {
-    width: 640, height: 250, margin: { top: 30, right: 24, bottom: 54, left: 56 },
+    width: 640, height: 292, margin: { top: 30, right: 24, bottom: 96, left: 56 },
   });
+  const BRACKET_LANE = 34;
   const scat = makeChart('#optics-scatter', {
     width: 640, height: 330, margin: { top: 30, right: 24, bottom: 44, left: 52 },
   });
@@ -106,9 +110,13 @@ export function initOpticsWidget(data) {
     const y = d3.scaleSqrt().domain([0, top]).range([reach.h, 0]);
     drawGrid(reach.g, x, y, reach.w, reach.h, { xTicks: 5, yTicks: 4 });
     drawAxes(reach.g, x, y, reach.w, reach.h, { xTicks: 5, yTicks: 4 });
-    axisLabels(reach.g, reach.w, reach.h, {
-      x: 'points, in the order optics walked them', y: 'reachability, root scale',
-    });
+    /* Only the y label comes from the helper: the x one has to clear the
+       bracket lane, and axisLabels parks it at a fixed h + 42. */
+    axisLabels(reach.g, reach.w, reach.h, { y: 'reachability, root scale' });
+    let xLab = reach.g.select('text.axis-label.x');
+    if (xLab.empty()) xLab = reach.g.append('text').attr('class', 'axis-label x');
+    xLab.attr('x', reach.w / 2).attr('y', reach.h + BRACKET_LANE + 42)
+      .attr('text-anchor', 'middle').text('points, in the order optics walked them');
 
     const bw = Math.max(1, reach.w / r.order.length - 0.4);
     barG.selectAll('rect').data(r.order).join('rect')
@@ -122,13 +130,17 @@ export function initOpticsWidget(data) {
     /* xi does not draw a line, it reads the steep sides of the valleys, and
        what it finds is a hierarchy: clusters inside clusters */
     const brackets = state.mode === 'xi' ? xiRow.hierarchy : [];
-    const levels = brackets.map((b, i) => brackets.filter((o, j) => j < i && o[0] <= b[0] && o[1] >= b[1]).length);
+    /* Depth against EVERY other bracket, not just the earlier ones: the parent
+       of a range comes after it in this list, so counting backwards put the
+       whole hierarchy on one row and drew it as a single line. */
+    const levels = brackets.map((b) => brackets.filter((o) => (o[1] - o[0]) > (b[1] - b[0])
+      && o[0] <= b[0] && o[1] >= b[1]).length);
     brackG.selectAll('path').data(brackets).join('path')
       .attr('d', (b, i) => {
-        const yy = reach.h + 12 + levels[i] * 7;
-        return `M${x(b[0])},${yy - 4} L${x(b[0])},${yy} L${x(b[1] + 1)},${yy} L${x(b[1] + 1)},${yy - 4}`;
+        const yy = reach.h + BRACKET_LANE + levels[i] * 9;
+        return `M${x(b[0])},${yy - 5} L${x(b[0])},${yy} L${x(b[1] + 1)},${yy} L${x(b[1] + 1)},${yy - 5}`;
       })
-      .attr('fill', 'none').attr('stroke', 'var(--primary)').attr('stroke-width', 1.6);
+      .attr('fill', 'none').attr('stroke', 'var(--primary)').attr('stroke-width', 1.8);
 
     if (state.mode === 'cut') {
       if (!blade) {
