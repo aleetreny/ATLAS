@@ -38,6 +38,13 @@ descubres.** Con una línea que diga qué pasó, cómo se detectó y cuál es la
 para no repetirlo. Ese fichero es la razón de que cada artículo salga mejor que el
 anterior, y solo funciona si se actualiza en caliente.
 
+**Y no basta con anotarlo: se arregla.** Ninguna edición se da por terminada
+mientras quede un fallo que hayas visto al interactuar con la web, sea estético
+(algo que se ve mal), lógico (algo que dice o hace lo que no es) o didáctico (algo
+que enseña mal o confunde), esté o no dentro del encargo original y esté o no en el
+artículo que estabas tocando. Si el arreglo es grande o cambia páginas ya
+publicadas, dilo antes de hacerlo, pero hazlo.
+
 Lo mismo con `docs/estado.md` cuando publiques un artículo: tabla, color de acento
 y lo que quede pendiente.
 
