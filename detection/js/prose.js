@@ -40,8 +40,9 @@ export function initProse(data, det) {
     + `${d.sprite_side[0]} and ${d.sprite_side[1]} pixels, plus objects from the `
     + `${d.held_out.length} classes the detector is never taught `
     + `(${d.held_out.join(', ')}), ${n0(d.distractors_test)} of them in the test split. `
-    + `That buys one thing worth the artificiality: a box is <span class="bold">${d.box_convention}</span>, `
-    + `so no annotation noise sits between a claim and its evidence.`
+    + `That buys one thing worth the artificiality: a box is `
+    + `<span class="bold">${data.meta.box_convention}</span>, so no annotation noise sits between a `
+    + `claim and its evidence.`
     + `<br /><br />`
     + `The five classes it does learn were chosen for shape, not for difficulty: their aspect ratios `
     + `run from ${narrowest.aspect.toFixed(2)} for ${narrowest.cls} to ${widest.aspect.toFixed(2)} `
