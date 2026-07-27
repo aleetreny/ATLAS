@@ -89,3 +89,11 @@ Los datasets viven **fuera del repo**, en `~/.atlas_vision_data`, y los descarga
 `src/utils/vision_data.py` la primera vez (`mnist()`, `fashion_mnist()`,
 `cifar10()`). Los cachés de entrenamiento también. Nada de eso se commitea: un
 clon limpio reproduce cualquier cifra ejecutando su generador.
+
+Con un límite que conviene saber: **la reproducción es exacta en la misma
+máquina, no entre máquinas.** El número de hilos cambia el orden de las
+reducciones en coma flotante, así que una precisión se mueve en el quinto
+decimal, y un tiempo de reloj se mueve por completo (4,4 s aquí, 42,8 s en un
+contenedor de 4 núcleos). Por eso los generadores se ejecutan siempre en la
+misma máquina y un tiempo se publica como razón entre brazos, nunca como
+constante. Ver la trampa 14 de [docs/verificacion.md](docs/verificacion.md).
