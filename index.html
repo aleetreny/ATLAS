@@ -612,6 +612,25 @@
             </button>
           </div>
         </div>
+
+        <!-- card: assumptions -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./assumptions/';" style="cursor: pointer">
+            <img src="assets/thumbnails/assumptions.svg"
+                 alt="Assumptions article image: a reachability plot of two deep valleys and one shallow wide one, crossed by a dashed horizontal line, with brackets underneath marking three clusters." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Assumptions</h2>
+            <p class="article-description">
+              K-medoids, k-modes, OPTICS and mean shift: push one outlier away
+              until the mean gives up, renumber the categories and watch one
+              method not care, and cut the plot that holds every radius at once.
+            </p>
+            <button class="content-button">
+              <a href="./assumptions/">Dive In</a>
+            </button>
+          </div>
+        </div>
       </div>
       <details class="roadmap">
         <summary>Full branch map: 2. Unsupervised Structure Discovery</summary>
@@ -619,9 +638,9 @@
           <h4>2.1 Clustering</h4>
           <div class="chips">
             <span class="chip live"><a href="./kmeans/">K-Means</a></span>
-            <span class="chip">K-Medoids · K-Modes</span>
+            <span class="chip live"><a href="./assumptions/">K-Medoids · K-Modes</a></span>
             <span class="chip live"><a href="./dbscan/">DBSCAN · HDBSCAN</a></span>
-            <span class="chip">OPTICS · Mean Shift</span>
+            <span class="chip live"><a href="./assumptions/">OPTICS · Mean Shift</a></span>
             <span class="chip live"><a href="./gmm/">GMM</a></span>
             <span class="chip">Affinity Propagation</span>
             <span class="chip live"><a href="./hierarchical/">Agglomerative · BIRCH</a></span>

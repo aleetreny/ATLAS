@@ -383,6 +383,15 @@ code {
   font-size: 14px;
 }
 
+/* A measured number inside a readout, wherever it sits. This used to be
+   declared only as `.slider-label .value`, so the same span inside a readout's
+   little table rendered as ordinary text and the numbers stopped standing out
+   from the words around them. */
+.widget-readout .value {
+  font-family: var(--font-heavy);
+  color: var(--anchor);
+}
+
 .interactive-full svg {
   width: 100%;
   height: auto;

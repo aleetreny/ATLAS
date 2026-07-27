@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Assumptions | ATLAS</title>
+  <meta name="description" content="K-medoids, k-modes, OPTICS and mean shift: four clustering algorithms, each one k-means or DBSCAN with a single requirement taken away, measured on the same blobs, the same failure gallery, the same trap and the same 178 wines as the four articles before." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/assumptions/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="Assumptions | ATLAS" />
+  <meta property="og:description" content="K-medoids, k-modes, OPTICS and mean shift: four clustering algorithms, each one k-means or DBSCAN with a single requirement taken away, measured on the same data as the four articles before." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/assumptions/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Assumptions | ATLAS" />
+  <meta name="twitter:description" content="K-medoids, k-modes, OPTICS and mean shift: four clustering algorithms, each one k-means or DBSCAN with a single requirement taken away, measured on the same data as the four articles before." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    /* Per-article theme. Everything else inherits from these two. */
+    :root {
+      --primary: #ac157f;
+      --secondary: #8a1166;
+    }
+    /* Width only: a margin here would override .interactive-full's rhythm. */
+    .narrow-widget {
+      max-width: 800px;
+    }
+    .rel-table {
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      margin-top: 0.5rem;
+      width: 100%;
+    }
+    .rel-table th,
+    .rel-table td {
+      padding: 5px 10px 5px 0;
+      text-align: left;
+      font-weight: 400;
+    }
+    .rel-table th {
+      font-family: var(--font-heavy);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .rel-table td:first-child {
+      opacity: 0.75;
+    }
+  </style>
+</head>
+<body>
+  <!-- ======================= chrome ======================= -->
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <!-- ======================= hero ======================= -->
+  <section id="intro">
+    <h1 id="intro-hed">Assumptions</h1>
+    <h1 id="intro-sub">Four algorithms, each one k-means or DBSCAN with a single requirement taken away, and the bill for taking it</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 2.1 · Clustering · Relaxations</span>
+  </section>
+
+  <br />
+
+  <!-- ======================= introduction ======================= -->
+  <section>
+    <p class="body-text">
+      Four articles in, this module has four answers to "what is a cluster":
+      <a href="../kmeans/">a territory around a mean</a>,
+      <a href="../gmm/">a bell with soft edges</a>,
+      <a href="../dbscan/">a connected region of high density</a>, and
+      <a href="../hierarchical/">a branch of a tree</a>. Every one of them
+      arrived with fine print nobody read aloud.
+    </p>
+    <br />
+    <p class="body-text">
+      K-means needs a <span class="bold">mean</span>, so it needs numbers you
+      can average and a distance you can square. DBSCAN needs
+      <span class="bold">one radius</span> for the whole dataset. All four need
+      somebody to say <span class="bold">how many</span>, whether as k or as
+      the height of a cut. This article takes away one clause at a time, with
+      k-medoids, k-modes, OPTICS and mean shift, and measures what each removal
+      costs, on the very same points: the blobs of seed 19, the failure gallery
+      that broke k-means, the varying-density trap that broke DBSCAN, and the
+      178 bottles of wine.
+    </p>
+    <br />
+    <p class="body-text">
+      All four run in this page. PAM, k-modes, the OPTICS ordering and mean
+      shift are written out in the browser's own JavaScript and checked at load
+      time against a reference implementation each: the Rust FasterPAM, the
+      <code>kmodes</code> package, and scikit-learn twice over. Where the page
+      and the reference disagree, the console says so, and
+      <span id="guard-note">the numbers below say how far apart they are</span>.
+    </p>
+  </section>
+
+  <!-- ======================= scrolly ======================= -->
+  <section>
+    <h1 class="body-header">Watch It Swap</h1>
+    <p class="body-text">
+      Twenty-five points from the blobs you already know, and the oldest
+      medoid algorithm there is: <span class="bold">PAM</span>, partitioning
+      around medoids, from 1990. It has two phases and no randomness at all.
+    </p>
+  </section>
+
+  <section id="swap-scrolly" class="scrolly">
+    <div class="scrolly-container">
+      <div class="steps-container">
+        <div class="step" data-index="0">
+          <div class="step-content">
+            <h3>The Centre Has To Be One Of Us</h3>
+            <p>
+              One rule change, and it is the whole article: the centre of a
+              cluster must be a point from the dataset. Not an average of the
+              cluster, an actual member of it. That makes the search finite
+              and, as it turns out, awkward: there are only so many sets of
+              three points, but there are a lot of them.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="1">
+          <div class="step-content">
+            <h3>Build, One</h3>
+            <p>
+              The first medoid is the point with the smallest total distance to
+              everybody else. The spokes drawn from it are the quantity being
+              minimised: not squared distance any more, just distance, added
+              up.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="2">
+          <div class="step-content">
+            <h3>Build, The Rest</h3>
+            <p>
+              Each further medoid is whichever point buys the largest total
+              reduction, given the ones chosen so far. Greedy, cheap, and good
+              enough to start from. Notice that every centre sits on a dot,
+              because it is one.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="3">
+          <div class="step-content">
+            <h3>Swap</h3>
+            <p>
+              Now the part that gives the algorithm its name. Consider every
+              exchange of a medoid for a non-medoid, all of them, take the one
+              that lowers the total most, and repeat until none does. This is
+              hill climbing with an enormous neighbourhood, and it is why PAM
+              is slow.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="4">
+          <div class="step-content">
+            <h3>Settled</h3>
+            <p>
+              The rings are medoids: real points, the kind you can look up in
+              the table the data came from. The diamonds are k-means' centres
+              on the same points, and they float wherever the arithmetic left
+              them. On clean data the two answers are nearly the same, which is
+              the honest starting position for everything that follows.
+            </p>
+          </div>
+        </div>
+        <div class="step-spacer"></div>
+      </div>
+      <div class="charts-container">
+        <div class="chart-wrap" id="swap-chart"></div>
+      </div>
+    </div>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the objective ======================= -->
+  <section>
+    <h1 class="body-header">Two Objectives, One Square</h1>
+    <p class="body-text">
+      Written down, the change is one exponent and one constraint. K-means
+      minimises squared distance to a free centre:
+    </p>
+    <p class="body-text">
+      $$J=\sum_{i} \min_{c} \lVert x_i - \mu_c \rVert^2, \qquad \mu_c \in \mathbb{R}^d$$
+    </p>
+    <p class="body-text">
+      and k-medoids minimises plain distance to a centre that has to be one of
+      the points:
+    </p>
+    <p class="body-text">
+      $$L=\sum_{i} \min_{c} d(x_i, m_c), \qquad m_c \in \{x_1,\dots,x_n\}$$
+    </p>
+    <p class="body-text">
+      Two consequences fall straight out. First, <span class="bold">d</span> can
+      be anything at all: no averaging happens anywhere in the algorithm, so a
+      table of dissimilarities is enough, and it need not come from coordinates.
+      Second, one far-away point contributes <span class="bold">d</span> to the
+      total instead of <span class="bold">d²</span>, and that single missing
+      square is the entire robustness story, with a break-even distance you can
+      compute before you run anything.
+    </p>
+    <br />
+    <p class="body-text" id="medoid-cost">
+      On the blobs, both algorithms agree.
+    </p>
+    <br />
+    <p class="body-text" id="medoid-brute">
+      Whether the swap search finds the best set of medoids or merely a good
+      one is a question with an answer.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the outlier ======================= -->
+  <section>
+    <h1 class="body-header">One Point, Three Break-Evens</h1>
+    <p class="body-text">
+      Here are the 300 blobs with a 301st point you can push away. Both
+      algorithms re-run in the page at every position, and the curve underneath
+      is the same experiment swept offline, so you can see where you are on it.
+      Push slowly through the first cliff and watch what k-means does with its
+      three centres.
+    </p>
+    <br />
+    <p class="body-text" id="outlier-arith">
+      Each cliff has an arithmetic behind it.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="outlier-widget">
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">the outlier is <span class="value" id="outlier-d-label">12</span> from its blob's centre</span>
+      <input type="range" class="atlas-range" id="outlier-d" aria-label="how far the outlier sits from its cluster" min="0" max="1" step="1" value="0" />
+    </div>
+    <div id="outlier-chart"></div>
+    <div id="outlier-curve"></div>
+    <div class="widget-readout" id="outlier-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="outlier-note">
+      The two searches disagree about where the medoid gives up.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the wine ======================= -->
+  <section>
+    <h1 class="body-header">Any Distance You Like</h1>
+    <p class="body-text">
+      The second consequence is the one that gets k-medoids used in practice.
+      Since nothing is ever averaged, the algorithm never touches the
+      coordinates: hand it a table of dissimilarities and it works, whether
+      that table came from euclidean distance, from an edit distance between
+      strings, from how often two customers bought the same thing, or from a
+      questionnaire nobody knows how to average. Here are the 178 bottles under
+      three different notions of distance, and k-means for control.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="wine-widget">
+    <div class="controls-row" style="justify-content: center" id="wine-buttons"></div>
+    <div id="wine-chart"></div>
+    <div class="widget-readout" id="wine-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="wine-note">
+      The exemplars are bottles.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= k-modes ======================= -->
+  <section>
+    <h1 class="body-header">When There Is No Mean At All</h1>
+    <p class="body-text">
+      Medoids drop the average as a convenience. Categorical data drops it as a
+      fact: there is no mean of <i>red, red, blue</i>. The standard repair is
+      <span class="bold">k-modes</span>, which changes two things and nothing
+      else. Distance becomes the number of columns where two rows differ, the
+      Hamming distance, and the centre of a cluster becomes the most common
+      category in each column, its mode.
+    </p>
+    <br />
+    <p class="body-text">
+      To measure it against something the module already knows, the same 178
+      bottles are binned: each of the 13 measurements is replaced by which
+      third of the bottles it falls in, low, middle or high, so every column
+      now holds one of three categories <span id="bin-spread"></span>. That is
+      a real loss of information and a real dataset, the kind a questionnaire
+      produces. The question is what to do with it.
+    </p>
+    <br />
+    <p class="body-text" id="modes-note">
+      Three answers, measured.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="modes-widget">
+    <div class="controls-row" style="justify-content: center">
+      <button class="atlas-btn" id="modes-renumber">renumber the categories</button>
+      <button class="atlas-btn ghost" id="modes-reset">back to low, middle, high</button>
+    </div>
+    <div id="modes-chart"></div>
+    <div class="widget-readout" id="modes-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="modes-invariance">
+      Press the button a few times.
+    </p>
+    <br />
+    <p class="body-text" id="modes-verdict">
+      So what is k-modes for?
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= optics ======================= -->
+  <section>
+    <h1 class="body-header">Every Radius At Once</h1>
+    <p class="body-text">
+      The <a href="../dbscan/">density article</a> ended with a dataset that
+      defeats DBSCAN completely: two tight clusters a bridgeable gap apart, and
+      one diffuse cluster far away. Any radius short enough to keep the tight
+      pair separate shatters the diffuse one; any radius long enough to hold
+      the diffuse one together fuses the pair. HDBSCAN got out of it by
+      building a hierarchy and flattening it. <span class="bold">OPTICS</span>,
+      from 1999, gets out of it by refusing to answer the question at all.
+    </p>
+    <br />
+    <p class="body-text">
+      It walks the dataset in a greedy order, always stepping to whichever
+      unvisited point is currently cheapest to reach, and records for each
+      point the density at which it became reachable:
+    </p>
+    <p class="body-text">
+      $$r(p) = \max\big(\text{core}_k(o),\; d(o,p)\big)$$
+    </p>
+    <p class="body-text">
+      where <span class="bold">core</span> is the distance to a point's k-th
+      nearest neighbour, the same quantity DBSCAN uses to decide whether a
+      point is dense enough to grow from. Plot those in walk order and the
+      valleys are the clusters. The output is not a clustering. It is a
+      one-dimensional picture of the density structure at
+      <span class="bold">every</span> radius simultaneously, and a horizontal
+      line across it is not a metaphor for DBSCAN's radius: it is exactly
+      DBSCAN's radius, giving exactly DBSCAN's answer.
+    </p>
+    <br />
+    <p class="body-text">
+      Which is what makes the trap so damning. Drag the line anywhere you like.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="optics-widget">
+    <div class="controls-row" style="justify-content: center" id="optics-cases"></div>
+    <div class="controls-row" style="justify-content: center" id="optics-modes"></div>
+    <div class="controls-row" style="justify-content: center" id="optics-eps-wrap">
+      <span class="slider-label">radius <span class="value" id="optics-eps-label">0.95</span></span>
+      <input type="range" class="atlas-range" id="optics-eps" aria-label="the radius the horizontal line stands for" min="0" max="1" step="1" value="0" />
+    </div>
+    <div class="controls-row" style="justify-content: center" id="optics-xi-wrap">
+      <span class="slider-label">xi <span class="value" id="optics-xi-label">0.1</span></span>
+      <input type="range" class="atlas-range" id="optics-xi" aria-label="how steep a drop counts as the edge of a cluster" min="0" max="5" step="1" value="2" />
+    </div>
+    <div id="optics-reach"></div>
+    <div id="optics-scatter"></div>
+    <div class="widget-readout" id="optics-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="optics-note">
+      The trap, on the two measures the density article used.
+    </p>
+    <br />
+    <p class="body-text" id="optics-honest">
+      One honest caveat, because the sweep measured it.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= mean shift ======================= -->
+  <section>
+    <h1 class="body-header">Nobody Says K</h1>
+    <p class="body-text">
+      The last clause to go is the one every article in this module has leaned
+      on. <span class="bold">Mean shift</span> never asks for k. Put a window
+      of radius h around a point, move the point to the mean of whatever is
+      inside, repeat. Every point climbs the density like water running
+      backwards uphill, points that arrive at the same summit are one cluster,
+      and the number of clusters is however many summits there turned out to
+      be.
+    </p>
+    <br />
+    <p class="body-text">
+      The shaded background below is the density being climbed, and it is not a
+      smooth kernel estimate drawn for decoration: it is the flat count of
+      points inside a window of the current bandwidth, which is the exact
+      quantity the trajectories are following. Move the bandwidth and watch the
+      number of summits change without anybody being asked.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="shift-widget">
+    <div class="controls-row" style="justify-content: center" id="shift-cases"></div>
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">bandwidth <span class="value" id="shift-bw-label">2.00</span></span>
+      <input type="range" class="atlas-range" id="shift-bw" aria-label="the radius of the window each point averages over" min="0" max="1" step="1" value="0" />
+    </div>
+    <div id="shift-chart"></div>
+    <div id="shift-stair"></div>
+    <div class="widget-readout" id="shift-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="shift-note">
+      Not having to say k is not the same as not having to say anything.
+    </p>
+    <br />
+    <p class="body-text" id="shift-cost">
+      And then there is the bill.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= verdict ======================= -->
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text">
+      Four relaxations, four prices, all of them measured on the datasets this
+      module has been carrying since its first article.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Reach for</th>
+          <th>When</th>
+          <th>What it costs</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">K-medoids</span></td>
+          <td>Outliers you cannot remove, or a distance you cannot average</td>
+          <td id="v-medoids">Measured on the blobs.</td>
+          <td>The whole distance matrix, so memory grows as n², and the search is a local one.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">K-modes</span></td>
+          <td>Categorical columns whose numbering is arbitrary</td>
+          <td id="v-modes">Measured on the binned wine.</td>
+          <td>It is not the most accurate option here. One-hot plus k-means is, and it is invariant too.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">OPTICS</span></td>
+          <td>Densities that differ across the dataset</td>
+          <td id="v-optics">Measured on the trap.</td>
+          <td>Its xi is a parameter like any other, and its default is worse than a tuned radius almost everywhere.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Mean shift</span></td>
+          <td>k genuinely unknown, and clusters that are blobs</td>
+          <td id="v-shift">Measured on the blobs and the rings.</td>
+          <td>The bandwidth is a density scale, which is the parameter OPTICS just took away. Nothing is free.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">k-means anyway</span></td>
+          <td>Clean numeric data, k known, n large</td>
+          <td id="v-kmeans">Measured on all of them.</td>
+          <td>Four of the five datasets below were built to break it, which is why it loses that table. Read it that way.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <h1 class="body-header">The Module, On One Table</h1>
+    <p class="body-text" id="closing-scoreboard">
+      Eight algorithms, five datasets, one measurement each.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table" id="board-table">
+      <thead>
+        <tr>
+          <th>Dataset</th>
+          <th>k-means</th>
+          <th>mixture</th>
+          <th>k-medoids</th>
+          <th>DBSCAN</th>
+          <th>HDBSCAN</th>
+          <th>mean shift</th>
+          <th>OPTICS</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="board-note">
+      Every cell is measured on the coordinates this page ships.
+    </p>
+    <br />
+    <p class="body-text">
+      That is five articles and ten algorithms answering one question, and
+      the pattern across them is not that the clever ones win. It is that every
+      assumption is doing work: take one away and you get something back, pay
+      for it somewhere else, and the somewhere else is measurable before you
+      commit. The map still holds unlit chips here, affinity propagation with
+      its messages between exemplars and spectral clustering with its
+      eigenvectors, and both belong to this module. But the sideways pull is
+      stronger: everything so far has assumed the structure worth finding is
+      <i>groups</i>. Sometimes it is directions, the few combinations of
+      features along which the data actually varies, and that is
+      <a href="../">the atlas</a>'s next move, in module 2.2.
+    </p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! Everything above ran here: PAM's build and swap, the
+      k-modes loop, the OPTICS ordering and mean shift's trajectories are all
+      in this page's JavaScript, each of them checked at load time against the
+      library that owns it, with the datasets, the sweeps and the reference
+      answers from <code>src/utils/generate_assumptions_data.py</code>.
+    </p>
+  </section>
+
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text" id="ref-note">
+      Datasets rebuilt with the constructions of the earlier articles and
+      checked coordinate by coordinate against the JSON those articles ship.
+    </p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://onlinelibrary.wiley.com/doi/book/10.1002/9780470316801">[1] Finding Groups in Data: An Introduction to Cluster Analysis</a><br />
+      (Kaufman, L. &amp; Rousseeuw, P., Wiley, 1990; PAM, and the build and swap phases this page runs)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://link.springer.com/article/10.1023/A:1009769707641">[2] Extensions to the k-Means Algorithm for Clustering Large Data Sets with Categorical Values</a><br />
+      (Huang, Z., Data Mining and Knowledge Discovery, 1998)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://www.sciencedirect.com/science/article/abs/pii/S0957417408004849">[3] A New Initialization Method for Categorical Data Clustering</a><br />
+      (Cao, F., Liang, J. &amp; Bai, L., Expert Systems with Applications, 2009; the deterministic start used here)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://dl.acm.org/doi/10.1145/304182.304187">[4] OPTICS: Ordering Points To Identify the Clustering Structure</a><br />
+      (Ankerst, M., Breunig, M., Kriegel, H.-P. &amp; Sander, J., SIGMOD, 1999)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://ieeexplore.ieee.org/document/1000236">[5] Mean Shift: A Robust Approach Toward Feature Space Analysis</a><br />
+      (Comaniciu, D. &amp; Meer, P., IEEE TPAMI, 2002)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1810.05691">[6] Fast and Eager k-Medoids Clustering</a><br />
+      (Schubert, E. &amp; Rousseeuw, P., 2019; the FasterPAM this page is checked against)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://archive.ics.uci.edu/dataset/109/wine">[7] The Wine Recognition Dataset</a><br />
+      (Forina, M. et al., UCI Machine Learning Repository, 178 samples, 3 cultivars)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>

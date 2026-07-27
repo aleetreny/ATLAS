@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <rect width="400" height="300" fill="#f1f3f3" />
+  <!-- a reachability plot: two tight valleys and one shallow, wide one -->
+  <g>
+    <rect x="52.0" y="70.0" width="6.4" height="205.0" fill="#ac157f" />
+    <rect x="60.0" y="257.1" width="6.4" height="17.9" fill="#ac157f" />
+    <rect x="68.0" y="259.2" width="6.4" height="15.8" fill="#ac157f" />
+    <rect x="76.0" y="253.2" width="6.4" height="21.8" fill="#ac157f" />
+    <rect x="84.0" y="260.1" width="6.4" height="14.9" fill="#ac157f" />
+    <rect x="92.0" y="254.6" width="6.4" height="20.4" fill="#ac157f" />
+    <rect x="100.0" y="256.6" width="6.4" height="18.4" fill="#ac157f" />
+    <rect x="108.0" y="260.3" width="6.4" height="14.7" fill="#ac157f" />
+    <rect x="116.0" y="254.9" width="6.4" height="20.1" fill="#ac157f" />
+    <rect x="124.0" y="260.6" width="6.4" height="14.4" fill="#ac157f" />
+    <rect x="132.0" y="255.8" width="6.4" height="19.2" fill="#ac157f" />
+    <rect x="140.0" y="179.0" width="6.4" height="96.0" fill="#ac157f" />
+    <rect x="148.0" y="260.2" width="6.4" height="14.8" fill="#ac157f" />
+    <rect x="156.0" y="259.9" width="6.4" height="15.1" fill="#ac157f" />
+    <rect x="164.0" y="255.9" width="6.4" height="19.1" fill="#ac157f" />
+    <rect x="172.0" y="251.1" width="6.4" height="23.9" fill="#ac157f" />
+    <rect x="180.0" y="259.5" width="6.4" height="15.5" fill="#ac157f" />
+    <rect x="188.0" y="258.3" width="6.4" height="16.7" fill="#ac157f" />
+    <rect x="196.0" y="253.5" width="6.4" height="21.5" fill="#ac157f" />
+    <rect x="204.0" y="249.6" width="6.4" height="25.4" fill="#ac157f" />
+    <rect x="212.0" y="254.1" width="6.4" height="20.9" fill="#ac157f" />
+    <rect x="220.0" y="256.2" width="6.4" height="18.8" fill="#ac157f" />
+    <rect x="228.0" y="107.0" width="6.4" height="168.0" fill="#007faa" />
+    <rect x="236.0" y="203.5" width="6.4" height="71.5" fill="#007faa" />
+    <rect x="244.0" y="222.1" width="6.4" height="52.9" fill="#007faa" />
+    <rect x="252.0" y="205.8" width="6.4" height="69.2" fill="#007faa" />
+    <rect x="260.0" y="217.2" width="6.4" height="57.8" fill="#007faa" />
+    <rect x="268.0" y="220.1" width="6.4" height="54.9" fill="#007faa" />
+    <rect x="276.0" y="220.6" width="6.4" height="54.4" fill="#007faa" />
+    <rect x="284.0" y="216.8" width="6.4" height="58.2" fill="#007faa" />
+    <rect x="292.0" y="206.7" width="6.4" height="68.3" fill="#007faa" />
+    <rect x="300.0" y="219.4" width="6.4" height="55.6" fill="#007faa" />
+    <rect x="308.0" y="211.4" width="6.4" height="63.6" fill="#007faa" />
+    <rect x="316.0" y="210.2" width="6.4" height="64.8" fill="#007faa" />
+    <rect x="324.0" y="215.6" width="6.4" height="59.4" fill="#007faa" />
+    <rect x="332.0" y="212.0" width="6.4" height="63.0" fill="#007faa" />
+    <rect x="340.0" y="221.7" width="6.4" height="53.3" fill="#007faa" />
+    <rect x="348.0" y="221.8" width="6.4" height="53.2" fill="#007faa" />
+  </g>
+  <!-- a horizontal line here IS a dbscan radius, and no height works -->
+  <line x1="46" y1="228" x2="356" y2="228" stroke="#232f3e" stroke-width="2.4" stroke-dasharray="9 6" />
+  <!-- what reading the shape of the valleys finds instead -->
+  <g fill="none" stroke="#232f3e" stroke-width="2">
+    <path d="M56 284 L56 289 L136 289 L136 284" />
+    <path d="M144 284 L144 289 L224 289 L224 284" />
+    <path d="M240 284 L240 289 L356 289 L356 284" />
+  </g>
+  <g stroke="#232f3e" stroke-width="2">
+    <line x1="44" y1="275" x2="362" y2="275" />
+    <line x1="44" y1="275" x2="44" y2="28" />
+  </g>
+</svg>
