@@ -18,6 +18,7 @@ functions, exported so the article can draw what the network believes about
 each feature on its own.
 """
 import json
+import os
 import time
 import warnings
 from pathlib import Path
@@ -36,7 +37,9 @@ from sklearn.neural_network import MLPRegressor
 from sklearn.preprocessing import StandardScaler
 
 warnings.filterwarnings("ignore")
-torch.set_num_threads(4)
+# Capped at the machine's core count: still 4 on the box that produced the
+# published figures, so nothing moves here, and no oversubscription elsewhere.
+torch.set_num_threads(min(4, os.cpu_count() or 4))
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "deep-learning-tables" / "data"

@@ -25,6 +25,7 @@ task where optimisation is the bottleneck, and handwritten digits are not
 one. Run from anywhere: `python src/utils/generate_resnet_data.py`.
 """
 import json
+import os
 import sys
 import time
 from pathlib import Path
@@ -52,7 +53,9 @@ BATCH = 128
 WIDTH = 16
 DEPTHS = [8, 14, 20, 32, 44, 56]        # 6n+2, the ladder of the CIFAR paper
 
-torch.set_num_threads(12)
+# Capped at the machine's core count: still 12 on the box that produced the
+# published figures, so nothing moves here, and no oversubscription elsewhere.
+torch.set_num_threads(min(12, os.cpu_count() or 12))
 torch.manual_seed(SEED)
 
 Xtr_u8, ytr_np, Xte_u8, yte_np = fashion_mnist()

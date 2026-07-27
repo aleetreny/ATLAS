@@ -20,6 +20,7 @@ Measured here:
 Run from anywhere: `python src/utils/generate_lenet_data.py`.
 """
 import json
+import os
 import sys
 import time
 from pathlib import Path
@@ -44,7 +45,11 @@ N_TEST = 5000
 EPOCHS = 8
 BATCH = 128
 
-torch.set_num_threads(10)
+# Capped at the machine's core count. On the 14-core box that produced the
+# published figures this is still 10, so the reduction order and every number
+# are unchanged; on a smaller machine it avoids oversubscribing, which costs
+# 4.7x in wall clock and quietly moves the fifth decimal. See docs/verificacion.md.
+torch.set_num_threads(min(10, os.cpu_count() or 10))
 torch.manual_seed(SEED)
 
 Xtr_u8, ytr_np, Xte_u8, yte_np = mnist()

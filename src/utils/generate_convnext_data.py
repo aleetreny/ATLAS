@@ -86,6 +86,7 @@ Run from anywhere: `python src/utils/generate_convnext_data.py`.
 import hashlib
 import json
 import math
+import os
 import sys
 import time
 from pathlib import Path
@@ -117,7 +118,9 @@ N_TEST = 10000                        # the full official test split
 EPOCHS = 6
 EPOCHS_LONG = 12                      # the epochs control
 BATCH = 128
-THREADS = 12
+# Capped at the machine's core count: still 12 on the box that produced the
+# published figures, so nothing moves here, and no oversubscription elsewhere.
+THREADS = min(12, os.cpu_count() or 12)
 NATIVE = 28
 LOSS_THRESHOLD = 0.60                 # the lenet idiom: epochs to reach it
 BUDGET_TARGET = 3.0                   # the scaling thread's budget multiplier

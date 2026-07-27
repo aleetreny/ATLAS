@@ -68,6 +68,7 @@ Run from anywhere: `python src/utils/generate_detection_data.py`.
 import base64
 import json
 import math
+import os
 import sys
 import time
 from pathlib import Path
@@ -125,7 +126,10 @@ SCAN_ASPECTS = [0.5, 1.0, 2.0]
 WIN = 24                     # the window classifier's input side
 WIN_STRIDE = 4               # its network stride, two 2x2 pools
 
-torch.set_num_threads(12)
+# Capped at the machine's core count: still 12 on the box that produced the
+# published figures, so nothing moves here, and no oversubscription elsewhere.
+THREADS = min(12, os.cpu_count() or 12)
+torch.set_num_threads(THREADS)
 torch.manual_seed(SEED)
 
 CACHE = Path.home() / ".atlas_vision_data" / "detection_cache"
@@ -2671,7 +2675,9 @@ runtime_block = {
                     "accumulates relative to stride 8, which compares like with like",
                     "target assignment is identical every epoch, so it is computed once "
                     "per anchor set and cached",
-                    "torch.set_num_threads(12) as the brief specifies"],
+                    f"the timings are wall clock on this machine with "
+                    f"torch.set_num_threads({THREADS}), so they are a ratio to "
+                    f"compare arms with, not a portable number"],
     "ladder": ["box parameterisation arms", "seed replicates", "the extra-epochs "
                "control", "epochs 25 to 20 to 16 to 14"],
 }
