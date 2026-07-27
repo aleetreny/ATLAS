@@ -129,12 +129,12 @@ export function initLadderWidget(data) {
   [['cumulative', 'where each rung stands'], ['step', 'what each change bought']]
     .forEach(([key, label], i) => {
       const b = document.createElement('button');
-      b.className = `atlas-button${i === 0 ? ' is-active' : ''}`;
+      b.className = `atlas-btn${i === 0 ? '' : ' ghost'}`;
       b.textContent = label;
       b.addEventListener('click', () => {
         mode = key;
-        row.querySelectorAll('.atlas-button').forEach((n) => n.classList.remove('is-active'));
-        b.classList.add('is-active');
+        row.querySelectorAll('.atlas-btn').forEach((n) => n.classList.add('ghost'));
+        b.classList.remove('ghost');
         draw();
       });
       row.appendChild(b);

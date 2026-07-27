@@ -89,12 +89,12 @@ export function initResidualWidget(data) {
   const row = document.querySelector('#residual-buttons');
   withRes.forEach((r, i) => {
     const b = document.createElement('button');
-    b.className = `atlas-button${i === withRes.length - 1 ? ' is-active' : ''}`;
+    b.className = `atlas-btn${i === withRes.length - 1 ? '' : ' ghost'}`;
     b.textContent = `${r.depth} layers`;
     b.addEventListener('click', () => {
       shown = r;
-      row.querySelectorAll('.atlas-button').forEach((n) => n.classList.remove('is-active'));
-      b.classList.add('is-active');
+      row.querySelectorAll('.atlas-btn').forEach((n) => n.classList.add('ghost'));
+      b.classList.remove('ghost');
       draw();
     });
     row.appendChild(b);

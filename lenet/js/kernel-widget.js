@@ -52,12 +52,12 @@ export async function initKernelWidget(data, base) {
   const buttons = document.querySelector('#kernel-presets');
   Object.entries(PRESETS).forEach(([key, p], i) => {
     const b = document.createElement('button');
-    b.className = `atlas-button${key === 'edges' ? ' is-active' : ''}`;
+    b.className = `atlas-btn${key === 'edges' ? '' : ' ghost'}`;
     b.textContent = p.label;
     b.addEventListener('click', () => {
       kernel = p.k.slice();
-      buttons.querySelectorAll('.atlas-button').forEach((n) => n.classList.remove('is-active'));
-      b.classList.add('is-active');
+      buttons.querySelectorAll('.atlas-btn').forEach((n) => n.classList.add('ghost'));
+      b.classList.remove('ghost');
       sync();
       draw();
     });
@@ -66,7 +66,7 @@ export async function initKernelWidget(data, base) {
 
   /* Typing a weight by hand means the reader has left the preset behind. */
   inputs.forEach((inp) => inp.addEventListener('input', () => {
-    buttons.querySelectorAll('.atlas-button').forEach((n) => n.classList.remove('is-active'));
+    buttons.querySelectorAll('.atlas-btn').forEach((n) => n.classList.add('ghost'));
   }));
 
   const sync = () => inputs.forEach((inp, i) => {

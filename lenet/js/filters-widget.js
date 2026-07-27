@@ -139,12 +139,12 @@ export async function initFiltersWidget(data, base) {
   const row = document.querySelector('#filters-digits');
   data.digits.labels.forEach((lab, i) => {
     const b = document.createElement('button');
-    b.className = `atlas-button${i === 0 ? ' is-active' : ''}`;
+    b.className = `atlas-btn${i === 0 ? '' : ' ghost'}`;
     b.textContent = String(lab);
     b.addEventListener('click', () => {
       digit = i;
-      row.querySelectorAll('.atlas-button').forEach((n) => n.classList.remove('is-active'));
-      b.classList.add('is-active');
+      row.querySelectorAll('.atlas-btn').forEach((n) => n.classList.add('ghost'));
+      b.classList.remove('ghost');
       draw();
     });
     row.appendChild(b);
@@ -153,12 +153,12 @@ export async function initFiltersWidget(data, base) {
   const pickRow = document.querySelector('#filters-pick');
   for (let f = 0; f < NF; f++) {
     const b = document.createElement('button');
-    b.className = `atlas-button${f === 0 ? ' is-active' : ''}`;
+    b.className = `atlas-btn${f === 0 ? '' : ' ghost'}`;
     b.textContent = `filter ${f + 1}`;
     b.addEventListener('click', () => {
       picked = f;
-      pickRow.querySelectorAll('.atlas-button').forEach((n) => n.classList.remove('is-active'));
-      b.classList.add('is-active');
+      pickRow.querySelectorAll('.atlas-btn').forEach((n) => n.classList.add('ghost'));
+      b.classList.remove('ghost');
       draw();
     });
     pickRow.appendChild(b);
@@ -174,7 +174,7 @@ export async function initFiltersWidget(data, base) {
       const { x, y } = mapBox(f);
       if (mx >= x && mx <= x + mapW && my >= y && my <= y + mapW) {
         picked = f;
-        pickRow.querySelectorAll('.atlas-button').forEach((n, i) => n.classList.toggle('is-active', i === f));
+        pickRow.querySelectorAll('.atlas-btn').forEach((n, i) => n.classList.toggle('ghost', i !== f));
         draw();
         return;
       }

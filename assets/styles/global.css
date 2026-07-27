@@ -405,7 +405,10 @@ button.atlas-btn {
   font-size: 14px;
   background-color: var(--primary);
   color: var(--white);
-  border: none;
+  /* Transparent rather than none, so the selected and unselected states are
+     exactly the same size. With `border: none` here and a 1px border on the
+     ghost, every click nudged the whole row of buttons by a pixel. */
+  border: 1px solid transparent;
   border-radius: 0;
   padding: 8px 16px;
   cursor: pointer;
