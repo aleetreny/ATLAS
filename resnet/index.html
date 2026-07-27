@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Depth | ATLAS</title>
+  <meta name="description" content="Stack small kernels and watch the window grow, then watch a fifty-six layer network fit its own training data worse than a fourteen layer one, measure the gradient to rule out the obvious culprit, and add the one line that fixes it." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/resnet/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="Depth | ATLAS" />
+  <meta property="og:description" content="Stack small kernels and watch the window grow, then watch a fifty-six layer network fit its own training data worse than a fourteen layer one, measure the gradient to rule out the obvious culprit, and add the one line that fixes it." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/resnet/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Depth | ATLAS" />
+  <meta name="twitter:description" content="Stack small kernels and watch the window grow, then watch a fifty-six layer network fit its own training data worse than a fourteen layer one, measure the gradient to rule out the obvious culprit, and add the one line that fixes it." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    /* Per-article theme. Everything else inherits from these two. */
+    :root {
+      --primary: #4c1d95;
+      --secondary: #6d28d9;
+    }
+    .narrow-widget {
+      max-width: 800px;
+    }
+    canvas.atlas-canvas {
+      background: var(--paper);
+      max-width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <!-- ======================= chrome ======================= -->
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <!-- ======================= hero ======================= -->
+  <section id="intro">
+    <h1 id="intro-hed">Depth</h1>
+    <h1 id="intro-sub">Fifty-six layers that fit their own training data worse than fourteen, and the one line that fixed it</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 1.3 · Computer Vision · Architecture</span>
+  </section>
+
+  <br />
+
+  <!-- ======================= introduction ======================= -->
+  <section>
+    <p class="body-text">
+      The <a href="../lenet/">previous article</a> handed the choice of features
+      to the data and kept one decision for the human: the shape of the network
+      that does the learning. Between 2012 and 2015 that decision was where the
+      entire field's effort went, and the most obvious knob on it is the one
+      this article turns. How many layers?
+    </p>
+    <br />
+    <p class="body-text">
+      The first good answer, VGG in 2014, was almost aggressively boring: use
+      3 &times; 3 convolutions everywhere, never anything else, and just stack
+      more of them. The second answer arrived because the first one stopped
+      working, in a way that surprised the people it happened to. Beyond a
+      certain depth, adding layers made networks worse at fitting the data they
+      had already been shown. Not worse at generalising. Worse at
+      <span class="bold">memorising</span>, which is supposed to be the easy
+      part.
+    </p>
+    <br />
+    <p class="body-text">
+      Everything below is measured on Fashion-MNIST rather than handwritten
+      digits, and the choice matters: this article is about optimisation
+      failing, and it needs a task where optimisation is the bottleneck. Twelve
+      networks were trained for the ladder, from 8 layers to 56, in two
+      families that differ by one addition. Here is the task: ten classes of
+      clothing at 28 pixels square, where a pullover, a coat and a shirt are
+      genuinely difficult to tell apart.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="garments-widget">
+    <div id="garments-chart"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= receptive field ======================= -->
+  <section>
+    <h1 class="body-header">Why Everything Became 3 &times; 3</h1>
+    <p class="body-text">
+      A convolution sees a small window. Stack two of them and the second one
+      sees a window of windows: each layer adds \(k-1\) to the reach of the one
+      below it, so \(L\) layers of \(k \times k\) end up looking at
+    </p>
+    <p class="body-text">
+      $$ 1 + L\,(k - 1) $$
+    </p>
+    <p class="body-text">
+      pixels across. Two 3 &times; 3 layers therefore see the same 5 &times; 5
+      window as a single 5 &times; 5 layer, and three of them see the same
+      7 &times; 7. VGG's argument was that you should always prefer the stack,
+      because it is cheaper and because it puts a nonlinearity between the
+      steps. Drag the sliders and watch the window grow.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="field-widget">
+    <div class="slider-row">
+      <span class="slider-label">kernel: <span class="value" id="field-k-value">3×3</span></span>
+      <input type="range" class="atlas-range" id="field-k" aria-label="kernel size" min="3" max="11" step="2" value="3" />
+    </div>
+    <div class="slider-row">
+      <span class="slider-label">layers stacked: <span class="value" id="field-layers-value">2</span></span>
+      <input type="range" class="atlas-range" id="field-layers" aria-label="how many layers to stack" min="1" max="6" step="1" value="2" />
+    </div>
+    <div class="controls-row" style="justify-content: center" id="field-buttons"></div>
+    <div id="field-chart"></div>
+    <div class="widget-readout" id="field-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text">
+      Now press <span class="bold">channels double here</span> and try the
+      5 &times; 5 window again, because that second button is where the usual
+      telling of this argument quietly cheats. The saving of
+      \(2 \cdot 9C^2\) against \(25C^2\) assumes the layer keeps the same
+      number of channels. Real networks double the channels wherever they halve
+      the resolution, and in such a stage only the first layer of a stack is
+      cheap: the rest work at the wider count. The arithmetic becomes
+      \(18C^2 + 36(L-1)C^2\) against \(2k^2C^2\), and it does not favour
+      stacking until the window reaches 7.
+    </p>
+    <br />
+    <p class="body-text">
+      That is a claim about arithmetic, so here it is against a training run.
+      Four networks, three stages each, the same channels, the same pooling,
+      the same seed: the only thing that changes is how each stage's window is
+      built.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Each stage</th>
+          <th>Window</th>
+          <th>Weights in the convolutions</th>
+          <th>Training</th>
+          <th>Test</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">one 5 &times; 5</span></td>
+          <td>5</td>
+          <td>144,600</td>
+          <td>90.47%</td>
+          <td>87.05%</td>
+        </tr>
+        <tr>
+          <td><span class="bold">two 3 &times; 3</span></td>
+          <td>5</td>
+          <td>160,920 (11% more)</td>
+          <td>93.95%</td>
+          <td>88.13%</td>
+        </tr>
+        <tr>
+          <td><span class="bold">one 7 &times; 7</span></td>
+          <td>7</td>
+          <td>283,416</td>
+          <td>92.28%</td>
+          <td>87.45%</td>
+        </tr>
+        <tr>
+          <td><span class="bold">three 3 &times; 3</span></td>
+          <td>7</td>
+          <td>269,784 (5% less)</td>
+          <td>94.95%</td>
+          <td>89.10%</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text">
+      Stacking wins both comparisons, by 1.08 points of test accuracy at the
+      5 &times; 5 window and 1.65 points at the 7 &times; 7. But notice where the
+      parameter saving is: at the 5 &times; 5 window the stack costs
+      <span class="bold">more</span>, not less, and only at 7 does it start
+      paying for itself, exactly where the arithmetic above says the crossover
+      is. So the popular version of VGG's argument, that small kernels are
+      cheaper, is the half that is conditional. The half that held everywhere
+      we measured is the other one: an extra nonlinearity between two small
+      convolutions is worth more than the same window seen in one go.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= scrolly ======================= -->
+  <section>
+    <h1 class="body-header">Then It Stopped Working</h1>
+    <p class="body-text">
+      If stacking is good, stack more. Six networks, from 8 layers to 56, all
+      trained identically. Watch the training loss.
+    </p>
+  </section>
+
+  <section id="depth-scrolly" class="scrolly">
+    <div class="scrolly-container">
+      <div class="steps-container">
+        <div class="step" data-index="0">
+          <div class="step-content">
+            <h3>Eight Layers</h3>
+            <p>
+              A small network of the same family VGG proposed: 3 &times; 3
+              convolutions, stacked, with the resolution halved twice on the
+              way through. It learns what you would expect it to learn.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="1">
+          <div class="step-content">
+            <h3>Deeper</h3>
+            <p id="step-middle">
+              More of the same layers, same everything else. The loss goes
+              lower and the accuracy goes up, which is the entire reason
+              anybody started stacking in the first place. This is as far as
+              stacking got here.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="2">
+          <div class="step-content">
+            <h3>Deeper Still</h3>
+            <p id="step-deep">
+              Keep going and the curve moves the wrong way. This is the
+              measurement that made residual connections necessary.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="3">
+          <div class="step-content">
+            <h3>Not the Gradients</h3>
+            <p>
+              Everyone's first answer is that the gradient dies before it
+              reaches the early layers. It is a real phenomenon, and it is
+              testable, so the next section tests it rather than assuming it.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="4">
+          <div class="step-content">
+            <h3>One Addition</h3>
+            <p>
+              The same 56 layers, the same data, the same seed, with the input
+              of each pair of convolutions added back to their output. Nothing
+              else changes.
+            </p>
+          </div>
+        </div>
+        <div class="step-spacer"></div>
+      </div>
+      <div class="charts-container">
+        <div class="chart-wrap" id="depth-scrolly-chart"></div>
+      </div>
+    </div>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the ladder ======================= -->
+  <section>
+    <h1 class="body-header">The Ladder, Both Ways</h1>
+    <p class="body-text">
+      Here is the whole ladder at once. The button matters more than it looks:
+      on the test set a deeper network doing worse is unremarkable, and
+      everybody has a word for it. The same shape on the
+      <span class="bold">training</span> set is the finding, because a network
+      that cannot fit the data it was shown is not overfitting. It is failing
+      to optimise, and no amount of extra data would help.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="ladder-widget">
+    <div class="controls-row" style="justify-content: center" id="ladder-buttons"></div>
+    <div id="ladder-chart"></div>
+    <div class="widget-readout" id="ladder-readout"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= gradients ======================= -->
+  <section>
+    <h1 class="body-header">The Obvious Explanation, Tested</h1>
+    <p class="body-text">
+      Ask why a deep network trains badly and you will be told the gradients
+      vanish: each layer multiplies the signal on its way back, and after fifty
+      multiplications there is nothing left. It is a real phenomenon, it has a
+      standard fix, and that fix, <span class="bold">batch normalisation</span>,
+      is present in every network on this page, plain and residual alike. That
+      is not an oversight. It is the control: the degradation has to be
+      measured in a setting where the usual culprit has already been dealt with,
+      or the article is just repeating folklore.
+    </p>
+    <br />
+    <p class="body-text">
+      So measure it. Below are the gradient norms arriving at every convolution
+      at initialisation, before a single step has been taken, which is when the
+      vanishing-gradient hypothesis makes its prediction.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="gradient-widget">
+    <div id="gradient-chart"></div>
+    <div class="widget-readout" id="gradient-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text">
+      Which leaves the uncomfortable version of the problem. The deep network
+      is not starved of signal and it is not overfitting. It is being asked to
+      find a setting of its weights that we know exists, and it is not finding
+      it. That is a statement about the search, not about the network's
+      capacity, and it is the reason the fix is a change to what the layers are
+      asked to compute rather than a change to how they are trained.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the shortcut ======================= -->
+  <section>
+    <h1 class="body-header">Change Nothing, Cheaply</h1>
+    <p class="body-text">
+      Here is the argument that produced the fix, and it is almost annoyingly
+      simple. Take a network that works, and add layers to the end of it. If
+      those extra layers all computed the identity, passing their input through
+      untouched, the deeper network would score exactly what the shallower one
+      scored. A deeper network can therefore never be <i>forced</i> to be
+      worse. It has a solution available by construction.
+    </p>
+    <br />
+    <p class="body-text">
+      It just cannot find it. Making a stack of convolutions reproduce its own
+      input is a hard thing to learn, and gradient descent does not stumble on
+      it. So change what the layer computes. Instead of asking a block for
+      \(H(x)\) directly, wire its input around it and ask only for the
+      difference:
+    </p>
+    <p class="body-text">
+      $$ H(x) \;=\; F(x) + x $$
+    </p>
+    <p class="body-text">
+      Now "change nothing" means \(F(x) = 0\), which is the easiest thing a
+      layer with weight decay can possibly do: drive the weights towards zero
+      and the block steps aside. The identity stopped being something to learn
+      and became the default.
+    </p>
+    <br />
+    <p class="body-text">
+      That is a story about what the network <i>would</i> do. Below is what it
+      actually did. For every block of the trained residual networks, this is
+      the size of the change it makes relative to what it was handed.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="residual-widget">
+    <div class="controls-row" style="justify-content: center" id="residual-buttons"></div>
+    <div id="residual-chart"></div>
+    <div class="widget-readout" id="residual-readout"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= a debt from the last article ======================= -->
+  <section>
+    <h1 class="body-header">A Debt from the Last Article</h1>
+    <p class="body-text" id="act-note">Measured below.</p>
+    <br />
+    <p class="body-text">
+      Whichever way that came out, it is worth saying what the pair of
+      measurements together are good for. One activation function beating
+      another on a two-layer network tells you almost nothing about a fifty-six
+      layer one, and the reverse is equally true. An architectural ingredient
+      is not good or bad. It is good or bad <i>at a scale</i>, and the only way
+      to know which is to run it at the scale you care about.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= verdict ======================= -->
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text">
+      What depth costs, what it buys, and where each claim held.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Idea</th>
+          <th>What it buys</th>
+          <th>Measured here</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">Small kernels, stacked</span></td>
+          <td>The same window with a nonlinearity inside it</td>
+          <td>1.08 and 1.65 points of test accuracy over one big kernel at the same window.</td>
+          <td>The parameter saving is conditional: at a 5 &times; 5 window with the channels doubling, the stack cost 11% more.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">More layers</span></td>
+          <td>More capacity, up to a point</td>
+          <td id="verdict-depth">Measured below.</td>
+          <td id="verdict-depth-warn">Measured below.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Batch normalisation</span></td>
+          <td>A healthy gradient at every depth</td>
+          <td id="verdict-grad">Measured below.</td>
+          <td>It fixes the gradient and not the optimisation. Solving the famous problem did not solve this one.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Residual connections</span></td>
+          <td>The identity as the cheap default</td>
+          <td id="verdict-res">Measured below.</td>
+          <td>They are not free at the joins: where the channel count changes, the shortcut needs a 1 &times; 1 convolution of its own.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="closing-note"></p>
+    <br />
+    <p class="body-text">
+      The <a href="../">next article in this branch</a> asks what happened
+      after the depth race ended: how to spend a fixed budget between width,
+      depth and resolution, and what is left of the convolutional network once
+      it has been rebuilt with everything the transformer era learned.
+    </p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! Every curve, gradient and residual size on this page
+      comes from <code>src/utils/generate_resnet_data.py</code>, which trains
+      every network here from scratch and caches each one, so an interrupted
+      run resumes where it stopped rather than starting the half hour again.
+    </p>
+  </section>
+
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text">
+      Data: Fashion-MNIST, 6,000 training images and 4,000 test images drawn
+      with a fixed seed, stratified by class. The ladder is the CIFAR family of
+      the residual paper, depth 6n + 2, with 16, 32 and 64 channels across three
+      stages; the plain family is the same network with the shortcuts removed
+      and nothing else changed. Trained with SGD, momentum 0.9, learning rate
+      0.05 decayed by ten at half and four fifths of the run, weight decay
+      1e-4, batch size 128, seed 19.
+    </p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1512.03385">[1] Deep Residual Learning for Image Recognition</a><br />
+      (He, K., Zhang, X., Ren, S. &amp; Sun, J., CVPR, 2016)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1409.1556">[2] Very Deep Convolutional Networks for Large-Scale Image Recognition</a><br />
+      (Simonyan, K. &amp; Zisserman, A., ICLR, 2015; VGG)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1502.03167">[3] Batch Normalization: Accelerating Deep Network Training by Reducing Internal Covariate Shift</a><br />
+      (Ioffe, S. &amp; Szegedy, C., ICML, 2015)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1603.05027">[4] Identity Mappings in Deep Residual Networks</a><br />
+      (He, K., Zhang, X., Ren, S. &amp; Sun, J., ECCV, 2016; why the shortcut should stay clean)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1708.07747">[5] Fashion-MNIST: a Novel Image Dataset for Benchmarking Machine Learning Algorithms</a><br />
+      (Xiao, H., Rasul, K. &amp; Vollgraf, R., 2017)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>

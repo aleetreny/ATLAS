@@ -90,7 +90,6 @@
       </div>
 
       <div class="articles-container">
-        <!-- card: classical regression -->
         <div class="article-card">
           <div class="imgBx" onclick="location.href='./classical-regression/';" style="cursor: pointer">
             <img src="assets/thumbnails/classical-regression.svg"
@@ -129,6 +128,7 @@
         </div>
 
         <!-- card: robust regression -->
+
         <div class="article-card">
           <div class="imgBx" onclick="location.href='./robust-regression/';" style="cursor: pointer">
             <img src="assets/thumbnails/robust-regression.svg"
@@ -148,6 +148,7 @@
         </div>
 
         <!-- card: non-parametric regression -->
+
         <div class="article-card">
           <div class="imgBx" onclick="location.href='./non-parametric-regression/';" style="cursor: pointer">
             <img src="assets/thumbnails/non-parametric-regression.svg"
@@ -167,6 +168,27 @@
         </div>
 
         <!-- card: gradient boosting -->
+
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./svr-kernel-ridge/';" style="cursor: pointer">
+            <img src="assets/thumbnails/svr-kernel-ridge.svg"
+                 alt="SVR and Kernel Ridge article image: a curved fit wrapped in a shaded epsilon tube, grey points riding free inside it and crimson support vectors on its walls." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">SVR and Kernel Ridge</h2>
+            <p class="article-description">
+              The tube that ignores small errors and the ridge gone
+              nonlinear: kernel ridge refits live under your fingers, and the
+              Gaussian process turns out to be hiding inside it.
+            </p>
+            <button class="content-button">
+              <a href="./svr-kernel-ridge/">Dive In</a>
+            </button>
+          </div>
+        </div>
+
+        <!-- card: kernel discriminants -->
+
         <div class="article-card">
           <div class="imgBx" onclick="location.href='./gradient-boosting/';" style="cursor: pointer">
             <img src="assets/thumbnails/gradient-boosting.svg"
@@ -186,6 +208,7 @@
         </div>
 
         <!-- card: deep learning for tables -->
+
         <div class="article-card">
           <div class="imgBx" onclick="location.href='./deep-learning-tables/';" style="cursor: pointer">
             <img src="assets/thumbnails/deep-learning-tables.svg"
@@ -205,6 +228,7 @@
         </div>
 
         <!-- card: probabilistic classification -->
+
         <div class="article-card">
           <div class="imgBx" onclick="location.href='./probabilistic-classification/';" style="cursor: pointer">
             <img src="assets/thumbnails/probabilistic-classification.svg"
@@ -224,6 +248,7 @@
         </div>
 
         <!-- card: geometric classification -->
+
         <div class="article-card">
           <div class="imgBx" onclick="location.href='./geometric-classification/';" style="cursor: pointer">
             <img src="assets/thumbnails/geometric-classification.svg"
@@ -243,6 +268,27 @@
         </div>
 
         <!-- card: trees and ensembles -->
+
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./kda/';" style="cursor: pointer">
+            <img src="assets/thumbnails/kda.svg"
+                 alt="Kernel Discriminant Analysis article image: two interleaved moons of points, a failed dashed straight projection, and a curved kernel boundary threading between them." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Kernel Discriminants</h2>
+            <p class="article-description">
+              Turn the projection dial yourself and hit the measured linear
+              ceiling, then give Fisher's discriminant the kernel upgrade
+              that lights module 1's last chip.
+            </p>
+            <button class="content-button">
+              <a href="./kda/">Dive In</a>
+            </button>
+          </div>
+        </div>
+
+        <!-- card: classical features -->
+
         <div class="article-card">
           <div class="imgBx" onclick="location.href='./trees-and-ensembles/';" style="cursor: pointer">
             <img src="assets/thumbnails/trees-and-ensembles.svg"
@@ -262,6 +308,7 @@
         </div>
 
         <!-- card: imbalanced learning -->
+
         <div class="article-card">
           <div class="imgBx" onclick="location.href='./imbalanced-learning/';" style="cursor: pointer">
             <img src="assets/thumbnails/imbalanced-learning.svg"
@@ -299,121 +346,6 @@
           </div>
         </div>
 
-        <!-- card: k-means -->
-        <div class="article-card">
-          <div class="imgBx" onclick="location.href='./kmeans/';" style="cursor: pointer">
-            <img src="assets/thumbnails/kmeans.svg"
-                 alt="K-Means article image: three gold clusters of points with diamond centres and dashed straight borders dividing their territories." />
-          </div>
-          <div class="content">
-            <h2 class="article-title">K-Means</h2>
-            <p class="article-description">
-              Clustering without a teacher: Lloyd's loop running live, the
-              initialisation lottery that k-means++ fixes, choosing k when
-              nobody tells you, and the three shapes of data that break it.
-            </p>
-            <button class="content-button">
-              <a href="./kmeans/">Dive In</a>
-            </button>
-          </div>
-        </div>
-
-        <!-- card: gaussian mixtures -->
-        <div class="article-card">
-          <div class="imgBx" onclick="location.href='./gmm/';" style="cursor: pointer">
-            <img src="assets/thumbnails/gmm.svg"
-                 alt="Gaussian Mixtures article image: three tilted covariance ellipses with points tinted by membership, blended colours where the bells overlap." />
-          </div>
-          <div class="content">
-            <h2 class="article-title">Gaussian Mixtures</h2>
-            <p class="article-description">
-              Clusters with soft edges: expectation-maximisation live under
-              your mouse, a slider that freezes the mixture into k-means, and
-              the failure gallery redeemed twice out of three.
-            </p>
-            <button class="content-button">
-              <a href="./gmm/">Dive In</a>
-            </button>
-          </div>
-        </div>
-
-        <!-- card: dbscan -->
-        <div class="article-card">
-          <div class="imgBx" onclick="location.href='./dbscan/';" style="cursor: pointer">
-            <img src="assets/thumbnails/dbscan.svg"
-                 alt="DBSCAN article image: two interleaved moons of points found by chaining, a dashed epsilon ball around one core point, and crossed-out noise points." />
-          </div>
-          <div class="content">
-            <h2 class="article-title">DBSCAN</h2>
-            <p class="article-description">
-              A cluster is where the points are thick: density under two live
-              dials, the rings finally solved, "belongs to nothing" as an
-              answer, and the trap that earns HDBSCAN its H.
-            </p>
-            <button class="content-button">
-              <a href="./dbscan/">Dive In</a>
-            </button>
-          </div>
-        </div>
-
-        <!-- card: hierarchical -->
-        <div class="article-card">
-          <div class="imgBx" onclick="location.href='./hierarchical/';" style="cursor: pointer">
-            <img src="assets/thumbnails/hierarchical.svg"
-                 alt="Hierarchical clustering article image: a dendrogram coloured below a dashed draggable cut line and grey above it." />
-          </div>
-          <div class="content">
-            <h2 class="article-title">Hierarchical Clustering</h2>
-            <p class="article-description">
-              All 178 wines as one tree and a blade you drag: agglomerative
-              clustering built pair by pair, four linkages with one famous
-              disaster, and BIRCH for when the tree stops fitting.
-            </p>
-            <button class="content-button">
-              <a href="./hierarchical/">Dive In</a>
-            </button>
-          </div>
-        </div>
-
-        <!-- card: svr and kernel ridge -->
-        <div class="article-card">
-          <div class="imgBx" onclick="location.href='./svr-kernel-ridge/';" style="cursor: pointer">
-            <img src="assets/thumbnails/svr-kernel-ridge.svg"
-                 alt="SVR and Kernel Ridge article image: a curved fit wrapped in a shaded epsilon tube, grey points riding free inside it and crimson support vectors on its walls." />
-          </div>
-          <div class="content">
-            <h2 class="article-title">SVR and Kernel Ridge</h2>
-            <p class="article-description">
-              The tube that ignores small errors and the ridge gone
-              nonlinear: kernel ridge refits live under your fingers, and the
-              Gaussian process turns out to be hiding inside it.
-            </p>
-            <button class="content-button">
-              <a href="./svr-kernel-ridge/">Dive In</a>
-            </button>
-          </div>
-        </div>
-
-        <!-- card: kernel discriminants -->
-        <div class="article-card">
-          <div class="imgBx" onclick="location.href='./kda/';" style="cursor: pointer">
-            <img src="assets/thumbnails/kda.svg"
-                 alt="Kernel Discriminant Analysis article image: two interleaved moons of points, a failed dashed straight projection, and a curved kernel boundary threading between them." />
-          </div>
-          <div class="content">
-            <h2 class="article-title">Kernel Discriminants</h2>
-            <p class="article-description">
-              Turn the projection dial yourself and hit the measured linear
-              ceiling, then give Fisher's discriminant the kernel upgrade
-              that lights module 1's last chip.
-            </p>
-            <button class="content-button">
-              <a href="./kda/">Dive In</a>
-            </button>
-          </div>
-        </div>
-
-        <!-- card: classical features -->
         <div class="article-card">
           <div class="imgBx" onclick="location.href='./classical-features/';" style="cursor: pointer">
             <img src="assets/thumbnails/classical-features.svg"
@@ -469,6 +401,31 @@
             </button>
           </div>
         </div>
+
+        <!-- card: resnet -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./resnet/';" style="cursor: pointer">
+            <img src="assets/thumbnails/resnet.svg"
+                 alt="Depth article image: two stacked convolution blocks with a shortcut carrying the input around them, beside a small chart where the deeper plain network scores worse." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Depth</h2>
+            <p class="article-description">
+              Stack small kernels and watch the window grow, then watch fifty-six
+              layers fit their own training data worse than fourteen, rule out the
+              obvious culprit, and add the one line that fixes it.
+            </p>
+            <button class="content-button">
+              <a href="./resnet/">Dive In</a>
+            </button>
+          </div>
+        </div>
+
+        <!-- card: k-means -->
+
+        <!-- card: gaussian mixtures -->
+
+        <!-- card: svr and kernel ridge -->
       </div>
 
       <details class="roadmap" open>
@@ -503,7 +460,7 @@
             <span class="chip live"><a href="./classical-features/">HOG · SIFT · ORB</a></span>
             <span class="chip live"><a href="./viola-jones/">Viola-Jones</a></span>
             <span class="chip live"><a href="./lenet/">LeNet · AlexNet</a></span>
-            <span class="chip">VGG · ResNet</span>
+            <span class="chip live"><a href="./resnet/">VGG · ResNet</a></span>
             <span class="chip">EfficientNet · ConvNeXt</span>
             <span class="chip">YOLO · SSD · Faster R-CNN</span>
             <span class="chip">U-Net · Mask R-CNN · SAM</span>
@@ -520,6 +477,82 @@
           Piles of evidence, no answers. Discover hidden groups, simplify complex
           data into something human-readable, and find the signal in the noise.
         </p>
+      </div>
+
+      <div class="articles-container">
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./kmeans/';" style="cursor: pointer">
+            <img src="assets/thumbnails/kmeans.svg"
+                 alt="K-Means article image: three gold clusters of points with diamond centres and dashed straight borders dividing their territories." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">K-Means</h2>
+            <p class="article-description">
+              Clustering without a teacher: Lloyd's loop running live, the
+              initialisation lottery that k-means++ fixes, choosing k when
+              nobody tells you, and the three shapes of data that break it.
+            </p>
+            <button class="content-button">
+              <a href="./kmeans/">Dive In</a>
+            </button>
+          </div>
+        </div>
+
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./gmm/';" style="cursor: pointer">
+            <img src="assets/thumbnails/gmm.svg"
+                 alt="Gaussian Mixtures article image: three tilted covariance ellipses with points tinted by membership, blended colours where the bells overlap." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Gaussian Mixtures</h2>
+            <p class="article-description">
+              Clusters with soft edges: expectation-maximisation live under
+              your mouse, a slider that freezes the mixture into k-means, and
+              the failure gallery redeemed twice out of three.
+            </p>
+            <button class="content-button">
+              <a href="./gmm/">Dive In</a>
+            </button>
+          </div>
+        </div>
+
+        <!-- card: dbscan -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./dbscan/';" style="cursor: pointer">
+            <img src="assets/thumbnails/dbscan.svg"
+                 alt="DBSCAN article image: two interleaved moons of points found by chaining, a dashed epsilon ball around one core point, and crossed-out noise points." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">DBSCAN</h2>
+            <p class="article-description">
+              A cluster is where the points are thick: density under two live
+              dials, the rings finally solved, "belongs to nothing" as an
+              answer, and the trap that earns HDBSCAN its H.
+            </p>
+            <button class="content-button">
+              <a href="./dbscan/">Dive In</a>
+            </button>
+          </div>
+        </div>
+
+        <!-- card: hierarchical -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./hierarchical/';" style="cursor: pointer">
+            <img src="assets/thumbnails/hierarchical.svg"
+                 alt="Hierarchical clustering article image: a dendrogram coloured below a dashed draggable cut line and grey above it." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Hierarchical Clustering</h2>
+            <p class="article-description">
+              All 178 wines as one tree and a blade you drag: agglomerative
+              clustering built pair by pair, four linkages with one famous
+              disaster, and BIRCH for when the tree stops fitting.
+            </p>
+            <button class="content-button">
+              <a href="./hierarchical/">Dive In</a>
+            </button>
+          </div>
+        </div>
       </div>
       <details class="roadmap">
         <summary>Full branch map: 2. Unsupervised Structure Discovery</summary>

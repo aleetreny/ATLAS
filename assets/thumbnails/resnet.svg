@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <rect width="400" height="300" fill="#f1f3f3" />
+  <!-- a block of two layers with a shortcut carrying the input around them -->
+  <g stroke="#232f3e" stroke-width="1.6" fill="#e7ebec">
+    <rect x="96" y="86" width="96" height="34" rx="3" />
+    <rect x="96" y="150" width="96" height="34" rx="3" />
+  </g>
+  <g font-family="monospace" font-size="12" fill="#232f3e" text-anchor="middle">
+    <text x="144" y="107">3×3 conv</text>
+    <text x="144" y="171">3×3 conv</text>
+  </g>
+  <g stroke="#232f3e" stroke-width="1.8" fill="none">
+    <path d="M144 62 V86" />
+    <path d="M144 120 V150" />
+    <path d="M144 184 V210" />
+    <path d="M138 204 L144 212 L150 204" />
+  </g>
+  <!-- the shortcut: the input arrives untouched and is added back -->
+  <path d="M144 70 H214 V206 H152" fill="none" stroke="#4c1d95" stroke-width="2.6" />
+  <path d="M160 200 L150 206 L160 212" fill="none" stroke="#4c1d95" stroke-width="2.6" />
+  <circle cx="144" cy="212" r="9" fill="#f1f3f3" stroke="#4c1d95" stroke-width="2.4" />
+  <path d="M139 212 H149 M144 207 V217" stroke="#4c1d95" stroke-width="2" />
+  <text x="228" y="142" font-family="monospace" font-size="12" fill="#4c1d95">skip</text>
+  <!-- inset: training error going the wrong way as layers are added -->
+  <g stroke="#232f3e" stroke-width="1.4">
+    <line x1="278" y1="200" x2="278" y2="90" />
+    <line x1="278" y1="200" x2="368" y2="200" />
+  </g>
+  <path d="M284 176 L306 150 L328 142 L350 158 L362 172" fill="none" stroke="#232f3e" stroke-width="2.4" />
+  <path d="M284 176 L306 146 L328 128 L350 116 L362 110" fill="none" stroke="#4c1d95" stroke-width="2.4" />
+  <g font-family="monospace" font-size="9" fill="#232f3e" text-anchor="middle">
+    <text x="323" y="216">layers</text>
+  </g>
+  <text x="268" y="86" font-family="monospace" font-size="9" fill="#232f3e" text-anchor="middle" transform="rotate(-90 268 86)"></text>
+  <g stroke="#232f3e" stroke-width="2">
+    <line x1="40" y1="275" x2="360" y2="275" />
+    <line x1="40" y1="275" x2="40" y2="25" />
+  </g>
+</svg>
