@@ -1,0 +1,54 @@
+# Cómo verificar un artículo de verdad
+
+> Documento de trabajo del repositorio. Las reglas duras y el índice están
+> en [CLAUDE.md](../CLAUDE.md). **Si descubres un fallo nuevo, añádelo aquí
+> en la misma sesión.**
+
+
+Se han colado fallos visuales en paginas dadas por verificadas, tres veces. **Comprobar que un control "funciona" no es verificar.** Este es el procedimiento que sí funciona.
+
+**Why:** medir el DOM sin mirar la página deja pasar fórmulas rotas, tarjetas fuera de pantalla y líneas invisibles. Y varias trampas del entorno producen falsos "todo correcto".
+
+## Trampas del entorno (todas reales, todas me engañaron)
+1. **El scroll por JavaScript no repinta el panel**: `scrollIntoView`/`scrollTo` mueven la página pero la captura sale en blanco o con un frame viejo. Usar `computer{action:"scroll"}` con la pestaña al frente (`tabs_select`). Un `screenshot` previo es obligatorio antes de un scroll con `coordinate`.
+2. **El navegador cachea agresivamente los módulos ES y los JSON.** `python http.server` no manda `Cache-Control`, así que el navegador aplica frescura heurística sobre `Last-Modified` y sirve el módulo viejo aunque el fichero haya cambiado hace un minuto. `navigate` con `force:true` **no basta**, ni añadir query a la URL de la página (los `import` relativos resuelven a la misma URL). Se confirma en `performance.getEntriesByType('resource')`: el módulo aparece con `transferSize: 0`.
+   - **La solución buena: servir en un puerto distinto.** Otro origen es otra caché, y sale limpia. Añadir una segunda entrada a `.claude/launch.json` (`atlas-web-cold`, puerto 8738), `preview_start` con ese nombre, verificar ahí, y quitar la entrada al terminar. Es lo único que da una verificación de extremo a extremo fiable.
+   - El apaño puntual, si solo hace falta probar un widget: bajar el fuente con `fetch`, reescribir los especificadores relativos a absolutos, crear un `blob:` URL y hacer `import` de eso. Hay que reescribir **también** los imports internos (`./mathkit.js`), o el módulo fresco carga el helper viejo y el resultado engaña. Luego vaciar el contenedor y clonar los botones para soltar listeners.
+   - Si el módulo a probar es `chart.js` (que los widgets importan sin buster), el atajo es importarlo fresco y ejecutar la función sospechosa contra escalas **reconstruidas del DOM** (`.tick` guarda su dato en `__data__` y su `transform` da la posición: dos puntos fijan una escala logarítmica). Para CSS, inyectar un `<style>` con la regla.
+3. **`javascript_tool` está bloqueado en el dominio público** (`aleetreny.github.io`) por el control de políticas. La verificación con JS se hace en `localhost:8737`; la web desplegada se comprueba con `curl` (que el HTML/JS servido contenga literalmente cada arreglo y cada cifra) y con capturas.
+4. **Las capturas no son una escala uniforme del viewport**: el contenido aparece desplazado a la izquierda con hueco a la derecha. **No deducir posiciones de una captura**; medir con `getBoundingClientRect` y usar la captura solo para ver colores, formas y texto.
+5. `getBBox()` es **local al grupo transformado**. Auditar solapamientos y recortes con `getBoundingClientRect` en coordenadas de pantalla, o se generan decenas de falsos positivos.
+6. **`getBoundingClientRect` mide geometría, no lo pintado.** Un `<svg>` recorta a su viewport por defecto, así que una recta de ajuste que se sale no es un defecto: no se ve fuera. Marcar solo **texto** fuera del lienzo, que sí queda cortado. Y las cajas envolventes de **texto rotado** se cruzan aunque los glifos no: comprobar la separación perpendicular real (`getScreenCTM`) antes de llamarlo solape.
+7. `IntersectionObserver` **no se ejecuta si el panel del navegador está oculto** (no compone frames). Si no dispara, comprobar primero que el panel esté visible. `scrolly()` devuelve `goTo(i)` y cada paso escucha el evento `atlas:activate` como escotilla para probar los estados sin scroll.
+8. **`d3.shuffle(array, fn)` NO acepta fuente aleatoria**: el segundo argumento es `lo` (índice), así que pasar un rng lo desactiva en silencio y deja el array sin barajar (los "100 positivos" del waffle salieron todos en la primera fila). Para barajar con semilla: Fisher-Yates a mano con el rng propio. Verificar siempre el resultado visual, no solo que no lance error.
+9. **El stdout de un generador Python en background llega bufferizado**: el `.output` se queda vacío hasta que el proceso termina. Para saber si vive, `Get-Process python` y su CPU acumulada; no releer el fichero en bucle. Y **`cmd | tee fichero | tail` también lo esconde**: tail no imprime hasta el final. Lanzar con `nohup python -u ... > log 2>&1 &` y hacer `tail` del log cuando interese.
+10. **Los agentes de un workflow compiten por la MISMA CPU que los generadores.** Pedirles que estimen tiempos de ejecución les invita a lanzar benchmarks de torch, y con eso una tirada de entrenamiento pasó de ~90s a 395s por modelo (4,4×). Si hay un generador entrenando, o se lanza el workflow después, o se les prohíbe explícitamente ejecutar nada pesado. Es un coste real: la medición es el camino crítico, los agentes no.
+11. **Un generador largo debe ser resumible desde el primer día.** Cachear cada experimento terminado en `~/.atlas_vision_data/<algo>_cache/` con una clave que incluya toda la configuración (`fashion-n6000-e12-b128-w16-s19-...`): un reinicio de la máquina, un Ctrl-C o un cambio de opinión dejan de costar la tirada entera. Cambiar cualquier hiperparámetro invalida la clave sola.
+
+## El arnés, y no medirlo a mano
+Escribir `_audit.js` en la raíz del repo (temporal, borrarlo antes de commitear) e importarlo desde la consola. Exporta `audit()`, `sweepControls()`, `sweepScrolly()`, `sliderResponse()` y `statics()`. Dos detalles que lo hacen fiable:
+- **`javascript_tool` corta a los 30 s.** Lanzar el barrido sin `await`, guardarlo en `window.__R`, y sondear en llamadas siguientes.
+- **El settle tiene que superar la transición más larga de la página** (1500 ms). Con menos, se captura un tick de eje saliendo del lienzo a mitad de vuelo y se reporta como recorte. Un "recorte" de 90px en un eje casi siempre es eso.
+- Solape real de glifos = cajas orientadas + SAT con `getBBox()` y `getScreenCTM()`, nunca `getBoundingClientRect` a secas. Y **encoger cada caja ~2,5px antes del SAT**: la caja de un texto incluye el hueco de ascendente y descendente que los glifos no llenan, así que dos etiquetas de eje separadas 25px con cajas de 27 se "solapan" sin tocarse (los ticks 7k/10k del artículo 19 daban positivo cada vez).
+- Añadir un chequeo de **sangrado de canvas**: si la fila o columna más exterior del canvas tiene algo pintado, el cálculo del tamaño se quedó corto (así apareció el canvas 24px estrecho del artículo 18). Ojo: un canvas cuyo contenido es una foto a sangre lo dispara por diseño.
+
+**Cuidado con auditar mientras editas.** Si el workflow corre a la vez que se aplican arreglos, los escépticos verifican contra un árbol que se mueve y su informe llega medio obsoleto (15 de 22 hallazgos ya estaban arreglados). Sigue saliendo a cuenta, porque los que quedan son reales, pero hay que releer cada uno contra el árbol actual antes de tocarlo. `sed` por Bash devolvió contenido cacheado dos veces en esa situación: usar Read o Grep.
+
+## Auditoría estática en paralelo
+Para una revisión completa, un `Workflow` con un revisor por artículo más uno transversal, cada uno seguido de un escéptico que intenta **refutar** sus hallazgos releyendo el fichero, y una síntesis final. Dio 73 hallazgos confirmados, incluidos dos errores numéricos que llevaban meses publicados. Al prompt hay que meterle las reglas duras (em dashes, formato fijo), los fallos ya pagados, y sobre todo **qué NO es un hallazgo**, o la mitad del informe son preferencias de estilo. Decirles explícitamente que los solapes visuales quedan fuera de su alcance, porque eso lo mide el navegador.
+
+## Qué medir en cada página
+- **`undefined`, `NaN`, `null` y `[object Object]` en el texto compuesto.** Es el primer barrido que hay que correr y el que más barato sale. En el artículo 23 la web publicada decía "a box is **undefined**" porque `box_convention` está en `meta` y la plantilla leía `dataset`. Ningún guardia numérico lo caza: una plantilla que interpola `undefined` no es una cifra equivocada, es una cifra ausente. Recorrer `p.body-text`, `.widget-readout`, `.atlas-table td` y `svg text` **en cada estado de cada widget** (cada vista, cada extremo de cada slider, cada elemento clicable) y exigir cero.
+- **Fórmulas**: contar `.katex` y buscar LaTeX crudo en `document.body.innerText` (`$$`, `\hat{`, `\frac{`, `\operatorname`). Cualquier resultado > 0 es un fallo.
+- **Scrolly**: recorrer la sección en ~15 posiciones y registrar, en cada una, la desviación entre el centro de la tarjeta activa y el centro del gráfico, más si la tarjeta cabe entera en pantalla. Objetivo: media < 150px y **todas** enteras.
+- **Recortes y colisiones**: para cada `<svg>`, comparar cada `<text>` contra el rect del propio SVG, y **todos los textos entre sí, incluidos los ticks de `.axis`**. Excluirlos me ocultó etiquetas de eje encimadas en dos gráficos ya publicados del artículo 5. Los pares donde alguno esté rotado se marcan aparte: casi siempre son cajas envolventes cruzadas sin glifos cruzados.
+- **Ritmo vertical**: el hueco entre cada widget y el `.body-text` siguiente debe ser 48px. Un 0 delata un override de CSS.
+- **Controles**: pulsar cada botón y mover cada slider a sus extremos, comprobando que el estado resultante **cambia** y es distinto entre posiciones.
+- **Anchos**: sumar el ancho de los botones de una `.controls-row` contra el ancho del panel; si excede, se apilan feo.
+- **Responsive**: repetir a 1440px y a 375px. El breakpoint está en 950px y hay reglas extra bajo 560px. Medir además el **tamaño de fuente renderizado** de cada SVG (`fontSize * escala del viewBox`): a 375px el sitio está en 5-6px y un gráfico nuevo no debe quedar por debajo de eso.
+- **Repetir la auditoría en cada estado**, no solo en el inicial: con cada toggle pulsado y cada slider en sus extremos. Una etiqueta que cabe en una vista se sale en la otra.
+
+## Flujo de despliegue
+Commitear, **pushear siempre sin preguntar**, y verificar la web real en https://aleetreny.github.io/ATLAS/. Pages tarda 1-2 minutos y cachea 10 (`max-age=600`); si algo se ve viejo, es la caché de borde, no el código. Comprobar por HTTP que el HTML/JS desplegado contiene literalmente cada arreglo.
+
+Mensajes de commit: usar `git commit -F fichero` (los here-strings de PowerShell se rompen con comillas). Sin em dashes, sin atribución IA, autor `aleetreny`.

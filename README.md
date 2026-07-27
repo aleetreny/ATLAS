@@ -4,6 +4,8 @@
 
 Welcome to **ATLAS** (**A**lgorithmic **T**echniques for **L**earning **A**nd **S**tatistics). This repository is designed not as a theoretical roadmap, but as a collection of **practical implementations** addressing specific real-world cases. While many resources focus on the "what", this project focuses on the "how": building the engine before we drive the car.
 
+> **Working on this repo?** Start with [CLAUDE.md](CLAUDE.md) and the notes in [`docs/`](docs/): the article recipe, the failures already paid for, and how a page is verified before it ships. They are the project's own documentation and they are kept up to date as part of the work.
+
 > **Read it as a website.** Every technique is being turned into a visual, interactive article at **[aleetreny.github.io/ATLAS](https://aleetreny.github.io/ATLAS/)**: scrollytelling, live models running in your browser, and every number measured rather than quoted. Twenty-one articles published so far: regression and classification complete (modules 1.1 and 1.2, every chip lit), computer vision through the depth revolution (1.3: classical features, Viola-Jones, convolutional networks, and VGG/ResNet with the degradation problem measured live), and a four-article arc through clustering (2.1): k-means, mixtures, density and hierarchies.
 
 The structure of this repository follows the natural progression of data intelligence, guiding you through the main paradigms and techniques used to analyze, model, generate, and deploy data-driven solutions. Each section builds on the previous, covering the essential approaches and tools needed to address real-world data challenges from start to finish.
