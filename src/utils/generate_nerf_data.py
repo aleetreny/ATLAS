@@ -836,8 +836,13 @@ def mean_psnr(model_render, cams, truths):
 _TRUTH_DEPTH = {}
 
 
-def truth_depth(cam, res=RES, steps=GT_STEPS):
-    """Memoised: four comparisons ask the same fourteen cameras for it."""
+def truth_depth(cam, res=RES, steps=None):
+    """Memoised: four comparisons ask the same fourteen cameras for it.
+
+    The step count defaults inside the body rather than in the signature: a
+    default argument is evaluated when the `def` runs, and these helpers are
+    defined above the block that declares GT_STEPS."""
+    steps = GT_STEPS if steps is None else steps
     key = (round(cam["az"], 4), round(cam["el"], 4), res, steps)
     if key not in _TRUTH_DEPTH:
         _, alpha, depth = render_truth(cam, res, steps)
