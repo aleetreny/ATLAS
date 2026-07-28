@@ -63,18 +63,27 @@ export function initChainsWidget(data, E) {
   });
   buttons.appendChild(restart);
 
-  /* the landscape, painted once: low energy is dark, and the ramp is on the
-     square root so the ring does not vanish beside the blobs */
-  const lo = A.energy_lo;
-  const hi = A.energy_hi;
+  /* The landscape, painted once. Painting the energy directly is what this
+     widget did first and it was unreadable: the range is set by the far
+     corners of the square, where the anchor term is enormous, so all the
+     structure the article is about lands in the bottom few percent of the
+     ramp. What the reader needs to see is where the mass is, so the picture is
+     the DENSITY, exp(-E) normalised by the constant this article exists to
+     compute, on a square root ramp so the ring does not vanish beside the
+     blobs. */
+  const dens = new Float64Array(n * n);
+  let peak = 0;
+  for (let i = 0; i < n * n; i++) {
+    dens[i] = Math.exp(-energy[i] - A.logz_train_grid);
+    peak = Math.max(peak, dens[i]);
+  }
   const field = new Float64Array(n * n);
   for (let i = 0; i < n; i++) {
     for (let j = 0; j < n; j++) {
-      const v = (energy[i * n + j] - lo) / Math.max(hi - lo, 1e-9);
-      field[(n - 1 - j) * n + i] = Math.sqrt(Math.max(0, Math.min(1, v)));
+      field[(n - 1 - j) * n + i] = Math.sqrt(Math.min(1, dens[i * n + j] / peak));
     }
   }
-  const ink = (t) => [255 - 160 * (1 - t), 255 - 219 * (1 - t), 255 - 237 * (1 - t)];
+  const ink = (t) => [255 - 160 * t, 255 - 219 * t, 255 - 237 * t];
 
   function paint() {
     paintGray(cv.ctx, field, n, n, { zoom: ZOOM, colour: ink });
@@ -124,15 +133,17 @@ export function initChainsWidget(data, E) {
           .attr('cx', (r) => x(r.eps)).attr('cy', (r) => y(Math.max(r.kl_ring, 1e-6)))
           .attr('r', (r) => (r.eps === eps ? 6.5 : 3.2)).attr('fill', colour);
         layer.append('text').attr('class', 'chart-note')
-          .attr('x', w - 4).attr('y', 12 + si * 16).attr('text-anchor', 'end')
+          .attr('x', 3).attr('y', 12 + si * 16)
           .style('font-size', '11.5px').attr('fill', colour).text(label);
       });
     layer.append('line').attr('x1', 0).attr('x2', w)
       .attr('y1', y(data.sampler.floor_ring)).attr('y2', y(data.sampler.floor_ring))
       .attr('stroke', 'var(--squidink)').attr('stroke-width', 1.3).attr('stroke-dasharray', '5 4');
+    /* the corrected curve runs along the floor line, so the label goes under
+       it rather than on top of the series it would sit across */
     layer.append('text').attr('class', 'chart-note')
-      .attr('x', 2).attr('y', y(data.sampler.floor_ring) - 6)
-      .style('font-size', '11.5px').text('what a perfect sampler would still show');
+      .attr('x', w - 3).attr('y', y(data.sampler.floor_ring) + 15).attr('text-anchor', 'end')
+      .style('font-size', '11.5px').text('the floor of this measurement');
     wrapLabel(title, 'the error a step size costs, measured against the truth', w - 8);
   }
 
@@ -151,18 +162,16 @@ export function initChainsWidget(data, E) {
     readout.innerHTML = `
       <table class="gen-table">
         <tr>
-          <th>sampler</th><th>step</th><th>error of the ring it draws</th>
-          <th>width of that ring</th><th>acceptance</th><th>walkers that ever change component</th>
+          <th>sampler</th><th>step</th><th>error of the ring</th>
+          <th>width of that ring</th><th>acceptance</th>
         </tr>
         <tr>
           <td>${st.mode === 'nonoise' ? 'no noise at all' : st.mode === 'mala' ? 'with the Metropolis correction' : 'unadjusted'}</td>
           <td><span class="value">${eps}</span></td>
           <td><span class="value">${st.mode === 'nonoise' ? no.kl_ring : row.kl_ring}</span>,
               floor ${data.sampler.floor_ring}</td>
-          <td>${st.mode === 'nonoise' ? no.ring_sd : row.ring_sd} against the true
-              ${data.truth.ring_width}</td>
-          <td>${st.mode === 'mala' && row.accept !== null ? (row.accept * 100).toFixed(1) + '%' : 'every step is taken'}</td>
-          <td>${st.mode === 'nonoise' ? 'none, they stop' : (row.switch * 100).toFixed(2) + '%'}</td>
+          <td>${st.mode === 'nonoise' ? no.ring_sd : row.ring_sd} against ${data.truth.ring_width}</td>
+          <td>${st.mode === 'mala' && row.accept !== null ? (row.accept * 100).toFixed(1) + '%' : 'all taken'}</td>
         </tr>
       </table>
       <div class="gen-note">

@@ -34,7 +34,6 @@ export function initProse(data) {
   const collapsed = S.filter((r) => r.active < M.k_collapse - 0.5);
   const k2 = E.rows.find((r) => r.k === M.k_show);
   const kBig = E.rows[E.rows.length - 1];
-  const bestProposal = Object.entries(H.arms).reduce((a, b) => (b[1].mmd2 < a[1].mmd2 ? b : a));
   const unit = H.arms.unit;
 
   set('opening-note',

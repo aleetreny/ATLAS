@@ -114,21 +114,19 @@ export function initTrickWidget(data) {
       <table class="gen-table">
         <tr>
           <th>rule</th><th>average of ${REPEATS} estimates</th><th>spread</th>
-          <th>predicted spread</th><th>what it costs</th>
+          <th>predicted spread</th>
         </tr>
         <tr>
           <td>pathwise</td>
           <td>${mean(path).toFixed(3)}</td>
           <td><span class="value">${sp.toFixed(3)}</span></td>
           <td>${Math.sqrt(D.var_pathwise / n).toFixed(3)}</td>
-          <td>one backward pass through the sample</td>
         </tr>
         <tr>
           <td>score function</td>
           <td>${mean(score).toFixed(3)}</td>
           <td><span class="value">${ss.toFixed(3)}</span></td>
           <td>${Math.sqrt(D.var_score / n).toFixed(3)}</td>
-          <td>nothing: it never differentiates the objective</td>
         </tr>
       </table>
       <div class="gen-note">
@@ -141,7 +139,9 @@ export function initTrickWidget(data) {
         and averaging ${n} draw${n === 1 ? '' : 's'} divides both by ${n} and leaves the
         factor exactly where it was. That is the point: you cannot buy your way out of it
         with more samples, you have to change the rule.
-        In the real network above, on the encoder's ${k2.params.toLocaleString('en-US')}
+        The second rule is the cheap one, in the sense that it never differentiates the
+        objective at all and works on things that are not differentiable, which is exactly why
+        the next article needs it. In the real network above, on the encoder's ${k2.params.toLocaleString('en-US')}
         weights, the same measurement gives <span class="value">${k2.ratio.toLocaleString('en-US')}</span>
         at ${k2.k} latent numbers.
       </div>`;

@@ -36,7 +36,7 @@ export function initProse(data) {
     `Two things follow from that, and only one of them is the one people talk about. The `
     + `advertised one is that the rate is exact: ${N.arch.cells} cells of `
     + `${Math.round(Math.log2(N.arch.k))} bits is ${N.arch.bits} bits, and the entropy of how `
-    + `the entries are actually used says the true cost is ${T.rows[0] && ''}`
+    + `the entries are actually used says the true cost is `
     + `${P.marginal_bits} bits per cell against the ${P.uniform_bits} a uniform code would `
     + `spend. The other one is that <span class="bold">the gradient the encoder needs stops `
     + `existing</span>. Nearest entry is a step function: move the encoder's output a little `

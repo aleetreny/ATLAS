@@ -92,6 +92,22 @@ export function initCellsWidget(data, vq, prior) {
     paintGray(atlas.ctx, big, W, side * rows, { zoom: 2 });
   }
 
+  /* the atlas is the picker: clicking an entry puts it in the chosen cell,
+     which is what the caption has been promising */
+  atlas.canvas.style.cursor = 'pointer';
+  atlas.canvas.addEventListener('click', (ev) => {
+    const box = atlas.canvas.getBoundingClientRect();
+    const col = Math.floor(((ev.clientX - box.left) / box.width) * ATLAS_COLS);
+    const rows = vq.k / ATLAS_COLS;
+    const row = Math.floor(((ev.clientY - box.top) / box.height) * rows);
+    const j = row * ATLAS_COLS + col;
+    if (j < 0 || j >= vq.k) return;
+    st.codes = st.codes.slice();
+    st.codes[st.cell] = j;
+    st.source = 'edited';
+    render();
+  });
+
   function render() {
     Object.entries(btns).forEach(([k, b]) => b.classList.toggle('ghost', k !== st.source));
     cellButtons.forEach((b, c) => {
@@ -101,13 +117,16 @@ export function initCellsWidget(data, vq, prior) {
     paintOne();
     paintAtlas();
 
-    caption.textContent = `pick a cell, then pick an entry for it below: ${vq.cells} cells `
-      + `times ${Math.round(Math.log2(vq.k))} bits is ${N.arch.bits} bits for the whole picture`;
+    caption.textContent = `pick a cell here, then click any entry in the atlas on the right to `
+      + `put it in that cell: ${vq.cells} cells times ${Math.round(Math.log2(vq.k))} bits is `
+      + `${N.arch.bits} bits for the whole picture`;
     canvasCaption.textContent = st.source === 'digit'
       ? `held out digit ${shots[st.shot].label}, rebuilt from its ${vq.cells} codes`
       : st.source === 'prior'
         ? 'decoded from a grid the prior over codes invented'
-        : 'decoded from four entries picked uniformly at random';
+        : st.source === 'edited'
+          ? 'decoded from a code you edited by hand'
+          : 'decoded from four entries picked uniformly at random';
     atlasCaption.textContent = `all ${vq.k} entries in cell ${st.cell + 1}, with the other `
       + `${vq.cells - 1} held where they are`;
 
@@ -119,19 +138,23 @@ export function initCellsWidget(data, vq, prior) {
     readout.innerHTML = `
       <table class="gen-table">
         <tr>
-          <th>the code</th><th>bits</th><th>this entry's share of all uses</th>
-          <th>the strongest quadrant of this cell</th><th>rebuilding a held out digit</th>
+          <th>the code</th><th>bits</th><th>this entry's share</th>
+          <th>strongest quadrant of this cell</th><th>rebuilding</th>
         </tr>
         <tr>
           <td><span class="value">${st.codes.join(', ')}</span></td>
           <td><span class="value">${N.arch.bits}</span> for the whole picture</td>
           <td>${share}% of ${total.toLocaleString('en-US')}</td>
-          <td><span class="value">${(strongest * 100).toFixed(1)}%</span>, where owning nothing is 25%</td>
+          <td><span class="value">${(strongest * 100).toFixed(1)}%</span>, 25% owns nothing</td>
           <td>${N.quant.mse_quantised}</td>
         </tr>
       </table>
       <div class="gen-note">
-        ${st.source === 'uniform'
+        ${st.source === 'edited'
+    ? `You just changed one symbol of four. The other three cells are exactly where they were,
+       and the whole picture moved: that is what it means for the code to have no spatial layout.
+       At ${N.arch.bits} bits, this model rebuilds a held out digit at ${N.quant.mse_quantised}.`
+    : st.source === 'uniform'
     ? `Four entries drawn uniformly. Over ${data.prior.samples} such grids the shared judge is
        ${data.prior.samplers.uniform.confidence.mean} confident, against
        ${data.prior.judge_real_confidence} on real held out digits, and the pictures spread over

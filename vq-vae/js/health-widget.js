@@ -122,14 +122,13 @@ export function initHealthWidget(data) {
     readout.innerHTML = `
       <table class="gen-table">
         <tr>
-          <th>variant</th><th>entries alive</th><th>dead</th><th>perplexity</th>
+          <th>variant</th><th>entries alive</th><th>perplexity</th>
           <th>entropy of the usage</th><th>held out error</th>
         </tr>
         ${C.variants.map((r) => `
         <tr>
           <td>${r.id === C.winner ? '<span class="bold">' + r.label + '</span>' : r.label}</td>
           <td><span class="value">${r.active.mean}</span> of ${C.k} &plusmn; ${r.active.spread}</td>
-          <td>${r.dead.mean}</td>
           <td>${r.perplexity.mean}</td>
           <td>${r.usage_bits.mean} bits of ${Math.round(Math.log2(C.k))}</td>
           <td>${r.test.mean}</td>
