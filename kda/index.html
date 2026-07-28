@@ -4,16 +4,16 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Kernel Discriminant Analysis | ATLAS</title>
-  <meta name="description" content="A visual, interactive account of kernel discriminant analysis: turn a dial through every projection angle and hit the measured linear ceiling yourself, then watch Fisher's discriminant take the kernel upgrade, from secretly-linear to memorisation, with the honest benchmark that closes module 1." />
+  <meta name="description" content="A visual, interactive account of kernel discriminant analysis: turn a dial through every projection angle and hit the measured linear ceiling yourself, then watch Fisher's discriminant take the kernel upgrade, from secretly-linear to memorisation, with an honest benchmark against LDA, QDA and the support vector machine." />
   <link rel="canonical" href="https://aleetreny.github.io/ATLAS/kda/" />
   <meta property="og:type" content="article" />
   <meta property="og:site_name" content="ATLAS" />
   <meta property="og:title" content="Kernel Discriminant Analysis | ATLAS" />
-  <meta property="og:description" content="A visual, interactive account of kernel discriminant analysis: turn a dial through every projection angle and hit the measured linear ceiling yourself, then watch Fisher's discriminant take the kernel upgrade, from secretly-linear to memorisation, with the honest benchmark that closes module 1." />
+  <meta property="og:description" content="A visual, interactive account of kernel discriminant analysis: turn a dial through every projection angle and hit the measured linear ceiling yourself, then watch Fisher's discriminant take the kernel upgrade, from secretly-linear to memorisation, with an honest benchmark against LDA, QDA and the support vector machine." />
   <meta property="og:url" content="https://aleetreny.github.io/ATLAS/kda/" />
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:title" content="Kernel Discriminant Analysis | ATLAS" />
-  <meta name="twitter:description" content="A visual, interactive account of kernel discriminant analysis: turn a dial through every projection angle and hit the measured linear ceiling yourself, then watch Fisher's discriminant take the kernel upgrade, from secretly-linear to memorisation, with the honest benchmark that closes module 1." />
+  <meta name="twitter:description" content="A visual, interactive account of kernel discriminant analysis: turn a dial through every projection angle and hit the measured linear ceiling yourself, then watch Fisher's discriminant take the kernel upgrade, from secretly-linear to memorisation, with an honest benchmark against LDA, QDA and the support vector machine." />
   <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="../assets/styles/fonts.css" />
   <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
@@ -67,7 +67,7 @@
   <!-- ======================= hero ======================= -->
   <section id="intro">
     <h1 id="intro-hed">Kernel Discriminants</h1>
-    <h1 id="intro-sub">The last light of module 1: prove the linear ceiling with your own hands, then give Fisher's projection the kernel it was owed</h1>
+    <h1 id="intro-sub">The debt the classification branch left open: prove the linear ceiling with your own hands, then give Fisher's projection the kernel it was owed</h1>
     <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
     <span id="intro__module">Module 1.2 · Classification · Kernel discriminants</span>
   </section>
@@ -77,13 +77,13 @@
   <!-- ======================= introduction ======================= -->
   <section>
     <p class="body-text">
-      One chip in module 1 is still dark. The
-      <a href="../geometric-classification/">geometric classification
-      article</a> taught discriminant analysis as a projection: LDA hunts the
+      The classification branch left a debt open. The
+      <a href="../geometric-classification/">previous article</a> taught
+      discriminant analysis as a projection: LDA hunts the
       single direction along which two classes, squashed to one dimension,
       separate best. It also taught the kernel trick, and then gave it to the
       SVM alone. Discriminant analysis never got its upgrade. This short
-      article pays that debt and, with it, closes the module.
+      article pays that debt.
     </p>
     <br />
     <p class="body-text">
@@ -263,16 +263,16 @@
 
   <!-- ======================= verdict ======================= -->
   <section>
-    <h1 class="body-header">The Verdict, and the Module's Last Audit</h1>
+    <h1 class="body-header">The Verdict, on the Module's Own Biopsies</h1>
     <p class="body-text">
       On the moons the kernel is worth eleven points. On real tabular data,
-      the module's closing audit repeats article 8's sober finding. Five-fold
+      the audit repeats the previous article's sober finding. Five-fold
       on the 569 biopsies: LDA 0.956, QDA 0.967, KDA (with its
       \(\gamma\) chosen by inner cross-validation) 0.967, the RBF support
       vector machine 0.981. The kernel discriminant buys the same two points
       QDA already had, and the SVM, which spends its kernel on a margin
-      rather than on scatter matrices, keeps the crown it won nine articles
-      ago.
+      rather than on scatter matrices, keeps the crown it won in
+      <a href="../geometric-classification/">the previous article</a>.
     </p>
   </section>
 
@@ -317,19 +317,19 @@
 
   <section>
     <p class="body-text">
-      And with that, <span class="bold">module 1 is complete</span>: every
-      chip in supervised inference's regression and classification branches
-      is lit, seventeen articles from a straight line through 392 cars to a
-      discriminant that curls around two moons. The honest through-line of
-      the whole module fits in one sentence: the powerful ideas were few
-      (loss functions, penalties, kernels, margins, probabilities, trees),
-      and most named methods are those few ideas recombined, which is exactly
-      why every article measured its subject against relatives instead of
-      taking its name at face value. The atlas is already deep into
-      <a href="../kmeans/">module 2</a>, where the answer key disappears, and
-      the computer-vision branch of this module has opened with
-      <a href="../classical-features/">features designed by hand</a>. The map, as
-      always, is on the <a href="../">front page</a>.
+      And with that the classification branch has its curved boundary: the
+      same kernel that turned ridge regression into a Gaussian process in
+      disguise turns Fisher's discriminant into something that curls around
+      two moons, and it did it by recombining ideas this module already had.
+      That is <span class="bold">the honest through-line of the whole
+      module</span> in one sentence: the powerful ideas were few (loss
+      functions, penalties, kernels, margins, probabilities, trees), and most
+      named methods are those few ideas recombined, which is exactly why every
+      article here measured its subject against relatives instead of taking
+      its name at face value. The branch is not finished: the
+      <a href="../trees-and-ensembles/">next article</a> stops consuming every
+      feature at once and starts asking one yes-or-no question at a time. The
+      map, as always, is on the <a href="../">front page</a>.
     </p>
     <br />
     <p class="body-text">

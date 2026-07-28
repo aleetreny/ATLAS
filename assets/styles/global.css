@@ -538,6 +538,25 @@ input[type='range'].atlas-range::-moz-range-thumb {
   font-weight: 700;
 }
 
+/* Naming a series inside a chart is not the same job as shouting two words at
+   it, and .chart-annotation is built for the shouting: uppercase, 2px of
+   letter spacing and bold. Used for a name it makes "score function" 102 units
+   wide in a chart whose left margin is 64, and the uppercasing turns a sigma
+   into a capital sigma, which is a different letter. So series names, legends
+   and reference lines use this instead, and pass an explicit font-size in the
+   widget, because a viewBox scales its own text. */
+.chart-note {
+  font-family: var(--font-mono);
+  text-transform: none;
+  letter-spacing: 0.4px;
+  font-size: 11.5px;
+  fill: var(--squidink);
+  paint-order: stroke fill;
+  stroke: var(--white);
+  stroke-width: 3.5px;
+  stroke-linejoin: round;
+}
+
 .chart-title {
   font-family: var(--font-heavy);
   font-size: 1rem;

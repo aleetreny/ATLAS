@@ -63,15 +63,28 @@ Se han colado fallos visuales en paginas dadas por verificadas, tres veces. **Co
 
 41. **Un informe de revisión con cero hallazgos puede ser cero hallazgos o cero revisores.** El workflow de revisión del 32 devolvió `{"confirmed": [], "note": "nothing survived the skeptics"}`, que se lee como "todo limpio", y lo que había pasado es que 12 de sus 13 agentes murieron por límite de cuota: el único que terminó traía trece hallazgos, de los cuales nueve eran reales y dos graves. La síntesis final no distingue "refutado" de "nunca ejecutado". Antes de creerse un informe vacío, mirar el `journal.jsonl` de la tirada y contar cuántos agentes devolvieron resultado, y leer las líneas de `failures` de la notificación.
 
-42. **`torch.std` divide por n-1 y las capas de normalización de torch dividen por n.** No es la misma convención dentro del mismo framework: `x.std(dim=(2,3))` escrito a mano en un AdaIN es insesgado, y `GroupNorm`/`InstanceNorm`/`BatchNorm` usan la varianza sesgada. Una reimplementación en JavaScript tiene que copiar **cada una por separado**; copiar una sola mueve la imagen lo justo para que no cuadre con la referencia y no lo suficiente para que se vea.
+42. **Lo que rompen varias sesiones a la vez no está dentro de ningún artículo, está entre ellos.** Tres sesiones publicaron tres secciones el mismo día y las tres pasaron sus propias verificaciones: cada página estaba bien y la web no. Lo que falló vivía en los huecos, que es lo único que ninguna de las tres podía mirar: los cierres (uno enlazaba a la portada, otro mandaba al lector a la rama equivocada), los recuentos de artículos en prosa (ocho frases con el número de antes de las inserciones), el orden de los chips contra el de las tarjetas, y el párrafo de "qué viene después" de `estado.md`, que las tres reescribieron creyéndose las últimas y quedó diciendo lo contrario de lo que quería decir ("no queda encendido ningún chip" por "no queda ninguno apagado"). Conclusión operativa: **después de una tanda de sesiones en paralelo va una pasada transversal**, y lo que esa pasada encuentre que se pueda mecanizar se mete en el guardia. De ahí salieron las reglas 7 y 8 de `check_publication.py`, que ya no dependen de que alguien se acuerde.
 
-43. **La nube recicla el contenedor y mata el generador, y el caché por etapas lo hace gratis.** Pasó otra vez en el módulo 3.1, a mitad de la tirada de imágenes: el proceso desaparece (`ps` no lo lista), `nohup` no lo salva, pero `~/.atlas_vision_data/<algo>_cache/` sigue entero y relanzar entra por donde se quedó. Antes de dar nada por perdido: mirar el caché y relanzar. El único trabajo que se pierde es la etapa que estaba a medias.
+43. **Un guardia nuevo se prueba contra el árbol de verdad, no solo contra el sitio de mentira.** El sitio de control de `test_check_publication.py` tiene dos artículos y una rama, así que una regla sobre orden de tarjetas puede pasar ahí y no significar nada sobre una portada con 32 tarjetas y cinco ramas. La comprobación barata: copiar al scratchpad lo que el guardia lee (portada, `estado.md`, el `index.html` y el `js/prose.js` de cada artículo, las miniaturas), copiar el guardia dentro para que su `ROOT` caiga ahí, romper una cosa y ver que dispara con el mensaje que toca. Un minuto, y confirma que la regla ve la forma real.
 
-44. **Editar el generador mientras corre no cambia el proceso vivo, y eso incluye las etapas nuevas.** Añadir un bloque de falsación al fichero mientras la tirada estaba en la etapa 4 no lo ejecutó: Python ya había leído el módulo. La etapa nueva entra en la siguiente ejecución, que con el caché cuesta solo lo que la etapa nueva cueste. Es la contrapartida útil de la trampa 16.
+44. **El arnés de barrido es ahora un fichero solo, y merece la pena tenerlo escrito.** Los tres artículos de 2.3 y 2.4 se verificaron con un `audit.mjs` de scratchpad que hace, para cada uno y a 1440px y 375px: cargar en el puerto frío, recoger errores y avisos de consola, hacer scroll de toda la página para que disparen los `IntersectionObserver`, llamar a `window.__atlasCheck(true)`, comprobar la regla de los ids de `prose.js`, y luego recorrer **cada botón, cada paso de cada slider y cada paso de scrolly** reauditando texto, recortes, solapes, tamaño de fuente renderizado, ritmo vertical y sangrado de canvas en cada estado. Sale a unos 200 estados por artículo y tarda un par de minutos. Lo que hay que copiar de él la próxima vez son las tres cosas que costaron un intento cada una: el settle después de volver arriba tiene que superar la transición más larga de la página (1.600 ms con transiciones de 650), el texto se lee **sin** los nodos que KaTeX esconde, y el barrido de sliders pisa todos los pasos y no los extremos.
 
-45. **Una función que transforma imágenes lleva `assert out.shape == x.shape`, porque una red convolucional se traga el error.** El desenfoque de caja del 34 devolvía 31x31 en vez de 32x32 (a una diferencia de sumas acumuladas le falta el cero inicial), y el extractor de features, al ser convolucional, puntuó tan contento una imagen recortada y desplazada medio píxel contra las de referencia: el brazo "borroso" del patrón de calidad salía inflado y nada avisaba. Solo se destapó cuando otra etapa restó esa imagen de la original y numpy se quejó del broadcast. Regla: toda función imagen a imagen afirma su forma de salida, y toda comparación entre dos conjuntos de imágenes afirma que ambos tienen la misma.
+45. **KaTeX guarda el TeX original en un `<annotation>` invisible, así que `textContent` de una fórmula renderizada SIEMPRE contiene LaTeX en bruto.** Un barrido que busque `$$` o `\frac{` da tres falsos positivos por página y se lee en diagonal a partir del cuarto. Se clona el nodo, se le quitan `.katex-mathml` y `annotation`, y se lee eso.
 
-46. **El modo pequeño de un generador no vale para probar una etapa que depende de un modelo entrenado.** `ATLAS_STYLE_SMALL=1` en el 34 entrena el lector de formas con 2.000 esprites y 40 pasos, así que sus features son degeneradas y el patrón de calidad sale `0,00 / 0,00 / 0,0007`: el `assert` del orden dispara y el humo se lee como un fallo de la etapa nueva. Para probar una etapa nueva contra los modelos de verdad, se importa el módulo y se llama a la etapa a mano con los cachés grandes (`cached(f"sprites-{RES}-False-v2", ...)`, `stage_reader(data)`) y parámetros mínimos. Diez segundos, y prueba lo que hay que probar.
+46. **El settle después de volver al principio de la página no es el mismo que el de un cambio de estado.** Al hacer scroll de todo el documento para disparar los observadores y volver arriba, el primer paso del scrolly se reactiva **con animación**, así que una auditoría a los 600 ms captura los ticks del eje a mitad de vuelo y reporta "110" solapando con "140" y un recorte de 90px. Con 1.600 ms desaparecen los seis hallazgos y no aparece ninguno nuevo. Un solape entre dos ticks del mismo eje con valores que no pueden coexistir es casi siempre esto.
+
+47. **Una etiqueta colocada respecto a un punto de datos se mide, no se estima.** En el 35 la etiqueta del hijo más ocupado del árbol de prefijos se anclaba a la izquierda del nodo, que está bien hasta que el orden "el más raro primero" pone ese nodo a treinta unidades del borde y el texto se sale por la izquierda. Colocarla, preguntar `getComputedTextLength()` y decidir el lado con el ancho real cuesta dos líneas y no se rompe con los datos. Estimar "unas siete unidades por letra" funciona hasta que no.
+
+48. **`torch.std` divide por n-1 y las capas de normalización de torch dividen por n.** No es la misma convención dentro del mismo framework: `x.std(dim=(2,3))` escrito a mano en un AdaIN es insesgado, y `GroupNorm`/`InstanceNorm`/`BatchNorm` usan la varianza sesgada. Una reimplementación en JavaScript tiene que copiar **cada una por separado**; copiar una sola mueve la imagen lo justo para que no cuadre con la referencia y no lo suficiente para que se vea.
+
+49. **La nube recicla el contenedor y mata el generador, y el caché por etapas lo hace gratis.** Pasó otra vez en el módulo 3.1, a mitad de la tirada de imágenes: el proceso desaparece (`ps` no lo lista), `nohup` no lo salva, pero `~/.atlas_vision_data/<algo>_cache/` sigue entero y relanzar entra por donde se quedó. Antes de dar nada por perdido: mirar el caché y relanzar. El único trabajo que se pierde es la etapa que estaba a medias.
+
+50. **Editar el generador mientras corre no cambia el proceso vivo, y eso incluye las etapas nuevas.** Añadir un bloque de falsación al fichero mientras la tirada estaba en la etapa 4 no lo ejecutó: Python ya había leído el módulo. La etapa nueva entra en la siguiente ejecución, que con el caché cuesta solo lo que la etapa nueva cueste. Es la contrapartida útil de la trampa 16.
+
+51. **Una función que transforma imágenes lleva `assert out.shape == x.shape`, porque una red convolucional se traga el error.** El desenfoque de caja del 34 devolvía 31x31 en vez de 32x32 (a una diferencia de sumas acumuladas le falta el cero inicial), y el extractor de features, al ser convolucional, puntuó tan contento una imagen recortada y desplazada medio píxel contra las de referencia: el brazo "borroso" del patrón de calidad salía inflado y nada avisaba. Solo se destapó cuando otra etapa restó esa imagen de la original y numpy se quejó del broadcast. Regla: toda función imagen a imagen afirma su forma de salida, y toda comparación entre dos conjuntos de imágenes afirma que ambos tienen la misma.
+
+52. **El modo pequeño de un generador no vale para probar una etapa que depende de un modelo entrenado.** `ATLAS_STYLE_SMALL=1` en el 34 entrena el lector de formas con 2.000 esprites y 40 pasos, así que sus features son degeneradas y el patrón de calidad sale `0,00 / 0,00 / 0,0007`: el `assert` del orden dispara y el humo se lee como un fallo de la etapa nueva. Para probar una etapa nueva contra los modelos de verdad, se importa el módulo y se llama a la etapa a mano con los cachés grandes (`cached(f"sprites-{RES}-False-v2", ...)`, `stage_reader(data)`) y parámetros mínimos. Diez segundos, y prueba lo que hay que probar.
+
 
 ## El arnés, y no medirlo a mano
 Escribir `_audit.js` en la raíz del repo (temporal, borrarlo antes de commitear) e importarlo desde la consola. Exporta `audit()`, `sweepControls()`, `sweepScrolly()`, `sliderResponse()` y `statics()`. Dos detalles que lo hacen fiable:
@@ -102,3 +115,57 @@ Para una revisión completa, un `Workflow` con un revisor por artículo más uno
 Commitear, **pushear siempre sin preguntar**, y verificar la web real en https://aleetreny.github.io/ATLAS/. Pages tarda 1-2 minutos y cachea 10 (`max-age=600`); si algo se ve viejo, es la caché de borde, no el código. Comprobar por HTTP que el HTML/JS desplegado contiene literalmente cada arreglo.
 
 Mensajes de commit: usar `git commit -F fichero` (los here-strings de PowerShell se rompen con comillas). Sin em dashes, sin atribución IA, autor `aleetreny`.
+
+## Trampa 18: el arnés también tiene falsos positivos, y se calibra contra un artículo publicado
+
+El barrido del módulo 3.2 (playwright sobre chromium, cada botón y cada posición
+de cada slider, a 1440 y a 375) empezó dando 94 hallazgos, y tres clases eran
+del arnés y no de la página:
+
+- **KaTeX guarda el LaTeX original** en un nodo `.katex-mathml` oculto, así que
+  un chequeo de "LaTeX en bruto en la página" lo encuentra siempre. Hay que
+  clonar el nodo y borrar `.katex-mathml` antes de leer el texto.
+- **Un slider puesto al valor que ya tenía** no cambia nada, y eso no es un
+  control muerto. El arnés compara el valor actual antes de escribirlo.
+- **El scrolly parece roto y no lo está.** `scrolly.js` no marca ninguna clase
+  en el paso activo, así que un selector `.is-active` cae siempre al primer
+  paso y reporta offsets de miles de píxeles. El paso activo es el que cubre la
+  banda central, que es lo que dispara el observador.
+
+Y la lección general: **antes de creerse un hallazgo geométrico, medir un
+artículo ya publicado con el mismo arnés**. El baseline del sitio, medido sobre
+`autoencoders/`, es 165px de offset medio del scrolly a 1440px y 249px a 375px,
+con 5 de 15 y 8 de 15 tarjetas fuera de pantalla en los extremos del recorrido,
+Un artículo nuevo con 143px y 4 de 15 no
+tiene un problema de scrolly: tiene el scrolly del sitio.
+
+Con una salvedad que costó descubrir: el baseline **también puede estar mal**.
+El mismo `autoencoders/` traía cinco etiquetas de 4,84px a 375px, que es
+ilegible, y se quedaron ahí precisamente por leerse como "así es el sitio". Un
+baseline sirve para calibrar la geometría del scrolly, que es común a todas las
+páginas; no sirve para absolver un tamaño de letra, que es de cada widget. Si el
+artículo de referencia falla una comprobación que no dependa del layout común,
+se arregla el artículo de referencia.
+
+## Trampa 20: el margen de holgura del arnés está pensado para texto horizontal
+
+El barrido perdona 4px de desbordamiento antes de llamarlo recorte, porque la
+caja de un texto horizontal incluye espacio de ascendentes y descendentes que
+los glifos no usan. Una etiqueta **rotada** no tiene esa holgura: su caja es
+justa. La etiqueta del eje del widget de temperatura del 37 se salía por arriba
+exactamente 4,0px, quedaba bajo el umbral, y en la captura se veía cortada. El
+arnés distingue ahora los dos casos (`rotated ? 1.5 : 4`), y con el umbral
+ajustado apareció además un segundo caso en el 36 que llevaba desde el principio.
+La regla general: **cada tolerancia de un arnés es una hipótesis sobre lo que
+mide**, y cuando el arnés calla mientras una captura enseña el fallo, el
+sospechoso es la tolerancia, no la captura.
+
+## Trampa 19: un bucle de espera que busca su propio nombre no termina nunca
+
+Para encadenar generadores se escribió
+`while pgrep -f generate_ebm_data > /dev/null; do sleep 20; done; python ...`.
+La línea de comandos de ESE shell contiene `generate_ebm_data`, así que `pgrep`
+se encuentra a sí mismo y el bucle es infinito. Se encadena con `;` en un solo
+`sh -c`, o se busca el patrón con `pgrep -f "python3 -u src/utils/generate_..."`,
+que no coincide con el shell que espera.
+

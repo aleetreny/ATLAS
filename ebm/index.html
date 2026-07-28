@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>The Constant Nobody Computes | ATLAS</title>
+  <meta name="description" content="A visual, interactive introduction to energy based models: run Langevin chains in the page, watch what happens when the noise is removed, and read the bias of contrastive divergence against an exact gradient." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/ebm/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="The Constant Nobody Computes | ATLAS" />
+  <meta property="og:description" content="A visual, interactive introduction to energy based models: run Langevin chains in the page, watch what happens when the noise is removed, and read the bias of contrastive divergence against an exact gradient." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/ebm/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="The Constant Nobody Computes | ATLAS" />
+  <meta name="twitter:description" content="A visual, interactive introduction to energy based models: run Langevin chains in the page, watch what happens when the noise is removed, and read the bias of contrastive divergence against an exact gradient." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    :root {
+      --primary: #5f2412;
+      --secondary: #4c1d0e;
+    }
+    .narrow-widget {
+      max-width: 880px;
+    }
+    .widget-readout {
+      overflow-x: auto;
+    }
+    .gen-table {
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      margin-top: 0.4rem;
+      width: 100%;
+    }
+    .gen-table th,
+    .gen-table td {
+      padding: 4px 10px 4px 0;
+      text-align: left;
+      font-weight: 400;
+      white-space: nowrap;
+    }
+    .gen-table th {
+      font-family: var(--font-heavy);
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .gen-table td:first-child,
+    .gen-table th:first-child {
+      opacity: 0.75;
+    }
+    .gen-table td:last-child,
+    .gen-table th:last-child {
+      white-space: normal;
+    }
+    .gen-note {
+      margin-top: 0.6rem;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+    .gen-pair {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.6rem;
+      align-items: flex-start;
+      justify-content: center;
+    }
+    .gen-pair canvas {
+      border: 1px solid var(--stone);
+      background: var(--white);
+    }
+    .gen-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    .canvas-caption {
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      letter-spacing: 0.3px;
+      color: var(--squidink);
+      opacity: 0.85;
+      text-align: center;
+      max-width: 360px;
+      line-height: 1.35;
+    }
+    .slider-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+      margin: 0.2rem 0 0.6rem;
+      font-family: var(--font-mono);
+      font-size: 13px;
+    }
+    .slider-row input[type="range"] {
+      width: 220px;
+      accent-color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <section id="intro">
+    <h1 id="intro-hed">The Constant Nobody Computes</h1>
+    <h1 id="intro-sub">Any function at all becomes a probability density once you divide it by its own integral, which is why this model is the easiest one in the module to write down and the hardest one to fit</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 3.2 · Probabilistic Generative Models · Unnormalised Densities</span>
+  </section>
+
+  <br />
+
+  <section>
+    <p class="body-text">
+      The two models so far were built the same way: an encoder, a decoder, and
+      a distribution over the thing in between. Both of them arranged their
+      architecture so that sampling would be easy, and paid for it, the
+      <a href="../vae/">first</a> with a bound whose looseness nobody knows and
+      the <a href="../vq-vae/">second</a> with a gradient that does not exist.
+    </p>
+    <br />
+    <p class="body-text">
+      There is a way to stop paying either price. Write a function, any
+      function, from a point to a number. Call low values likely and high
+      values unlikely. Divide by the integral so it sums to one. That is a
+      density, it can be as expressive as the network you wrote, and it needs no
+      encoder, no invertibility and no architectural concession at all.
+    </p>
+    <br />
+    <p class="body-text" id="opening-note"></p>
+  </section>
+
+  <section>
+    <h1 class="body-header">A Landscape, Learned</h1>
+    <p class="body-text" id="scrolly-intro"></p>
+  </section>
+
+  <section id="ebm-scrolly" class="scrolly">
+    <div class="scrolly-container">
+      <div class="steps-container">
+        <div class="step" data-index="0">
+          <div class="step-content">
+            <h3>The Data, and a Flat Landscape</h3>
+            <p id="scrolly-step-0"></p>
+          </div>
+        </div>
+        <div class="step" data-index="1">
+          <div class="step-content">
+            <h3>Push Down Where the Data Is</h3>
+            <p id="scrolly-step-1"></p>
+          </div>
+        </div>
+        <div class="step" data-index="2">
+          <div class="step-content">
+            <h3>And Up Where the Model Thinks It Is</h3>
+            <p id="scrolly-step-2"></p>
+          </div>
+        </div>
+        <div class="step" data-index="3">
+          <div class="step-content">
+            <h3>The Landscape It Ends With</h3>
+            <p id="scrolly-step-3"></p>
+          </div>
+        </div>
+        <div class="step" data-index="4">
+          <div class="step-content">
+            <h3>Which Is Not the Truth</h3>
+            <p id="scrolly-step-4"></p>
+          </div>
+        </div>
+        <div class="step-spacer"></div>
+      </div>
+      <div class="charts-container">
+        <div class="chart-wrap" id="ebm-chart"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="body-text">
+      The density and its gradient are two lines, and the second one is where
+      everything goes wrong:
+    </p>
+    <p class="body-text">
+      $$ p_\theta(x) = \frac{e^{-E_\theta(x)}}{Z_\theta}, \qquad Z_\theta = \int e^{-E_\theta(x)}\,dx $$
+      $$ \nabla_\theta \log p_\theta(x) = -\nabla_\theta E_\theta(x) + \mathbb{E}_{x' \sim p_\theta}\!\left[\nabla_\theta E_\theta(x')\right] $$
+    </p>
+    <p class="body-text" id="gradient-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">Walk Downhill, With Noise</h1>
+    <p class="body-text" id="chains-intro"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="chains-widget">
+    <div class="controls-row" style="justify-content: center" id="chains-buttons"></div>
+    <div class="slider-row">
+      <label for="chains-slider">step size</label>
+      <input type="range" id="chains-slider" min="0" max="5" step="1" value="2"
+             aria-label="the step size of the Langevin sampler" />
+      <span id="chains-value" class="value"></span>
+    </div>
+    <div class="gen-pair">
+      <div class="gen-stack">
+        <div id="chains-canvas"></div>
+        <div class="canvas-caption" id="chains-caption"></div>
+      </div>
+      <div id="chains-chart"></div>
+    </div>
+    <div class="widget-readout" id="chains-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="chains-note"></p>
+    <br />
+    <p class="body-text" id="noise-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">How Wrong Is the Shortcut</h1>
+    <p class="body-text" id="bias-intro"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="bias-widget">
+    <div class="controls-row" style="justify-content: center" id="bias-buttons"></div>
+    <div id="bias-chart"></div>
+    <div class="widget-readout" id="bias-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="bias-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">A Classifier Was One All Along</h1>
+    <p class="body-text" id="jem-intro"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="jem-widget">
+    <div id="jem-chart"></div>
+    <div class="widget-readout" id="jem-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="jem-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text" id="verdict-intro"></p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>What you want</th>
+          <th>Reach for</th>
+          <th>Why</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">To model any shape at all</span></td>
+          <td>An energy</td>
+          <td id="verdict-shape"></td>
+          <td id="verdict-shape-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">A number you can compare</span></td>
+          <td>Not this</td>
+          <td id="verdict-number"></td>
+          <td id="verdict-number-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">Samples</span></td>
+          <td>Long chains, and patience</td>
+          <td id="verdict-samples"></td>
+          <td id="verdict-samples-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">An outlier score, for free</span></td>
+          <td>A classifier you already trained</td>
+          <td id="verdict-ood"></td>
+          <td id="verdict-ood-warn"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="closing-note"></p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! The chains above are running in this page, on the
+      float16 weights of the trained energy, and the landscape they are walking
+      on is the one the generator fitted. Every number quoted was measured by
+      <code>src/utils/generate_ebm_data.py</code>.
+    </p>
+  </section>
+
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text" id="resources-note"></p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://www.mitpressjournals.org/doi/10.1162/089976602760128018">[1] Training Products of Experts by Minimizing Contrastive Divergence</a><br />
+      (Hinton, G. E., Neural Computation, 2002; the shortcut whose bias this article measures)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://www.cs.toronto.edu/~tijmen/pcd/pcd.pdf">[2] Training Restricted Boltzmann Machines using Approximations to the Likelihood Gradient</a><br />
+      (Tieleman, T., ICML, 2008; the persistent chain variant, also measured here)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="http://yann.lecun.com/exdb/publis/pdf/lecun-06.pdf">[3] A Tutorial on Energy-Based Learning</a><br />
+      (LeCun, Y., Chopra, S., Hadsell, R., Ranzato, M. &amp; Huang, F., 2006; the framing)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1903.08689">[4] Implicit Generation and Modeling with Energy-Based Models</a><br />
+      (Du, Y. &amp; Mordatch, I., 2019; Langevin sampling as the training loop)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1912.03263">[5] Your Classifier is Secretly an Energy Based Model and You Should Treat it Like One</a><br />
+      (Grathwohl, W. et al., 2020; the claim the last section puts a number on)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://www.jstor.org/stable/2345504">[6] Exponential Convergence of Langevin Distributions and Their Discrete Approximations</a><br />
+      (Roberts, G. O. &amp; Tweedie, R. L., Bernoulli, 1996; why an unadjusted sampler has a bias, and of what order)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>

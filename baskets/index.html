@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bought Together | ATLAS</title>
+  <meta name="description" content="Apriori and FP-Growth on 9,835 real grocery baskets: every subset of the twenty commonest items counted exhaustively in the page, the pruning checked against the truth, and a permutation test on how many of the rules are the search talking to itself." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/baskets/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="Bought Together | ATLAS" />
+  <meta property="og:description" content="Counting what happens together is easy. Counting every subset is not, and two algorithms make it possible with two completely different tricks." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/baskets/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Bought Together | ATLAS" />
+  <meta name="twitter:description" content="Counting what happens together is easy. Counting every subset is not, and two algorithms make it possible with two completely different tricks." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    /* Per-article theme. Everything else inherits from these two. */
+    :root {
+      --primary: #701a75;
+      --secondary: #5a155e;
+    }
+    /* Width only: a margin here would override .interactive-full's rhythm. */
+    .narrow-widget {
+      max-width: 820px;
+    }
+    .rule-table {
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      margin-top: 0.7rem;
+      width: 100%;
+    }
+    .rule-table th,
+    .rule-table td {
+      padding: 5px 10px 5px 0;
+      text-align: left;
+      font-weight: 400;
+      vertical-align: top;
+    }
+    .rule-table th {
+      font-family: var(--font-heavy);
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .rule-table td:first-child {
+      white-space: normal;
+    }
+    .rule-table td:not(:first-child) {
+      white-space: nowrap;
+      opacity: 0.85;
+    }
+    @media (max-width: 560px) {
+      .rule-table {
+        font-size: 11px;
+      }
+      .rule-table th,
+      .rule-table td {
+        padding: 4px 6px 4px 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- ======================= chrome ======================= -->
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <!-- ======================= hero ======================= -->
+  <section id="intro">
+    <h1 id="intro-hed">Bought Together</h1>
+    <h1 id="intro-sub">There is nothing to average, nothing to measure a distance with, and a number of possible answers with fifty-one digits in it</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 2.4 &middot; Association Rules &middot; Bought Together</span>
+  </section>
+
+  <br />
+
+  <!-- ======================= introduction ======================= -->
+  <section>
+    <p class="body-text">
+      Every other article in this module works on points: rows of numbers, with
+      distances between them and a middle somewhere. Change the object and all
+      of that goes away. A <span class="bold">basket</span> is a set. Two baskets
+      have no distance between them, there is nothing to average, and there is no
+      direction to project along. The only operation available is
+      <span class="bold">counting how often things happen together</span>.
+    </p>
+    <br />
+    <p class="body-text" id="intro-scale">
+      Counting is the easy part.
+    </p>
+    <br />
+    <p class="body-text">
+      Two algorithms make that tractable, and they do it in two completely
+      different ways. <span class="bold">Apriori</span> prunes: it never counts a
+      set that it can already prove is not worth counting.
+      <span class="bold">FP-Growth</span> compresses: it puts the whole database
+      into a tree small enough to mine directly. Neither is clever about
+      shopping. Both are clever about subsets.
+    </p>
+    <br />
+    <p class="body-text" id="intro-guard">
+      Both run in this page and are checked at load time against the references
+      the generator produced.
+    </p>
+  </section>
+
+  <!-- ======================= scrolly ======================= -->
+  <section>
+    <h1 class="body-header">Thirty-One Subsets</h1>
+    <p class="body-text" id="scrolly-intro">
+      Five items, and every set you could make from them.
+    </p>
+  </section>
+
+  <section id="lattice-scrolly" class="scrolly">
+    <div class="scrolly-container">
+      <div class="steps-container">
+        <div class="step" data-index="0">
+          <div class="step-content">
+            <h3>Every Set You Could Make</h3>
+            <p id="step-0">
+              Five items, laid out by how many of them each set holds: five sets
+              of one, ten of two, ten of three, five of four, and one of five.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="1">
+          <div class="step-content">
+            <h3>Counting Is The Easy Part</h3>
+            <p id="step-1">
+              The support of a set is how many baskets contain all of it. One
+              pass over the database gives every one of these numbers.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="2">
+          <div class="step-content">
+            <h3>The Lattice</h3>
+            <p id="step-2">
+              Join each set to the sets one item larger that contain it, and the
+              subsets become a structure rather than a list.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="3">
+          <div class="step-content">
+            <h3>A Threshold</h3>
+            <p id="step-3">
+              Call a set frequent when its support reaches some minimum. Filled
+              is frequent; hollow is not.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="4">
+          <div class="step-content">
+            <h3>The Whole Trick</h3>
+            <p id="step-4">
+              A set can only be frequent if every one of its subsets is, so
+              everything above an infrequent set can be discarded without ever
+              being counted.
+            </p>
+          </div>
+        </div>
+        <div class="step-spacer"></div>
+      </div>
+      <div class="charts-container">
+        <div class="chart-wrap" id="lattice-scrolly-chart"></div>
+      </div>
+    </div>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the lattice ======================= -->
+  <section>
+    <h1 class="body-header">Counted, And Never Counted</h1>
+    <p class="body-text">
+      Downward closure is one line and it is the entire algorithm:
+    </p>
+    <p class="body-text">
+      $$A \subseteq B \implies \mathrm{supp}(A) \ge \mathrm{supp}(B)$$
+    </p>
+    <p class="body-text" id="lattice-intro">
+      A basket that contains B contains A as well, so A cannot be rarer. Turned
+      around: if A is not frequent, nothing containing A can be.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="lattice-widget">
+    <div class="controls-row" style="justify-content: center" id="lattice-ks"></div>
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">minimum support <span class="value" id="lattice-support-label">2.00%</span></span>
+      <input type="range" class="atlas-range" id="lattice-support" aria-label="how many baskets a set must appear in to count as frequent" min="0" max="1" step="1" value="0" />
+    </div>
+    <div id="lattice-chart"></div>
+    <div class="widget-readout" id="lattice-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="lattice-note">
+      The same experiment on all 169 items is in the table below, and the
+      threshold is the parameter that decides everything.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table" id="sweep-table">
+      <thead>
+        <tr>
+          <th>Minimum support</th>
+          <th>Baskets</th>
+          <th>Frequent sets</th>
+          <th>Candidates counted</th>
+          <th>Candidates pruned unseen</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="sweep-note">
+      The pruning grows faster than the work does.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the tree ======================= -->
+  <section>
+    <h1 class="body-header">The Other Trick</h1>
+    <p class="body-text" id="tree-intro">
+      Apriori attacks the number of candidates. FP-Growth attacks the database.
+    </p>
+    <br />
+    <p class="body-text">
+      Sort each basket's items into one fixed order and insert it into a prefix
+      tree: baskets that begin the same way share the same nodes, and a count on
+      each node is all that survives of them. Mine the tree and you never touch
+      the transactions again. The ordering is not a detail of the implementation.
+      It is the algorithm, and the buttons below say why.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="tree-widget">
+    <div class="controls-row" style="justify-content: center" id="tree-orders"></div>
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">baskets inserted <span class="value" id="tree-n-label">100</span></span>
+      <input type="range" class="atlas-range" id="tree-n" aria-label="how many baskets to insert into the tree" min="0" max="1" step="1" value="0" />
+    </div>
+    <div id="tree-chart"></div>
+    <div class="widget-readout" id="tree-readout"></div>
+  </div>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table" id="tree-table">
+      <thead>
+        <tr>
+          <th>Item order</th>
+          <th>Nodes in the tree</th>
+          <th>Item slots stored</th>
+          <th>Slots per node</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="tree-note">
+      The ordering is worth measuring rather than assuming.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the rules ======================= -->
+  <section>
+    <h1 class="body-header">Confidence Is A Trap</h1>
+    <p class="body-text" id="rules-intro">
+      A frequent set is not a rule. A rule points somewhere.
+    </p>
+    <br />
+    <p class="body-text">
+      Three numbers describe one, and only two of them are ever quoted:
+    </p>
+    <p class="body-text">
+      $$\mathrm{conf}(A \Rightarrow B) = \frac{\mathrm{supp}(A \cup B)}{\mathrm{supp}(A)}, \qquad \mathrm{lift}(A \Rightarrow B) = \frac{\mathrm{conf}(A \Rightarrow B)}{\mathrm{supp}(B)}$$
+    </p>
+    <p class="body-text" id="rules-lift">
+      Confidence is how often B follows A. Lift is how that compares with how
+      often B happens anyway, and it is the one that can be below one.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="rules-widget">
+    <div class="controls-row" style="justify-content: center" id="rules-sorts"></div>
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">minimum support <span class="value" id="rules-support-label">1.00%</span></span>
+      <input type="range" class="atlas-range" id="rules-support" aria-label="how many baskets a set must appear in" min="0" max="1" step="1" value="0" />
+      <span class="slider-label">minimum confidence <span class="value" id="rules-conf-label">10%</span></span>
+      <input type="range" class="atlas-range" id="rules-conf" aria-label="how often the conclusion must follow" min="0" max="1" step="1" value="0" />
+    </div>
+    <div class="controls-row" style="justify-content: center">
+      <button class="atlas-btn ghost" id="rules-trap">point at the worst one</button>
+    </div>
+    <div id="rules-chart"></div>
+    <div class="widget-readout" id="rules-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="trap-note">
+      The trap has a name and a shape.
+    </p>
+    <br />
+    <p class="body-text" id="symmetry-note">
+      Lift fixes that and breaks something else.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the permutation test ======================= -->
+  <section>
+    <h1 class="body-header">How Many Of These Are Real</h1>
+    <p class="body-text" id="perm-intro">
+      There is one more question that almost nobody asks of a pile of rules.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table" id="perm-table">
+      <thead>
+        <tr>
+          <th>Counted in</th>
+          <th>Frequent sets</th>
+          <th>Rules</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="perm-note">
+      The shuffled data is not empty.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the wine ======================= -->
+  <section>
+    <h1 class="body-header">The Same Machinery On Something Dense</h1>
+    <p class="body-text" id="wine-intro">
+      Groceries are sparse. Most tables are not.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table" id="wine-table">
+      <thead>
+        <tr>
+          <th></th>
+          <th>Groceries</th>
+          <th>Wine, binned to thirds</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="wine-note">
+      Same algorithm, same thresholds in spirit, and nothing alike in behaviour.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the bill ======================= -->
+  <section>
+    <h1 class="body-header">The Bill</h1>
+    <p class="body-text" id="cost-note">
+      The number to keep in view is the one at the top of the page.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table" id="cost-table">
+      <thead>
+        <tr>
+          <th>Distinct items</th>
+          <th>Subsets</th>
+          <th>Pairs</th>
+          <th>Sets of up to three</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <hr />
+
+  <!-- ======================= verdict ======================= -->
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text">
+      Two algorithms, three measures, and one question to ask before believing
+      any of it.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Reach for</th>
+          <th>When</th>
+          <th>What it buys</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">Apriori</span></td>
+          <td>Sparse baskets, a threshold you are willing to defend, and you want to see the work</td>
+          <td id="v-ap">Measured above.</td>
+          <td id="v-ap-watch">The threshold.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">FP-Growth</span></td>
+          <td>The same problem, larger, and the database fits in memory once compressed</td>
+          <td id="v-fp">Measured above.</td>
+          <td id="v-fp-watch">The ordering, and the tree itself.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Confidence</span></td>
+          <td>You already know the conclusion is rare</td>
+          <td id="v-conf">Measured above.</td>
+          <td id="v-conf-watch">Common consequents.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Lift</span></td>
+          <td>You want to know whether the antecedent tells you anything at all</td>
+          <td id="v-lift">Measured above.</td>
+          <td id="v-lift-watch">It is symmetric.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="closing-1">
+      What this branch has that none of the others do is an exact answer.
+    </p>
+    <br />
+    <p class="body-text" id="closing-2">
+      That closes module 2.
+    </p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! Everything above ran here: the baskets travel as one
+      bitset per item, so the support of any set is an AND and a population
+      count, and the page enumerates whole lattices, runs Apriori with its
+      pruning counted, builds the prefix tree three ways and derives every rule
+      from scratch, each checked at load time against the reference that owns it,
+      with the datasets, the sweeps, the permutation test and those references
+      from <code>src/utils/generate_baskets_data.py</code>.
+    </p>
+  </section>
+
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text" id="ref-note">
+      The baskets are the Groceries dataset that ships with the R package
+      arules.
+    </p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://www.vldb.org/conf/1994/P487.PDF">[1] Fast Algorithms for Mining Association Rules</a><br />
+      (Agrawal, R. &amp; Srikant, R., VLDB, 1994; Apriori, downward closure and the join-and-prune step this page counts)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://dl.acm.org/doi/10.1145/335191.335372">[2] Mining Frequent Patterns without Candidate Generation</a><br />
+      (Han, J., Pei, J. &amp; Yin, Y., SIGMOD, 2000; the FP-tree and why its item ordering is the algorithm)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://dl.acm.org/doi/10.1145/253260.253325">[3] Dynamic Itemset Counting and Implication Rules for Market Basket Data</a><br />
+      (Brin, S., Motwani, R., Ullman, J. &amp; Tsur, S., SIGMOD, 1997; lift, conviction, and why confidence alone is not enough)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://www.jstatsoft.org/article/view/v014i15">[4] arules: Mining Association Rules and Frequent Itemsets</a><br />
+      (Hahsler, M., Gr&uuml;n, B. &amp; Hornik, K., Journal of Statistical Software, 2005; the Groceries dataset used here)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://archive.ics.uci.edu/dataset/109/wine">[5] The Wine Recognition Dataset</a><br />
+      (Forina, M. et al., UCI Machine Learning Repository, 178 samples, binned to thirds exactly as the clustering article binned it)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>

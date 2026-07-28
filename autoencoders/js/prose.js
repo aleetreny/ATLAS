@@ -226,11 +226,20 @@ export function initProse(data) {
     + `decode it, and look at what comes out. What is missing is any reason to believe a sampled `
     + `point will land somewhere the decoder handles well, which is a question about the `
     + `distribution of the code and not about reconstruction at all. Putting a distribution there `
-    + `on purpose is what a variational autoencoder does, and that is module 3, where the objective `
-    + `stops being "rebuild this" and starts being "produce something that could have been this". `
-    + `Module 3 opens somewhere else, though: <a href="../gans/">Counterfeit</a> takes the harder `
-    + `road of not writing the objective down at all and training a second network to be it, and `
-    + `nearly everything awkward about generative models is visible there in miniature.`);
+    + `on purpose is what a variational autoencoder does, and that is module 3, where the `
+    + `objective stops being "rebuild this" and starts being "produce something that could `
+    + `have been this". Module 3 opens with <a href="../gans/">Counterfeit</a>, which takes `
+    + `the harder road of not writing the objective down at all and training a second network `
+    + `to be it; the <a href="../vae/">variational autoencoder</a> arrives a section later, `
+    + `and it starts by taking the network on this page, weight for weight out of this page's `
+    + `own data file, and sampling it.`
+    + `<br /><br />`
+    + `Before that, module 2 has two branches left, and both of them change the question rather `
+    + `than the method. The next article stops asking what the structure of the data is and starts `
+    + `asking <a href="../outliers/">which rows do not belong to it</a>, which turns out to be a `
+    + `question every classical answer gets wrong in the same way: the yardstick is estimated from `
+    + `the sample that contains the suspect. And the branch after that changes the object itself, `
+    + `from a point with coordinates to a basket with no distances in it at all.`);
 
   set('resources-note',
     `${n0(M.n)} stratified MNIST digits, seed ${M.seed}, mean pooled to ${M.side} by ${M.side} and `

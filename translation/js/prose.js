@@ -289,11 +289,12 @@ export function initProse(data) {
     + `practical difficulty following from the fact that the loss moves back. `
     + `<a href="../gans/">Counterfeit</a> measured what the game is worth and where it goes flat, `
     + `<a href="../stylegan/">Style</a> measured what happens when you decide where the latent `
-    + `enters, and this one measured what is left when the pairing is taken away. The next module `
-    + `keeps the goal and drops the opponent: instead of learning a loss, write down a `
-    + `distribution and maximise its likelihood, which is what a variational autoencoder, a `
-    + `normalising flow and a diffusion model all do. The bridge is already built: the `
-    + `<a href="../autoencoders/">bottleneck</a> article ends exactly where that starts.`);
+    + `enters, and this one measured what is left when the pairing is taken away. The next `
+    + `section keeps the goal and drops the opponent: instead of learning a loss, write the `
+    + `distribution down and maximise its likelihood, which is what a `
+    + `<a href="../vae/">variational autoencoder</a>, a normalising flow and a diffusion model `
+    + `all do. It starts from the network the <a href="../autoencoders/">bottleneck</a> article `
+    + `left behind, weight for weight, and puts a distribution on its code on purpose.`);
 
   set('resources-note',
     `Every figure on this page comes from <code>src/utils/generate_translation_data.py</code>: `
