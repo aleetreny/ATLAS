@@ -18,8 +18,6 @@ export function initProse(data) {
   const linQ = Q.rows.find((r) => r.scheme.includes('quiet') && r.scheme.startsWith('linear'));
   const lawQ = Q.rows.find((r) => r.scheme.includes('quiet') && r.scheme.startsWith('mu-law'));
   const rows = R.rows;
-  const under = rows.filter((d) => !d.covers_period);
-  const over = rows.filter((d) => d.covers_period);
   const biggest = rows.slice(1).reduce((best, row, i) => {
     const jump = rows[i].nll - row.nll;
     return jump > best.jump ? { jump, from: rows[i], to: row } : best;
@@ -195,8 +193,9 @@ export function initProse(data) {
     + `${rows[0].receptive}.`);
   set('verdict-gen-warn',
     `Teacher forcing flatters it: run free for ${n0(F.generated)} samples and the best arm is `
-    + `${bestFree.spec_distance} away from the real spectrum. And the compander is not free either `
-    + `(${law.snr_db} dB at ${M.levels} levels).`);
+    + `${bestFree.spec_distance} away from the real spectrum. And the compander is a loss taken `
+    + `before the model does anything: ${M.levels} mu-law levels reconstruct the sixteen bit `
+    + `original at ${law.snr_db} dB.`);
   set('verdict-asr',
     `${pc(A.ctc.ser)} symbol error for the alignment free head and ${pc(A.decoder.ser)} for the `
     + `attention decoder, on identical features.`);
