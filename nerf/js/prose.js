@@ -349,9 +349,18 @@ export function initProse(data) {
       ? `, and this one clears it.` : `, and this one does not clear it.`));
 
   /* -------------------------------------------------------------- the cost */
+  /* Whether the two land close or far apart decides how this section opens,
+     so it is a branch and not an assumption. */
+  const gap = N.inside - S.inside;
   set('cost-intro',
-    `Both models on this page answer the same question at the same camera, within `
-    + `${f2(Math.abs(N.inside - S.inside))} dB of each other. They do not cost the same.`);
+    (Math.abs(gap) < 1.5
+      ? `Both models on this page answer the same question at the same camera, and they land within `
+        + `${f2(Math.abs(gap))} dB of each other. `
+      : `Both models on this page answer the same question at the same camera, and they do not answer `
+        + `it equally well: the ${gap > 0 ? 'field' : 'blob cloud'} is `
+        + `<span class="bold">${f2(Math.abs(gap))} dB</span> ahead of the other on the held-out `
+        + `cameras, ${db(N.inside)} against ${db(S.inside)}. `)
+    + `They also do not cost the same, and the two facts point in opposite directions.`);
 
   /* Neither loss ever mentioned geometry, so whether either of them got it is
      a separate question with a separate answer, in scene units rather than in
