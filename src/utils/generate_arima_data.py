@@ -267,7 +267,11 @@ def stage_identify():
             "process": pname, "true_p": len(phis),
             "acf": r(acf(y, MAX_LAG), 5), "pacf": r(pacf_durbin_levinson(y, MAX_LAG), 5),
             "band": r(band, 5), "rule_p": pr, "aic_p": aic_order(y),
-            "y": r(y[-80:], 4),
+            # the whole series, not the tail: the page recomputes both
+            # correlograms from it, and a guard that compares a correlogram of
+            # 80 points against one of 200 measures nothing but the difference
+            # between 80 and 200 (it read 0.15 before this was fixed)
+            "y": r(y, 4), "n": int(len(y)),
         })
     rng2 = np.random.default_rng(SEED + 1)
     examples = [dict(e, shuffled=int(i)) for i, e in enumerate(examples)]

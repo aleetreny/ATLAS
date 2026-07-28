@@ -114,7 +114,7 @@ export function initIdentityWidget(data) {
     : `${(sse[idx - 1] / sse[bestI]).toFixed(3)} times the best the slider can reach, `
       + `which is ${grid[bestI].toFixed(2)}`}</td></tr>
         <tr><td>fitted by sum of squares, with alpha kept inside [0, 1]</td>
-            <td><span class="value">${E.co2.alpha_hat}</span></td>
+            <td><span class="value">${E.co2.alpha_hat.toFixed(4)}</span></td>
             <td>next month: ${E.co2.f_ses} ppm</td></tr>
         <tr><td>fitted by exact likelihood, with theta free</td>
             <td><span class="value">${E.co2.theta_hat}</span></td>

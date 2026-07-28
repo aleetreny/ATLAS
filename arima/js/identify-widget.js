@@ -61,30 +61,32 @@ export function initIdentifyWidget(data) {
 
   function render() {
     const e = ex[current];
-    const x = d3.scaleLinear().domain([0, e.y.length - 1]).range([0, w]);
-    const ys = d3.scaleLinear().domain(d3.extent(e.y)).range([stripH, 0]);
+    const tail = e.y.slice(-80);
+    const x = d3.scaleLinear().domain([0, tail.length - 1]).range([0, w]);
+    const ys = d3.scaleLinear().domain(d3.extent(tail)).range([stripH, 0]);
     let p = gStrip.select('path.series');
     if (p.empty()) {
       p = gStrip.append('path').attr('class', 'series').attr('fill', 'none')
         .attr('stroke', 'var(--primary)').attr('stroke-width', 1.3);
     }
-    p.datum(e.y).transition('strip').duration(400)
+    p.datum(tail).transition('strip').duration(400)
       .attr('d', d3.line().x((d, i) => x(i)).y((d) => ys(d)));
     gStrip.selectAll('text.strip-label').data([0]).join('text')
       .attr('class', 'chart-note strip-label').attr('x', 0).attr('y', stripH + 16)
       .style('font-size', '11px').text('the last 80 observations');
 
-    /* recomputed here from the same numbers the file carries, so the guard has
-       two implementations to compare rather than one array to echo */
+    /* recomputed here over the whole series, so what is drawn is this page's
+       own arithmetic and the readout can say how far it lands from the
+       generator's */
     const a = acf(e.y, I.max_lag);
     const pa = pacf(e.y, I.max_lag);
-    bars(gAcf, e.acf, e.band, 'autocorrelation', false);
-    bars(gPacf, e.pacf, e.band, 'partial autocorrelation', true);
+    bars(gAcf, a, e.band, 'autocorrelation', false);
+    bars(gPacf, pa, e.band, 'partial autocorrelation', true);
     wrapLabel(title, revealed
       ? `${names[current]} is ${e.process}`
       : `${names[current]}: what order would you fit?`, w - 8);
 
-    const last = e.pacf.map((v, i) => [i, Math.abs(v)])
+    const last = pa.map((v, i) => [i, Math.abs(v)])
       .filter(([i, v]) => i > 0 && v > e.band).map(([i]) => i);
     readout.innerHTML = `
       <table class="gen-table">
@@ -109,8 +111,9 @@ export function initIdentifyWidget(data) {
           : 'Neither got it here.'}`}
            One series is an anecdote, which is why the table below runs
            ${I.n_sim.toLocaleString('en-US')} of them per cell.`
-    : `The page recomputes both plots in the browser: the largest disagreement
-           with the generator over these ${I.max_lag} lags is
+    : `Both plots are drawn from this page's own arithmetic over all ${e.n}
+           simulated points, and the largest disagreement with the generator's
+           over these ${I.max_lag} lags is
            ${Math.max(...a.map((v, i) => Math.abs(v - e.acf[i])),
       ...pa.map((v, i) => Math.abs(v - e.pacf[i]))).toExponential(1)}.`}
       </div>`;

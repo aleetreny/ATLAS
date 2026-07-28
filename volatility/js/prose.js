@@ -110,9 +110,10 @@ export function initProse(data) {
   set('vix-intro',
     `A likelihood scores a model against itself. There is a second forecast of the same quantity `
     + `published every trading day, made by a different mechanism entirely: the VIX, which is what `
-    + `option prices imply about the next thirty days of volatility. So there are three numbers `
-    + `for the same ${V.horizon} trading days: what the model said, what the market said, and what `
-    + `happened.`);
+    + `option prices imply about the next thirty <i>calendar</i> days of volatility. Thirty `
+    + `calendar days is about ${V.horizon} trading days, so that is the window the model is asked `
+    + `for as well, and there are three numbers for it: what the model said, what the market said, `
+    + `and what happened.`);
 
   set('vix-note',
     `Two readings, and the second one is the one nobody teaches. First, the market's number is `

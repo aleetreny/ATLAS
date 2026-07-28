@@ -125,10 +125,13 @@ export function initProse(data) {
     `The calendar columns are the only ones that clearly pay: ${lagsOnly.mase_mean} to `
     + `${F.rows[1].mase_mean}. After that, six more columns move the average by `
     + `${Math.abs(fullSet.mase_mean - F.rows[1].mase_mean).toFixed(4)}, which on this series is `
-    + `nothing, and the trend index makes it very slightly worse at the long horizons `
-    + `(${F.rows[1].mase_h12} to ${fullSet.mase_h12}) for the reason the section above is about: `
-    + `a column that only ever increases is a column whose future values are all outside the `
-    + `training range. `
+    + `nothing. The long horizons are where they cost something, and the two additions have to be `
+    + `read separately or the blame lands on the wrong one: the rolling columns take a year ahead `
+    + `from ${F.rows[1].mase_h12} to ${F.rows[2].mase_h12}, and the trend index adds another `
+    + `${(fullSet.mase_h12 - F.rows[2].mase_h12).toFixed(4)} on top. The second of those is the `
+    + `section above arriving again, since a column that only ever increases has all of its future `
+    + `values outside the training range; the first is a subtler version of it, since a rolling `
+    + `mean of a trending series does the same thing more slowly. `
     + `One more choice that the table hides. Reaching twelve months has two strategies: fit one `
     + `model and feed it its own output back in, or fit twelve models, one per horizon. The first `
     + `scores ${D.recursive_mean} here and the second ${D.direct_mean} over ${D.n_origins} `

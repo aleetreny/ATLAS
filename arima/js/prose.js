@@ -183,7 +183,7 @@ export function initProse(data) {
       ? `The likelihood lands at theta = ${E.co2.theta_hat}, inside the range a smoother can `
         + `reach, and the difference is down to the two objectives.`
       : `Fitting the smoother minimises squared one step error with alpha kept in [0, 1], and it `
-        + `walks to the edge: ${E.co2.alpha_hat}, which is the naive forecast. Fitting the ARIMA `
+        + `walks to the edge: ${E.co2.alpha_hat.toFixed(4)}, which is the naive forecast. Fitting the ARIMA `
         + `maximises an exact likelihood with theta free in (-1, 1), and it lands at `
         + `${E.co2.theta_hat}, which implies a smoothing rate of ${E.co2.implied_alpha}. A `
         + `smoothing rate above one is not a smoothing rate: it overshoots each new observation `
