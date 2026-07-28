@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Alone | ATLAS</title>
+  <meta name="description" content="Isolation forests, local outlier factor, one-class SVMs and the minimum covariance determinant: four detectors that mean four different things by strange, measured on the same five datasets, with every one of them running in the page." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/isolation/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="Alone | ATLAS" />
+  <meta property="og:description" content="Four anomaly detectors, four incompatible definitions of strange, and a ranking that swaps when the dataset does." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/isolation/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Alone | ATLAS" />
+  <meta name="twitter:description" content="Four anomaly detectors, four incompatible definitions of strange, and a ranking that swaps when the dataset does." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    /* Per-article theme. Everything else inherits from these two. */
+    :root {
+      --primary: #065f46;
+      --secondary: #054c38;
+    }
+    /* Width only: a margin here would override .interactive-full's rhythm. */
+    .narrow-widget {
+      max-width: 820px;
+    }
+  </style>
+</head>
+<body>
+  <!-- ======================= chrome ======================= -->
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <!-- ======================= hero ======================= -->
+  <section id="intro">
+    <h1 id="intro-hed">Alone</h1>
+    <h1 id="intro-sub">Four detectors, four different things meant by strange, and a ranking that swaps with the dataset</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 2.3 &middot; Anomaly Detection &middot; Alone</span>
+  </section>
+
+  <br />
+
+  <!-- ======================= introduction ======================= -->
+  <section>
+    <p class="body-text">
+      <a href="../outliers/">The previous article</a> ended on a defect rather
+      than a method. Every classical rule for calling a point strange estimates
+      its yardstick from the sample that contains the suspect, and a batch of
+      eight planted bottles was enough to make itself invisible inside a hundred
+      and seventy-eight real ones. The mean moved to them, the covariance grew
+      towards them, and the rule that was supposed to find them was written by
+      them.
+    </p>
+    <br />
+    <p class="body-text">
+      There are four ways out on the map, and the interesting thing is that no
+      two of them mean the same thing by <span class="bold">strange</span>.
+    </p>
+    <br />
+    <p class="body-text">
+      An <span class="bold">isolation forest</span> asks how few random cuts it
+      takes to separate a point from everything else. There is no centre in it,
+      no distance and no density: a strange point is one that falls out early.
+      <span class="bold">Local outlier factor</span> compares a point's density
+      with the density of its own neighbours, so strange is relative to the
+      neighbourhood rather than to the dataset, and a sparse region full of
+      ordinary points stays ordinary. A <span class="bold">one-class SVM</span>
+      draws a boundary around the data in a kernel space and asks only which side
+      of it you are on. And the <span class="bold">minimum covariance
+      determinant</span> keeps the ellipse of the previous article and repairs its
+      estimator: fit on the tightest half of the rows, then measure everybody
+      against that.
+    </p>
+    <br />
+    <p class="body-text" id="intro-guard">
+      All four run in this page and are checked at load time against the
+      references the generator produced.
+    </p>
+  </section>
+
+  <!-- ======================= scrolly ======================= -->
+  <section>
+    <h1 class="body-header">Count The Cuts</h1>
+    <p class="body-text" id="scrolly-intro">
+      Two clusters of different density, twelve planted anomalies, and one tree.
+    </p>
+  </section>
+
+  <section id="isolate-scrolly" class="scrolly">
+    <div class="scrolly-container">
+      <div class="steps-container">
+        <div class="step" data-index="0">
+          <div class="step-content">
+            <h3>Nobody Has Said What Normal Is</h3>
+            <p id="step-0">
+              Two clusters, one tight and one loose, plus twelve points that
+              belong to neither. The rings are the truth, and no algorithm on
+              this page ever sees them.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="1">
+          <div class="step-content">
+            <h3>One Cut, At Random</h3>
+            <p id="step-1">
+              Pick one of the two measurements at random, pick a value between
+              its smallest and its largest, and cut there. That is the entire
+              step, and it is repeated on each half.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="2">
+          <div class="step-content">
+            <h3>The Strange One Falls Out Early</h3>
+            <p id="step-2">
+              Follow one of the ringed points. A point sitting on its own in an
+              empty part of the plane gets separated quickly, because almost any
+              cut in almost any direction puts it alone.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="3">
+          <div class="step-content">
+            <h3>An Ordinary One Does Not</h3>
+            <p id="step-3">
+              Follow a point in the middle of the tight cluster instead. Every
+              cut that separates it has to separate it from a hundred neighbours
+              first.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="4">
+          <div class="step-content">
+            <h3>That Difference Is The Detector</h3>
+            <p id="step-4">
+              Average the number of cuts over a forest of these trees, divide by
+              what a random point would have cost, and you have a score.
+            </p>
+          </div>
+        </div>
+        <div class="step-spacer"></div>
+      </div>
+      <div class="charts-container">
+        <div class="chart-wrap" id="isolate-chart"></div>
+      </div>
+    </div>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the forest ======================= -->
+  <section>
+    <h1 class="body-header">The Forest Has Two Numbers In It</h1>
+    <p class="body-text">
+      A path length is turned into a score by dividing it by what a random point
+      in a sample of the same size would have cost, which is the average depth
+      of an unsuccessful search in a binary search tree:
+    </p>
+    <p class="body-text">
+      $$s(x) = 2^{-\,\mathbb{E}[h(x)]\,/\,c(\psi)}, \qquad c(n) = 2H_{n-1} - \frac{2(n-1)}{n}$$
+    </p>
+    <p class="body-text" id="forest-intro">
+      One half means exactly average. Above it means shorter to isolate than a
+      random point, and below it means longer.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="forest-widget">
+    <div class="controls-row" style="justify-content: center" id="forest-cases"></div>
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">trees <span class="value" id="forest-trees-label">32</span></span>
+      <input type="range" class="atlas-range" id="forest-trees" aria-label="how many trees are in the forest" min="0" max="1" step="1" value="0" />
+      <span class="slider-label">samples per tree <span class="value" id="forest-psi-label">64</span></span>
+      <input type="range" class="atlas-range" id="forest-psi" aria-label="how many points each tree is allowed to see" min="0" max="1" step="1" value="0" />
+    </div>
+    <div id="forest-chart"></div>
+    <div class="widget-readout" id="forest-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="psi-note">
+      The second slider is the one worth arguing about.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table" id="psi-table">
+      <thead>
+        <tr>
+          <th>Samples per tree</th>
+          <th>Scattered anomalies, 252 rows</th>
+          <th>A cluster of anomalies, 4,120 rows</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="psi-verdict">
+      One of those two columns reproduces the original paper and the other does
+      not.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the bias ======================= -->
+  <section>
+    <h1 class="body-header">Where The Cuts Leave A Mark</h1>
+    <p class="body-text" id="bias-intro">
+      Every cut is vertical or horizontal, and that has a consequence you can
+      measure on a plain round cloud with nothing else in it.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="bias-widget">
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">distance from the centre <span class="value" id="bias-r-label">4</span></span>
+      <input type="range" class="atlas-range" id="bias-r" aria-label="how far from the centre of the blob the probe points sit" min="0" max="1" step="1" value="0" />
+    </div>
+    <div id="bias-chart"></div>
+    <div class="widget-readout" id="bias-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="bias-note">
+      And the experiment this replaced is worth reporting too.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= local ======================= -->
+  <section>
+    <h1 class="body-header">Strange Compared To Whom</h1>
+    <p class="body-text" id="local-intro">
+      A distance to the kth neighbour is the simplest anomaly score there is,
+      and on data with two densities it has a problem it cannot fix.
+    </p>
+    <br />
+    <p class="body-text">
+      Breunig's answer is to score a point against its own neighbourhood rather
+      than against the dataset. Take the distance to the kth neighbour and call
+      it the k-distance; smooth every distance to a neighbour upwards to at least
+      that neighbour's own k-distance, which stops a point in a tight cluster
+      from having an explosive density; average those, invert, and you have a
+      local density. Then
+    </p>
+    <p class="body-text">
+      $$\mathrm{LOF}_k(p) = \frac{1}{|N_k(p)|}\sum_{o \in N_k(p)} \frac{\mathrm{lrd}_k(o)}{\mathrm{lrd}_k(p)}$$
+    </p>
+    <p class="body-text">
+      is the average ratio of a neighbour's density to your own. One is the
+      neutral value, and it means "as dense as the company I keep", which is a
+      sentence with no units in it and no reference to the rest of the data.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="local-widget">
+    <div class="controls-row" style="justify-content: center" id="local-modes"></div>
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">neighbours <span class="value" id="local-k-label">10</span></span>
+      <input type="range" class="atlas-range" id="local-k" aria-label="how many neighbours each score is computed from" min="0" max="1" step="1" value="0" />
+    </div>
+    <div id="local-chart"></div>
+    <div class="widget-readout" id="local-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="local-note">
+      Swap between the two buttons at any k and the same points change colour.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the boundary ======================= -->
+  <section>
+    <h1 class="body-header">A Boundary, And Nothing Inside It</h1>
+    <p class="body-text" id="svm-intro">
+      The third answer gives up on scoring the inside of the data at all.
+    </p>
+    <br />
+    <p class="body-text">
+      Sch&ouml;lkopf's one-class SVM separates the data from the origin in a
+      kernel space with the largest possible margin, which on the original axes
+      is a boundary wrapped around wherever the points are. Its decision function
+      is the only thing a fitted model is:
+    </p>
+    <p class="body-text">
+      $$f(x) = \sum_i \alpha_i \, K(x_i, x) - \rho$$
+    </p>
+    <p class="body-text" id="svm-nu-intro">
+      The parameter <span class="bold">nu</span> is advertised as the fraction of
+      the data you are willing to leave outside, and that advertisement is a
+      theorem with two halves.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="svm-widget">
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">nu <span class="value" id="svm-nu-label">0.1</span></span>
+      <input type="range" class="atlas-range" id="svm-nu" aria-label="the fraction of the data the boundary is allowed to leave outside" min="0" max="1" step="1" value="0" />
+      <span class="slider-label">gamma <span class="value" id="svm-gamma-label">0.5</span></span>
+      <input type="range" class="atlas-range" id="svm-gamma" aria-label="how peaked the kernel is" min="0" max="1" step="1" value="0" />
+    </div>
+    <div id="svm-chart"></div>
+    <div class="widget-readout" id="svm-readout"></div>
+  </div>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table" id="nu-table">
+      <thead>
+        <tr>
+          <th>Gamma</th>
+          <th>Settings where the outlier bound holds</th>
+          <th>Settings where the support vector bound holds</th>
+          <th>Worst overshoot</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="svm-note">
+      One half of the theorem holds everywhere and the other does not.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the ellipse repaired ======================= -->
+  <section>
+    <h1 class="body-header">The Ellipse, Repaired</h1>
+    <p class="body-text" id="mcd-intro">
+      The fourth answer does not abandon the previous article's ellipse. It
+      abandons the estimator behind it.
+    </p>
+    <br />
+    <p class="body-text">
+      Rousseeuw's minimum covariance determinant looks for the
+      <span class="bold">h</span> rows whose covariance has the smallest
+      determinant, which is to say the tightest half of the data, and estimates
+      the mean and the covariance from those alone. Finding that subset exactly
+      is out of the question, and the search that makes it practical is three
+      lines: fit on the rows you currently trust, score everybody against that
+      fit, keep the h closest. The determinant cannot go up when you do that, so
+      the loop cannot wander.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="mcd-widget">
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">concentration step <span class="value" id="mcd-step-label">0</span></span>
+      <input type="range" class="atlas-range" id="mcd-step" aria-label="which concentration step to draw" min="0" max="1" step="1" value="0" />
+    </div>
+    <div id="mcd-chart"></div>
+    <div class="widget-readout" id="mcd-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="mcd-note">
+      On this dataset the repair does not help, and it is worth saying why
+      before saying where it does.
+    </p>
+    <br />
+    <p class="body-text" id="planted-note">
+      Where it does help is the file the previous article could not screen.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the scoreboard ======================= -->
+  <section>
+    <h1 class="body-header">Five Datasets, Six Detectors</h1>
+    <p class="body-text" id="board-intro">
+      Average precision, which is what a ranking is worth when the thing you are
+      ranking for is rare.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table" id="board-table">
+      <thead>
+        <tr>
+          <th>Dataset</th>
+          <th>Shape</th>
+          <th>A coin</th>
+          <th>Forest</th>
+          <th>LOF</th>
+          <th>kth distance</th>
+          <th>One-class SVM</th>
+          <th>MCD</th>
+          <th>Mahalanobis</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="board-note">
+      No detector wins everywhere, and the one that loses most often is not the
+      one you would guess.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the threshold ======================= -->
+  <section>
+    <h1 class="body-header">A Score Is Not A Decision</h1>
+    <p class="body-text" id="thresh-intro">
+      Every detector on this page produces an ordering. None of them produces a
+      list of anomalies.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table" id="thresh-table">
+      <thead>
+        <tr>
+          <th>Contamination told to the library</th>
+          <th>Points flagged</th>
+          <th>Anomalies caught</th>
+          <th>Precision</th>
+          <th>Recall</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="thresh-note">
+      Every row of that table is the same score.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the bill ======================= -->
+  <section>
+    <h1 class="body-header">The Bill</h1>
+    <p class="body-text" id="cost-note">
+      Three of the four need every pair of points. One does not.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table" id="cost-table">
+      <thead>
+        <tr>
+          <th>Rows</th>
+          <th>Building a 200 tree forest</th>
+          <th>Scoring every row with it</th>
+          <th>One full distance table</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <hr />
+
+  <!-- ======================= verdict ======================= -->
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text">
+      Four detectors, four definitions, and four different ways to be wrong.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Reach for</th>
+          <th>When</th>
+          <th>What it buys</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">Isolation forest</span></td>
+          <td>Many rows, many columns, and no idea what the data looks like</td>
+          <td id="v-if">Measured above.</td>
+          <td id="v-if-watch">The cuts.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Local outlier factor</span></td>
+          <td>Regions of genuinely different density inside one dataset</td>
+          <td id="v-lof">Measured above.</td>
+          <td id="v-lof-watch">k, and the distance table.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">One-class SVM</span></td>
+          <td>A boundary is what you want, and clean training data to draw it from</td>
+          <td id="v-svm">Measured above.</td>
+          <td id="v-svm-watch">Two parameters, and one of them decides the other.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">MCD</span></td>
+          <td>One elliptical cloud, more rows than columns, and up to half of it wrong</td>
+          <td id="v-mcd">Measured above.</td>
+          <td id="v-mcd-watch">The shape assumption.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="closing-1">
+      What the four have in common is what they gave up.
+    </p>
+    <br />
+    <p class="body-text">
+      That closes anomaly detection, and with it the last question this module
+      asks about single rows. There is one branch left on the map, and it changes
+      the object entirely: not a point in a space with coordinates, but a
+      <a href="../baskets/">basket</a>, a set of things that happened together,
+      with no distance between any two of them and no notion of a middle. The
+      question stops being "is this row strange" and becomes "what goes with
+      what", and the answer turns out to be an exhaustive search over a number of
+      subsets nobody can write down, made feasible by one property so simple it
+      is almost a triviality.
+    </p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! Everything above ran here: the isolation forest is
+      rebuilt in this page's JavaScript from the same linear congruential
+      generator the offline run used, so the browser grows the same trees; the
+      local outlier factor, the concentration step and the kernel decision
+      function are all computed here, each checked at load time against the
+      reference that owns it, with the datasets, the sweeps and those references
+      from <code>src/utils/generate_isolation_data.py</code>.
+    </p>
+  </section>
+
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text" id="ref-note">
+      Datasets built by the generator and, where they are shared with another
+      article, asserted against the JSON that article ships.
+    </p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://ieeexplore.ieee.org/document/4781136">[1] Isolation Forest</a><br />
+      (Liu, F. T., Ting, K. M. &amp; Zhou, Z.-H., ICDM, 2008; the path length, the c(n) normaliser and the subsampling argument)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://dl.acm.org/doi/10.1145/342009.335388">[2] LOF: Identifying Density-Based Local Outliers</a><br />
+      (Breunig, M., Kriegel, H.-P., Ng, R. &amp; Sander, J., SIGMOD, 2000; reachability distance and the local density ratio)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://direct.mit.edu/neco/article/13/7/1443/6529">[3] Estimating the Support of a High-Dimensional Distribution</a><br />
+      (Sch&ouml;lkopf, B., Platt, J., Shawe-Taylor, J., Smola, A. &amp; Williamson, R., Neural Computation, 2001; the one-class SVM and the two halves of the nu property)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://www.tandfonline.com/doi/abs/10.1080/00401706.1999.10485670">[4] A Fast Algorithm for the Minimum Covariance Determinant Estimator</a><br />
+      (Rousseeuw, P. &amp; Van Driessen, K., Technometrics, 1999; the concentration step and the theorem that the determinant never increases)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://ieeexplore.ieee.org/document/8888179">[5] Extended Isolation Forest</a><br />
+      (Hariri, S., Carrasco Kind, M. &amp; Brunner, R., IEEE TKDE, 2021; the axis parallel artefact this article measures on a single blob)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://archive.ics.uci.edu/dataset/109/wine">[6] The Wine Recognition Dataset</a><br />
+      (Forina, M. et al., UCI Machine Learning Repository, 178 samples, 3 cultivars)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://archive.ics.uci.edu/dataset/17/breast+cancer+wisconsin+diagnostic">[7] Breast Cancer Wisconsin (Diagnostic)</a><br />
+      (Street, W., Wolberg, W. &amp; Mangasarian, O., UCI Machine Learning Repository, 569 biopsies, 30 features)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>

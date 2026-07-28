@@ -20,6 +20,9 @@ Comprueba, sobre el árbol de trabajo:
   5. cada chip vivo apunta a una carpeta que existe, y ninguna carpeta
      publicada se queda sin chip
   6. no hay rayas largas ni medias en nada de lo que se lee
+  7. el orden de las tarjetas es el orden de lectura, y cada artículo enlaza
+     al siguiente
+  8. los chips de cada rama van en ese mismo orden, agrupados por artículo
 
 Uso:
     python src/utils/check_publication.py            # comprueba, 0 si todo bien
@@ -47,9 +50,20 @@ PORTADA = ROOT / "index.html"
 
 # Los acentos del sitio son oscuros a propósito: el texto va en blanco encima.
 # Esta reserva es de dónde tirar cuando toque uno nuevo, no una regla.
+#
+# La segunda tanda no se eligió a ojo. Con 43 colores ya comprometidos, elegir
+# "uno que se vea distinto" deja de ser fiable: se barrió el espacio HSV a la
+# banda de luminosidad donde vive el resto (L* de 18 a 48) y se fueron cogiendo,
+# uno a uno, los que más lejos quedaban de todo lo aceptado hasta entonces, en
+# distancia CIELAB. El peor de los catorce está a dE 15,5 del vecino más
+# cercano, que sigue siendo una diferencia que cualquiera ve. Cuando estos se
+# acaben, se repite ese barrido en vez de improvisar.
 RESERVA = [
     "#1d4ed8", "#3f6212", "#7c2d12", "#134e4a", "#581c87", "#831843",
     "#164e63", "#713f12", "#3730a3", "#065f46", "#701a75", "#7f1d1d",
+    "#3e295c", "#705e32", "#5c2938", "#853c6f", "#706b11", "#143b85",
+    "#5c0e40", "#643c85", "#5c3e29", "#5c0e1d", "#0e5c29", "#3c4e85",
+    "#853c43", "#851463",
 ]
 
 # El secundario de los artículos publicados es el primario a un 80% por canal:
@@ -148,6 +162,36 @@ def portada():
     for m in re.finditer(r'<span class="chip live"><a href="\./([^"]+)/">', t):
         chips.append(m.group(1))
     return tarjetas, chips
+
+
+def ramas():
+    """Los chips vivos de cada rama del mapa, en el orden en que se leen.
+
+    Devuelve [(titulo, [carpeta, ...]), ...]. Si la portada no declara ramas
+    (el sitio de prueba no lo hace), todos los chips vivos cuentan como una.
+    """
+    t = PORTADA.read_text("utf-8")
+    fuera = []
+    for m in re.finditer(r'<h4>(.*?)</h4>(.*?)</div>', t, re.S):
+        vivos = re.findall(r'<span class="chip live"><a href="\./([^"]+)/">', m.group(2))
+        if vivos:
+            fuera.append((re.sub(r'<[^>]+>|&[a-z]+;', ' ', m.group(1)).strip(), vivos))
+    if not fuera:
+        _, chips = portada()
+        fuera = [("el mapa entero", chips)] if chips else []
+    return fuera
+
+
+def enlaza_a(carpeta, destino):
+    """¿La prosa de `carpeta` manda al lector a `destino`?
+
+    Se mira el HTML y su `prose.js`, que son los dos sitios donde vive prosa:
+    a partir del artículo 21 los cierres se componen desde el JSON al cargar,
+    así que el enlace del cierre puede no estar escrito en el HTML.
+    """
+    fuentes = [ROOT / carpeta / "index.html", ROOT / carpeta / "js" / "prose.js"]
+    aguja = f"../{destino}/"
+    return any(f.is_file() and aguja in f.read_text("utf-8") for f in fuentes)
 
 
 def sin_rayas():
@@ -251,6 +295,35 @@ def main():
     if malos:
         fallos.append(f"rayas largas o medias en {len(malos)} sitios: "
                       f"{', '.join(malos[:6])}{' ...' if len(malos) > 6 else ''}")
+
+    # ---- 7. la cadena de lectura, que es el orden de las tarjetas
+    #
+    # Tres sesiones en paralelo escribieron tres secciones y ninguna podía ver
+    # los cierres de las otras dos: una dejó su "next article in this branch"
+    # apuntando a la portada esperando una continuación que ya existía, y otra
+    # mandó al lector a mitad de otro módulo. Ni git ni un comprobador de
+    # enlaces rotos ven nada, porque `../` existe y la otra carpeta también.
+    # Lo que sí lo ve es preguntarle a la portada quién va después y buscar ese
+    # enlace en la página de antes.
+    lectura = [c for c in tarjetas if c in carpetas]
+    for antes, despues in zip(lectura, lectura[1:]):
+        if not enlaza_a(antes, despues):
+            fallos.append(f"la cadena de lectura se corta: `{antes}/` no enlaza a "
+                          f"`{despues}/`, que es la tarjeta siguiente en la portada")
+
+    # ---- 8. los chips de cada rama, en el orden de las tarjetas
+    #
+    # Un chip es un algoritmo y una tarjeta es un artículo, así que un artículo
+    # enciende varios chips seguidos; lo que no puede pasar es que la rama los
+    # baraje, porque entonces el mapa cuenta un orden de lectura y la galería
+    # cuenta otro. El orden bueno es el taxonómico de las tarjetas, no el
+    # cronológico en el que se fueron escribiendo.
+    posicion = {c: i for i, c in enumerate(lectura)}
+    for titulo, vivos in ramas():
+        idx = [posicion[c] for c in vivos if c in posicion]
+        if idx != sorted(idx):
+            fallos.append(f"los chips de «{titulo}» no siguen el orden de las tarjetas: "
+                          f"{', '.join(vivos)}")
 
     quiere_reparto = "--reparte" in sys.argv
     en_vuelo = (acentos_en_vuelo(set(carpetas))

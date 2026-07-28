@@ -90,6 +90,7 @@
       </div>
 
       <div class="articles-container">
+        <!-- card: classical regression -->
         <div class="article-card">
           <div class="imgBx" onclick="location.href='./classical-regression/';" style="cursor: pointer">
             <img src="assets/thumbnails/classical-regression.svg"
@@ -167,7 +168,7 @@
           </div>
         </div>
 
-        <!-- card: gradient boosting -->
+        <!-- card: svr and kernel ridge -->
 
         <div class="article-card">
           <div class="imgBx" onclick="location.href='./svr-kernel-ridge/';" style="cursor: pointer">
@@ -187,7 +188,7 @@
           </div>
         </div>
 
-        <!-- card: kernel discriminants -->
+        <!-- card: gradient boosting -->
 
         <div class="article-card">
           <div class="imgBx" onclick="location.href='./gradient-boosting/';" style="cursor: pointer">
@@ -267,7 +268,7 @@
           </div>
         </div>
 
-        <!-- card: trees and ensembles -->
+        <!-- card: kernel discriminants -->
 
         <div class="article-card">
           <div class="imgBx" onclick="location.href='./kda/';" style="cursor: pointer">
@@ -279,7 +280,7 @@
             <p class="article-description">
               Turn the projection dial yourself and hit the measured linear
               ceiling, then give Fisher's discriminant the kernel upgrade
-              that lights module 1's last chip.
+              that breaks straight through it.
             </p>
             <button class="content-button">
               <a href="./kda/">Dive In</a>
@@ -287,7 +288,7 @@
           </div>
         </div>
 
-        <!-- card: classical features -->
+        <!-- card: trees and ensembles -->
 
         <div class="article-card">
           <div class="imgBx" onclick="location.href='./trees-and-ensembles/';" style="cursor: pointer">
@@ -346,6 +347,7 @@
           </div>
         </div>
 
+        <!-- card: classical features -->
         <div class="article-card">
           <div class="imgBx" onclick="location.href='./classical-features/';" style="cursor: pointer">
             <img src="assets/thumbnails/classical-features.svg"
@@ -500,12 +502,6 @@
             </button>
           </div>
         </div>
-
-        <!-- card: k-means -->
-
-        <!-- card: gaussian mixtures -->
-
-        <!-- card: svr and kernel ridge -->
       </div>
 
       <details class="roadmap" open>
@@ -560,6 +556,7 @@
       </div>
 
       <div class="articles-container">
+        <!-- card: k-means -->
         <div class="article-card">
           <div class="imgBx" onclick="location.href='./kmeans/';" style="cursor: pointer">
             <img src="assets/thumbnails/kmeans.svg"
@@ -578,6 +575,7 @@
           </div>
         </div>
 
+        <!-- card: gaussian mixtures -->
         <div class="article-card">
           <div class="imgBx" onclick="location.href='./gmm/';" style="cursor: pointer">
             <img src="assets/thumbnails/gmm.svg"
@@ -771,6 +769,65 @@
             </button>
           </div>
         </div>
+
+        <!-- card: outliers -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./outliers/';" style="cursor: pointer">
+            <img src="assets/thumbnails/outliers.svg"
+                 alt="Odd One Out article image: 178 wines plotted on two correlated measurements, with the rectangle two separate margins accept drawn over the tilted ellipse the pair accepts, and a suspect sitting in the corner where the two disagree." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Odd One Out</h2>
+            <p class="article-description">
+              Three classical rules for calling a reading strange, and the defect
+              they share: the yardstick is estimated from the data that contains
+              the suspect. Push a bottle out and watch the band grow to swallow
+              it.
+            </p>
+            <button class="content-button">
+              <a href="./outliers/">Dive In</a>
+            </button>
+          </div>
+        </div>
+
+        <!-- card: isolation -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./isolation/';" style="cursor: pointer">
+            <img src="assets/thumbnails/isolation.svg"
+                 alt="Alone article image: a tight cluster and a loose one with twelve planted anomalies ringed in red, crossed by the first cuts of seven isolation trees, every one of them vertical or horizontal." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Alone</h2>
+            <p class="article-description">
+              Four detectors that mean four different things by strange: cuts
+              that isolate, neighbours that compare, a boundary that encloses,
+              and half the data thrown away. No two of them agree on which point
+              is odd.
+            </p>
+            <button class="content-button">
+              <a href="./isolation/">Dive In</a>
+            </button>
+          </div>
+        </div>
+
+        <!-- card: baskets -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./baskets/';" style="cursor: pointer">
+            <img src="assets/thumbnails/baskets.svg"
+                 alt="Bought Together article image: every one of the 255 subsets of eight items laid out in rows by size, fattest in the middle, with the few that are frequent enough to matter picked out in purple." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Bought Together</h2>
+            <p class="article-description">
+              Change the object from a point to a basket and distance, averages
+              and directions all disappear. What is left is counting, over a
+              number of subsets with fifty-one digits in it.
+            </p>
+            <button class="content-button">
+              <a href="./baskets/">Dive In</a>
+            </button>
+          </div>
+        </div>
       </div>
       <details class="roadmap">
         <summary>Full branch map: 2. Unsupervised Structure Discovery</summary>
@@ -778,12 +835,12 @@
           <h4>2.1 Clustering</h4>
           <div class="chips">
             <span class="chip live"><a href="./kmeans/">K-Means</a></span>
-            <span class="chip live"><a href="./assumptions/">K-Medoids · K-Modes</a></span>
-            <span class="chip live"><a href="./dbscan/">DBSCAN · HDBSCAN</a></span>
-            <span class="chip live"><a href="./assumptions/">OPTICS · Mean Shift</a></span>
             <span class="chip live"><a href="./gmm/">GMM</a></span>
-            <span class="chip live"><a href="./affinities/">Affinity Propagation</a></span>
+            <span class="chip live"><a href="./dbscan/">DBSCAN · HDBSCAN</a></span>
             <span class="chip live"><a href="./hierarchical/">Agglomerative · BIRCH</a></span>
+            <span class="chip live"><a href="./assumptions/">K-Medoids · K-Modes</a></span>
+            <span class="chip live"><a href="./assumptions/">OPTICS · Mean Shift</a></span>
+            <span class="chip live"><a href="./affinities/">Affinity Propagation</a></span>
             <span class="chip live"><a href="./affinities/">Spectral Clustering</a></span>
           </div>
         </div>
@@ -800,10 +857,10 @@
         <div class="branch">
           <h4>2.3 Anomaly Detection &nbsp;·&nbsp; 2.4 Association Rules</h4>
           <div class="chips">
-            <span class="chip">Z-Score · IQR · Mahalanobis</span>
-            <span class="chip">Isolation Forest</span>
-            <span class="chip">One-Class SVM · LOF · MCD</span>
-            <span class="chip">Apriori · FP-Growth</span>
+            <span class="chip live"><a href="./outliers/">Z-Score · IQR · Mahalanobis</a></span>
+            <span class="chip live"><a href="./isolation/">Isolation Forest</a></span>
+            <span class="chip live"><a href="./isolation/">One-Class SVM · LOF · MCD</a></span>
+            <span class="chip live"><a href="./baskets/">Apriori · FP-Growth</a></span>
           </div>
         </div>
       </details>

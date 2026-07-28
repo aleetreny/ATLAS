@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Odd One Out | ATLAS</title>
+  <meta name="description" content="Z-scores, Tukey's fences and Mahalanobis distance, measured on 178 bottles of wine at one, two and thirteen columns: three rules that judge a point with a yardstick the point itself helped build." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/outliers/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="Odd One Out | ATLAS" />
+  <meta property="og:description" content="Three classical rules for calling a point strange, and the defect they share: the yardstick is estimated from the data that contains the suspect." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/outliers/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Odd One Out | ATLAS" />
+  <meta name="twitter:description" content="Three classical rules for calling a point strange, and the defect they share: the yardstick is estimated from the data that contains the suspect." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    /* Per-article theme. Everything else inherits from these two. */
+    :root {
+      --primary: #1d4ed8;
+      --secondary: #173ead;
+    }
+    /* Width only: a margin here would override .interactive-full's rhythm. */
+    .narrow-widget {
+      max-width: 820px;
+    }
+    .odd-table {
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      margin-top: 0.5rem;
+      width: 100%;
+    }
+    .odd-table th,
+    .odd-table td {
+      padding: 5px 10px 5px 0;
+      text-align: left;
+      font-weight: 400;
+      vertical-align: top;
+    }
+    .odd-table th {
+      font-family: var(--font-heavy);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .odd-table td:first-child {
+      opacity: 0.75;
+      white-space: nowrap;
+    }
+    .odd-table td:last-child {
+      white-space: normal;
+    }
+    /* Four columns of mono text do not fit a phone at 13px. */
+    @media (max-width: 560px) {
+      .odd-table {
+        font-size: 11px;
+      }
+      .odd-table th,
+      .odd-table td {
+        padding: 4px 6px 4px 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- ======================= chrome ======================= -->
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <!-- ======================= hero ======================= -->
+  <section id="intro">
+    <h1 id="intro-hed">Odd One Out</h1>
+    <h1 id="intro-sub">Every rule for spotting a strange reading measures it with a ruler that reading helped build</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 2.3 &middot; Anomaly Detection &middot; Odd One Out</span>
+  </section>
+
+  <br />
+
+  <!-- ======================= introduction ======================= -->
+  <section>
+    <p class="body-text">
+      The previous four modules asked what a point <i>is</i>: which class, which
+      cluster, which two numbers stand in for its thirteen. This one asks a
+      smaller and much older question. Is this reading <span class="bold">the
+      odd one</span>, and if so, odd compared to what?
+    </p>
+    <br />
+    <p class="body-text">
+      Three answers have been in every statistics textbook for decades, and they
+      are still the first thing anybody reaches for.
+      <span class="bold">How many standard deviations from the mean</span>, which
+      is a z-score. <span class="bold">How far past the quartiles</span>, which
+      is Tukey's fences and the reason a boxplot has whiskers. And, when there
+      is more than one column, <span class="bold">Mahalanobis distance</span>,
+      which is the z-score with the correlations put back in. All three are one
+      line of arithmetic, all three are defensible, and all three share a defect
+      that is easy to state and almost never drawn.
+    </p>
+    <br />
+    <p class="body-text">
+      <span class="bold">The yardstick is estimated from the data that contains
+      the suspect.</span> The mean it is measured against has already moved
+      towards it. The spread it is divided by has already grown to accommodate
+      it. The suspect gets a vote at its own trial, and with a second suspect to
+      vote alongside it the two can acquit each other. None of that is a bug in
+      an implementation; it is what the formula says.
+    </p>
+    <br />
+    <p class="body-text">
+      Everything below is measured on the
+      <a href="../distances/">178 bottles of wine</a> that this site has been
+      carrying since its first article, at three widths: one column, two
+      columns, and all thirteen. The same bottles, three questions, and one
+      answer that gets worse as the question gets wider.
+    </p>
+    <br />
+    <p class="body-text" id="intro-guard">
+      Everything on this page is computed in the browser and checked at load
+      time against the references the generator produced.
+    </p>
+  </section>
+
+  <!-- ======================= scrolly ======================= -->
+  <section>
+    <h1 class="body-header">Push One Out</h1>
+    <p class="body-text" id="scrolly-intro">
+      Twelve bottles and one number each.
+    </p>
+  </section>
+
+  <section id="line-scrolly" class="scrolly">
+    <div class="scrolly-container">
+      <div class="steps-container">
+        <div class="step" data-index="0">
+          <div class="step-content">
+            <h3>Twelve Readings</h3>
+            <p id="step-0">
+              The magnesium content of the first twelve bottles in the file,
+              laid on a line. There is a mean, and there is a spread around it,
+              and nothing here looks like a problem.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="1">
+          <div class="step-content">
+            <h3>What Each Rule Calls Ordinary</h3>
+            <p id="step-1">
+              Two intervals, drawn as the areas they are willing to accept.
+              Three standard deviations either side of the mean is one of them;
+              Tukey's fences, a step and a half of the interquartile range past
+              each quartile, is the other. Nothing is outside either.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="2">
+          <div class="step-content">
+            <h3>One Walks Out</h3>
+            <p id="step-2">
+              Take the last bottle and push it. It leaves the fences first,
+              because the quartiles do not care how far it goes, and then it
+              leaves the three-sigma band as well. So far the rule is doing
+              exactly what it promises.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="3">
+          <div class="step-content">
+            <h3>The Band Follows</h3>
+            <p id="step-3">
+              Keep pushing. The mean slides towards it and the standard
+              deviation grows faster than the gap does, so the band widens to
+              swallow the very point that widened it.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="4">
+          <div class="step-content">
+            <h3>Two Of Them</h3>
+            <p id="step-4">
+              Now a second odd bottle. Both are obviously out of place, and the
+              three-sigma rule reports one of them.
+            </p>
+          </div>
+        </div>
+        <div class="step-spacer"></div>
+      </div>
+      <div class="charts-container">
+        <div class="chart-wrap" id="line-scrolly-chart"></div>
+      </div>
+    </div>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the bench ======================= -->
+  <section>
+    <h1 class="body-header">The Bench</h1>
+    <p class="body-text">
+      The same twelve bottles, with the push on a slider and a second odd bottle
+      on a button. The lower panel is the whole road rather than the step you
+      are standing on: each curve is a score, measured at every position the
+      slider can take, so the shape of the argument is visible from anywhere.
+    </p>
+    <br />
+    <p class="body-text">
+      Watch the top curve stop climbing, and then, with two odd bottles, watch
+      the one that never moved slide down through its own threshold while its
+      robust score does not move at all.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="line-widget">
+    <div class="controls-row" style="justify-content: center" id="line-modes"></div>
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">push the odd bottle to <span class="value" id="line-pos-label">95</span></span>
+      <input type="range" class="atlas-range" id="line-pos" aria-label="how far out the odd bottle is pushed" min="0" max="1" step="1" value="0" />
+    </div>
+    <div id="line-chart"></div>
+    <div id="line-curve"></div>
+    <div class="widget-readout" id="line-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="bench-note">
+      The top curve stops climbing, and where it stops has nothing to do with
+      wine.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the ceiling ======================= -->
+  <section>
+    <h1 class="body-header">A Ceiling With No Data In It</h1>
+    <p class="body-text">
+      Put <span class="bold">k</span> of the <span class="bold">n</span> readings
+      at some distance <span class="bold">d</span> and leave the rest where they
+      are. The mean moves to <span class="bold">kd/n</span>, the sample standard
+      deviation becomes
+    </p>
+    <p class="body-text">
+      $$s = d\sqrt{\frac{k(n-k)}{n(n-1)}}$$
+    </p>
+    <p class="body-text">
+      and the z-score of one of the k readings is the ratio of the two, in which
+      <span class="bold">d cancels out completely</span>:
+    </p>
+    <p class="body-text">
+      $$|z|_{\max} = \sqrt{\frac{(n-1)(n-k)}{nk}}$$
+    </p>
+    <p class="body-text" id="ceiling-intro">
+      Nothing about the data survives into that expression except how many
+      readings there are and how many of them are odd together.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="ceil-widget">
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">odd readings sitting together <span class="value" id="ceil-k-label">1</span></span>
+      <input type="range" class="atlas-range" id="ceil-k" aria-label="how many readings are odd at the same time" min="0" max="1" step="1" value="0" />
+    </div>
+    <div id="ceil-chart"></div>
+    <div class="widget-readout" id="ceil-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="ceiling-note">
+      The three-sigma rule has a smallest sample it can work in at all.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= breakdown ======================= -->
+  <section>
+    <h1 class="body-header">How Much It Takes To Break Each One</h1>
+    <p class="body-text" id="breakdown-intro">
+      The breakdown point of an estimator is the smallest fraction of the data
+      you have to move before it will follow you anywhere.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table" id="breakdown-table">
+      <thead>
+        <tr>
+          <th>Estimator</th>
+          <th>Readings that must move</th>
+          <th>As a fraction</th>
+          <th>What it does to the rule built on it</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="breakdown-note">
+      Which is why the same twelve bottles, scored two ways, give two answers.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= two columns ======================= -->
+  <section>
+    <h1 class="body-header">Two Columns Disagree With Their Own Margins</h1>
+    <p class="body-text" id="pair-intro">
+      Screening a table column by column is the obvious thing to do and the
+      wrong one.
+    </p>
+    <br />
+    <p class="body-text">
+      Mahalanobis' answer is to measure distance in units the data itself
+      supplies. Subtract the mean, then divide not by a standard deviation but
+      by the whole covariance matrix:
+    </p>
+    <p class="body-text">
+      $$d^2(x) = (x-\hat\mu)^{\!\top}\, \hat\Sigma^{-1} (x-\hat\mu)$$
+    </p>
+    <p class="body-text">
+      With one column that is exactly a squared z-score. With two, the set of
+      points at a fixed <span class="bold">d</span> is an ellipse tilted along
+      whichever way the columns move together, and the rule stops being a box
+      and starts being a shape. Both are drawn below: drag the suspect anywhere,
+      and watch what each one says about it.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="ell-widget">
+    <div class="controls-row" style="justify-content: center">
+      <button class="atlas-btn" id="ell-fit">the suspect is in the fit</button>
+      <button class="atlas-btn ghost" id="ell-blind">put it in the blind spot</button>
+      <button class="atlas-btn ghost" id="ell-reset">back to the start</button>
+    </div>
+    <div id="ell-chart"></div>
+    <div id="ell-bars"></div>
+    <div class="widget-readout" id="ell-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="pair-note">
+      The corner of the rectangle is where the two rules are furthest apart.
+    </p>
+    <br />
+    <p class="body-text" id="selffit-note">
+      And the toggle is the article's argument in one control.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the cutoff ======================= -->
+  <section>
+    <h1 class="body-header">The Cutoff Everybody Uses Is The Wrong One</h1>
+    <p class="body-text" id="cutoff-intro">
+      If the mean and the covariance were known rather than estimated, the
+      squared distance of a gaussian point would be chi-squared on p degrees of
+      freedom, and the textbook cutoff would be exactly right.
+    </p>
+    <br />
+    <p class="body-text">
+      They are not known. They come out of the same n rows being screened, and
+      then <span class="bold">d&sup2;</span> is not chi-squared at all: it is a
+      beta distribution scaled by <span class="bold">(n&minus;1)&sup2;/n</span>,
+      which is also, and not by coincidence, the largest value it can take. Below
+      is the false alarm rate the chi-squared cutoff actually delivers, measured
+      by handing it gaussian samples that contain nothing to find.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table" id="cal-table">
+      <thead>
+        <tr>
+          <th>Rows</th>
+          <th>Columns</th>
+          <th>Cutoff</th>
+          <th>Nominal rate</th>
+          <th>Measured rate</th>
+          <th>Exact rate</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="cutoff-note">
+      Every one of those measured rates is below the nominal one.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= thirteen columns ======================= -->
+  <section>
+    <h1 class="body-header">Thirteen Columns, And A Batch That Hides</h1>
+    <p class="body-text" id="deep-intro">
+      One suspect can flatter itself. A batch of them can do considerably better
+      than that.
+    </p>
+    <br />
+    <p class="body-text">
+      The slider plants bottles into the file: near-identical readings, sitting
+      well off the cloud along the direction in which the wine varies least,
+      which is the cheapest place in thirteen dimensions to hide. The browser
+      then does what any screening script would do, which is estimate a mean and
+      a covariance from everything it was given and score every row against them.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="deep-widget">
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">bottles planted <span class="value" id="deep-m-label">0</span></span>
+      <input type="range" class="atlas-range" id="deep-m" aria-label="how many contaminated bottles are planted in the file" min="0" max="1" step="1" value="0" />
+    </div>
+    <div id="deep-strip"></div>
+    <div id="deep-curve"></div>
+    <div class="widget-readout" id="deep-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="deep-note">
+      The batch does not have to be large.
+    </p>
+    <br />
+    <p class="body-text" id="identity-note">
+      One thing on that panel never moves, whatever is planted.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the bill ======================= -->
+  <section>
+    <h1 class="body-header">The Bill</h1>
+    <p class="body-text" id="cost-note">
+      Screening column by column is a pass over the table. The ellipse is not.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table" id="cost-table">
+      <thead>
+        <tr>
+          <th>Columns</th>
+          <th>Numbers touched, one column at a time</th>
+          <th>Numbers touched for the covariance</th>
+          <th>Rows needed before it can be inverted</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <hr />
+
+  <!-- ======================= verdict ======================= -->
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text">
+      Three rules, one shared defect, and three different amounts of it.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Reach for</th>
+          <th>When</th>
+          <th>What it buys</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">Three sigma</span></td>
+          <td>One column, plenty of rows, and at most one thing wrong with it</td>
+          <td id="v-z">Measured above.</td>
+          <td id="v-z-watch">The ceiling.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Tukey's fences</span></td>
+          <td>One column, and you would rather not assume a shape</td>
+          <td id="v-iqr">Measured above.</td>
+          <td id="v-iqr-watch">The quartiles.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Modified z</span></td>
+          <td>One column, and up to half of it might be wrong</td>
+          <td id="v-mz">Measured above.</td>
+          <td id="v-mz-watch">Ties.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Mahalanobis</span></td>
+          <td>Several columns that move together, and rows to spare</td>
+          <td id="v-md">Measured above.</td>
+          <td id="v-md-watch">The estimate it is measured against.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="closing-1">
+      Nothing above is an argument against these rules.
+    </p>
+    <br />
+    <p class="body-text">
+      The repair has a name, and it is the same one in every case: estimate the
+      centre and the spread with something a minority cannot drag, then measure
+      everybody against that. The median and the MAD do it in one dimension, and
+      the next article does it in thirteen, alongside three other detectors that
+      give up on the idea of a centre altogether: one that looks for points that
+      are <a href="../isolation/">easy to separate</a>, one that compares each
+      point only with its own neighbours, and one that draws a boundary and asks
+      nothing about what is inside it. Four definitions of strange, four
+      different answers on the same data, and a ranking that swaps when the
+      dataset does.
+    </p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! Everything above ran here: the means, the medians, the
+      quartiles, the 13 by 13 covariance and its Cholesky factor, the chi-squared
+      tail and every squared distance on the page are computed in this page's
+      JavaScript, each checked at load time against the reference that owns it,
+      with the sweeps, the simulations and those references from
+      <code>src/utils/generate_outliers_data.py</code>.
+    </p>
+  </section>
+
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text" id="ref-note">
+      The wine is the dataset the earlier articles ship, checked against the JSON
+      they publish.
+    </p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://www.tandfonline.com/doi/abs/10.1080/00031305.1988.10475530">[1] Maximum Z Scores and Outliers</a><br />
+      (Shiffler, R., The American Statistician, 1988; the ceiling this page draws)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://archive.org/details/exploratorydataa0000tuke">[2] Exploratory Data Analysis</a><br />
+      (Tukey, J., Addison-Wesley, 1977; the fences, and the boxplot they became)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://www.itl.nist.gov/div898/handbook/eda/section3/eda35h.htm">[3] Volume 16: How to Detect and Handle Outliers</a><br />
+      (Iglewicz, B. &amp; Hoaglin, D., ASQC, 1993; the modified z-score and its 0.6745)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://insa.nic.in/writereaddata/UpLoadedFiles/PINSA/Vol02_1936_1_Art05.pdf">[4] On the Generalised Distance in Statistics</a><br />
+      (Mahalanobis, P. C., Proceedings of the National Institute of Sciences of India, 1936)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://www.jstor.org/stable/2528963">[5] The Distribution of the Sample Mahalanobis Distance</a><br />
+      (Gnanadesikan, R. &amp; Kettenring, J., Biometrics, 1972; why the cutoff is a scaled beta and not a chi-squared)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://onlinelibrary.wiley.com/doi/book/10.1002/0471725382">[6] Robust Regression and Outlier Detection</a><br />
+      (Rousseeuw, P. &amp; Leroy, A., Wiley, 1987; breakdown points, masking and swamping)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://archive.ics.uci.edu/dataset/109/wine">[7] The Wine Recognition Dataset</a><br />
+      (Forina, M. et al., UCI Machine Learning Repository, 178 samples, 3 cultivars)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>
