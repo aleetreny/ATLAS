@@ -110,7 +110,10 @@ export function initProse(data) {
   set('hole-note',
     `So the flow builds a bridge. The mass it puts inside radius ${rr} is `
     + `${deep[`model_${rr}`]} against the truth's ${deep[`truth_${rr}`]}, a factor of `
-    + `${n0(T.ratio_deepest)}, and it does not fall with depth. What does change with depth is `
+    + `${n0(T.ratio_deepest)}. It falls once, hard, from ${T.rows[0].depth} layer to `
+    + `${T.rows[1].depth} (a factor of ${n0(T.first_drop)}), and then it stops falling: the rest `
+    + `of the column runs from ${T.tail_min} to ${T.tail_max} with no trend, four orders of `
+    + `magnitude above the truth. What does change with depth is `
     + `how hard the map is working: the worst stretch at the data goes from ${shallow.cond_max} `
     + `to ${deep.cond_max}. That is the shape of the whole limitation, and it is why the `
     + `<a href="../ebm/">energy model</a> has no trouble here at all: an energy is free to be `
@@ -149,8 +152,20 @@ export function initProse(data) {
         + `reported ${B.vae.bound} and the quantity it was bounding was ${B.vae.exact}: a gap of `
         + `${B.vae.gap} nats that nothing in its training would have revealed. This flow reports `
         + `${B.flow.exact} and that is the number, with no gap, because the change of variables `
-        + `is an identity. The truth's own is ${B.ceiling}, and it is the same ${B.ceiling} in `
-        + `all three articles because it is a property of the density rather than of any model.`
+        + `is an identity.`
+      + `<br /><br />`
+      + `And then the twist, which is why the exact KL is in the table rather than the held out `
+      + `average: on the same grid, the variational autoencoder's fitted density sits `
+      + `${B.vae.kl} nats from the truth and this flow's sits ${B.flow.kl}, with the flow's own `
+      + `seed range at this depth running from ${D.rows.find((r) => r.depth === M.depth_show).kl_min} `
+      + `to ${D.rows.find((r) => r.depth === M.depth_show).kl_max}. `
+      + `${B.vae.kl < B.flow.kl
+        ? `The bounded model is the better density here, and it has no way of knowing that. `
+          + `That is the whole distinction: the flow's advantage is not that it fits better, it `
+          + `is that what it reports is true.`
+        : `The flow is the better density here as well as the more honest one.`} `
+      + `The truth's own is ${B.ceiling}, and it is the same ${B.ceiling} in every article of `
+      + `this module because it is a property of the density rather than of any model.`
       : `The other articles' files were not present when this ran, so the table shows only what `
         + `this one measured.`}`);
 

@@ -122,8 +122,10 @@ export function initHoleWidget(data, flow) {
       layer.append('line').attr('x1', 0).attr('x2', w)
         .attr('y1', y(rows[0][`truth_${rr}`])).attr('y2', y(rows[0][`truth_${rr}`]))
         .attr('stroke', 'var(--anchor)').attr('stroke-width', 1.6).attr('stroke-dasharray', '6 4');
+      /* the truth's line sits at the bottom of the panel, so its label goes
+         above it: below it lands on the axis ticks */
       layer.append('text').attr('class', 'chart-note')
-        .attr('x', 2).attr('y', y(rows[0][`truth_${rr}`]) + 14).style('font-size', '11.5px')
+        .attr('x', 2).attr('y', y(rows[0][`truth_${rr}`]) - 7).style('font-size', '11.5px')
         .attr('fill', 'var(--anchor)').text('what the truth puts there');
       wrapLabel(title, 'the hole, and how much the flow fills it', w - 8);
     } else {
@@ -159,9 +161,8 @@ export function initHoleWidget(data, flow) {
     readout.innerHTML = `
       <table class="gen-table">
         <tr>
-          <th>layers</th><th>mass inside ${rr}</th><th>what the truth puts there</th>
-          <th>distance from the truth on the ring</th><th>everywhere else</th>
-          <th>worst stretch</th>
+          <th>layers</th><th>mass inside ${rr}</th><th>the truth puts</th>
+          <th>distance on the ring</th><th>everywhere else</th><th>worst stretch</th>
         </tr>
         ${rows.map((r) => `<tr>
           <td>${r.depth}</td>
@@ -176,8 +177,10 @@ export function initHoleWidget(data, flow) {
         The truth puts ${shallow[`truth_${rr}`]} of its mass inside that circle. The deepest flow
         measured puts ${deep[`model_${rr}`]}, which is
         <span class="value">${data.topology.ratio_deepest.toLocaleString('en-US')}</span> times as
-        much, and the column does not fall with depth: it goes
-        ${rows.map((r) => r[`model_${rr}`]).join(', ')}. This is not underfitting. A flow is a
+        much. The column falls once, by a factor of
+        ${data.topology.first_drop.toLocaleString('en-US')} between ${rows[0].depth} and
+        ${rows[1].depth} layers, and then stops: the rest runs from ${data.topology.tail_min} to
+        ${data.topology.tail_max} with no trend. This is not underfitting. A flow is a
         smooth invertible map applied to a gaussian, and a gaussian has no hole, so the image
         cannot have one either: the best the model can do is squeeze the bridge, and the last
         column is what that squeezing costs. The worst stretch of the map at the data goes from

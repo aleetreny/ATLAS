@@ -391,9 +391,15 @@ for d in DEPTHS:
           f"{row['cond_max']}")
 deep = hole_rows[-1]
 ratio = float(deep[f"model_{HOLES[1]}"]) / float(deep[f"truth_{HOLES[1]}"])
+col = [float(r[f"model_{HOLES[1]}"]) for r in hole_rows]
+tail = col[1:]
 print(f"  at the deepest flow measured the hole still holds {ratio:,.0f} times the mass the "
-      f"truth puts there, and it is not falling with depth: "
-      f"{[r[f'model_{HOLES[1]}'] for r in hole_rows]}")
+      f"truth puts there. From {DEPTHS[0]} layer to {DEPTHS[1]} it falls by a factor of "
+      f"{col[0] / col[1]:,.0f}, and after that it stops: the rest of the column runs from "
+      f"{min(tail):.3e} to {max(tail):.3e} with no trend, against a truth of "
+      f"{deep[f'truth_{HOLES[1]}']}")
+hole_stats = {"first_drop": rnd(col[0] / col[1], 1), "tail_min": sci(min(tail)),
+              "tail_max": sci(max(tail)), "column": [sci(v) for v in col]}
 
 # =============================================== F. the scoreboard of the module
 banner("F. the same density, three models, three kinds of number")
@@ -466,6 +472,7 @@ def q_forward(X):
     return X, ld
 
 
+zq_probe, ldq_probe = q_forward(npy(probe))
 zq, ldq = q_forward(Xte[:2000])
 logq_quant = -0.5 * (zq ** 2).sum(1) - np.log(2 * np.pi) + ldq
 with torch.no_grad():
@@ -509,7 +516,7 @@ payload = {
     "mask": mask,
     "additive": {"rows": add_rows, "logdet_max": sci(add_logdet)},
     "topology": {"rows": hole_rows, "radii": HOLES,
-                 "ratio_deepest": rnd(ratio, 1)},
+                 "ratio_deepest": rnd(ratio, 1), **hole_stats},
     "board": board,
     "net": {
         "format": "float16 little-endian, base64; three dense layers per coupling, row major "
@@ -517,9 +524,13 @@ payload = {
         "layers": spec, "count": int(len(v16)), "weights_b64": b64,
         "parity": [int(l.parity) for l in show.layers],
         "s_max": S_MAX, "quant": quant,
+        # Measured on the QUANTISED weights, because those are the numbers the
+        # browser has: against the full precision ones the same comparison would
+        # be measuring float16, which moves a log density by 0.05 here.
         "probe": {"x": mat(npy(probe[:24]), 5),
-                  "z": mat(npy(z_probe[:24]), 5),
-                  "logdet": arr(npy(ld_analytic[:24]), 5)},
+                  "z": mat(zq_probe[:24], 5),
+                  "logdet": arr(ldq_probe[:24], 5),
+                  "note": "z and logdet are the quantised network's, not the trained one's"},
     },
     "picture": picture,
 }

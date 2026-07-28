@@ -76,7 +76,10 @@ export function initDepthWidget(data) {
 
     const xa = (r, i) => (st.view === 'params' ? x(r.params) : x(r.depth));
     const series = [['affine coupling', D.rows, pick, 'var(--primary)']];
-    if (st.view !== 'held') {
+    /* the additive rows carry no parameter count of their own (their last layer
+       is half the width, so it is not the same number), so that arm is drawn
+       only on the views whose x axis is depth */
+    if (st.view === 'kl') {
       series.push(['additive, volume preserving', A.rows, (r) => r.kl, 'var(--anchor)']);
     }
     series.forEach(([label, rows, f, colour], si) => {
