@@ -49,7 +49,7 @@ from src.utils.generative_common import (          # noqa: E402
     ROOT as REPO, SEED, TOY, arr, banner, c2st, cached, digits14, export_flat,
     judge, judge_ink_check, mat, rbf_mmd2, real_vs_real_floor, rnd, sci,
     threads, toy_entropy, toy_grid, toy_kl, toy_pdf, toy_quadrature_report,
-    toy_sample, write_json)
+    toy_sample, write_json, disc_weights, toy_hole_exact)
 
 OUT = REPO / "ddpm" / "data"
 THREADS = threads()
@@ -328,8 +328,11 @@ def hole_mass(t, radius=1.2, m=512, abar=None):
     this is the rate.
     """
     X, dens, cell, shape, half = forward_field(t, m, abar)
-    inside = (X ** 2).sum(1) <= radius ** 2
-    return float((dens * inside).sum() * cell)
+    # Weighted by the fraction of each cell inside the circle, not by whether
+    # its centre is: at t=0 the mass in there is 1.4e-07, and a staircase drawn
+    # over the boundary is then the entire answer. The flows article published a
+    # number that moved with the resolution for exactly this reason.
+    return float((dens * disc_weights(X, np.sqrt(cell), radius)).sum() * cell)
 
 
 TRACK = [0, 10, 25, 50, 100, 150, 200, 300, 400, 550, 700, 850, 999]
