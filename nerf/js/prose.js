@@ -346,7 +346,15 @@ export function initProse(data) {
     + ` The seed spread is ${f2(S.seed_spread)} dB over ${S.seed_psnr.length} `
     + `run${S.seed_psnr.length === 1 ? '' : 's'}, which is the floor under every difference on this `
     + `chart` + (Math.abs(shapeWorth) > S.seed_spread
-      ? `, and this one clears it.` : `, and this one does not clear it.`));
+      ? `, and this one clears it.` : `, and this one does not clear it.`)
+    /* The count ladder flattening is the answer to the obvious objection about
+       the gap to the field, so it gets said here rather than left to the eye. */
+    + (S.counts.length > 1 ? ` And the ladder itself is flattening: the last doubling, `
+      + `${n0(S.counts[S.counts.length - 2].n)} blobs to ${n0(S.counts[S.counts.length - 1].n)}, buys `
+      + `<span class="bold">${f2(S.counts[S.counts.length - 1].inside
+        - S.counts[S.counts.length - 2].inside)} dB</span> where the first one bought `
+      + `${f2(S.counts[1].inside - S.counts[0].inside)}. Whatever separates this cloud from the field `
+      + `on this scene, it is not simply a shortage of blobs.` : ''));
 
   /* -------------------------------------------------------------- the cost */
   /* Whether the two land close or far apart decides how this section opens,
