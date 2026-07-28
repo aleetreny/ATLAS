@@ -7,6 +7,7 @@
  */
 
 const n0 = (v) => v.toLocaleString('en-US');
+const f1 = (v) => v.toFixed(1);
 const f2 = (v) => v.toFixed(2);
 const f3 = (v) => v.toFixed(3);
 const f4 = (v) => v.toFixed(4);
@@ -149,11 +150,19 @@ export function initProse(data, seq, attn) {
   const gaps = S.map((r) => r.selective.acc - r.invariant.acc);
   const biggest = Math.max(...gaps);
   const anyGap = gaps.some((v) => v > 0.05);
+  const widest = S[gaps.indexOf(biggest)];
+  const exactRatio = widest.selective.exact / Math.max(1e-9, widest.invariant.exact);
   set('sel-verdict',
     anyGap
       ? `The gap is the one idea in Mamba that changes what the model <span class="bold">can `
-        + `do</span> rather than how fast it does it: at its widest, `
-        + `<span class="bold">${pc(biggest)}</span> of tokens recalled. Making the step size and `
+        + `do</span> rather than how fast it does it: at its widest, at length `
+        + `${n0(widest.length)}, <span class="bold">${pc(biggest)}</span> more of the marked `
+        + `tokens recalled, ${pc(widest.selective.acc)} against ${pc(widest.invariant.acc)}. `
+        + `Per token is the kind way to score it. Asking for the whole sequence right, which is `
+        + `what copying actually means, the same two are `
+        + `<span class="bold">${pc(widest.selective.exact)}</span> and `
+        + `<span class="bold">${pc(widest.invariant.exact)}</span>, a factor of `
+        + `${f1(exactRatio)}. Making the step size and `
         + `the input and output maps depend on the token being read costs the convolution form, `
         + `because the kernel is no longer the same at every position, and that is the trade the `
         + `whole architecture is organised around: a parallel scan replaces the convolution and `
@@ -236,8 +245,8 @@ export function initProse(data, seq, attn) {
         + `be arbitrary.`);
   set('v-sel',
     anyGap
-      ? `Up to ${pc(biggest)} of tokens on the selective copy task, which the fixed system cannot `
-        + `do by construction.`
+      ? `Up to ${pc(biggest)} more tokens recalled on the selective copy task, and `
+        + `${pc(widest.selective.exact)} of whole sequences against ${pc(widest.invariant.exact)}.`
       : `${pc(biggest)} at its widest on the selective copy task, which is less than the mechanism `
         + `predicts at this scale.`);
   set('v-sel-watch',
