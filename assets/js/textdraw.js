@@ -32,6 +32,36 @@ export function seriesLabel(g, x, y, text, { anchor = 'start', size = 11.5,
   return t;
 }
 
+/**
+ * Place a label and then shorten it until it actually fits.
+ *
+ * The need for this is specific and keeps coming back: a label built from data
+ * (the heading words of a topic, the neighbours of a word) has no length you
+ * can plan a margin around, and it changes while the reader watches. Estimating
+ * "about seven units per letter" works until a topic turns up headed by
+ * "agreement exchange also government". Placing it, asking
+ * `getComputedTextLength` and dropping trailing words until it fits costs two
+ * lines and cannot be wrong.
+ */
+export function fitText(g, x, y, text, maxWidth, opts = {}) {
+  const node = seriesLabel(g, x, y, text, opts);
+  if (node.node().getComputedTextLength() <= maxWidth) return node;
+  const parts = String(text).split(' ');
+  while (parts.length > 1) {
+    parts.pop();
+    node.text(`${parts.join(' ')}...`);
+    if (node.node().getComputedTextLength() <= maxWidth) return node;
+  }
+  /* One word that does not fit on its own: cut characters rather than leave it
+   * hanging off the canvas. */
+  let s = String(text);
+  while (s.length > 1 && node.node().getComputedTextLength() > maxWidth) {
+    s = s.slice(0, -1);
+    node.text(`${s}...`);
+  }
+  return node;
+}
+
 export function legend(g, items, { x0 = 0, y0 = -14, gap = 150, size = 10.5,
   cols = 0 } = {}) {
   const sel = g.selectAll('g.legend-chip').data(items);

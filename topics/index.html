@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>What It Is About | ATLAS</title>
+  <meta name="description" content="Latent Dirichlet Allocation on the same Reuters stories the previous article counted, where the eight hand-written categories are sitting right there as an answer key. The collapsed Gibbs sampler runs in the page, token by token, from a random start." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/topics/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="What It Is About | ATLAS" />
+  <meta property="og:description" content="A topic model finds structure whether or not there is any. This one has an answer key to check against, and a sampler you can watch run." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/topics/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="What It Is About | ATLAS" />
+  <meta name="twitter:description" content="A topic model finds structure whether or not there is any. This one has an answer key to check against, and a sampler you can watch run." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    /* Per-article theme. Everything else inherits from these two. */
+    :root {
+      --primary: #3f6212;
+      --secondary: #324e0e;
+    }
+    .topic-list {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      line-height: 1.75;
+      margin-top: 0.6rem;
+    }
+    .topic-list .num {
+      opacity: 0.55;
+      margin-right: 0.5rem;
+    }
+    .pair-table {
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      width: 100%;
+    }
+    .pair-table th {
+      font-family: var(--font-heavy);
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      text-align: left;
+      padding: 6px 10px 6px 0;
+      font-weight: 400;
+    }
+    .pair-table td {
+      padding: 7px 10px 7px 0;
+      vertical-align: top;
+      border-top: 1px solid rgba(35, 47, 62, 0.14);
+      white-space: normal;
+    }
+    .pair-table td.sim {
+      white-space: nowrap;
+      opacity: 0.7;
+    }
+    .pair-table .shared {
+      color: var(--primary);
+      font-weight: 600;
+    }
+    .pair-table .only {
+      opacity: 0.45;
+    }
+    @media (max-width: 560px) {
+      .topic-list,
+      .pair-table {
+        font-size: 11px;
+      }
+      .pair-table td,
+      .pair-table th {
+        padding: 5px 6px 5px 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- ======================= chrome ======================= -->
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <!-- ======================= hero ======================= -->
+  <section id="intro">
+    <h1 id="intro-hed">What It Is About</h1>
+    <h1 id="intro-sub">Thousands of axes reduced to eight, on a corpus where the eight real answers are sitting right there to check against</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 4.1 &middot; NLP &middot; What It Is About</span>
+  </section>
+
+  <br />
+
+  <!-- ======================= introduction ======================= -->
+  <section>
+    <p class="body-text" id="intro-problem">
+      The previous article left a document as a point in a space with one axis
+      per word.
+    </p>
+    <br />
+    <p class="body-text">
+      A <span class="bold">topic model</span> proposes a different shape for
+      the answer. Rather than a document being a list of words, it is a
+      <span class="bold">mixture of a small number of topics</span>, and a topic
+      is a distribution over words. Nobody says what the topics are. They are
+      inferred from nothing but which words turn up together, and that is
+      simultaneously the appeal and the problem.
+    </p>
+    <br />
+    <p class="body-text" id="intro-key">
+      Almost every article about topic models evaluates them by printing the
+      topics and inviting you to nod.
+    </p>
+    <br />
+    <p class="body-text" id="intro-guard">
+      The sampler runs in this page.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the model ======================= -->
+  <section>
+    <h1 class="body-header">A Story About How A Document Got Written</h1>
+    <p class="body-text">
+      The model is a claim about a process. To write a document, first draw a
+      mixture over topics, then for each word in turn draw a topic from that
+      mixture and a word from that topic:
+    </p>
+    <p class="body-text">
+      $$\theta_d \sim \mathrm{Dir}(\alpha), \qquad z_{d,i} \sim \theta_d, \qquad w_{d,i} \sim \phi_{z_{d,i}}, \qquad \phi_t \sim \mathrm{Dir}(\beta)$$
+    </p>
+    <p class="body-text" id="model-note">
+      Nobody believes this is how anything was written.
+    </p>
+    <br />
+    <p class="body-text" id="gibbs-note">
+      Inference is the interesting part.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="sampler-widget">
+    <div class="controls-row" style="justify-content: center" id="sampler-runs"></div>
+    <div class="controls-row" style="justify-content: center" id="sampler-reset"></div>
+    <div id="sampler-chart"></div>
+    <div class="widget-readout" id="sampler-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="sampler-verdict">
+      The blocks appear. Whether they are the right blocks is a separate question.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= how many ======================= -->
+  <section>
+    <h1 class="body-header">How Many Topics Are There</h1>
+    <p class="body-text" id="k-intro">
+      The number of topics is not learned. It is supplied, and there are two
+      usual ways of choosing it.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="ksweep-widget">
+    <div class="controls-row" style="justify-content: center" id="ksweep-right"></div>
+    <div id="ksweep-chart"></div>
+    <div class="widget-readout" id="ksweep-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="k-verdict">
+      Two criteria, and the reason they differ is worth stating plainly.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= stability ======================= -->
+  <section>
+    <h1 class="body-header">Run It Again</h1>
+    <p class="body-text" id="stability-intro">
+      There is a question you can ask of any unsupervised method that costs one
+      more run of the code.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table" id="stability-table">
+      <thead>
+        <tr>
+          <th>Seeds compared</th>
+          <th>Matched topic similarity</th>
+          <th>Worst matched topic</th>
+          <th>Overlap of the top ten words</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="stability-verdict">
+      Same data, same model, same number of topics.
+    </p>
+    <br />
+    <p class="body-text" id="stability-examples">
+      Two runs, side by side:
+    </p>
+  </section>
+
+  <div class="interactive-full" id="pair-widget">
+    <div class="controls-row" style="justify-content: center" id="pair-views"></div>
+    <div id="pair-chart"></div>
+    <div class="widget-readout" id="pair-readout"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= filtering ======================= -->
+  <section>
+    <h1 class="body-header">The Preprocessing Is The Model</h1>
+    <p class="body-text" id="filter-intro">
+      Every recipe for a topic model begins with two lines of filtering, and
+      they are usually presented as housekeeping.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table" id="filter-table">
+      <thead>
+        <tr>
+          <th>What was removed</th>
+          <th>Vocabulary</th>
+          <th>Stopwords among the topic headings</th>
+          <th>Coherence</th>
+          <th>Agreement with the key</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="filter-verdict">
+      The filtering is not housekeeping.
+    </p>
+    <br />
+    <p class="body-text" id="alpha-note">
+      One more knob that is usually left at whatever the library chose:
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table" id="alpha-table">
+      <thead>
+        <tr>
+          <th>Document prior</th>
+          <th>Mean topics per document</th>
+          <th>Documents with one topic over 90%</th>
+          <th>Agreement with the key</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <hr />
+
+  <!-- ======================= rivals ======================= -->
+  <section>
+    <h1 class="body-header">Three Ways To Factor The Same Table</h1>
+    <p class="body-text" id="rivals-intro">
+      LDA is not the only way to turn a document-word table into a small number
+      of shared axes.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table" id="rivals-table">
+      <thead>
+        <tr>
+          <th>Model</th>
+          <th>Coherence</th>
+          <th>Agreement with the key</th>
+          <th>Purity</th>
+          <th>Best one-to-one match</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="rivals-verdict">
+      The three do not separate the way the literature suggests.
+    </p>
+    <br />
+    <p class="body-text" id="gibbs-vb-note">
+      And the same model fitted two completely different ways:
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= verdict ======================= -->
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text">
+      One model, one corpus with a key, and the four knobs that decided more
+      than the model did.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Decision</th>
+          <th>What it looks like</th>
+          <th>What it did here</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">The filtering</span></td>
+          <td>Two lines before the model runs</td>
+          <td id="v-filter">Measured above.</td>
+          <td id="v-filter-watch">It is not housekeeping.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">The number of topics</span></td>
+          <td>An integer you supply</td>
+          <td id="v-k">Measured above.</td>
+          <td id="v-k-watch">Two criteria, two answers.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">The seed</span></td>
+          <td>Not a modelling decision at all</td>
+          <td id="v-seed">Measured above.</td>
+          <td id="v-seed-watch">Nobody reports it.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">The document prior</span></td>
+          <td>A default in the library</td>
+          <td id="v-alpha">Measured above.</td>
+          <td id="v-alpha-watch">It decides how mixed a document is allowed to be.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="closing-1">
+      A topic model will always give you topics.
+    </p>
+    <br />
+    <p class="body-text" id="closing-2">
+      The next article keeps the counting and changes what is counted.
+    </p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! Everything above ran here: the collapsed Gibbs
+      sampler is written twice, once in Python and once in JavaScript, sharing
+      a linear congruential generator so the two produce the same integers
+      token for token, and the page checks its own counts against the
+      generator's at four checkpoints before it draws anything, with the
+      corpus, the sweeps, the noise floors and those references from
+      <code>src/utils/generate_topics_data.py</code>.
+    </p>
+  </section>
+
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text" id="ref-note">
+      The corpus is the same one the previous article used.
+    </p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://jmlr.org/papers/v3/blei03a.html">[1] Latent Dirichlet Allocation</a><br />
+      (Blei, D., Ng, A. &amp; Jordan, M., JMLR, 2003; the generative story and the variational inference scikit-learn implements)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://www.pnas.org/doi/10.1073/pnas.0307752101">[2] Finding Scientific Topics</a><br />
+      (Griffiths, T. &amp; Steyvers, M., PNAS, 2004; the collapsed Gibbs sampler this page runs, and the joint it climbs)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://papers.nips.cc/paper_files/paper/2009/hash/f92586a25bb3145facd64ab20fd554ff-Abstract.html">[3] Reading Tea Leaves: How Humans Interpret Topic Models</a><br />
+      (Chang, J., Boyd-Graber, J., Gerrish, S., Wang, C. &amp; Blei, D., NIPS, 2009; the finding that held-out likelihood and human judgement disagree)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://aclanthology.org/E14-1056/">[4] Evaluating Topic Coherence Measures</a><br />
+      (Lau, J. H., Newman, D. &amp; Baldwin, EACL, 2014; the normalised pointwise mutual information measure used here)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://mimno.infosci.cornell.edu/papers/mimno-semantic-emnlp.pdf">[5] Optimizing Semantic Coherence in Topic Models</a><br />
+      (Mimno, D., Wallach, H., Talley, E., Leenders, M. &amp; McCallum, A., EMNLP, 2011; why topics that score well can still be unusable, and the stability question)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>
