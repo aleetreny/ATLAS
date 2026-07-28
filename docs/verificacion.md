@@ -92,3 +92,36 @@ Para una revisión completa, un `Workflow` con un revisor por artículo más uno
 Commitear, **pushear siempre sin preguntar**, y verificar la web real en https://aleetreny.github.io/ATLAS/. Pages tarda 1-2 minutos y cachea 10 (`max-age=600`); si algo se ve viejo, es la caché de borde, no el código. Comprobar por HTTP que el HTML/JS desplegado contiene literalmente cada arreglo.
 
 Mensajes de commit: usar `git commit -F fichero` (los here-strings de PowerShell se rompen con comillas). Sin em dashes, sin atribución IA, autor `aleetreny`.
+
+## Trampa 18: el arnés también tiene falsos positivos, y se calibra contra un artículo publicado
+
+El barrido del módulo 3.2 (playwright sobre chromium, cada botón y cada posición
+de cada slider, a 1440 y a 375) empezó dando 94 hallazgos, y tres clases eran
+del arnés y no de la página:
+
+- **KaTeX guarda el LaTeX original** en un nodo `.katex-mathml` oculto, así que
+  un chequeo de "LaTeX en bruto en la página" lo encuentra siempre. Hay que
+  clonar el nodo y borrar `.katex-mathml` antes de leer el texto.
+- **Un slider puesto al valor que ya tenía** no cambia nada, y eso no es un
+  control muerto. El arnés compara el valor actual antes de escribirlo.
+- **El scrolly parece roto y no lo está.** `scrolly.js` no marca ninguna clase
+  en el paso activo, así que un selector `.is-active` cae siempre al primer
+  paso y reporta offsets de miles de píxeles. El paso activo es el que cubre la
+  banda central, que es lo que dispara el observador.
+
+Y la lección general: **antes de creerse un hallazgo geométrico, medir un
+artículo ya publicado con el mismo arnés**. El baseline del sitio, medido sobre
+`autoencoders/`, es 165px de offset medio del scrolly a 1440px y 249px a 375px,
+con 5 de 15 y 8 de 15 tarjetas fuera de pantalla en los extremos del recorrido,
+y cinco etiquetas de 4,84px a 375px. Un artículo nuevo con 143px y 4 de 15 no
+tiene un problema de scrolly: tiene el scrolly del sitio.
+
+## Trampa 19: un bucle de espera que busca su propio nombre no termina nunca
+
+Para encadenar generadores se escribió
+`while pgrep -f generate_ebm_data > /dev/null; do sleep 20; done; python ...`.
+La línea de comandos de ESE shell contiene `generate_ebm_data`, así que `pgrep`
+se encuentra a sí mismo y el bucle es infinito. Se encadena con `;` en un solo
+`sh -c`, o se busca el patrón con `pgrep -f "python3 -u src/utils/generate_..."`,
+que no coincide con el shell que espera.
+

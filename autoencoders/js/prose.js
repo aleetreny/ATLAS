@@ -226,8 +226,10 @@ export function initProse(data) {
     + `decode it, and look at what comes out. What is missing is any reason to believe a sampled `
     + `point will land somewhere the decoder handles well, which is a question about the `
     + `distribution of the code and not about reconstruction at all. Putting a distribution there `
-    + `on purpose is what a variational autoencoder does, and that is module 3, where the objective `
-    + `stops being "rebuild this" and starts being "produce something that could have been this".`);
+    + `on purpose is what a variational autoencoder does, and that is `
+    + `<a href="../vae/">the next article</a>, where the objective stops being "rebuild this" and `
+    + `starts being "produce something that could have been this". It opens by taking the network `
+    + `on this page, weight for weight out of this page's own data file, and sampling it.`);
 
   set('resources-note',
     `${n0(M.n)} stratified MNIST digits, seed ${M.seed}, mean pooled to ${M.side} by ${M.side} and `

@@ -817,16 +817,126 @@
           never existed. The shift from "classifying a cat" to "drawing a cat".
         </p>
       </div>
+      <div class="articles-container">
+        <!-- card: vae -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./vae/';" style="cursor: pointer">
+            <img src="assets/thumbnails/vae.svg"
+                 alt="Somewhere to Sample From article image: the two-number plane a variational encoder maps digits into, coloured by digit, inside two dashed circles marking the standard gaussian it was trained towards." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Somewhere to Sample From</h2>
+            <p class="article-description">
+              The last article left a decoder that answers anywhere and no reason
+              to believe a picked point is somewhere it answers well. Put a
+              distribution there on purpose, then check the bound against a log
+              likelihood computed exactly.
+            </p>
+            <button class="content-button">
+              <a href="./vae/">Dive In</a>
+            </button>
+          </div>
+        </div>
+
+        <!-- card: vq-vae -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./vq-vae/';" style="cursor: pointer">
+            <img src="assets/thumbnails/vq-vae.svg"
+                 alt="A Finite Alphabet article image: points from a ring and two blobs coloured by which codebook entry they were replaced with, with the sixty four entries drawn as crosses." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">A Finite Alphabet</h2>
+            <p class="article-description">
+              Make the code a symbol from a fixed list and the rate stops being
+              an estimate and becomes a count of bits. Turn one cell of a four
+              entry code by hand, and meet the gradient the encoder needs,
+              measured at exactly zero.
+            </p>
+            <button class="content-button">
+              <a href="./vq-vae/">Dive In</a>
+            </button>
+          </div>
+        </div>
+
+        <!-- card: ebm -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./ebm/';" style="cursor: pointer">
+            <img src="assets/thumbnails/ebm.svg"
+                 alt="The Constant Nobody Computes article image: a ring and two blobs of data with walkers scattered over them, the ring drawn as a dashed circle." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">The Constant Nobody Computes</h2>
+            <p class="article-description">
+              Any function becomes a density once you divide by its own integral.
+              Run the chains yourself, take the noise out and watch them stop
+              sampling, and read the bias of the usual shortcut against a
+              gradient that is not one.
+            </p>
+            <button class="content-button">
+              <a href="./ebm/">Dive In</a>
+            </button>
+          </div>
+        </div>
+
+        <!-- card: flows -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./flows/';" style="cursor: pointer">
+            <img src="assets/thumbnails/flows.svg"
+                 alt="Exactly article image: a square grid warped by a normalizing flow into the shape of a ring and two blobs, with the grid lines never crossing." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Exactly</h2>
+            <p class="article-description">
+              A change of variables is an identity, not a bound, so this model
+              hands back the log likelihood itself. Warp the plane one layer at a
+              time, and then watch a smooth invertible map fail to open a hole it
+              is not allowed to tear.
+            </p>
+            <button class="content-button">
+              <a href="./flows/">Dive In</a>
+            </button>
+          </div>
+        </div>
+
+        <!-- card: glow -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./glow/';" style="cursor: pointer">
+            <img src="assets/thumbnails/glow.svg"
+                 alt="How Many Bits Is a Picture article image: horizontal bars comparing bits per pixel for the raw file, a pixel histogram, gzip, PNG and the flow." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">How Many Bits Is a Picture</h2>
+            <p class="article-description">
+              An exact likelihood on images is a compression rate, so it can be
+              put beside gzip and PNG on the same bytes. Sample it in your
+              browser, invert a real digit exactly, and ask which of two datasets
+              it thinks is more likely.
+            </p>
+            <button class="content-button">
+              <a href="./glow/">Dive In</a>
+            </button>
+          </div>
+        </div>
+      </div>
+
       <details class="roadmap">
         <summary>Full branch map: 3. Generative AI</summary>
         <div class="branch">
-          <h4>3.1 Adversarial &nbsp;·&nbsp; 3.2 Probabilistic &amp; Flows &nbsp;·&nbsp; 3.3 Diffusion</h4>
+          <h4>3.2 Probabilistic &amp; Flows</h4>
+          <div class="chips">
+            <span class="chip live"><a href="./vae/">VAEs</a></span>
+            <span class="chip live"><a href="./vq-vae/">VQ-VAE</a></span>
+            <span class="chip live"><a href="./ebm/">EBMs</a></span>
+            <span class="chip live"><a href="./flows/">Normalizing Flows</a></span>
+            <span class="chip live"><a href="./glow/">Glow</a></span>
+          </div>
+        </div>
+        <div class="branch">
+          <h4>3.1 Adversarial &nbsp;·&nbsp; 3.3 Diffusion</h4>
           <div class="chips">
             <span class="chip">GANs · DCGAN · WGAN</span>
             <span class="chip">StyleGAN</span>
             <span class="chip">Pix2Pix · CycleGAN</span>
-            <span class="chip">VAEs · VQ-VAE · EBMs</span>
-            <span class="chip">Normalizing Flows · Glow</span>
             <span class="chip">DDPM</span>
             <span class="chip">Latent Diffusion</span>
             <span class="chip">ControlNet</span>

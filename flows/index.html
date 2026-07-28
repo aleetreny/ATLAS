@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Exactly | ATLAS</title>
+  <meta name="description" content="A visual, interactive introduction to normalizing flows: warp the plane one coupling layer at a time, read an exact log likelihood instead of a bound, and watch a diffeomorphism fail to open a hole." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/flows/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="Exactly | ATLAS" />
+  <meta property="og:description" content="A visual, interactive introduction to normalizing flows: warp the plane one coupling layer at a time, read an exact log likelihood instead of a bound, and watch a diffeomorphism fail to open a hole." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/flows/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Exactly | ATLAS" />
+  <meta name="twitter:description" content="A visual, interactive introduction to normalizing flows: warp the plane one coupling layer at a time, read an exact log likelihood instead of a bound, and watch a diffeomorphism fail to open a hole." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    :root {
+      --primary: #8a4b12;
+      --secondary: #6e3c0e;
+    }
+    .narrow-widget {
+      max-width: 880px;
+    }
+    .widget-readout {
+      overflow-x: auto;
+    }
+    .gen-table {
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      margin-top: 0.4rem;
+      width: 100%;
+    }
+    .gen-table th,
+    .gen-table td {
+      padding: 4px 10px 4px 0;
+      text-align: left;
+      font-weight: 400;
+      white-space: nowrap;
+    }
+    .gen-table th {
+      font-family: var(--font-heavy);
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .gen-table td:first-child,
+    .gen-table th:first-child {
+      opacity: 0.75;
+    }
+    .gen-table td:last-child,
+    .gen-table th:last-child {
+      white-space: normal;
+    }
+    .gen-note {
+      margin-top: 0.6rem;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+    .gen-pair {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.6rem;
+      align-items: flex-start;
+      justify-content: center;
+    }
+    .gen-pair canvas {
+      border: 1px solid var(--stone);
+      background: var(--white);
+    }
+    .gen-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    .canvas-caption {
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      letter-spacing: 0.3px;
+      color: var(--squidink);
+      opacity: 0.85;
+      text-align: center;
+      max-width: 360px;
+      line-height: 1.35;
+    }
+    .slider-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+      margin: 0.2rem 0 0.6rem;
+      font-family: var(--font-mono);
+      font-size: 13px;
+    }
+    .slider-row input[type="range"] {
+      width: 240px;
+      accent-color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <section id="intro">
+    <h1 id="intro-hed">Exactly</h1>
+    <h1 id="intro-sub">Three models so far have handed back a bound, a rate and an unnormalised score; this one hands back the log likelihood itself, and the price is a restriction so strong that one of the shapes in this module is out of reach</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 3.2 · Probabilistic Generative Models · Change of Variables</span>
+  </section>
+
+  <br />
+
+  <section>
+    <p class="body-text">
+      Take a standard gaussian and push it through an invertible function. The
+      density of what comes out is not an approximation and not a bound: it is
+      the density you started with, divided by how much the function stretched
+      space at that point. That is the change of variables formula, it is an
+      identity, and it has been in every probability textbook for a century.
+    </p>
+    <br />
+    <p class="body-text">
+      Using it as a model means building a network that is invertible and whose
+      stretching factor can be computed. Both are real restrictions and this
+      article measures what each one costs, starting with the one that never
+      appears in the papers: a smooth invertible map cannot tear a hole in
+      anything, and the density this module is fitted against has one.
+    </p>
+    <br />
+    <p class="body-text" id="opening-note"></p>
+  </section>
+
+  <section>
+    <h1 class="body-header">Warp the Plane, One Layer at a Time</h1>
+    <p class="body-text" id="scrolly-intro"></p>
+  </section>
+
+  <section id="flow-scrolly" class="scrolly">
+    <div class="scrolly-container">
+      <div class="steps-container">
+        <div class="step" data-index="0">
+          <div class="step-content">
+            <h3>A Gaussian, and a Grid Drawn On It</h3>
+            <p id="scrolly-step-0"></p>
+          </div>
+        </div>
+        <div class="step" data-index="1">
+          <div class="step-content">
+            <h3>One Layer Moves Half the Coordinates</h3>
+            <p id="scrolly-step-1"></p>
+          </div>
+        </div>
+        <div class="step" data-index="2">
+          <div class="step-content">
+            <h3>The Next One Moves the Other Half</h3>
+            <p id="scrolly-step-2"></p>
+          </div>
+        </div>
+        <div class="step" data-index="3">
+          <div class="step-content">
+            <h3>Eight Layers Later</h3>
+            <p id="scrolly-step-3"></p>
+          </div>
+        </div>
+        <div class="step" data-index="4">
+          <div class="step-content">
+            <h3>And the Grid Never Tears</h3>
+            <p id="scrolly-step-4"></p>
+          </div>
+        </div>
+        <div class="step-spacer"></div>
+      </div>
+      <div class="charts-container">
+        <div class="chart-wrap" id="flow-chart"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="body-text">
+      The identity, and the reason a coupling layer is shaped the way it is:
+    </p>
+    <p class="body-text">
+      $$ \log p(x) = \log \mathcal{N}\!\left(f(x)\right) + \log \left| \det \frac{\partial f}{\partial x} \right| $$
+      $$ y_{a} = x_{a}, \qquad y_{b} = x_{b} \odot e^{s(x_{a})} + t(x_{a}) $$
+    </p>
+    <p class="body-text" id="coupling-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">Depth, and What It Is Worth</h1>
+    <p class="body-text" id="depth-intro"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="depth-widget">
+    <div class="controls-row" style="justify-content: center" id="depth-buttons"></div>
+    <div id="depth-chart"></div>
+    <div class="widget-readout" id="depth-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="depth-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">The Hole It Cannot Open</h1>
+    <p class="body-text" id="hole-intro"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="hole-widget">
+    <div class="controls-row" style="justify-content: center" id="hole-buttons"></div>
+    <div class="gen-pair">
+      <div class="gen-stack">
+        <div id="hole-picture"></div>
+        <div class="canvas-caption" id="hole-caption"></div>
+      </div>
+      <div id="hole-chart"></div>
+    </div>
+    <div class="widget-readout" id="hole-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="hole-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">Three Models, Three Kinds of Number</h1>
+    <p class="body-text" id="board-intro"></p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Model</th>
+          <th>What it can report</th>
+          <th>On this density</th>
+          <th>What it costs to get it</th>
+        </tr>
+      </thead>
+      <tbody id="board-table"></tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="board-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text" id="verdict-intro"></p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>What you want</th>
+          <th>Reach for</th>
+          <th>Why</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">An exact log likelihood</span></td>
+          <td>A flow</td>
+          <td id="verdict-exact"></td>
+          <td id="verdict-exact-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">Samples, cheaply</span></td>
+          <td>A flow</td>
+          <td id="verdict-sample"></td>
+          <td id="verdict-sample-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">A shape with a hole in it</span></td>
+          <td>Something else</td>
+          <td id="verdict-hole"></td>
+          <td id="verdict-hole-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">Depth that pays</span></td>
+          <td>Alternate the mask</td>
+          <td id="verdict-mask"></td>
+          <td id="verdict-mask-warn"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="closing-note"></p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! The flow above runs in this page, in JavaScript, from
+      the float16 weights the generator exported: the warped grid, the samples
+      and the stretching factor under the cursor are all computed here, and
+      every number quoted was measured by
+      <code>src/utils/generate_flows_data.py</code> on those same quantised
+      weights.
+    </p>
+  </section>
+
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text" id="resources-note"></p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1410.8516">[1] NICE: Non-linear Independent Components Estimation</a><br />
+      (Dinh, L., Krueger, D. &amp; Bengio, Y., 2014; the additive coupling layer, and the volume preservation measured here)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1605.08803">[2] Density Estimation using Real NVP</a><br />
+      (Dinh, L., Sohl-Dickstein, J. &amp; Bengio, S., 2016; the affine coupling layer this article fits)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1505.05770">[3] Variational Inference with Normalizing Flows</a><br />
+      (Rezende, D. J. &amp; Mohamed, S., 2015; where the name comes from)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1912.02762">[4] Normalizing Flows for Probabilistic Modeling and Inference</a><br />
+      (Papamakarios, G. et al., JMLR, 2021; the survey, including the topology limitation)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/2006.02425">[5] Why Normalizing Flows Fail to Detect Out-of-Distribution Data</a><br />
+      (Kirichenko, P., Izmailov, P. &amp; Wilson, A. G., 2020; what an exact likelihood does and does not buy)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>

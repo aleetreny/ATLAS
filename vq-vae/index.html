@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>A Finite Alphabet | ATLAS</title>
+  <meta name="description" content="A visual, interactive introduction to the VQ-VAE: click a cell of a four entry code and watch the digit change, see the gradient the encoder needs measured at exactly zero, and read a rate in bits instead of nats." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/vq-vae/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="A Finite Alphabet | ATLAS" />
+  <meta property="og:description" content="A visual, interactive introduction to the VQ-VAE: click a cell of a four entry code and watch the digit change, see the gradient the encoder needs measured at exactly zero, and read a rate in bits instead of nats." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/vq-vae/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="A Finite Alphabet | ATLAS" />
+  <meta name="twitter:description" content="A visual, interactive introduction to the VQ-VAE: click a cell of a four entry code and watch the digit change, see the gradient the encoder needs measured at exactly zero, and read a rate in bits instead of nats." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    /* Per-article theme. Everything else inherits from these two. */
+    :root {
+      --primary: #9c3d14;
+      --secondary: #7d3110;
+    }
+    .narrow-widget {
+      max-width: 880px;
+    }
+    .widget-readout {
+      overflow-x: auto;
+    }
+    .gen-table {
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      margin-top: 0.4rem;
+      width: 100%;
+    }
+    .gen-table th,
+    .gen-table td {
+      padding: 4px 10px 4px 0;
+      text-align: left;
+      font-weight: 400;
+      white-space: nowrap;
+    }
+    .gen-table th {
+      font-family: var(--font-heavy);
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .gen-table td:first-child,
+    .gen-table th:first-child {
+      opacity: 0.75;
+    }
+    .gen-table td:last-child,
+    .gen-table th:last-child {
+      white-space: normal;
+    }
+    .gen-note {
+      margin-top: 0.6rem;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+    .gen-pair {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.6rem;
+      align-items: flex-start;
+      justify-content: center;
+    }
+    .gen-pair canvas {
+      border: 1px solid var(--stone);
+      background: var(--white);
+    }
+    .gen-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    .canvas-caption {
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      letter-spacing: 0.3px;
+      color: var(--squidink);
+      opacity: 0.85;
+      text-align: center;
+      max-width: 340px;
+      line-height: 1.35;
+    }
+    /* The four cells of the code, as four buttons the reader can turn. */
+    .cell-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 92px);
+      gap: 8px;
+      justify-content: center;
+    }
+    .cell-btn {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      padding: 8px 6px;
+      border: 1px solid var(--squidink);
+      background: var(--white);
+      color: var(--squidink);
+      cursor: pointer;
+      line-height: 1.3;
+      border-radius: 2px;
+    }
+    .cell-btn.is-picked {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: var(--white);
+    }
+    .slider-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+      margin: 0.2rem 0 0.6rem;
+      font-family: var(--font-mono);
+      font-size: 13px;
+    }
+    .slider-row input[type="range"] {
+      width: 240px;
+      accent-color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <section id="intro">
+    <h1 id="intro-hed">A Finite Alphabet</h1>
+    <h1 id="intro-sub">A continuous code has no natural size, so its rate had to be estimated in nats through a divergence; make the code a symbol from a fixed list and the rate becomes a count of bits, at the price of a gradient that does not exist</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 3.2 · Probabilistic Generative Models · Discrete Codes</span>
+  </section>
+
+  <br />
+
+  <section>
+    <p class="body-text">
+      The <a href="../vae/">previous article</a> measured a code's rate in nats,
+      as a divergence between two continuous distributions, because a real
+      number has no size. Two numbers of latent could carry six nats or eighty
+      depending on how tightly the second term squeezed them, and the only way
+      to know was to compute a KL.
+    </p>
+    <br />
+    <p class="body-text">
+      Replace the code with an <span class="bold">entry in a fixed list</span>
+      and that stops being true. Four cells, sixty four entries each, is
+      twenty four bits: not an estimate, a count. Everything else in the model
+      stays where it was, and the whole article is about what changes when the
+      code becomes a symbol.
+    </p>
+    <br />
+    <p class="body-text" id="opening-note"></p>
+  </section>
+
+  <section>
+    <h1 class="body-header">Nearest Entry Wins</h1>
+    <p class="body-text" id="scrolly-intro"></p>
+  </section>
+
+  <section id="vq-scrolly" class="scrolly">
+    <div class="scrolly-container">
+      <div class="steps-container">
+        <div class="step" data-index="0">
+          <div class="step-content">
+            <h3>Points, and Nowhere to Put Them</h3>
+            <p id="scrolly-step-0"></p>
+          </div>
+        </div>
+        <div class="step" data-index="1">
+          <div class="step-content">
+            <h3>Two Entries Is One Bit</h3>
+            <p id="scrolly-step-1"></p>
+          </div>
+        </div>
+        <div class="step" data-index="2">
+          <div class="step-content">
+            <h3>Sixteen Is Four</h3>
+            <p id="scrolly-step-2"></p>
+          </div>
+        </div>
+        <div class="step" data-index="3">
+          <div class="step-content">
+            <h3>And Sixty Four Is Six</h3>
+            <p id="scrolly-step-3"></p>
+          </div>
+        </div>
+        <div class="step" data-index="4">
+          <div class="step-content">
+            <h3>Spend the Same Bits One Axis at a Time</h3>
+            <p id="scrolly-step-4"></p>
+          </div>
+        </div>
+        <div class="step-spacer"></div>
+      </div>
+      <div class="charts-container">
+        <div class="chart-wrap" id="vq-chart"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="body-text">
+      Written down, the quantiser is one line, and it is the line that breaks
+      everything downstream:
+    </p>
+    <p class="body-text">
+      $$ q(z) = e_{k}, \qquad k = \arg\min_{j} \lVert z - e_{j} \rVert_2 $$
+    </p>
+    <p class="body-text" id="argmin-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">The Rate Is a Number of Bits</h1>
+    <p class="body-text" id="rate-intro"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="rate-widget">
+    <div class="slider-row">
+      <label for="rate-slider">bits spent on the code</label>
+      <input type="range" id="rate-slider" min="0" max="7" step="1" value="5"
+             aria-label="how many bits the code is allowed to carry" />
+      <span id="rate-value" class="value"></span>
+    </div>
+    <div id="rate-chart"></div>
+    <div class="widget-readout" id="rate-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="rate-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">Turn One Cell and Watch</h1>
+    <p class="body-text" id="cells-intro"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="cells-widget">
+    <div class="controls-row" style="justify-content: center" id="cells-buttons"></div>
+    <div class="gen-pair">
+      <div class="gen-stack">
+        <div class="cell-grid" id="cell-grid"></div>
+        <div class="canvas-caption" id="cell-caption"></div>
+      </div>
+      <div class="gen-stack">
+        <div id="cells-canvas"></div>
+        <div class="canvas-caption" id="cells-canvas-caption"></div>
+      </div>
+      <div class="gen-stack">
+        <div id="cells-atlas"></div>
+        <div class="canvas-caption" id="cells-atlas-caption"></div>
+      </div>
+    </div>
+    <div class="widget-readout" id="cells-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="cells-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">Most of the Alphabet Is Never Used</h1>
+    <p class="body-text" id="health-intro"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="health-widget">
+    <div class="controls-row" style="justify-content: center" id="health-buttons"></div>
+    <div id="health-chart"></div>
+    <div class="widget-readout" id="health-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="health-note"></p>
+    <br />
+    <p class="body-text" id="sample-note"></p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Where the code grids came from</th>
+          <th>What the judge says</th>
+          <th>How spread over the ten classes</th>
+          <th>What it means</th>
+        </tr>
+      </thead>
+      <tbody id="sample-table"></tbody>
+    </table>
+  </div>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text" id="verdict-intro"></p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>What you want</th>
+          <th>Reach for</th>
+          <th>Why</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">A rate you can count</span></td>
+          <td>A discrete code</td>
+          <td id="verdict-rate"></td>
+          <td id="verdict-rate-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">The best picture at a fixed budget</span></td>
+          <td>Quantise vectors, not numbers</td>
+          <td id="verdict-vector"></td>
+          <td id="verdict-vector-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">A codebook that stays alive</span></td>
+          <td>Initialise it from the data</td>
+          <td id="verdict-collapse"></td>
+          <td id="verdict-collapse-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">To generate anything</span></td>
+          <td>A second model over the codes</td>
+          <td id="verdict-prior"></td>
+          <td id="verdict-prior-warn"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="closing-note"></p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! The encoder, the codebook, the decoder and the prior
+      over codes all run in this page, in JavaScript, from the float16 weights
+      the generator exported, and every number quoted was measured by
+      <code>src/utils/generate_vqvae_data.py</code> on those same quantised
+      weights.
+    </p>
+  </section>
+
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text" id="resources-note"></p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1711.00937">[1] Neural Discrete Representation Learning</a><br />
+      (van den Oord, A., Vinyals, O. &amp; Kavukcuoglu, K., 2017; the model, the straight-through rule and the commitment term)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1906.00446">[2] Generating Diverse High-Fidelity Images with VQ-VAE-2</a><br />
+      (Razavi, A., van den Oord, A. &amp; Vinyals, O., 2019; the two stage recipe this article measures in miniature)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://ieeexplore.ieee.org/document/1094577">[3] Least Squares Quantization in PCM</a><br />
+      (Lloyd, S. P., IEEE Trans. Inf. Theory, 1982; the algorithm a codebook is fitted with, from 1957)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1308.3432">[4] Estimating or Propagating Gradients Through Stochastic Neurons</a><br />
+      (Bengio, Y., Léonard, N. &amp; Courville, A., 2013; where the straight-through estimator comes from)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1611.01144">[5] Categorical Reparameterization with Gumbel-Softmax</a><br />
+      (Jang, E., Gu, S. &amp; Poole, B., 2016; the soft relaxation the straight-through rule is compared against here)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>
