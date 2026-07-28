@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Affinities | ATLAS</title>
+  <meta name="description" content="Affinity propagation and spectral clustering: two algorithms that throw the coordinates away and keep only the n by n table of how similar each pair is, measured on the same blobs, rings, trap and wine as the five clustering articles before." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/affinities/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="Affinities | ATLAS" />
+  <meta property="og:description" content="Affinity propagation and spectral clustering: two algorithms that keep only the n by n table of how similar each pair is, and what that buys and costs." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/affinities/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Affinities | ATLAS" />
+  <meta name="twitter:description" content="Affinity propagation and spectral clustering: two algorithms that keep only the n by n table of how similar each pair is, and what that buys and costs." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    /* Per-article theme. Everything else inherits from these two. */
+    :root {
+      --primary: #7f1d1d;
+      --secondary: #651717;
+    }
+    /* Width only: a margin here would override .interactive-full's rhythm. */
+    .narrow-widget {
+      max-width: 820px;
+    }
+    .aff-table {
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      margin-top: 0.5rem;
+      width: 100%;
+    }
+    .aff-table th,
+    .aff-table td {
+      padding: 5px 10px 5px 0;
+      text-align: left;
+      font-weight: 400;
+    }
+    .aff-table th {
+      font-family: var(--font-heavy);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .aff-table td:first-child {
+      opacity: 0.75;
+    }
+    /* Four columns of mono text do not fit a phone at 13px: measured at 375px
+       the table came out 339 wide inside a 308 readout and the last column was
+       cut off, with nothing to scroll it. */
+    @media (max-width: 560px) {
+      .aff-table {
+        font-size: 11px;
+      }
+      .aff-table th,
+      .aff-table td {
+        padding: 4px 6px 4px 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- ======================= chrome ======================= -->
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <!-- ======================= hero ======================= -->
+  <section id="intro">
+    <h1 id="intro-hed">Affinities</h1>
+    <h1 id="intro-sub">Two algorithms that never look at a point, only at the n&sup2; numbers between them</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 2.1 &middot; Clustering &middot; Affinities</span>
+  </section>
+
+  <br />
+
+  <!-- ======================= introduction ======================= -->
+  <section>
+    <p class="body-text">
+      Every algorithm this module has published reads coordinates.
+      <a href="../kmeans/">A mean</a> is an average of them,
+      <a href="../gmm/">a covariance</a> is measured in them,
+      <a href="../dbscan/">a radius</a> is a length in them, and even
+      <a href="../assumptions/">a medoid</a>, which is a point rather than an
+      average, is chosen by adding distances up. Two algorithms are left on the
+      map, and neither of them does.
+    </p>
+    <br />
+    <p class="body-text">
+      <span class="bold">Affinity propagation</span> and
+      <span class="bold">spectral clustering</span> both begin by throwing the
+      points away. What they keep is the square table of how similar each pair
+      is, n rows by n columns, and everything that happens afterwards happens
+      on that table: messages passed along its entries in one case, the
+      eigenvectors of it in the other. Nothing downstream can tell whether the
+      numbers came from two dimensions, from thirteen, or from a questionnaire.
+    </p>
+    <br />
+    <p class="body-text">
+      That buys the two things this module has been paying for since its first
+      article. Nobody has to say <span class="bold">k</span>, and a cluster no
+      longer has to be a <span class="bold">blob</span>. Both claims are true,
+      both are measured below, and both are more expensive than they look: one
+      of the two gets k wrong on every dataset here, and the other needs a
+      parameter that decides what "near" means before it can start.
+    </p>
+    <br />
+    <p class="body-text" id="intro-guard">
+      Both run in this page, and are checked at load time against the references
+      the generator produced.
+    </p>
+  </section>
+
+  <!-- ======================= scrolly ======================= -->
+  <section>
+    <h1 class="body-header">Watch Them Argue</h1>
+    <p class="body-text" id="scrolly-intro">
+      Thirty points from the blobs you already know, and an algorithm with no k
+      in it anywhere.
+    </p>
+  </section>
+
+  <section id="messages-scrolly" class="scrolly">
+    <div class="scrolly-container">
+      <div class="steps-container">
+        <div class="step" data-index="0">
+          <div class="step-content">
+            <h3>Everybody Applies</h3>
+            <p>
+              There is no k, so there is no shortlist. Every point is a
+              candidate to be the centre of a cluster, and the algorithm's job
+              is to decide which ones the others will agree on. The only input
+              is the table of similarities: here, minus the squared distance
+              between each pair, which is what scikit-learn hands it by default.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="1">
+          <div class="step-content">
+            <h3>Responsibility: How Badly I Want You</h3>
+            <p>
+              The first message runs from a point to a candidate.
+              <span class="bold">r(i,k)</span> is how much better k is for i
+              than i's best alternative, so it is large only when the candidate
+              beats everybody else, and negative when it does not. Drawn here
+              from one point: thick lines are strong claims.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="2">
+          <div class="step-content">
+            <h3>Availability: How Ready I Am To Serve</h3>
+            <p>
+              The second runs the other way. <span class="bold">a(i,k)</span>
+              gathers the enthusiasm every <i>other</i> point has for k and
+              passes it back to i as evidence that k is going to be an exemplar
+              anyway. This is the part that makes the answer a consensus rather
+              than a set of independent nearest-neighbour votes.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="3">
+          <div class="step-content">
+            <h3>Half Of Yesterday</h3>
+            <p>
+              The two messages feed each other, so the iteration swings. Every
+              update is therefore mixed with the previous one, and the mixing
+              weight, the damping, is a real parameter with real consequences,
+              measured further down. Points that have talked themselves into
+              the job are drawn filled.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="4">
+          <div class="step-content">
+            <h3>Settled</h3>
+            <p id="scrolly-final">
+              A point is an exemplar when its own two messages to itself add up
+              to something positive, and the rest join whichever exemplar they
+              are most similar to.
+            </p>
+          </div>
+        </div>
+        <div class="step-spacer"></div>
+      </div>
+      <div class="charts-container">
+        <div class="chart-wrap" id="messages-chart"></div>
+      </div>
+    </div>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the objective ======================= -->
+  <section>
+    <h1 class="body-header">The Same Objective As Last Time</h1>
+    <p class="body-text">
+      Written down, affinity propagation is maximising
+    </p>
+    <p class="body-text">
+      $$\mathcal{S}(E)=\sum_{i \notin E} \max_{e \in E} s(i,e) \;+\; |E|\,p$$
+    </p>
+    <p class="body-text">
+      over every possible set of exemplars <span class="bold">E</span>, where
+      <span class="bold">p</span> is the <span class="bold">preference</span>,
+      the price of opening a cluster. With
+      <span class="bold">s(i,e) = &minus;‖x&#8202;<sub>i</sub> &minus; x&#8202;<sub>e</sub>‖&sup2;</span>
+      the first term is exactly the sum the
+      <a href="../assumptions/">previous article</a> minimised with k-medoids,
+      one square heavier, and the second term is the only difference:
+      <span class="bold">k does not appear</span>. It is not given; it is
+      whatever number of exemplars pays for itself.
+    </p>
+    <br />
+    <p class="body-text">
+      The two message updates are the max-sum algorithm on the factor graph of
+      that objective, which is a sentence worth exactly one line of arithmetic:
+    </p>
+    <p class="body-text">
+      $$r(i,k) \leftarrow s(i,k) - \max_{k' \neq k}\big[a(i,k') + s(i,k')\big]$$
+    </p>
+    <p class="body-text">
+      $$a(i,k) \leftarrow \min\Big(0,\; r(k,k) + \sum_{i' \notin \{i,k\}} \max\big(0, r(i',k)\big)\Big)$$
+    </p>
+    <p class="body-text">
+      Two numbers per ordered pair, updated until the set of points with
+      <span class="bold">r(k,k) + a(k,k) &gt; 0</span> stops changing. There is
+      no initialisation to get lucky with, no restarts, and no seed: run it
+      twice and you get the same answer twice, which is more than k-means can
+      say.
+    </p>
+    <br />
+    <p class="body-text" id="objective-note">
+      Whether the messages find the best set of exemplars has an answer.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the dials ======================= -->
+  <section>
+    <h1 class="body-header">Nobody Says K, Somebody Says p</h1>
+    <p class="body-text" id="default-note">
+      The library default for the preference is the median of all the
+      similarities.
+    </p>
+    <br />
+    <p class="body-text">
+      So move it. The left slider is the preference, the price of opening a
+      cluster, running from far below the most negative similarity in the table
+      up to the default. The right one is the damping, which exists only to
+      stop the messages oscillating and turns out not to be a numerical detail
+      at all. Both algorithms below the picture run here, at every position.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="pref-widget">
+    <div class="controls-row" style="justify-content: center" id="pref-cases"></div>
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">preference <span class="value" id="pref-p-label">0</span></span>
+      <input type="range" class="atlas-range" id="pref-p" aria-label="the price of opening a cluster" min="0" max="1" step="1" value="0" />
+      <span class="slider-label">damping <span class="value" id="pref-d-label">0.90</span></span>
+      <input type="range" class="atlas-range" id="pref-d" aria-label="how much of the previous message each update keeps" min="0" max="1" step="1" value="0" />
+    </div>
+    <div id="pref-chart"></div>
+    <div id="pref-curve"></div>
+    <div class="widget-readout" id="pref-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="stair-note">
+      The staircase from preference to k is not a staircase.
+    </p>
+    <br />
+    <p class="body-text" id="damping-note">
+      And the damping is not a numerical detail.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the graph ======================= -->
+  <section>
+    <h1 class="body-header">The Other Way To Use A Square Table</h1>
+    <p class="body-text">
+      Affinity propagation reads the table as a market: who would serve whom,
+      and at what price. Spectral clustering reads the same table as a
+      <span class="bold">graph</span>: points are vertices, similarities are
+      edge weights, and a cluster is a piece you can cut off without cutting
+      many edges.
+    </p>
+    <br />
+    <p class="body-text">
+      Cutting few edges on its own is a bad idea, because the cheapest cut is
+      usually one lonely point. Shi and Malik's fix is to charge the cut against
+      how much of the graph is left on each side:
+    </p>
+    <p class="body-text">
+      $$\text{Ncut}(A,B)=\frac{\text{cut}(A,B)}{\text{assoc}(A)}+\frac{\text{cut}(A,B)}{\text{assoc}(B)}$$
+    </p>
+    <p class="body-text">
+      where cut is the weight crossing the boundary and assoc is all the weight
+      touching one side. Minimising it over every possible split is
+      NP-hard, and the way out is the whole trick: allow the indicator of the
+      split to be a real vector instead of a yes or no, and the problem becomes
+      an eigenvector problem in the <span class="bold">Laplacian</span>
+    </p>
+    <p class="body-text">
+      $$L = I - D^{-1/2} W D^{-1/2}$$
+    </p>
+    <p class="body-text">
+      whose smallest eigenvectors are the relaxed answer. Take the k of them
+      with the smallest eigenvalues, treat each point's k coordinates as its new
+      position, scale every row to unit length, and run k-means there. That last
+      step is not a joke at the algorithm's expense: k-means is fine once the
+      space has been bent so that clusters are round in it, and bending the
+      space is what the eigenvectors did.
+    </p>
+    <br />
+    <p class="body-text">
+      Two facts make the spectrum worth drawing rather than just using. The
+      number of eigenvalues equal to zero is exactly the number of
+      <span class="bold">connected pieces</span> the graph is in, and the
+      eigenvectors that go with them are those pieces' indicators. So when the
+      graph does fall apart along the clusters, spectral clustering is not
+      approximating anything: it is reading off the answer.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="spectral-widget">
+    <div class="controls-row" style="justify-content: center" id="spec-cases"></div>
+    <div class="controls-row" style="justify-content: center" id="spec-modes"></div>
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label" id="spec-param-name">neighbours <span class="value" id="spec-param-label">10</span></span>
+      <input type="range" class="atlas-range" id="spec-param" aria-label="how the graph decides what counts as near" min="0" max="1" step="1" value="0" />
+    </div>
+    <div class="controls-row" style="justify-content: center" id="spec-views"></div>
+    <div id="spec-chart"></div>
+    <div id="spec-eigen"></div>
+    <div class="widget-readout" id="spec-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="rings-note">
+      The rings are the dataset this module opened its failure gallery with.
+    </p>
+    <br />
+    <p class="body-text" id="band-note">
+      The parameter that replaced k has a band, and outside it the answer
+      collapses.
+    </p>
+    <br />
+    <p class="body-text" id="eigengap-note">
+      The gaps in the spectrum are the closest thing here to an opinion about k.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the relaxation ======================= -->
+  <section>
+    <h1 class="body-header">What The Relaxation Costs</h1>
+    <p class="body-text" id="cut-intro">
+      An eigenvector is the answer to a question nobody asked: the real-valued
+      version of a yes-or-no problem.
+    </p>
+    <br />
+    <p class="body-text">
+      Below are sixteen of the blobs, joined by a gaussian on every pair. The
+      histogram is <span class="bold">every</span> way of splitting them in two,
+      scored by normalised cut, computed in the page. Drag the threshold along
+      the eigenvector and watch which of those splits you land on.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="cut-widget">
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">threshold on the eigenvector <span class="value" id="cut-t-label">0</span></span>
+      <input type="range" class="atlas-range" id="cut-t" aria-label="where to cut the eigenvector into two groups" min="0" max="1" step="1" value="0" />
+    </div>
+    <div class="controls-row" style="justify-content: center">
+      <button class="atlas-btn ghost" id="cut-best">jump to the best threshold</button>
+      <button class="atlas-btn ghost" id="cut-zero">cut at zero</button>
+    </div>
+    <div id="cut-chart"></div>
+    <div id="cut-hist"></div>
+    <div class="widget-readout" id="cut-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="cut-note">
+      The relaxation is exact here, and its eigenvalue is not.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the bill ======================= -->
+  <section>
+    <h1 class="body-header">The Bill Is The Same For Both</h1>
+    <p class="body-text" id="cost-note">
+      Everything above is quadratic in n, and quadratic in n is a table.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table" id="cost-table">
+      <thead>
+        <tr>
+          <th>Points</th>
+          <th>Similarities to hold</th>
+          <th>At eight bytes each</th>
+          <th id="cost-updates-head">Message updates for one run</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="variants-note">
+      There is one more cost, and it is not arithmetic.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= verdict ======================= -->
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text">
+      Two algorithms, one shared object, and two very different bills.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Reach for</th>
+          <th>When</th>
+          <th>What it buys</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">Affinity propagation</span></td>
+          <td>Exemplars have to be real items, and k is genuinely unknown</td>
+          <td id="v-ap">Measured on the blobs.</td>
+          <td id="v-ap-watch">The preference.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Spectral clustering</span></td>
+          <td>Clusters that are connected but not round, or a similarity with no space behind it</td>
+          <td id="v-spec">Measured on the rings and the trap.</td>
+          <td id="v-spec-watch">The graph.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">k-means anyway</span></td>
+          <td>Round clusters, k known, n large</td>
+          <td id="v-km">Measured on all of them.</td>
+          <td>Nothing on this page scales the way it does, and two of the five datasets below were built to break it.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <h1 class="body-header">The Module, On One Table</h1>
+    <p class="body-text" id="closing-scoreboard">
+      Ten algorithms, five datasets, one measurement each.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table" id="board-table">
+      <thead>
+        <tr>
+          <th>Dataset</th>
+          <th>k-means</th>
+          <th>mixture</th>
+          <th>k-medoids</th>
+          <th>DBSCAN</th>
+          <th>HDBSCAN</th>
+          <th>mean shift</th>
+          <th>OPTICS</th>
+          <th>affinity</th>
+          <th>spectral</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="board-note">
+      Every cell is measured on the coordinates this page ships.
+    </p>
+    <br />
+    <p class="body-text" id="nok-note">
+      Three of those ten do not take k as an argument, which makes the column
+      worth reading on its own.
+    </p>
+    <br />
+    <p class="body-text">
+      That closes the clustering branch: six articles, ten algorithms, one
+      question. The pattern across them was never that the sophisticated ones
+      win. It is that every algorithm is an assumption with a search bolted on,
+      that the assumption is what decides which datasets it can see at all, and
+      that the search is what you actually get. Take an assumption away and
+      something comes back to be paid for elsewhere, and where it comes back
+      can be measured before you commit.
+    </p>
+    <br />
+    <p class="body-text">
+      What all ten have in common is the thing to leave with: they were all
+      looking for <i>groups</i>. Sometimes the structure worth finding is not a
+      grouping at all but a handful of
+      <a href="../directions/">directions</a>, the combinations of features
+      along which the data actually varies, and that is where module 2.2 opens,
+      on these same <span id="wine-count">178</span> bottles of wine, which cluster slightly
+      <span class="bold">better</span> once eleven of their thirteen dimensions
+      have been thrown away. That module is already written end to end, and it
+      keeps taking things away: first the coordinates, so that
+      <a href="../distances/">a table of distances</a> is all that is left, then
+      the distances themselves, until
+      <a href="../neighbours/">only who is next to whom</a> survives, and
+      finally the map itself, replaced by
+      <a href="../autoencoders/">two functions</a> that answer anywhere you
+      point. This page's n by n table is where that road starts.
+    </p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! Everything above ran here: the message passing, the
+      graphs, the Lanczos iteration behind the eigenvectors and the exhaustive
+      enumeration of every split of sixteen points are all in this page's
+      JavaScript, each checked at load time against the reference that owns it,
+      with the datasets, the sweeps and those references from
+      <code>src/utils/generate_affinities_data.py</code>.
+    </p>
+  </section>
+
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text" id="ref-note">
+      Datasets rebuilt with the constructions of the earlier articles and
+      checked coordinate by coordinate against the JSON those articles ship.
+    </p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://www.science.org/doi/10.1126/science.1136800">[1] Clustering by Passing Messages Between Data Points</a><br />
+      (Frey, B. &amp; Dueck, D., Science, 2007; affinity propagation, and the two message updates this page runs)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://ieeexplore.ieee.org/document/868688">[2] Normalized Cuts and Image Segmentation</a><br />
+      (Shi, J. &amp; Malik, J., IEEE TPAMI, 2000; the objective the eigenvector relaxes)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://papers.nips.cc/paper/2001/hash/801272ee79cfde7fa5960571fee36b9b-Abstract.html">[3] On Spectral Clustering: Analysis and an Algorithm</a><br />
+      (Ng, A., Jordan, M. &amp; Weiss, Y., NIPS, 2001; the row-normalised last step used here)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/0711.0189">[4] A Tutorial on Spectral Clustering</a><br />
+      (von Luxburg, U., Statistics and Computing, 2007; the three last steps compared above, and the eigengap heuristic)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://nvlpubs.nist.gov/nistpubs/jres/45/jresv45n4p255_A1b.pdf">[5] An Iteration Method for the Solution of the Eigenvalue Problem of Linear Differential and Integral Operators</a><br />
+      (Lanczos, C., Journal of Research of the NBS, 1950; the iteration this page uses for the eigenvectors)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://archive.ics.uci.edu/dataset/109/wine">[6] The Wine Recognition Dataset</a><br />
+      (Forina, M. et al., UCI Machine Learning Repository, 178 samples, 3 cultivars)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>
