@@ -347,6 +347,24 @@ export function initProse(data) {
     + `run${S.seed_psnr.length === 1 ? '' : 's'}, which is the floor under every difference on this `
     + `chart` + (Math.abs(shapeWorth) > S.seed_spread
       ? `, and this one clears it.` : `, and this one does not clear it.`)
+    /* The direction term costs storage too, so whether it earns that storage is
+       read off the ladder at its own budget rather than at its own blob count.
+       On this scene it does not, which the chart shows and the prose should
+       not leave to the eye either. */
+    + (() => {
+      const nv = A.no_viewdep;
+      const lo2 = [...S.counts].reverse().find((r) => r.dof <= nv.dof);
+      const hi2 = S.counts.find((r) => r.dof >= nv.dof);
+      if (!lo2 || !hi2 || lo2.n === hi2.n) return '';
+      const t = (nv.dof - lo2.dof) / (hi2.dof - lo2.dof);
+      const ladderHere = lo2.inside + t * (hi2.inside - lo2.inside);
+      return ` The direction term is the other thing that costs storage, and at its own budget of `
+        + `${n0(nv.dof)} numbers the ellipsoid ladder is worth about ${db(ladderHere)}, against the `
+        + `${db(nv.inside)} the direction-free cloud actually reaches: dropping it `
+        + (nv.inside > ladderHere
+          ? `and spending the numbers on blobs instead would have been the worse trade here.`
+          : `and spending the numbers on blobs instead would have been the better trade here.`);
+    })()
     /* The count ladder flattening is the answer to the obvious objection about
        the gap to the field, so it gets said here rather than left to the eye. */
     + (S.counts.length > 1 ? ` And the ladder itself is flattening: the last doubling, `
