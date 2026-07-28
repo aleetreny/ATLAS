@@ -116,11 +116,11 @@ export function drawGrid(g, x, y, w, h, { xTicks = 6, yTicks = 6, xValues = null
  * So measure. If the y axis has already been drawn, put the label just clear of
  * whatever it actually occupies, and never closer than the old default. Call
  * axisLabels AFTER drawAxes and it places itself. */
-export function axisLabels(g, w, h, { x = '', y = '' } = {}) {
+export function axisLabels(g, w, h, { x = '', y = '', leftBudget = null, xOffset = 42 } = {}) {
   if (x) {
     let lx = g.select('text.axis-label.x');
     if (lx.empty()) lx = g.append('text').attr('class', 'axis-label x');
-    lx.attr('x', w / 2).attr('y', h + 42).attr('text-anchor', 'middle').text(x);
+    lx.attr('x', w / 2).attr('y', h + xOffset).attr('text-anchor', 'middle').text(x);
   }
   if (y) {
     let ly = g.select('text.axis-label.y');
@@ -138,9 +138,16 @@ export function axisLabels(g, w, h, { x = '', y = '' } = {}) {
     /* But never past the edge of the canvas. Moving the label out to clear wide
      * ticks is only an improvement while it still fits: on a chart with a tight
      * left margin the cure would be worse than the overlap. The inner group is
-     * translated by the margin, so the margin is readable straight off it. */
+     * translated by the margin, so the margin is readable straight off it.
+     *
+     * Unless it is not: a widget with two stacked panels puts the lower one in
+     * a group translated by `translate(0, top)`, and reading the margin off
+     * that gives zero, which clamps the label to +16 and parks it inside the
+     * plot on top of the data. That is a real bug that shipped in a first draft
+     * of module 4.2, so a caller that knows its own left margin passes it. */
     const m = /translate\(\s*([-\d.]+)/.exec(g.attr('transform') || '');
-    if (m) dy = Math.max(dy, -(parseFloat(m[1]) - 16));
+    const budget = leftBudget ?? (m ? parseFloat(m[1]) : null);
+    if (budget !== null) dy = Math.max(dy, -(budget - 16));
     ly.attr('transform', 'rotate(-90)').attr('x', -h / 2).attr('y', dy).attr('text-anchor', 'middle').text(y);
   }
 }

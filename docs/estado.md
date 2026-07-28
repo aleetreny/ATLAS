@@ -64,6 +64,13 @@ Este repositorio empezó como notebooks de ML y se está convirtiendo (notebooks
 | 38 | The Constant Nobody Computes (cadenas de Langevin vivas sobre la energía, el ruido quitado, el sesgo de CD contra un gradiente exacto) | `ebm/` | `#5f2412` |
 | 39 | Exactly (rejilla deformada capa a capa en vivo, la escalera de profundidad, el agujero que no puede abrir) | `flows/` | `#8a4b12` |
 | 40 | How Many Bits Is a Picture (muestreo vivo con temperatura y viaje de ida y vuelta exacto, bits contra gzip y PNG, la tabla dos por dos) | `glow/` | `#6d2f1f` |
+| 41 | One Step Ahead (cuatro diferencias con sus correlogramas, la identidad suavizado = ARIMA(0,1,1) comprobada en la página, cobertura de los intervalos contada) | `arima/` | `#713f12` |
+| 42 | The Size of a Surprise (GARCH ajustable con la verosimilitud en vivo, GARCH contra el VIX contra lo que pasó, excedencias de la línea de pérdida, respuesta al impulso con dos órdenes) | `volatility/` | `#851463` |
+| 43 | A Forecast Is a Table (la tabla de rasgos construida paso a paso, los tres protocolos de partición dibujados, el techo del árbol, tendencia de bisagras con su precio) | `time-features/` | `#853c43` |
+| 44 | Many Series at Once (la pila que resta su propia explicación, el cruce contra el número de series, los pesos de selección contra lo que cuesta romper cada entrada) | `deep-forecast/` | `#3c4e85` |
+| 45 | A Model That Never Saw Your Data (números a letras, el suelo del alfabeto, cien continuaciones muestreadas de una serie nunca vista, una familia entera quitada del corpus) | `zero-shot/` | `#0e5c29` |
+| 46 | What a Sound Looks Like (espectrograma vivo con la ventana como mando, resolución contra la verdad conocida, invertir con y sin fase para escuchar, MFCC contra el tono) | `spectrograms/` | `#5c0e1d` |
+| 47 | One Sample at a Time (campo receptivo exacto contra el periodo del tono, la ley mu escuchable, el modelo alimentado con su propia salida, CTC contra un decodificador que no para) | `wavenet/` | `#5c3e29` |
 
 Los artículos 1 a 6 pasaron una **revisión completa** (commit `5e4852b`, 2026-07-25): auditoría estática en paralelo más un barrido en navegador de cada control, cada paso de scrolly y cada etiqueta a 1425px y 375px. 73 hallazgos aplicados. Todas las páginas tienen ahora `canonical` + Open Graph, los 20 sliders tienen `aria-label`, y cada cierre enlaza al siguiente artículo.
 
@@ -81,6 +88,56 @@ Dos de esos hallazgos eran errores numéricos publicados: `polyFit` del artícul
 
 **Y con los artículos 36 a 40, el módulo 3.2 entero.** Los cinco están encadenados entre ellos (vae -> vq-vae -> ebm -> flows -> glow), el primero recoge la promesa que dejó abierta el cierre del 30 (abre tomando la red de ese artículo, peso a peso de su propio fichero de datos, y muestreándola) y el último desemboca en el 3.3 por la difusión. De la sección 3 quedan 3.1 y 3.3.
 
+**Dónde está el mapa ahora mismo**: secciones 1 y 2 cerradas enteras, de la 3 solo el 3.2, y de la
+4 el 4.2 y el 4.3 (los artículos 41 a 47), que es lo último publicado. Los huecos abiertos son, por
+tamaño: el **4.1 entero** (NLP, siete chips, y es el que más lectores tiene esperando), el **3.1 y
+el 3.3** (adversarial y difusión, a los que apunta el cierre del 40), y las secciones 5 a 8 sin
+empezar. La cadena de lectura termina hoy en `wavenet/`, así que el siguiente artículo que se
+escriba en la sección 4 se inserta por taxonomía y hay que revisar qué cierre pasa a apuntar a
+cuál: el 40 (`glow/`) enlaza ahora al 41 (`arima/`) porque es la tarjeta siguiente en la portada,
+y ese enlace cruza de módulo, que es normal y ya pasa cuatro veces más en el sitio.
+
+
+**Módulos 4.2 y 4.3 completos (artículos 41 a 47)**: siete artículos que estrenan la sección 4 por
+el lado de las series y del sonido, dejando el 4.1 (NLP) para después. Comparten dos capas de datos
+nuevas, las dos en `src/utils/`: `timeseries_data.py` (CO2 mensual de Mauna Loa, manchas solares,
+cuentas macro trimestrales, retornos diarios del S&P 500 y el VIX, todos empaquetados con
+statsmodels o con arch, ninguno descargado) y `audio_data.py`, que **no lee sonido, lo fabrica**
+con una fuente y un filtro cuyos parámetros están escritos antes de existir la primera muestra.
+Esa decisión es la que hace medible el módulo de audio: el tono en cada instante, las resonancias
+y la frontera entre dos fonemas se conocen exactamente, y ningún corpus grabado puede decir lo
+mismo sin un anotador humano que además no llega a la muestra.
+
+Los cinco de series comparten además **la misma serie y los mismos orígenes**, y no se declara, se
+comprueba: cada generador afirma el digest `22fe4dedba02bb9f` del CO2 que publica el 41 antes de
+correr, así que las tablas se leen juntas. En esos 109 orígenes: SARIMA 0,3705, ETS 0,4062, árbol
+impulsado sobre las diferencias 0,4974, tendencia de bisagras al mejor precio 0,5892, N-BEATS
+entrenado solo con series escritas 0,6221, el modelo de letras preentrenado 0,7477, estacional
+ingenuo 1,2594. **Los dos últimos nunca vieron esa serie.**
+
+Resultados que salieron en contra del guion y reescribieron el guion: (1) las dos pruebas de
+estacionariedad dan por buena la serie diferenciada del CO2 mientras su autocorrelación a doce
+meses vale **0,922**, porque un ciclo fijo no se va a ninguna parte y eso es lo único que esas
+pruebas miran; (2) la regla de Box-Jenkins y el AIC aciertan el orden entre el 32% y el 75% de las
+veces sobre datos generados por el modelo exacto que se ajusta, con la tasa de falsos positivos
+predicha en forma cerrada (1 - 0,95^10 = 40,13%) y medida (41,75% con 240 puntos); (3) la
+regresión clásica entre dos paseos aleatorios independientes sale significativa el **84,4%** de
+las veces mientras el test de Granger, que casi todo el mundo cree que es el del cuento, solo
+infla del 5% al 9,2%; (4) **no normalizar** las ventanas le sale mejor al modelo global (0,7059
+contra 0,7864 con tres semillas cada uno), al revés de la receta, y el desglose por familia dice
+dónde; (5) los pesos de selección de un modelo tipo TFT y la importancia por permutación
+**discrepan en los dos sentidos**: la promoción verdadera recibe peso 0,0 (su duplicado exacto se
+lleva 0,4528) y "la promoción de ayer" recibe 0,3791 mientras romperla cuesta 1,08 veces la
+pérdida; (6) en audio, la ventana larga sobre un barrido **lineal** mejora sin parar, porque el
+sesgo se cancela por simetría, y solo al doblar la frecuencia aparece la U que todo el mundo
+dibuja (2,36 Hz a 32 muestras contra 446,72 a 2.048).
+
+Y dos identidades que la página comprueba en el navegador: el suavizado exponencial simple y el
+ARIMA(0,1,1) son **la misma recursión** (5,684e-13 sobre 526 meses y las 50 tasas del control)
+aunque sus dos estimadores acaben a 0,6995 ppm uno del otro, y el campo receptivo de una pila de
+convoluciones causales dilatadas es exactamente uno más la suma de las dilataciones, lo que
+predice **antes de entrenar nada** dónde estará el mayor salto de la tabla: al cruzar las 66,67
+muestras que dura un periodo de tono.
 
 **Módulo 3.2 completo (artículos 36 a 40)**: cinco artículos sobre la misma pregunta, con **dos datasets compartidos y probados**. Los 2.000 dígitos son los del artículo 30, y no se declara, se demuestra: cada generador reconstruye los dígitos desde la misma semilla y luego corre **el encoder float16 que ese artículo publicó** sobre ellos, reproduciendo sus códigos a 0,003819 contra el suelo de cuantización de 0,003858 que ese artículo midió. Y la densidad de dos dimensiones (un anillo y dos manchas, escrita en forma cerrada) existe por una razón: **en dos dimensiones la constante de normalización es una suma**, así que todo lo que el resto del módulo tiene que aproximar aquí se calcula. La rejilla reproduce la masa cerrada a 2,8e-15, la entropía de la verdad es 2,427732 nats, y ese es el techo contra el que se miden los cinco.
 

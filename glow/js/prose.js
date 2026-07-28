@@ -329,7 +329,13 @@ export function initProse(data) {
     + `<br /><br />`
     + `What none of them do is start from a picture and destroy it slowly, learning only how to `
     + `undo one small step of the damage. That model has no bound, no constant, no invertibility `
-    + `requirement and no chain that has to mix, and it is what module 3.3 is about.`);
+    + `requirement and no chain that has to mix, and it is what module 3.3 is about.`
+    + `<br /><br />`
+    + `The next article in reading order leaves pictures behind entirely. Everything in this `
+    + `module could be shuffled without losing anything: the digits arrive in no particular order `
+    + `and nothing about digit 41 depends on digit 40. <a href="../arima/">Module 4 begins</a> by `
+    + `taking that away, which turns out to break far more of the machinery than it looks like it `
+    + `should, starting with what a test is allowed to tell you.`);
 
   set('resources-note',
     `${n0(M.n_digits_train)} MNIST digits to fit on and ${n0(M.n_digits_test)} held out, plus `

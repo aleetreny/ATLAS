@@ -1011,6 +1011,148 @@
           Understanding human language and forecasting the future from history.
         </p>
       </div>
+      <div class="articles-container">
+        <!-- card: arima -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./arima/';" style="cursor: pointer">
+            <img src="assets/thumbnails/arima.svg"
+                 alt="One Step Ahead article image: a rising seasonal curve of carbon dioxide with a forecast and its interval fanning out from the right hand end." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">One Step Ahead</h2>
+            <p class="article-description">
+              Put the rows in order and almost every habit has to be relearned.
+              Watch two stationarity tests pass a series that is obviously
+              seasonal, check an exact identity between a smoother and an ARIMA
+              in your browser, and count how often an interval keeps its promise.
+            </p>
+            <button class="content-button">
+              <a href="./arima/">Dive In</a>
+            </button>
+          </div>
+        </div>
+
+        <!-- card: volatility -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./volatility/';" style="cursor: pointer">
+            <img src="assets/thumbnails/volatility.svg"
+                 alt="The Size of a Surprise article image: the spiky absolute daily returns of an index in grey with the fitted volatility path drawn over them." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">The Size of a Surprise</h2>
+            <p class="article-description">
+              On twenty years of daily returns the next value is a coin flip and
+              its spread is not. Fit a variance nobody ever observes with three
+              sliders, score it against the options market, and count the days
+              the loss went past the line.
+            </p>
+            <button class="content-button">
+              <a href="./volatility/">Dive In</a>
+            </button>
+          </div>
+        </div>
+
+        <!-- card: time-features -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./time-features/';" style="cursor: pointer">
+            <img src="assets/thumbnails/time-features.svg"
+                 alt="A Forecast Is a Table article image: a heatmap of a feature matrix, one row per month, with the target column picked out in a different colour." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">A Forecast Is a Table</h2>
+            <p class="article-description">
+              Write the past into columns and any regressor can forecast, which
+              is what most people who forecast for a living now do. Then meet
+              the split that lies, the ceiling a tree cannot forecast past, and a
+              decomposition scored against a truth written down first.
+            </p>
+            <button class="content-button">
+              <a href="./time-features/">Dive In</a>
+            </button>
+          </div>
+        </div>
+
+        <!-- card: deep-forecast -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./deep-forecast/';" style="cursor: pointer">
+            <img src="assets/thumbnails/deep-forecast.svg"
+                 alt="Many Series at Once article image: a falling curve of error against the number of series a single network was trained on, with three dashed reference lines." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Many Series at Once</h2>
+            <p class="article-description">
+              One network across hundreds of series instead of one model each.
+              Watch a stack of blocks subtract its own explanation, score its
+              interpretable half against components written down in advance, and
+              put a variable selection weight beside what breaking that variable
+              costs.
+            </p>
+            <button class="content-button">
+              <a href="./deep-forecast/">Dive In</a>
+            </button>
+          </div>
+        </div>
+
+        <!-- card: zero-shot -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./zero-shot/';" style="cursor: pointer">
+            <img src="assets/thumbnails/zero-shot.svg"
+                 alt="A Model That Never Saw Your Data article image: a smooth series in grey with the staircase of its quantised version drawn over it." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">A Model That Never Saw Your Data</h2>
+            <p class="article-description">
+              Turn numbers into letters and train a language model on a pile of
+              series, then ask it to finish one it has never read. Measure the
+              floor the alphabet puts under it, and remove a whole family from
+              the pile to find out what having seen the shape was worth.
+            </p>
+            <button class="content-button">
+              <a href="./zero-shot/">Dive In</a>
+            </button>
+          </div>
+        </div>
+
+        <!-- card: spectrograms -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./spectrograms/';" style="cursor: pointer">
+            <img src="assets/thumbnails/spectrograms.svg"
+                 alt="What a Sound Looks Like article image: the spectrogram of a rising sweep, a diagonal bright band from bottom left to top right." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">What a Sound Looks Like</h2>
+            <p class="article-description">
+              Nothing eats audio directly: it becomes a picture first. Slide the
+              window length over a sweep whose frequency is known at every
+              sample, hear what a spectrogram threw away, and find out what a
+              cepstral coefficient is actually for.
+            </p>
+            <button class="content-button">
+              <a href="./spectrograms/">Dive In</a>
+            </button>
+          </div>
+        </div>
+
+        <!-- card: wavenet -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./wavenet/';" style="cursor: pointer">
+            <img src="assets/thumbnails/wavenet.svg"
+                 alt="One Sample at a Time article image: the fan of a dilated causal convolution stack, lines spreading back from one output over six rows of samples." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">One Sample at a Time</h2>
+            <p class="article-description">
+              How far back a stack of dilated convolutions can see is arithmetic,
+              not a hyperparameter, and the prediction it makes about pitch is
+              tested here. Then listen to a model fed its own output, and watch a
+              decoder refuse to stop talking.
+            </p>
+            <button class="content-button">
+              <a href="./wavenet/">Dive In</a>
+            </button>
+          </div>
+        </div>
+      </div>
       <details class="roadmap">
         <summary>Full branch map: 4. Sequential Intelligence</summary>
         <div class="branch">
@@ -1028,13 +1170,13 @@
         <div class="branch">
           <h4>4.2 Time Series &nbsp;·&nbsp; 4.3 Audio</h4>
           <div class="chips">
-            <span class="chip">ARIMA · SARIMA · ETS</span>
-            <span class="chip">VAR · GARCH</span>
-            <span class="chip">Prophet · XGBoost-TS</span>
-            <span class="chip">N-BEATS · TFT</span>
-            <span class="chip">TimeGPT · Chronos</span>
-            <span class="chip">Spectrograms · MFCCs</span>
-            <span class="chip">WaveNet · Whisper</span>
+            <span class="chip live"><a href="./arima/">ARIMA · SARIMA · ETS</a></span>
+            <span class="chip live"><a href="./volatility/">VAR · GARCH</a></span>
+            <span class="chip live"><a href="./time-features/">Prophet · XGBoost-TS</a></span>
+            <span class="chip live"><a href="./deep-forecast/">N-BEATS · TFT</a></span>
+            <span class="chip live"><a href="./zero-shot/">TimeGPT · Chronos</a></span>
+            <span class="chip live"><a href="./spectrograms/">Spectrograms · MFCCs</a></span>
+            <span class="chip live"><a href="./wavenet/">WaveNet · Whisper</a></span>
           </div>
         </div>
       </details>

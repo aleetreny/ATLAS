@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>One Sample at a Time | ATLAS</title>
+  <meta name="description" content="A visual, interactive introduction to WaveNet and Whisper style models: the receptive field of a stack of dilated causal convolutions computed exactly and then tested, what the mu-law compander costs in decibels, what happens when a model is fed its own output, and why an attention decoder does not stop." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/wavenet/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="One Sample at a Time | ATLAS" />
+  <meta property="og:description" content="A visual, interactive introduction to WaveNet and Whisper style models: the receptive field of a stack of dilated causal convolutions computed exactly and then tested, what the mu-law compander costs in decibels, what happens when a model is fed its own output, and why an attention decoder does not stop." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/wavenet/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="One Sample at a Time | ATLAS" />
+  <meta name="twitter:description" content="A visual, interactive introduction to WaveNet and Whisper style models: the receptive field of a stack of dilated causal convolutions computed exactly and then tested, what the mu-law compander costs in decibels, what happens when a model is fed its own output, and why an attention decoder does not stop." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    :root {
+      --primary: #5c3e29;
+      --secondary: #4a3221;
+    }
+    .narrow-widget {
+      max-width: 880px;
+    }
+    .gen-table {
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      margin-top: 0.4rem;
+      width: 100%;
+    }
+    .gen-table th,
+    .gen-table td {
+      padding: 4px 10px 4px 0;
+      text-align: left;
+      font-weight: 400;
+      white-space: nowrap;
+    }
+    .gen-table th {
+      font-family: var(--font-heavy);
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .gen-table td:first-child,
+    .gen-table th:first-child {
+      opacity: 0.75;
+    }
+    .gen-table td:last-child,
+    .gen-table th:last-child {
+      white-space: normal;
+    }
+    .gen-note {
+      margin-top: 0.6rem;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+    .slider-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+      margin: 0.2rem 0 0.6rem;
+      font-family: var(--font-mono);
+      font-size: 13px;
+    }
+    .slider-row input[type="range"] {
+      width: 240px;
+      accent-color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <section id="intro">
+    <h1 id="intro-hed">One Sample at a Time</h1>
+    <h1 id="intro-sub">A second of sound is eight thousand decisions, and a model that makes them one after another has to see far enough back to know where it is in a pitch period. How far back it can see is not a hyperparameter to tune, it is arithmetic</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 4.3 · Audio · WaveNet and Whisper</span>
+  </section>
+
+  <br />
+
+  <section>
+    <p class="body-text">
+      <a href="../spectrograms/">The previous article</a> turned sound into a
+      picture and stopped there, because that is where most audio pipelines
+      stop. The two models that changed what audio could do go in opposite
+      directions from it. One throws the picture away and works on the samples
+      themselves, generating them one at a time. The other keeps the picture,
+      never looks at a waveform again, and writes down words.
+    </p>
+    <br />
+    <p class="body-text" id="opening-note"></p>
+  </section>
+
+  <section>
+    <h1 class="body-header">Two Hundred and Fifty Six Choices</h1>
+    <p class="body-text" id="mu-intro"></p>
+    <p class="body-text">
+      $$ f(x) = \operatorname{sign}(x)\,\frac{\ln(1 + \mu |x|)}{\ln(1 + \mu)}, \qquad \mu = 255 $$
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="mu-widget">
+    <div class="controls-row" id="mu-controls" role="group" aria-label="which encoding to hear"></div>
+    <div id="mu-chart"></div>
+    <div class="widget-readout" id="mu-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="mu-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">How Far Back It Can See</h1>
+    <p class="body-text" id="scrolly-intro"></p>
+  </section>
+
+  <section id="dilation-scrolly" class="scrolly">
+    <div class="scrolly-container">
+      <div class="steps-container">
+        <div class="step" data-index="0">
+          <div class="step-content">
+            <h3>A Convolution That Cannot Look Forward</h3>
+            <p id="scrolly-step-0"></p>
+          </div>
+        </div>
+        <div class="step" data-index="1">
+          <div class="step-content">
+            <h3>Skip Every Other One</h3>
+            <p id="scrolly-step-1"></p>
+          </div>
+        </div>
+        <div class="step" data-index="2">
+          <div class="step-content">
+            <h3>And Again, and Again</h3>
+            <p id="scrolly-step-2"></p>
+          </div>
+        </div>
+        <div class="step" data-index="3">
+          <div class="step-content">
+            <h3>Against One Period of the Sound</h3>
+            <p id="scrolly-step-3"></p>
+          </div>
+        </div>
+        <div class="step-spacer"></div>
+      </div>
+      <div class="charts-container">
+        <div class="chart-wrap" id="dilation-chart"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="body-text" id="dilation-note"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="receptive-widget">
+    <div id="receptive-chart"></div>
+    <div class="widget-readout" id="receptive-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="receptive-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">Fed Its Own Output</h1>
+    <p class="body-text" id="free-intro"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="free-widget">
+    <div class="controls-row" id="free-controls" role="group" aria-label="which sample to hear"></div>
+    <div id="free-chart"></div>
+    <div class="widget-readout" id="free-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="free-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">The Other Direction</h1>
+    <p class="body-text" id="asr-intro"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="asr-widget">
+    <div class="controls-row" id="asr-controls" role="group" aria-label="which view"></div>
+    <div id="asr-chart"></div>
+    <div class="widget-readout" id="asr-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="asr-note"></p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Decoder</th>
+          <th>Symbol error rate</th>
+          <th>Outputs longer than the truth</th>
+          <th>Outputs with a symbol three times in a row</th>
+        </tr>
+      </thead>
+      <tbody id="asr-table"></tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="asr-table-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text" id="verdict-intro"></p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>What you want</th>
+          <th>Reach for</th>
+          <th>Why</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">To generate a waveform</span></td>
+          <td>Dilated causal convolutions</td>
+          <td id="verdict-gen"></td>
+          <td id="verdict-gen-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">To read a transcript off audio</span></td>
+          <td>Log mel in, symbols out</td>
+          <td id="verdict-asr"></td>
+          <td id="verdict-asr-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">Timestamps</span></td>
+          <td>The alignment, not the decoder</td>
+          <td id="verdict-align"></td>
+          <td id="verdict-align-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">A transcript you can trust</span></td>
+          <td>A length you can check</td>
+          <td id="verdict-trust"></td>
+          <td id="verdict-trust-warn"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="closing-note"></p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! The compander, the receptive field arithmetic and the
+      decoding of every clip on this page are recomputed in the browser and
+      checked against the generator on load. Every model here was trained from
+      scratch by <code>src/utils/generate_wavenet_data.py</code> on sound
+      synthesised from written down parameters, which is what makes the
+      alignment scoreable in milliseconds.
+    </p>
+  </section>
+
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text" id="resources-note"></p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1609.03499">[1] WaveNet: A Generative Model for Raw Audio</a><br />
+      (van den Oord, A. et al., 2016; dilated causal convolutions, the mu-law compander, and the receptive field this page computes and then tests)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/2212.04356">[2] Robust Speech Recognition via Large-Scale Weak Supervision</a><br />
+      (Radford, A. et al., 2022; Whisper: log mel in, an encoder, and an autoregressive decoder that sometimes does not stop)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://doi.org/10.1145/1143844.1143891">[3] Connectionist Temporal Classification</a><br />
+      (Graves, A. et al., 2006; the alignment free loss the other decoder here is trained with)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1506.03099">[4] Scheduled Sampling for Sequence Prediction with Recurrent Neural Networks</a><br />
+      (Bengio, S. et al., 2015; the gap between training on the truth and generating from yourself, measured here in spectral distance)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1712.05884">[5] Natural TTS Synthesis by Conditioning WaveNet on Mel Spectrogram Predictions</a><br />
+      (Shen, J. et al., 2018; the two halves of this article joined back together)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>
