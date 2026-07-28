@@ -35,8 +35,15 @@ export function initTrapWidget(data) {
     .attr('x', w - 4).attr('y', y(0) - 7).attr('text-anchor', 'end')
     .style('font-size', '11.5px').text('zero bits, which is not a code length');
 
-  [['with uniform dequantisation', T.honest, 'var(--anchor)'],
-    ['gzip on the same bytes', C.gzip, 'var(--squidink)']].forEach(([label, v, colour], i) => {
+  /* These two lines sit less than a bit apart on this scale, so a fixed
+     "one above, one below" puts both labels in the same band of pixels. The
+     upper line takes the label above it and the lower one takes the label
+     below, which separates them by whatever the gap is plus twenty two pixels
+     however the two numbers come out. */
+  const refs = [['with uniform dequantisation', T.honest, 'var(--anchor)'],
+    ['gzip on the same bytes', C.gzip, 'var(--squidink)']]
+    .sort((a, b) => b[1] - a[1]);
+  refs.forEach(([label, v, colour], i) => {
     layer.append('line').attr('x1', 0).attr('x2', w).attr('y1', y(v)).attr('y2', y(v))
       .attr('stroke', colour).attr('stroke-width', 1.5).attr('stroke-dasharray', '6 4');
     layer.append('text').attr('class', 'chart-note')
@@ -50,9 +57,12 @@ export function initTrapWidget(data) {
   layer.selectAll('circle').data(rows).join('circle')
     .attr('cx', (r) => x(r.epochs)).attr('cy', (r) => y(r.bpd)).attr('r', 4.5)
     .attr('fill', 'var(--primary)');
+  /* the curve falls the whole way across, so both ends are crowded: below the
+     right hand end is the axis line, above it is the curve itself. The empty
+     corner is above the FIRST point, where the curve has not started falling. */
   layer.append('text').attr('class', 'chart-note')
-    .attr('x', x(rows[rows.length - 1].epochs) - 6).attr('y', y(rows[rows.length - 1].bpd) + 18)
-    .attr('text-anchor', 'end').style('font-size', '11.5px').attr('fill', 'var(--primary)')
+    .attr('x', x(rows[0].epochs) + 8).attr('y', y(rows[0].bpd) - 11)
+    .style('font-size', '11.5px').attr('fill', 'var(--primary)')
     .text('with no dequantisation at all');
 
   const title = g.append('text').attr('class', 'chart-note')

@@ -420,7 +420,13 @@ for k, v in table.items():
           f"{v['mean']:.4f} bits per dimension (seeds {v['min']:.4f} to {v['max']:.4f})")
 ood_gap = table["fashion->fashion"]["mean"] - table["fashion->digits"]["mean"]
 rev_gap = table["digits->digits"]["mean"] - table["digits->fashion"]["mean"]
-ood_floor = max(v["spread"] for v in table.values())
+# The floor of a comparison is the spread of the two cells being compared, not
+# the widest spread anywhere in the table: the digit model's numbers on Fashion
+# wobble by 0.79 between seeds, and charging that wobble to a comparison between
+# two other cells would hide an effect eighty times its own noise.
+ood_floor = max(table["fashion->fashion"]["spread"], table["fashion->digits"]["spread"])
+rev_floor = max(table["digits->digits"]["spread"], table["digits->fashion"]["spread"])
+ood_floor_worst = max(v["spread"] for v in table.values())
 # A direction is a figure and gets its own branch: printing a signed number
 # next to the word "more" is how a page ends up saying the opposite of what it
 # measured.
@@ -452,7 +458,8 @@ allg = np.r_[gz_dig, gz_fas]
 corr = float(np.corrcoef(allb, allg)[0, 1])
 ood = {
     "table": table, "gap": rnd(ood_gap, 4), "reverse_gap": rnd(rev_gap, 4),
-    "floor": rnd(ood_floor, 4),
+    "floor": rnd(ood_floor, 4), "reverse_floor": rnd(rev_floor, 4),
+    "floor_worst_cell": rnd(ood_floor_worst, 4),
     "gzip_digits": rnd(float(gz_dig.mean()), 4), "gzip_fashion": rnd(float(gz_fas.mean()), 4),
     "correlation": rnd(corr, 4),
     "resolves": bool(abs(ood_gap) > ood_floor),

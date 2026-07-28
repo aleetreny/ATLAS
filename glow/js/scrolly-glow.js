@@ -40,7 +40,10 @@ export function initScrollyGlow(data) {
     const shown = bars.slice(0, n);
     drawGrid(g, x, y, w, h, { xTicks: 5, yValues: [] });
     drawAxes(g, x, y, w, h, { xTicks: 5, yValues: [] });
-    axisLabels(g, w, h, { x: 'bits per pixel, on the same held out images', y: '' });
+    /* the axis label is set in bold uppercase mono with a point of letter
+       spacing, so it costs about nine pixels a character: the long version of
+       this sentence runs off the panel, and the held out set is said in prose */
+    axisLabels(g, w, h, { x: 'bits per pixel, held out', y: '' });
 
     layer.selectAll('rect').data(shown, (b) => b.key).join('rect')
       .attr('x', 0).attr('y', (b) => y(b.key)).attr('height', y.bandwidth())

@@ -74,7 +74,10 @@ export function initTempWidget(data, glow) {
     const y = d3.scaleLinear().domain([lo - (hi - lo) * 0.2, hi + (hi - lo) * 0.2]).range([h, 0]);
     drawGrid(g, x, y, w, h, { xValues: [], yTicks: 5 });
     drawAxes(g, x, y, w, h, { yTicks: 5 });
-    axisLabels(g, w, h, { x: 'temperature', y: 'what the shared judge makes of them' });
+    /* a rotated axis label is as long as the panel is TALL, and this panel is
+       214 pixels of drawing area against a label that wanted 322: the long
+       version was cut off at the top. Who the judge is, is said in the prose. */
+    axisLabels(g, w, h, { x: 'temperature', y: "the judge's confidence" });
 
     layer.selectAll('*').remove();
     layer.append('line').attr('x1', 0).attr('x2', w)

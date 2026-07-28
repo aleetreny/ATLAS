@@ -133,7 +133,10 @@ export function initHoleWidget(data, flow) {
       const y = d3.scaleLinear().domain([0, Math.max(...vals) * 1.15]).range([h, 0]);
       drawGrid(g, x, y, w, h, { xValues: depths, yTicks: 5 });
       drawAxes(g, x, y, w, h, { xValues: depths, yTicks: 5 });
-      axisLabels(g, w, h, { x: 'coupling layers', y: 'worst stretch of the map, at the data' });
+      /* a rotated label is as long as the panel is tall, and this panel has
+         234 pixels of drawing height: the longer sentence was cut at the top.
+         Where the stretch is measured is said in the table below. */
+      axisLabels(g, w, h, { x: 'coupling layers', y: 'worst stretch of the map' });
       [['worst', (r) => r.cond_max, 'var(--primary)'],
         ['typical', (r) => r.cond_median, 'var(--anchor)']].forEach(([label, f, colour], si) => {
         layer.append('path')

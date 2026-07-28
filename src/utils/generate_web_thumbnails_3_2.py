@@ -231,12 +231,19 @@ if d:
     for i, (name, v) in enumerate(bars):
         y = top + i * bh
         col = "#6d2f1f" if name == "this flow" else "#8e9aa6"
+        end = left + v * scale
         lines.append(f'  <rect x="{left}" y="{y + 3:.0f}" width="{max(v * scale, 1):.0f}" '
                      f'height="{bh - 9:.0f}" fill="{col}" />')
         lines.append(f'  <text x="{left - 8}" y="{y + bh / 2 + 3:.0f}" text-anchor="end" '
                      f'font-family="monospace" font-size="13" fill="{INK}">{name}</text>')
-        lines.append(f'  <text x="{left + v * scale + 6:.0f}" y="{y + bh / 2 + 3:.0f}" '
-                     f'font-family="monospace" font-size="12" fill="{INK}" '
+        # the longest bar reaches the right margin, so its number goes inside it:
+        # outside, a four character label at 12px monospace runs off the card
+        inside = end + 6 + 30 > W
+        anchor = ' text-anchor="end"' if inside else ''
+        lines.append(f'  <text x="{(end - 6) if inside else (end + 6):.0f}" '
+                     f'y="{y + bh / 2 + 3:.0f}"{anchor} '
+                     f'font-family="monospace" font-size="12" '
+                     f'fill="{"#ffffff" if inside else INK}" '
                      f'opacity="0.8">{v:.2f}</text>')
     write("glow", lines)
 

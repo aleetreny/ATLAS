@@ -113,8 +113,29 @@ Y la lección general: **antes de creerse un hallazgo geométrico, medir un
 artículo ya publicado con el mismo arnés**. El baseline del sitio, medido sobre
 `autoencoders/`, es 165px de offset medio del scrolly a 1440px y 249px a 375px,
 con 5 de 15 y 8 de 15 tarjetas fuera de pantalla en los extremos del recorrido,
-y cinco etiquetas de 4,84px a 375px. Un artículo nuevo con 143px y 4 de 15 no
+Un artículo nuevo con 143px y 4 de 15 no
 tiene un problema de scrolly: tiene el scrolly del sitio.
+
+Con una salvedad que costó descubrir: el baseline **también puede estar mal**.
+El mismo `autoencoders/` traía cinco etiquetas de 4,84px a 375px, que es
+ilegible, y se quedaron ahí precisamente por leerse como "así es el sitio". Un
+baseline sirve para calibrar la geometría del scrolly, que es común a todas las
+páginas; no sirve para absolver un tamaño de letra, que es de cada widget. Si el
+artículo de referencia falla una comprobación que no dependa del layout común,
+se arregla el artículo de referencia.
+
+## Trampa 20: el margen de holgura del arnés está pensado para texto horizontal
+
+El barrido perdona 4px de desbordamiento antes de llamarlo recorte, porque la
+caja de un texto horizontal incluye espacio de ascendentes y descendentes que
+los glifos no usan. Una etiqueta **rotada** no tiene esa holgura: su caja es
+justa. La etiqueta del eje del widget de temperatura del 37 se salía por arriba
+exactamente 4,0px, quedaba bajo el umbral, y en la captura se veía cortada. El
+arnés distingue ahora los dos casos (`rotated ? 1.5 : 4`), y con el umbral
+ajustado apareció además un segundo caso en el 36 que llevaba desde el principio.
+La regla general: **cada tolerancia de un arnés es una hipótesis sobre lo que
+mide**, y cuando el arnés calla mientras una captura enseña el fallo, el
+sospechoso es la tolerancia, no la captura.
 
 ## Trampa 19: un bucle de espera que busca su propio nombre no termina nunca
 

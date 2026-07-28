@@ -11,8 +11,9 @@ import { makeChart, drawAxes, drawGrid, axisLabels, wrapLabel } from '../../asse
 export function initArmsWidget(data) {
   const A = data.arms;
   const chart = makeChart('#arms-chart', {
-    width: 640, height: 380, margin: { top: 52, right: 40, bottom: 60, left: 260 },
+    width: 640, height: 380, margin: { top: 52, right: 40, bottom: 60, left: 214 },
   });
+  const NAME_W = 194;
   const { g, w, h } = chart;
   const readout = document.querySelector('#arms-readout');
 
@@ -25,7 +26,7 @@ export function initArmsWidget(data) {
 
   drawGrid(g, x, y, w, h, { xTicks: 5, yValues: [] });
   drawAxes(g, x, y, w, h, { xTicks: 5, yValues: [] });
-  axisLabels(g, w, h, { x: 'bits per pixel on held out digits, lower is better', y: '' });
+  axisLabels(g, w, h, { x: 'bits per pixel, lower is better', y: '' });
 
   const layer = g.append('g');
   const full = rows.find((r) => r.name === 'full');
@@ -40,9 +41,15 @@ export function initArmsWidget(data) {
       .attr('stroke', 'var(--squidink)').attr('stroke-width', 1.5).attr('opacity', 0.65);
     layer.append('circle').attr('cx', x(r.mean)).attr('cy', cy).attr('r', 6)
       .attr('fill', r.name === 'full' ? 'var(--primary)' : 'var(--squidink)');
-    layer.append('text').attr('class', 'chart-note')
+    /* the names are sentences, not words, so they wrap: measured first, then
+       lifted by half of what they turned out to need so the block stays
+       centred on its own row */
+    const name = layer.append('text').attr('class', 'chart-note')
       .attr('x', -10).attr('y', cy + 4).attr('text-anchor', 'end')
-      .style('font-size', '11.5px').text(r.label);
+      .style('font-size', '11.5px');
+    const lines = wrapLabel(name, r.label, NAME_W, { lineHeight: 13 });
+    name.attr('y', cy + 4 - (lines - 1) * 13 / 2);
+    name.selectAll('tspan').attr('x', -10);
     layer.append('text').attr('class', 'chart-note')
       .attr('x', x(r.max) + 8).attr('y', cy + 4)
       .style('font-size', '11px')

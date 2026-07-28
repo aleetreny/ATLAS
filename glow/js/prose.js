@@ -33,8 +33,17 @@ export function initProse(data) {
       ? `So a flow of ${n0(N.count)} numbers beats both, which is the claim this kind of model `
         + `exists to make.`
       : `So a flow of ${n0(N.count)} numbers does not beat either of them, and that is worth `
-        + `saying plainly rather than quoting the flow's number on its own: at this size, on `
-        + `this data, a program from 1996 compresses these pictures better than the model does.`}`);
+        + `saying plainly rather than quoting the flow's number on its own.`} `
+    + `${C.per_pixel < C.flow
+      ? `And then the number that should stop anyone quoting a bits per dimension on its own: a `
+        + `model that treats every pixel as independent of every other, with nothing but a `
+        + `histogram per position, needs <span class="bold">${C.per_pixel}</span>. It beats the `
+        + `flow by ${(C.flow - C.per_pixel).toFixed(4)} bits per pixel while knowing nothing `
+        + `about pictures at all. That is not a bug in the flow, it is what these particular `
+        + `images are: mean pooled digits are mostly exact zeros, and a per pixel histogram is `
+        + `very good at exact zeros.`
+      : `The flow also beats a model that treats every pixel as independent (${C.per_pixel}), `
+        + `which is the line that separates modelling from counting.`}`);
 
   set('scrolly-intro',
     `Bits per pixel is a code length, so the honest way to read one is against other code `
@@ -52,17 +61,21 @@ export function initProse(data) {
   set('scrolly-step-2',
     `Learn the histogram separately for each of the ${M.dim} positions, still with no `
     + `relationship between them, and it falls to ${C.per_pixel}. That is the number any model `
-    + `worth having must beat, because it took no modelling at all.`);
+    + `worth having must beat, because it took no modelling at all, and it is worth remembering `
+    + `for two steps' time.`);
   set('scrolly-step-3',
     `Then two programs people ship. gzip gets ${C.gzip} bits per pixel on these images and PNG `
     + `gets ${C.png}, both measured by compressing the bytes and counting them.`);
   set('scrolly-step-4',
     `And the flow: ${C.flow}. `
     + `${C.flow < Math.min(C.gzip, C.png)
-      ? 'Below both of them, on a model small enough to run in this page.'
+      ? 'Below both of the compressors, on a model small enough to run in this page.'
       : `Which is ${(C.flow - Math.min(C.gzip, C.png)).toFixed(4)} bits worse than the better of `
-        + `the two. A larger flow closes that gap; this one is sized to run in your browser, and `
-        + `the page says so instead of quoting the number alone.`}`);
+        + `the two compressors.`} `
+    + `${C.per_pixel < C.flow
+      ? `And above the bar two steps up: the independent per pixel model still wins, by `
+        + `${(C.flow - C.per_pixel).toFixed(4)} bits.`
+      : ''}`);
 
   set('deq-note',
     `The noise in that second expression is not a regulariser and not a trick. Pixel values are `
@@ -124,17 +137,23 @@ export function initProse(data) {
     + `middle of it.`);
 
   set('temp-note',
-    `The judge likes ${P.best} best, at ${best.confidence} against ${one.confidence} at `
-    + `temperature one and ${M.judge_confidence} on real held out digits. But the second column `
+    `${P.best === 1.0
+      ? `The classic recipe is to sample below one, and here it does not help: the judge's `
+        + `confidence rises all the way to temperature one, ${P.rows[0].confidence} at `
+        + `${P.rows[0].t} and ${one.confidence} at one, against ${M.judge_confidence} on real `
+        + `held out digits. Nothing on this page is turned down to make the samples look better.`
+      : `The judge likes ${P.best} best, at ${best.confidence} against ${one.confidence} at `
+        + `temperature one and ${M.judge_confidence} on real held out digits.`} But the second column `
     + `is the one that stops a bad model looking good: a model that produced one convincing `
     + `digit over and over would score well on confidence and badly on class spread, and at `
     + `${P.best} the spread is ${best.class_entropy} nats where ten classes equally often would `
     + `be ${P.uniform_entropy}, with the most popular taking `
-    + `${(best.top_class_share * 100).toFixed(1)}%. Lowering the temperature is not making the `
-    + `model better, it is refusing to ask it about the parts of its own distribution it is `
-    + `least sure of, and the fraction of pixels that come back outside the range a picture can `
-    + `have says the same thing: ${(one.outside * 100).toFixed(1)}% at temperature one against `
-    + `${(best.outside * 100).toFixed(1)}% at ${P.best}.`);
+    + `${(best.top_class_share * 100).toFixed(1)}%, so nothing here has collapsed. Lowering the `
+    + `temperature is not making the model better in any case: it is refusing to ask it about `
+    + `the parts of its own distribution it is least sure of, and the fraction of pixels that `
+    + `come back outside the range a picture can have is the measure of how much is being `
+    + `refused: ${(P.rows[0].outside * 100).toFixed(1)}% at ${P.rows[0].t} against `
+    + `${(one.outside * 100).toFixed(1)}% at one.`);
 
   set('ood-intro',
     `And now the question that only a model with an exact likelihood can be embarrassed by. Two `
@@ -157,15 +176,19 @@ export function initProse(data) {
   }
 
   set('ood-note',
-    `${O.gap > 0
+    `${O.gap > 0 && Math.abs(O.gap) > O.floor
       ? `It reproduces. The model trained on clothes spends ${Math.abs(O.gap)} bits per pixel `
         + `FEWER on digits it has never seen than on the held out clothes it was trained for, `
-        + `against a seed floor of ${O.floor}. A likelihood that has never seen a digit prefers `
-        + `digits.`
-      : `It does not reproduce here. The model trained on clothes spends ${Math.abs(O.gap)} bits `
-        + `per pixel MORE on digits than on its own held out images, against a seed floor of `
-        + `${O.floor}, so on this data at this size the likelihood does prefer what it was `
-        + `trained on.`} `
+        + `and the floor of that particular comparison, the seed spread of the two cells it is `
+        + `between, is ${O.floor}. A likelihood that has never seen a digit prefers digits.`
+      : O.gap > 0
+        ? `The model trained on clothes does spend ${Math.abs(O.gap)} bits per pixel fewer on `
+          + `digits than on its own held out images, but that is inside the ${O.floor} seed `
+          + `spread of the two cells it is between, so this page does not claim it.`
+        : `It does not reproduce here. The model trained on clothes spends ${Math.abs(O.gap)} `
+          + `bits per pixel MORE on digits than on its own held out images, against a floor of `
+          + `${O.floor}, so on this data at this size the likelihood does prefer what it was `
+          + `trained on.`} `
     + `${O.gap * O.reverse_gap < 0
       ? `And the two directions disagree, which is the asymmetry that makes the result strange: `
         + `the digit model spends ${Math.abs(O.reverse_gap)} bits `
@@ -241,13 +264,16 @@ export function initProse(data) {
     + `${T.rows[T.rows.length - 1].bpd}.`);
   set('verdict-compress',
     `${C.flow < C.gzip
-      ? `This one already does: ${C.flow} against gzip's ${C.gzip}.`
-      : `Not at ${n0(N.count)} weights: ${C.flow} against gzip's ${C.gzip} and PNG's ${C.png}. `
-        + `It does beat the per pixel model at ${C.per_pixel}, which is the line that separates `
-        + `modelling from counting.`}`);
+      ? `This one already beats the compressors: ${C.flow} against gzip's ${C.gzip} and PNG's `
+        + `${C.png}.`
+      : `Not at ${n0(N.count)} weights: ${C.flow} against gzip's ${C.gzip}.`}`);
   set('verdict-compress-warn',
-    `Bits per pixel is only comparable between models that dequantise the same way, and it says `
-    + `nothing about whether the samples look like anything.`);
+    `${C.per_pixel < C.flow
+      ? `An independent histogram per pixel still beats it, ${C.per_pixel} against ${C.flow}, so `
+        + `on these images the structure the flow models is worth less than the sparsity a `
+        + `counter already has. `
+      : ''}Bits per pixel is only comparable between models that dequantise the same way, and it `
+    + `says nothing about whether the samples look like anything.`);
   set('verdict-temp',
     `The judge prefers ${P.best} at ${best.confidence} over ${one.confidence} at one, and the `
     + `class spread stays at ${best.class_entropy} nats, so it is not collapsing.`);
@@ -258,7 +284,7 @@ export function initProse(data) {
     `The two by two table says what the likelihood prefers, and its correlation with gzip says `
     + `why: ${O.correlation}.`);
   set('verdict-ood-warn',
-    `${O.gap > 0
+    `${O.gap > 0 && Math.abs(O.gap) > O.floor
       ? 'It gives higher likelihood to a dataset it was never trained on, so used as a detector '
         + 'it fails in the most dangerous direction.'
       : 'On this data it does prefer its own training set, but the correlation with '
