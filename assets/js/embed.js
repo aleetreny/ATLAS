@@ -565,8 +565,58 @@ export function components(adj) {
   return { count: c, label };
 }
 
-/* Dijkstra from every source, with a binary heap. Floyd-Warshall would be four
- * lines and n^3; at n = 500 that is 125 million and this is about 30. */
+/* A real binary heap, because the obvious version is not fast enough here.
+ * Scanning the frontier for its minimum turns Dijkstra into O(V*E) per source,
+ * which at 500 points and 3,000 edges is 750 million operations for one
+ * position of one slider. With a heap it is about 13 million. */
+class MinHeap {
+  constructor() {
+    this.k = [];
+    this.v = [];
+  }
+
+  get size() { return this.k.length; }
+
+  push(key, val) {
+    this.k.push(key);
+    this.v.push(val);
+    let i = this.k.length - 1;
+    while (i > 0) {
+      const p = (i - 1) >> 1;
+      if (this.k[p] <= this.k[i]) break;
+      [this.k[p], this.k[i]] = [this.k[i], this.k[p]];
+      [this.v[p], this.v[i]] = [this.v[i], this.v[p]];
+      i = p;
+    }
+  }
+
+  pop() {
+    const key = this.k[0];
+    const val = this.v[0];
+    const lk = this.k.pop();
+    const lv = this.v.pop();
+    if (this.k.length) {
+      this.k[0] = lk;
+      this.v[0] = lv;
+      let i = 0;
+      for (;;) {
+        const l = 2 * i + 1;
+        const r = l + 1;
+        let m = i;
+        if (l < this.k.length && this.k[l] < this.k[m]) m = l;
+        if (r < this.k.length && this.k[r] < this.k[m]) m = r;
+        if (m === i) break;
+        [this.k[m], this.k[i]] = [this.k[i], this.k[m]];
+        [this.v[m], this.v[i]] = [this.v[i], this.v[m]];
+        i = m;
+      }
+    }
+    return [key, val];
+  }
+}
+
+/* Dijkstra from every source. Floyd-Warshall would be four lines and n^3; at
+ * n = 500 that is 125 million and this is about 13. */
 export function allPairsShortest(adj) {
   const n = adj.length;
   const out = zeros(n, n);
@@ -574,24 +624,155 @@ export function allPairsShortest(adj) {
     const dist = out[s];
     dist.fill(Infinity);
     dist[s] = 0;
-    const heap = [[0, s]];
+    const heap = new MinHeap();
+    heap.push(0, s);
     const done = new Uint8Array(n);
-    while (heap.length) {
-      let bi = 0;
-      for (let i = 1; i < heap.length; i++) if (heap[i][0] < heap[bi][0]) bi = i;
-      const [du, u] = heap.splice(bi, 1)[0];
+    while (heap.size) {
+      const [du, u] = heap.pop();
       if (done[u]) continue;
       done[u] = 1;
       for (const [v, w] of adj[u]) {
         const nd = du + w;
         if (nd < dist[v]) {
           dist[v] = nd;
-          heap.push([nd, v]);
+          heap.push(nd, v);
         }
       }
     }
   }
   return out;
+}
+
+/* ------------------------------------------------ eigenvectors without n^3 */
+function qrThin(A) {
+  /* Modified Gram-Schmidt on an n x k matrix with k tiny. Two passes, because
+   * one pass loses orthogonality after a few hundred power iterations and the
+   * block silently collapses onto its leading vector. */
+  const n = A.length;
+  const k = A[0].length;
+  for (let pass = 0; pass < 2; pass++) {
+    for (let j = 0; j < k; j++) {
+      for (let t = 0; t < j; t++) {
+        let dot = 0;
+        for (let i = 0; i < n; i++) dot += A[i][t] * A[i][j];
+        for (let i = 0; i < n; i++) A[i][j] -= dot * A[i][t];
+      }
+      let nn = 0;
+      for (let i = 0; i < n; i++) nn += A[i][j] * A[i][j];
+      nn = Math.sqrt(nn);
+      if (nn > 1e-300) for (let i = 0; i < n; i++) A[i][j] /= nn;
+    }
+  }
+  return A;
+}
+
+/* A deterministic starting block, so the browser and the generator take the
+ * same trajectory. numpy's normal draw cannot be reproduced here, so both ends
+ * use this: a fixed integer generator, written out in both languages. */
+function seededBlock(n, k, seed) {
+  const Q = zeros(n, k);
+  let s = seed >>> 0;
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j < k; j++) {
+      s = (s * 1664525 + 1013904223) >>> 0;
+      Q[i][j] = s / 4294967296 - 0.5;
+    }
+  }
+  return Q;
+}
+
+function matvecBlock(M, Q) {
+  const n = M.length;
+  const k = Q[0].length;
+  const out = zeros(n, k);
+  for (let i = 0; i < n; i++) {
+    const row = M[i];
+    const o = out[i];
+    for (let t = 0; t < n; t++) {
+      const a = row[t];
+      if (a === 0) continue;
+      const q = Q[t];
+      for (let j = 0; j < k; j++) o[j] += a * q[j];
+    }
+  }
+  return out;
+}
+
+function rayleighRitz(M, Q, ascending) {
+  const k = Q[0].length;
+  const MQ = matvecBlock(M, Q);
+  const T = zeros(k, k);
+  for (let a = 0; a < k; a++) {
+    for (let b = 0; b < k; b++) {
+      let s = 0;
+      for (let i = 0; i < Q.length; i++) s += Q[i][a] * MQ[i][b];
+      T[a][b] = s;
+    }
+  }
+  const { values, vectors } = symEigen(T);          // descending
+  const idx = ascending
+    ? Array.from({ length: k }, (_, i) => k - 1 - i)
+    : Array.from({ length: k }, (_, i) => i);
+  const V = zeros(Q.length, k);
+  for (let j = 0; j < k; j++) {
+    for (let i = 0; i < Q.length; i++) {
+      let s = 0;
+      for (let t = 0; t < k; t++) s += Q[i][t] * vectors[t][idx[j]];
+      V[i][j] = s;
+    }
+  }
+  return { values: Float64Array.from(idx, (i) => values[i]), vectors: V };
+}
+
+/* Block power iteration for the k LARGEST eigenpairs of a symmetric matrix.
+ * A two-dimensional embedding needs two eigenvectors, and a full 500 by 500
+ * diagonalisation inside a slider callback is a second and a half. */
+export function topEigen(M, k, { iters = 120, seed = 7 } = {}) {
+  let Q = qrThin(seededBlock(M.length, k, seed));
+  for (let it = 0; it < iters; it++) Q = qrThin(matvecBlock(M, Q));
+  return rayleighRitz(M, Q, false);
+}
+
+/* And for the k SMALLEST, which is what locally linear embedding needs.
+ *
+ * Running block power on (cI - M) is the obvious route and it does not work:
+ * with c a Gershgorin bound the two leading eigenvalues of cI - M are within a
+ * hair of each other, so the iteration converges at a rate of about 0.9999 and
+ * three hundred steps leave the answer visibly wrong. Factorising once and
+ * iterating on the inverse turns those ratios into enormous ones. */
+export function bottomEigen(M, k, { iters = 60, shift = 1e-6, seed = 7 } = {}) {
+  const n = M.length;
+  const L = zeros(n, n);
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j <= i; j++) {
+      let s = M[i][j] + (i === j ? shift : 0);
+      for (let t = 0; t < j; t++) s -= L[i][t] * L[j][t];
+      L[i][j] = i === j ? Math.sqrt(Math.max(s, 1e-300)) : s / L[j][j];
+    }
+  }
+  const solve = (Q) => {
+    const kk = Q[0].length;
+    const Y = zeros(n, kk);
+    for (let i = 0; i < n; i++) {
+      for (let j = 0; j < kk; j++) {
+        let s = Q[i][j];
+        for (let t = 0; t < i; t++) s -= L[i][t] * Y[t][j];
+        Y[i][j] = s / L[i][i];
+      }
+    }
+    const X = zeros(n, kk);
+    for (let i = n - 1; i >= 0; i--) {
+      for (let j = 0; j < kk; j++) {
+        let s = Y[i][j];
+        for (let t = i + 1; t < n; t++) s -= L[t][i] * X[t][j];
+        X[i][j] = s / L[i][i];
+      }
+    }
+    return X;
+  };
+  let Q = qrThin(seededBlock(n, k, seed));
+  for (let it = 0; it < iters; it++) Q = qrThin(solve(Q));
+  return rayleighRitz(M, Q, true);
 }
 
 /* ---------------------------------------------------------------- statistics */

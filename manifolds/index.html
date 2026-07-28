@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Unrolling | ATLAS</title>
+  <meta name="description" content="A visual, interactive introduction to Isomap, locally linear embedding and self-organising maps, on a Swiss roll whose true two-dimensional chart is known in closed form: build the neighbourhood graph yourself, find the one edge that ruins it, and watch a grid fit the data perfectly while recovering nothing." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/manifolds/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="Unrolling | ATLAS" />
+  <meta property="og:description" content="A visual, interactive introduction to Isomap, locally linear embedding and self-organising maps, on a Swiss roll whose true two-dimensional chart is known in closed form: build the neighbourhood graph yourself, find the one edge that ruins it, and watch a grid fit the data perfectly while recovering nothing." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/manifolds/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Unrolling | ATLAS" />
+  <meta name="twitter:description" content="A visual, interactive introduction to Isomap, locally linear embedding and self-organising maps, on a Swiss roll whose true two-dimensional chart is known in closed form: build the neighbourhood graph yourself, find the one edge that ruins it, and watch a grid fit the data perfectly while recovering nothing." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    /* Per-article theme. Everything else inherits from these two. */
+    :root {
+      --primary: #9a3412;
+      --secondary: #7c2a0e;
+    }
+    /* Width only: a margin here would override .interactive-full's rhythm. */
+    .narrow-widget {
+      max-width: 840px;
+    }
+    /* A five column table of measurements is wider than the readout on a narrow
+       screen, and global.css gives .widget-readout no overflow rule of its own,
+       so the right-hand columns were simply cut off. */
+    .widget-readout {
+      overflow-x: auto;
+    }
+    .man-table {
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      margin-top: 0.4rem;
+      width: 100%;
+    }
+    .man-table th,
+    .man-table td {
+      padding: 4px 10px 4px 0;
+      text-align: left;
+      font-weight: 400;
+      white-space: nowrap;
+    }
+    .man-table th {
+      font-family: var(--font-heavy);
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .man-table td:first-child,
+    .man-table th:first-child {
+      opacity: 0.75;
+    }
+    /* The last column is prose, not a figure, so let it wrap rather than push
+       the columns that carry numbers off the edge. */
+    .man-table td:last-child,
+    .man-table th:last-child {
+      white-space: normal;
+    }
+    .man-note {
+      margin-top: 0.6rem;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <!-- ======================= chrome ======================= -->
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <!-- ======================= hero ======================= -->
+  <section id="intro">
+    <h1 id="intro-hed">Unrolling</h1>
+    <h1 id="intro-sub">Two points can be a hand's width apart in the room and a corridor apart along the wall, and every method so far has quietly believed the first number</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 2.2 · Dimensionality Reduction · Manifold Learning</span>
+  </section>
+
+  <br />
+
+  <!-- ======================= introduction ======================= -->
+  <section>
+    <p class="body-text">
+      Every method in this module so far has made the same assumption without
+      ever announcing it. PCA, ICA and NMF write a row as a weighted sum of a few
+      atoms, which says the data lies near a <i>flat</i> slice of the space it
+      was measured in. Classical scaling looks for coordinates whose
+      <i>straight line</i> distances reproduce a table. Metric scaling minimises
+      a residual against <i>straight line</i> distances in the map. Different
+      machinery, one shared belief: that the distance between two rows is the
+      distance through the space they arrived in.
+    </p>
+    <br />
+    <p class="body-text">
+      Suppose it is not. Suppose the data lies on a curved sheet, the way the
+      pixels of a face rotating through a hundred angles lie on a curve with one
+      degree of freedom inside a space with ten thousand. Then two rows can be
+      close together in the room and very far apart along the sheet, and no
+      amount of rotating the room will fix it, because the thing you want is not
+      a direction at all. It is a <span class="bold">path</span>.
+    </p>
+    <br />
+    <p class="body-text" id="opening-note"></p>
+  </section>
+
+  <!-- ======================= scrolly ======================= -->
+  <section>
+    <h1 class="body-header">A Rectangle, Rolled Up</h1>
+    <p class="body-text" id="roll-intro"></p>
+  </section>
+
+  <section id="roll-scrolly" class="scrolly">
+    <div class="scrolly-container">
+      <div class="steps-container">
+        <div class="step" data-index="0">
+          <div class="step-content">
+            <h3>Three Numbers Per Point</h3>
+            <p id="scrolly-step-0"></p>
+          </div>
+        </div>
+        <div class="step" data-index="1">
+          <div class="step-content">
+            <h3>The Pair That Gives It Away</h3>
+            <p id="scrolly-step-1"></p>
+          </div>
+        </div>
+        <div class="step" data-index="2">
+          <div class="step-content">
+            <h3>What a Projection Does With That</h3>
+            <p id="scrolly-step-2"></p>
+          </div>
+        </div>
+        <div class="step" data-index="3">
+          <div class="step-content">
+            <h3>Only Trust the Short Ones</h3>
+            <p id="scrolly-step-3"></p>
+          </div>
+        </div>
+        <div class="step" data-index="4">
+          <div class="step-content">
+            <h3>Walk, Do Not Fly</h3>
+            <p id="scrolly-step-4"></p>
+          </div>
+        </div>
+        <div class="step" data-index="5">
+          <div class="step-content">
+            <h3>Then Hand It To the Previous Article</h3>
+            <p id="scrolly-step-5"></p>
+          </div>
+        </div>
+        <div class="step-spacer"></div>
+      </div>
+      <div class="charts-container">
+        <div class="chart-wrap" id="roll-chart"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="body-text">
+      That is the whole of Isomap, and it is worth writing down how little of it
+      is new. Only the first line is:
+    </p>
+    <p class="body-text">
+      $$ d_{ij} \;=\; \text{shortest path in the } k\text{-nearest-neighbour graph} $$
+      $$ B \;=\; -\tfrac{1}{2}\,J\,D^{(2)}\,J, \qquad B = U\Lambda U^{\top}, \qquad Z = U_2 \Lambda_2^{1/2} $$
+    </p>
+    <p class="body-text" id="isomap-note"></p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the k dial ======================= -->
+  <section>
+    <h1 class="body-header">One Edge Too Many</h1>
+    <p class="body-text" id="k-intro"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="k-widget">
+    <div class="controls-row" style="justify-content: center" id="k-view-buttons"></div>
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">neighbours: <span class="value" id="k-label">12</span></span>
+      <input type="range" class="atlas-range" id="k-slider" aria-label="number of neighbours in the graph" min="3" max="30" step="1" value="12" />
+      <button class="atlas-btn ghost" id="k-best">snap to the best</button>
+    </div>
+    <div id="k-chart"></div>
+    <div class="widget-readout" id="k-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="cliff-note"></p>
+    <br />
+    <p class="body-text" id="dimension-note"></p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= four methods ======================= -->
+  <section>
+    <h1 class="body-header">Four Ways To Flatten a Sheet</h1>
+    <p class="body-text" id="compare-intro"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="compare-widget">
+    <div class="controls-row" style="justify-content: center" id="compare-buttons"></div>
+    <div id="compare-chart"></div>
+    <div class="widget-readout" id="compare-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="lle-note"></p>
+    <br />
+    <p class="body-text" id="som-note"></p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Trying to make the grid unroll it</th>
+          <th>Quantisation error</th>
+          <th>Topographic error</th>
+          <th>Distance from the true chart</th>
+        </tr>
+      </thead>
+      <tbody id="som-table"></tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="som-verdict"></p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the hole ======================= -->
+  <section>
+    <h1 class="body-header">A Sheet With a Hole In It</h1>
+    <p class="body-text" id="hole-intro"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="hole-widget">
+    <div class="controls-row" style="justify-content: center" id="hole-buttons"></div>
+    <div id="hole-chart"></div>
+    <div class="widget-readout" id="hole-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="hole-note"></p>
+    <br />
+    <p class="body-text" id="digits-note"></p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= verdict ======================= -->
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text">
+      All four methods were handed the same 500 points and the same known answer.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Decision</th>
+          <th>Default</th>
+          <th>Why</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">The data curves</span></td>
+          <td>Isomap, and check the graph first</td>
+          <td id="verdict-isomap"></td>
+          <td id="verdict-isomap-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">Choosing k</span></td>
+          <td>The smallest k that connects the graph</td>
+          <td id="verdict-k"></td>
+          <td id="verdict-k-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">How many dimensions</span></td>
+          <td>The elbow in residual variance</td>
+          <td id="verdict-dim"></td>
+          <td id="verdict-dim-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">Local structure only</span></td>
+          <td>LLE, and do not read its global shape</td>
+          <td id="verdict-lle"></td>
+          <td id="verdict-lle-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">A picture to browse</span></td>
+          <td>A self-organising map, for that and not for geometry</td>
+          <td id="verdict-som"></td>
+          <td id="verdict-som-warn"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="closing-note"></p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! The neighbourhood graph, every shortest path, the
+      double centring, the block power iteration behind Isomap, the locally
+      linear weights and their inverse iteration, and the whole training loop of
+      the self-organising map are computed by this page in JavaScript, checked at
+      load time against the scikit-learn answers that
+      <code>src/utils/generate_manifolds_data.py</code> measured, which is also
+      where the sweep over k, the hole and the digit embeddings come from.
+    </p>
+  </section>
+
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text" id="resources-note"></p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://www.science.org/doi/10.1126/science.290.5500.2319">[1] A Global Geometric Framework for Nonlinear Dimensionality Reduction</a><br />
+      (Tenenbaum, J. B., de Silva, V. &amp; Langford, J. C., Science, 2000; Isomap, and the Swiss roll)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://www.science.org/doi/10.1126/science.290.5500.2323">[2] Nonlinear Dimensionality Reduction by Locally Linear Embedding</a><br />
+      (Roweis, S. T. &amp; Saul, L. K., Science, 2000; the local weights and the eigenproblem they define)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://link.springer.com/article/10.1007/BF00337288">[3] Self-Organized Formation of Topologically Correct Feature Maps</a><br />
+      (Kohonen, T., Biological Cybernetics, 1982; the grid that moves into the data)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://www.sciencedirect.com/science/article/pii/S0925231206000774">[4] Quality Assessment of Dimensionality Reduction: Rank-Based Criteria</a><br />
+      (Lee, J. A. &amp; Verleysen, M., Neurocomputing, 2009; trustworthiness, and why an embedding needs more than one number)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://ieeexplore.ieee.org/document/1683771">[5] Selection of the Optimal Parameter Value for the Isomap Algorithm</a><br />
+      (Samko, O., Marshall, A. D. &amp; Rosin, P. L., Pattern Recognition Letters, 2006; on the short circuit this page measures)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>
