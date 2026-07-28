@@ -149,6 +149,11 @@ export function wordBars(g, rows, w, h, {
  * Returns the placed rows so a caller can point at token i without measuring
  * anything itself. Widths come from `getComputedTextLength`, so a long word
  * pushes the rest along instead of overlapping it.
+ *
+ * It EMPTIES the group it is given, so give it one of its own. A caption
+ * written into the same group on the line above this call disappears without
+ * an error and without a gap in the layout, and no check that reads numbers can
+ * see it missing. This cost one screenshot to find.
  */
 export function tokenStrip(g, tokens, w, {
   size = 12, padX = 5, padY = 4, lineGap = 6, fill = () => 'transparent',
@@ -252,7 +257,12 @@ export function logTicks(lo, hi) {
   const out = [];
   for (let e = Math.floor(Math.log10(lo)); e <= Math.ceil(Math.log10(hi)); e++) {
     [1, 3].forEach((m) => {
-      const v = m * 10 ** e;
+      /* Rounded to one significant figure, and not because it is tidier: below
+       * one, `3 * 10 ** -1` is 0.30000000000000004 in binary floating point, and
+       * a caller that formats its ticks with `String(v)` prints all nineteen
+       * characters of that and drags the axis label off the canvas with it. A
+       * tick is a label before it is a number. */
+      const v = Number((m * 10 ** e).toPrecision(1));
       if (v >= lo && v <= hi) out.push(v);
     });
   }

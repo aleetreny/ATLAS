@@ -368,8 +368,16 @@ def main():
     cop = cached("copy", lambda: copy_curve_ssm(dists))
 
     print("la copia SELECTIVA, que es donde invariante y selectivo se separan")
+    # Dos longitudes y no tres, y el motivo se publica en la pagina en vez de
+    # dejar la tabla corta sin explicacion. El escaneo esta escrito paso a paso
+    # a proposito (la pagina ejecuta el mismo), asi que el grafo de autograd
+    # tiene un nodo por paso y por operacion: a longitud 80 un solo modelo pasa
+    # de la hora en esta maquina, y hacen falta dos por fila. Con 20 y 40 la
+    # comparacion ya esta hecha a presupuesto identico y la direccion se lee,
+    # que es lo que la tabla tiene que sostener.
+    SEL_LENGTHS = (20, 40)
     sel = []
-    for L in (20, 40, 80):
+    for L in SEL_LENGTHS:
         x, y = selective_copy_task(L)
         row = {"length": L}
         for kind in ("invariant", "selective"):

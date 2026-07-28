@@ -1,11 +1,16 @@
 /* The fifteen percent, swept, with the two forces drawn on the same axis.
  *
  * The table underneath has all five rows and is the record. What the table
- * cannot do is show the shape, and the shape is the entire argument: the bars
- * (how many predictions the objective was graded on) climb without ever
- * turning around, and the line (what the frozen representation turned out to
- * know) does turn around. If the only thing that mattered were the amount of
- * supervision, the line would follow the bars.
+ * cannot do is show the shape, and the shape is the argument: the bars (how
+ * many predictions the objective was graded on) climb without ever turning
+ * around, because hiding more text always buys more predictions, and the line
+ * (what the frozen representation turned out to know) is under no obligation to
+ * follow them.
+ *
+ * Whether it does follow them is the measurement, and the readout is written
+ * with a branch for each answer rather than a sentence for the expected one.
+ * The planned paragraph described a line that peaks in the middle; if the run
+ * says otherwise, the paragraph says otherwise.
  *
  * The strip above is the same twenty-four words masked at the selected rate,
  * by the generator, at every rate. The five draws share a seed on purpose, so
@@ -62,7 +67,11 @@ export function initRateWidget(data) {
     seriesLabel(stripChart.g, 0, -8,
       `the same passage with ${(100 * ex.rate).toFixed(0)}% of it hidden`,
       { size: 11, opacity: 0.75 });
-    const laid = tokenStrip(stripChart.g, ex.input, stripChart.w, {
+    /* Its own child group, because `tokenStrip` clears whatever group it is
+     * handed: drawing it straight into `stripChart.g` silently deleted the
+     * caption written on the line above, which no numeric check can see. */
+    const body = stripChart.g.append('g');
+    const laid = tokenStrip(body, ex.input, stripChart.w, {
       size: 12,
       fill: (t, k) => (gradedSet.has(k) ? 'var(--primary)' : 'transparent'),
       textFill: (t, k) => (gradedSet.has(k) ? 'var(--paper)' : 'var(--squidink)'),
@@ -130,11 +139,18 @@ export function initRateWidget(data) {
         ? ', which is the best of the five.</div>'
         : `, against ${(100 * best.probe).toFixed(2)}% for the best of the five at `
           + `${(100 * best.rate).toFixed(0)}%.</div>`)
-      + `<div>The two marks disagree on purpose. Hiding more always buys more supervision: `
-      + `${(most.supervised / S[0].supervised).toFixed(1)} times as many graded predictions at `
-      + `${(100 * most.rate).toFixed(0)}% as at ${(100 * S[0].rate).toFixed(0)}%, with no turning `
-      + `point anywhere. What each of those predictions is worth is another matter, because the `
-      + `context needed to make them is exactly what is being destroyed to create them.</div>`
+      + `<div>The two marks are here to be compared, not to agree. Hiding more always buys more `
+      + `supervision: ${(most.supervised / S[0].supervised).toFixed(1)} times as many graded `
+      + `predictions at ${(100 * most.rate).toFixed(0)}% as at ${(100 * S[0].rate).toFixed(0)}%, `
+      + `with no turning point anywhere in the bars. What each of those predictions is worth is `
+      + `the other force, because the context needed to make them is exactly what is being `
+      + `destroyed to create them. `
+      + (best.rate === most.rate
+        ? `Over the range swept here the line follows the bars all the way up, so within this `
+          + `budget the supervision is still worth more than the context it costs.`
+          + `</div>`
+        : `The line parts company with the bars at ${(100 * best.rate).toFixed(0)}%, which is `
+          + `where the second force starts winning.</div>`)
     );
     if (label) label.textContent = `${(100 * r.rate).toFixed(0)}%`;
     if (slider) slider.value = i;

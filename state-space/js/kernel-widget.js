@@ -22,20 +22,43 @@ const HI = 1e4;
 export function initKernelWidget(data) {
   const R = data.reach;
   if (!R || !R.length) return null;
-  let pick = R.findIndex((r) => !r.unstable && r.hundredth_at !== null);
-  if (pick < 0) pick = 0;
+  /* Opens on the one that reaches furthest, which is the initialisation the
+   * section is about, rather than on whichever stable one happens to come first
+   * in the file. */
+  let pick = 0;
+  R.forEach((r, i) => {
+    if (r.unstable || r.hundredth_at === null) return;
+    if (R[pick].unstable || R[pick].hundredth_at === null
+      || r.hundredth_at > R[pick].hundredth_at) pick = i;
+  });
 
+  /* No `clip: true`, and that is a correction rather than a preference.
+   *
+   * `makeChart` builds the clipped group as a CHILD of `g`, so the `g.selectAll('*').remove()`
+   * at the top of a render detaches it, and every curve appended afterwards
+   * lands in a node that is no longer in the document. The failure is silent and
+   * specific: the axes, the grid, the labels and the markers all come back,
+   * because those are re-appended to `g`, and only the DATA is missing. What
+   * makes it worse is that nothing here is null and nothing throws, so the
+   * numeric audit passes and only a screenshot shows an empty chart.
+   *
+   * Nothing needs clipping anyway: `clampY` already folds every value into four
+   * decades either side of one, and the little that lands outside the axis stays
+   * inside the margin. */
   const chart = makeChart('#kernel-chart', {
     width: 640, height: 340, margin: { top: 40, right: 96, bottom: 52, left: 66 },
-    clip: true,
   });
-  const { g, plot, w, h } = chart;
+  const { g, w, h } = chart;
   const readout = d3.select('#kernel-readout');
 
   const L = Math.max(...R.map((r) => r.kernel.length));
   const x = d3.scaleLinear().domain([0, L - 1]).range([0, w]);
   const y = d3.scaleLog().domain([LO, HI]).range([h, 0]);
-  const clampY = (v) => y(Math.min(HI * 4, Math.max(LO / 4, Math.abs(v) || LO / 4)));
+  /* Clamped to the frame exactly, not a little past it. A curve parked in the
+   * top margin reads as a drawing mistake; one riding the top gridline reads as
+   * a curve that has left the chart, which is what it has done, and the label
+   * next to it says where it went. */
+  const clampY = (v) => y(Math.min(HI, Math.max(LO, Math.abs(v) || LO)));
 
   d3.select('#kernel-inits').selectAll('button').data(R).join('button')
     .attr('class', (d, i) => `atlas-btn${i === pick ? '' : ' ghost'}`)
@@ -49,7 +72,6 @@ export function initKernelWidget(data) {
 
   function render() {
     g.selectAll('*').remove();
-    plot.selectAll('*').remove();
     drawGrid(g, x, y, w, h, { xTicks: 6, yValues: logTicks(LO, HI) });
 
     /* the hundredth line, which is what the table's third column measures */
@@ -63,7 +85,7 @@ export function initKernelWidget(data) {
     const line = d3.line().x((d, t) => x(t)).y((d) => clampY(d));
     R.forEach((r, i) => {
       const on = i === pick;
-      plot.append('path').datum(r.kernel).attr('d', line)
+      g.append('path').datum(r.kernel).attr('d', line)
         .attr('fill', 'none')
         .attr('stroke', r.unstable ? 'var(--secondary)' : 'var(--primary)')
         .attr('stroke-width', on ? 2.6 : 1.4)
@@ -76,8 +98,11 @@ export function initKernelWidget(data) {
           .attr('cx', x(r.hundredth_at)).attr('cy', y(0.01)).attr('r', 5)
           .attr('fill', 'var(--paper)').attr('stroke', 'var(--primary)')
           .attr('stroke-width', 2.2);
-        seriesLabel(g, x(r.hundredth_at) + 8, y(0.01) + 16,
-          `${r.hundredth_at} steps`, { size: 11, weight: 600 });
+        /* Below and to the LEFT of the marker. The curve descends left to
+         * right, so the space under it on the left is empty and the space on
+         * the right is where the curve itself goes. */
+        seriesLabel(g, x(r.hundredth_at) - 10, y(0.01) + 17,
+          `${r.hundredth_at} steps`, { size: 11, weight: 600, anchor: 'end' });
       }
     });
 

@@ -92,7 +92,10 @@ export function initObjectiveWidget(data) {
     if (ex.target) {
       y += 16;
       y += strip(g, y, ex.target, {
-        graded: ex.target.map((t, i) => i),
+        /* From the second token on. The decoder is fed the target shifted by
+         * one, so it is graded on every position except the one it is given to
+         * start with, and that is also the count the readout prints. */
+        graded: ex.target.map((t, i) => i).slice(1),
         replaced: ex.target.map((t, i) => (t.startsWith('<x') ? i : -1)).filter((i) => i >= 0),
         caption: 'and what it has to produce, as a second sequence',
       });
@@ -102,18 +105,39 @@ export function initObjectiveWidget(data) {
     const shown = ex.input.length;
     const graded = ex.target ? ex.target.length - 1 : ex.graded.length;
     const hidden = ex.replaced.length;
+    /* What this particular draw happens to contain, rather than what the recipe
+     * says a draw contains. Eighty-ten-ten on five masked tokens produces a
+     * random substitution about half the time, so a sentence pointing at one
+     * that is not there sends the reader hunting for it. */
+    const swapped = ex.replaced.filter((i) => ex.input[i] !== '<mask>').length;
+    const gradedUntouched = ex.graded.filter((i) => !ex.replaced.includes(i)).length;
     const legend = '<div><span class="bold">Filled</span> means the model does not see the real '
       + 'word there. <span class="bold">Underlined</span> means it is graded on that position.</div>';
+    const drawSays = (swapped === 0 && gradedUntouched === 0)
+      ? 'the draw put the placeholder on every one of them, so the other two cases are not on '
+        + 'screen. This is one fixed example rather than a fresh sample, so the counts stay put'
+      : `${swapped} of the ${hidden} hidden tokens ${swapped === 1 ? 'was' : 'were'} replaced by `
+        + `a different word rather than the placeholder, and ${gradedUntouched} graded `
+        + `${gradedUntouched === 1 ? 'position was' : 'positions were'} left untouched`;
     readout.html(
       `<div>Of the <span class="value">${shown}</span> tokens it reads here, `
-      + `<span class="bold">${hidden}</span> were destroyed on the way in and it is graded on `
-      + `<span class="bold">${graded}</span>.</div>`
+      + (ex.target
+        /* The span arm counts differently and saying otherwise would be wrong
+         * rather than merely clumsy: a sentinel is not a destroyed token, it is
+         * a whole run of them gone, and the grading is not in this sequence. */
+        ? `<span class="bold">${hidden}</span> ${hidden === 1 ? 'is a sentinel standing' : 'are sentinels standing'} `
+          + `in for a run of words that is gone entirely, and the grading happens on the `
+          + `<span class="bold">${graded}</span> tokens of the second sequence.</div>`
+        : `<span class="bold">${hidden}</span> ${hidden === 1 ? 'was' : 'were'} destroyed on the `
+          + `way in and it is graded on <span class="bold">${graded}</span>.</div>`)
       + legend
       + (arm === 'bert'
-        ? '<div>Some filled chips are not the placeholder but a random word, and one or two graded '
-          + 'positions are not filled at all: that is the eighty-ten-ten recipe from the paper, '
-          + 'and it exists so the model never learns that the placeholder is the only position '
-          + 'worth thinking about. It will never see a placeholder again after pretraining.</div>'
+        ? '<div>Not every hidden token becomes the placeholder. The recipe from the paper is '
+          + 'eighty-ten-ten: eight in ten of the chosen positions get the placeholder, one in ten '
+          + 'gets a random word instead, and one in ten is left exactly as it was and graded '
+          + 'anyway. It exists so the model never learns that the placeholder is the only position '
+          + 'worth thinking about, which matters because it will never see a placeholder again '
+          + `after pretraining. In this passage ${drawSays}.</div>`
         : arm === 'gpt'
           ? '<div>Nothing is filled, because the causal objective destroys nothing. It hides the '
             + 'future with a mask inside the attention instead, and grades every position at once '

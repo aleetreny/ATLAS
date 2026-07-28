@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <rect width="400" height="300" fill="#f1f3f3" />
+  <!-- predicciones supervisadas por token leido: la columna que -->
+  <!-- nadie imprime y la que explica como escalaron -->
+  <rect x="26" y="236" width="70" height="38" fill="#3730a3" opacity="0.88"/>
+  <rect x="165" y="26" width="70" height="248" fill="#3730a3" opacity="0.88"/>
+  <rect x="304" y="220" width="70" height="54" fill="#3730a3" opacity="0.88"/>
+  <path d="M26,274 L374,274" stroke="#232f3e" stroke-width="1" opacity="0.4" fill="none"/>
+</svg>

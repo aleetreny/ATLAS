@@ -91,8 +91,7 @@ export function initProse(data) {
     const gradedT5 = E.t5.target.length - 1;
     set('objective-note',
       `Those are real training examples, corrupted by the same code that trained the three arms `
-      + `rather than redrawn here, which is why the masked one has a stray word that was replaced `
-      + `by a different word instead of a placeholder. Count the bars: on the same `
+      + `rather than redrawn for the picture. Count the bars: on the same `
       + `<span class="value">${E.words.length}</span> tokens, the masked arm is graded on `
       + `<span class="bold">${E.bert.graded.length}</span> positions, the causal arm on `
       + `<span class="bold">${E.gpt.graded.length}</span>, and the span arm on `
@@ -119,10 +118,18 @@ export function initProse(data) {
     + `<span class="bold">${bestProbe.model}</span> at ${pc(bestProbe.probe)}, and filling a gap `
     + `in the middle is best for <span class="bold">${bestCloze.model}</span> at `
     + `${pc(bestCloze.cloze)}`
-    + (sameWinner
-      ? `, the same arm on both.`
-      : `, a different arm on each. Which is the point of running all three rather than one: `
-        + `there is no ranking here, there is a choice of what you are going to do next.`)
+    + (sameWinner && bestProbe.kind === 'gpt'
+      ? `, the same arm on both, and it is the <span class="bold">causal</span> one. Filling a `
+        + `gap in the middle of a passage is the task built to favour a model that can see both `
+        + `sides, and the model that cannot see the right-hand side wins it here anyway. The `
+        + `explanation is the column above: at this budget, being graded `
+        + `${(bestSignal.signal_per_token / by.bert.signal_per_token).toFixed(1)} times as often `
+        + `is worth more than seeing both sides. That is a statement about this scale, and it is `
+        + `also, in miniature, the argument that decided the last five years.`
+      : sameWinner
+        ? `, the same arm on both.`
+        : `, a different arm on each. Which is the point of running all three rather than one: `
+          + `there is no ranking here, there is a choice of what you are going to do next.`)
     + ` And the asymmetry the table cannot show: the masked arm `
     + `<span class="bold">cannot generate at all</span>, whatever its numbers, because nothing in `
     + `its training ever asked it to produce a word without seeing the words after it.`);
@@ -143,9 +150,16 @@ export function initProse(data) {
   const beats = folklore ? bestRate.probe - folklore.probe : null;
   set('rate-verdict',
     `Two things pull against each other here and the shape of the curve is the argument. Masking `
-    + `more gives the model more predictions to learn from, which is the fourth column going up. `
-    + `Masking more also destroys the context it needs in order to make them, so past some point `
-    + `each prediction is a worse one. `
+    + `more gives the model more predictions to learn from, which is the second column going up, `
+    + `and it never stops going up. Masking more also destroys the context it needs in order to `
+    + `make those predictions, so each one is worth less. `
+    + (bestRate.rate === S[S.length - 1].rate
+      ? `Within the range swept here the first force is still winning at every step: the probe is `
+        + `best at the <span class="bold">highest</span> rate tried, so this sweep does not show `
+        + `the turn. That is a result about this range and this budget, not a claim that the turn `
+        + `is not there. `
+      : `The turn is visible: the probe peaks in the middle of the range and falls again on `
+        + `either side of it. `)
     + (bestRate.rate === 0.15
       ? `On this corpus the best of the rates tried is <span class="bold">${pc(0.15, 0)}</span>, `
         + `which is the folklore value, and it is worth having checked rather than assumed.`

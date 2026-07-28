@@ -12,7 +12,7 @@
  * 1e-14 across the whole range is the point.
  */
 import { makeChart, drawAxes, drawGrid, axisLabels } from '../../assets/js/chart.js';
-import { seriesLabel, legend } from '../../assets/js/textdraw.js';
+import { seriesLabel, legend, logTicks } from '../../assets/js/textdraw.js';
 import { recurrent, kernel, convolve, dualityError, reachOf } from './ssmkit.js';
 
 const VIEWS = [
@@ -88,10 +88,14 @@ export function initDualityWidget(demo) {
       const lo = Math.max(1e-8, Math.min(...rel.map((p) => p.v).filter((v) => v > 0)));
       const x0 = d3.scaleLinear().domain([0, D.L]).range([0, w]);
       const y0 = d3.scaleLog().domain([Math.max(lo, 1e-6), 1.4]).range([h, 0]);
+      /* Powers of ten and their triples, not `yTicks: 5`. A log scale asked for
+       * five ticks over a domain that ends at 1.4 answers with 0.8, 0.9 and 1
+       * stacked on top of each other, which the sweep caught as an overlap. */
+      const yv = logTicks(Math.max(lo, 1e-6), 1.4);
       g.append('g').attr('class', 'grid')
-        .call((s) => drawGrid(s, x0, y0, w, h, { xTicks: 6, yTicks: 5 }));
+        .call((s) => drawGrid(s, x0, y0, w, h, { xTicks: 6, yValues: yv }));
       const axes = g.append('g');
-      drawAxes(axes, x0, y0, w, h, { xTicks: 6, yTicks: 5,
+      drawAxes(axes, x0, y0, w, h, { xTicks: 6, yValues: yv,
         yFmt: (v) => (v >= 0.01 ? String(v) : v.toExponential(0)) });
       axisLabels(axes, w, h, {
         x: 'steps ago', y: 'how much that input still contributes',

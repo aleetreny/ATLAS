@@ -625,10 +625,17 @@ def main():
     ex_rates = rate_examples(te, vocab, ids, RATES)
     sweep = []
     for rate in RATES:
-        b = cached(f"rate_{int(rate * 100)}",
-                   lambda r=rate: pretrain("bert", tr, V, ids, rate=r,
-                                           label=f"BERT {int(r * 100)}%"))
-        acc = cached(f"rate_probe_{int(rate * 100)}",
+        # La fila del 15% ES el brazo enmascarado de la tabla de arriba, no otro
+        # entrenamiento igual: misma funcion, misma semilla, mismos pasos y la
+        # misma tasa, asi que entrenarlo de nuevo produciria los mismos pesos
+        # bit a bit y costaria media hora. Reutilizarlo tambien hace que las dos
+        # tablas de la pagina no puedan discrepar en el punto que comparten.
+        same = abs(rate - MASK_RATE) < 1e-9
+        b = arms["bert"] if same else cached(
+            f"rate_{int(rate * 100)}",
+            lambda r=rate: pretrain("bert", tr, V, ids, rate=r,
+                                    label=f"BERT {int(r * 100)}%"))
+        acc = cached(f"probe_bert" if same else f"rate_probe_{int(rate * 100)}",
                      lambda bb=b: probe(rebuild("bert", V, bb), "bert", train_s, test_s,
                                         wi, ti, V))
         sweep.append({"rate": rate, "probe": acc,

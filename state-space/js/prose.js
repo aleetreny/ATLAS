@@ -140,7 +140,12 @@ export function initProse(data, seq, attn) {
     + `decide to remember this token and not that one. The copy task the previous articles used `
     + `does not expose it, because the thing to remember is always in the same place, and a fixed `
     + `system can learn "hold on to the first one". The task below moves the targets around and `
-    + `marks them, so deciding what to keep requires looking at what is being read.`);
+    + `marks them, so deciding what to keep requires looking at what is being read. Two lengths `
+    + `rather than a curve, and the reason is worth stating: the scan here is written out step by `
+    + `step, because the page runs the same one, so the gradient has to come back through every `
+    + `step of it and a single model past length 40 takes more than an hour on the machine these `
+    + `numbers were measured on. Both rows are trained on an identical budget, which is what the `
+    + `comparison needs.`);
 
   rows('#sel-table', S, (d) => [
     n0(d.length), pc(d.invariant.acc), pc(d.selective.acc),

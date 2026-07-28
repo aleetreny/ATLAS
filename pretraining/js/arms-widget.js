@@ -65,8 +65,17 @@ export function initArmsWidget(data) {
           ? `<div>Filling a gap in the middle of a passage is the task that <span class="bold">`
             + `favours the bidirectional objectives by construction</span>, and saying so is part `
             + `of reporting it: the causal model is being asked to guess a word using only what `
-            + `came before it, which is the one thing it was built to do and the harder version of `
-            + `this question.</div>`
+            + `came before it, so it is answering a harder question than the other two.`
+            + (best.arm.kind === 'gpt'
+              ? ` Which is what makes this reading worth stopping on, because it wins anyway. A `
+                + `handicap built into the task loses to a factor of `
+                + `${(best.arm.signal_per_token / Math.min(...rows.map((r) => r.arm.signal_per_token))).toFixed(1)} `
+                + `in how much supervision the objective pulled out of the same text, which is the `
+                + `third view.`
+              : ` The causal arm scores `
+                + `${V.fmt(rows.find((r) => r.arm.kind === 'gpt').value)} here, behind the leader, `
+                + `which is the direction the construction of the task predicts.`)
+            + `</div>`
           : `<div>This is the column nobody prints. Each objective read the same number of tokens `
             + `and took the same number of optimiser steps; what differs is how many of those `
             + `tokens it was actually graded on. A causal objective is graded on every position; a `
