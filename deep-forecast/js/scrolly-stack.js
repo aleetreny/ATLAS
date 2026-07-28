@@ -9,8 +9,17 @@
 import { makeChart, drawAxes, drawGrid, axisLabels, wrapLabel } from '../../assets/js/chart.js';
 import { scrolly } from '../../assets/js/scrolly.js';
 
+const centre = (v) => {
+  const m = v.reduce((a, b) => a + b, 0) / v.length;
+  return v.map((x) => x - m);
+};
+
 export function initStackScrolly(data) {
-  const ex = data.bases.examples[0];
+  /* the family whose parts the constrained basis can actually express, so the
+     figure explains the architecture; the table two sections down is where the
+     families it cannot express are counted */
+  const ex = data.bases.examples.find((e) => e.family === 'trend_season')
+    || data.bases.examples[0];
   const L = data.meta.lookback;
   const H = data.meta.horizon;
   const chart = makeChart('#stack-chart', {
@@ -47,9 +56,19 @@ export function initStackScrolly(data) {
     .attr('text-anchor', 'end').style('font-size', '11px').text('the lookback ends');
   const layerTop = gTop.append('g');
 
-  const parts = ex.trend_hat.concat(ex.season_hat, ex.trend_true, ex.season_true);
+  /* Every curve here is centred before it is drawn, for the same reason the
+     generator centres them before scoring: the split between a level and a
+     trend is not identified, so only the shape of each part means anything.
+     Drawn raw, the trend sits at the level of the series (about 45) and the
+     season at zero, and one axis for both makes the season a flat line. */
+  const trendHat = centre(ex.trend_hat);
+  const seasonHat = centre(ex.season_hat);
+  const trendTrue = centre(ex.trend_true);
+  const seasonTrue = centre(ex.season_true);
+  const parts = trendHat.concat(seasonHat, trendTrue, seasonTrue);
+  const span = d3.max(parts) - d3.min(parts) || 1;
   const yBot = d3.scaleLinear()
-    .domain([d3.min(parts) * 1.1 - 1, d3.max(parts) * 1.1 + 1]).range([botH, 0]);
+    .domain([d3.min(parts) - span * 0.12, d3.max(parts) + span * 0.12]).range([botH, 0]);
   const layerBot = gBot.append('g');
 
   function bottom(series, note) {
@@ -78,14 +97,14 @@ export function initStackScrolly(data) {
     },
     1: () => {
       layerTop.selectAll('*').remove();
-      bottom([[ex.trend_hat, 'var(--primary)', null]],
-        'what the polynomial blocks produced for the next twelve months');
+      bottom([[trendHat, 'var(--primary)', null]],
+        'what the polynomial blocks produced, centred: only the shape is identified');
       wrapLabel(title, 'the first blocks can only make polynomials', w - 8);
     },
     2: () => {
       layerTop.selectAll('*').remove();
-      bottom([[ex.trend_hat, 'var(--primary)', null],
-        [ex.season_hat, 'var(--aqua)', null]],
+      bottom([[trendHat, 'var(--primary)', null],
+        [seasonHat, 'var(--aqua)', null]],
       'and what the Fourier blocks made of the residual left behind');
       wrapLabel(title, 'the later blocks only see what is left over', w - 8);
     },
@@ -97,10 +116,10 @@ export function initStackScrolly(data) {
       layerTop.selectAll('circle').data(ex.forecast).join('circle')
         .attr('cx', (d, i) => x(L + i)).attr('cy', (d) => yTop(d)).attr('r', 3)
         .attr('fill', 'var(--primary)');
-      bottom([[ex.trend_hat, 'var(--primary)', null],
-        [ex.season_hat, 'var(--aqua)', null],
-        [ex.trend_true, 'var(--primary)', '5 4'],
-        [ex.season_true, 'var(--aqua)', '5 4']],
+      bottom([[trendHat, 'var(--primary)', null],
+        [seasonHat, 'var(--aqua)', null],
+        [trendTrue, 'var(--primary)', '5 4'],
+        [seasonTrue, 'var(--aqua)', '5 4']],
       'solid: what the blocks produced. dashed: the parts this series was built from');
       wrapLabel(title, 'the sum is the forecast, and the parts have an answer key', w - 8);
     },

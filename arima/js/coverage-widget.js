@@ -94,10 +94,9 @@ export function initCoverageWidget(data) {
     ? `The 80% interval holds ${(m80 * 100).toFixed(1)}%.`
     : `The 80% interval holds ${(m80 * 100).toFixed(1)}%, which is
            ${m80 < 0.8 ? 'narrower' : 'wider'} than it claims.`}
-        An interval this model reports is computed as though the fitted
-        parameters were the true ones and the model were the true model. The
-        first of those is a small lie on ${S.n} origins; the second is not
-        small at all when the shape is wrong.
+        Both are counted over ${S.n} origins. Press the other button and watch
+        both rows move together: the paragraph below is about what that
+        movement is actually measuring.
       </div>`;
   }
 

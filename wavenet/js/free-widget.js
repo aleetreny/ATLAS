@@ -53,8 +53,6 @@ export function initFreeWidget(data) {
     wrapLabel(title, `${ARMS[current][0]}, ${F.generated.toLocaleString('en-US')} samples after `
       + `${F.primed_with} real ones`, w - 8);
 
-    const rows = ARMS.filter((a) => a[1] !== 'truth').map((a) => F.arms[a[1]]);
-    const best = rows.reduce((a, b) => (b.spec_distance < a.spec_distance ? b : a), rows[0]);
     readout.innerHTML = `
       <table class="gen-table">
         <tr><th></th><th>distance from the real spectrum</th><th>loudness</th>
@@ -80,12 +78,11 @@ export function initFreeWidget(data) {
         sampling at temperature 1 injects the full noise of the model's own
         uncertainty at every step
         (${F.arms['1'].zero_crossing_rate} zero crossings per sample against
-        ${F.arms.truth.zero_crossing_rate}). The best of the three here is
-        <span class="bold">${ARMS.find((a) => F.arms[a[1]] === best)[0]}</span>
-        at ${best.spec_distance}. Distances are between spectra rather than
-        between samples, for the reason the previous article measured: two
-        periodic sounds one sample out of phase are far apart sample by sample
-        and identical to the ear.
+        ${F.arms.truth.zero_crossing_rate}). Press each button and listen to a
+        second of it before reading the last column. The distances there are
+        between spectra rather than between samples, for the reason the previous
+        article measured: two periodic sounds one sample out of phase are far
+        apart sample by sample and identical to the ear.
       </div>`;
   }
 

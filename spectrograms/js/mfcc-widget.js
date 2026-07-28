@@ -115,18 +115,13 @@ export function initMfccWidget(data) {
             <td><span class="value">${dist(D.coef.slice(1), other.coef.slice(1)).toFixed(3)}</span></td></tr>
       </table>
       <div class="gen-note">
-        Those four numbers are the whole argument for the cepstrum. What you want
-        is for the second row to be much larger than the first, because a vowel
-        should look like itself at any pitch. Measured over all
-        ${C.pitches.length} pitches and all five vowels, the between-vowel
-        distance is ${C.spec_ratio} times the across-pitch spread on the raw log
-        spectrum, and <span class="value">${C.coef_ratio}</span> times on the
-        coefficients, a factor of
-        ${(C.coef_ratio / C.spec_ratio).toFixed(2)} better separation for
-        thirteen numbers instead of ${C.freqs.length}. The pitch is not destroyed,
-        it is moved: read the high quefrencies instead and it comes back with a
-        median error of ${C.pitch.median_error_hz} hertz, and the famous octave
-        error on ${C.pitch.octave_errors} of the ${C.pitch.n} pitches tried.
+        Those four numbers are the whole argument for the cepstrum, and they are
+        recomputed here for whichever sound is selected. What you want is the
+        second row much larger than the first, because a vowel should look like
+        itself at any pitch, and you want that ratio to be better in the right
+        hand column than in the left. Change the vowel and the pitch and watch
+        whether it stays true; the paragraph below has the same comparison run
+        over all ${C.pitches.length} pitches and all five vowels at once.
       </div>`;
   }
 

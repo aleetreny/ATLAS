@@ -88,17 +88,11 @@ export function initInvertWidget(data) {
             <td>${I.random_phase_snr_db} dB</td></tr>
       </table>
       <div class="gen-note">
-        Press the three buttons and listen, then read the last column again. By
-        waveform error <span class="bold">both</span> reconstructions are worse
-        than silence, which would score 0 dB, and the random phase one scores
-        ${I.random_phase_snr_db} against ${I.griffin_snr_db} for the iterated
-        one, so that ruler says the wash is the better reconstruction. Your ears
-        disagree, and so does the ruler that matches what was kept: the iterated
-        version lands ${I.spec_gap} away from the original picture and the random
-        one ${I.spec_gap_random}, ${(I.spec_gap_random / I.spec_gap).toFixed(1)}
-        times further. A spectrogram is not a lossless recording, and a metric
-        that measures sample by sample is measuring the part that was thrown away
-        on purpose.
+        Press the three buttons and listen to the last two rows before reading
+        either column. Your ears will rank them; the two columns of this table
+        do not agree with each other about how to rank them, and only one of the
+        two agrees with your ears. Which one, and why it matters for anything
+        trained on pictures of sound, is the paragraph below.
       </div>`;
   }
 

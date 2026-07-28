@@ -186,10 +186,14 @@ export function initProse(data) {
     </tr>`).join('');
   }
 
+  const fittedStillWins = prevBest && prevBest.mase_mean < P.co2.mase;
   set('board-note',
-    `${prevBest ? `${prevBest.model} still wins at ${prevBest.mase_mean}, and it should: it is a `
-      + `model whose shape was designed for exactly this kind of series and whose parameters were `
-      + `estimated from this series at every origin. ` : ''}`
+    `${prevBest ? (fittedStillWins
+      ? `${prevBest.model} still wins at ${prevBest.mase_mean}, and it should: it is a `
+        + `model whose shape was designed for exactly this kind of series and whose parameters were `
+        + `estimated from this series at every origin. `
+      : `Nothing fitted to this series beats the pretrained model here: the best of them is `
+        + `${prevBest.model} at ${prevBest.mase_mean}. `) : ''}`
     + `The row worth arguing about is the last one to be added. A model that has never been shown `
     + `a single real measurement of anything scores ${P.co2.mase}`
     + `${prevNaive ? `, which is ${(prevNaive.mase_mean / P.co2.mase).toFixed(1)} times better `
@@ -206,12 +210,17 @@ export function initProse(data) {
     `It has no idea what your series is. On the sunspots, whose cycle nothing in the corpus `
     + `resembles, it scores ${P.sunspots.mase}.`);
   set('verdict-fit',
-    `${prevBest ? `${prevBest.model} scores ${prevBest.mase_mean} on the same origins` : ''}, `
-    + `which is ${prevBest ? (P.co2.mase / prevBest.mase_mean).toFixed(1) : ''} times better than `
-    + `the pretrained model.`);
+    `${prevBest ? `${prevBest.model} scores ${prevBest.mase_mean} on the same origins, which is `
+      + `${fittedStillWins
+        ? `${(P.co2.mase / prevBest.mase_mean).toFixed(1)} times better than the pretrained model.`
+        : `${(prevBest.mase_mean / P.co2.mase).toFixed(1)} times worse than the pretrained model, `
+          + `so on this series fitting bought nothing.`}` : ''}`);
   set('verdict-fit-warn',
-    `That advantage is real on one well behaved series and is exactly what disappears when you `
-    + `have ten thousand of them and no time to look at any.`);
+    `${fittedStillWins
+      ? `That advantage is real on one well behaved series and is exactly what disappears when you `
+        + `have ten thousand of them and no time to look at any.`
+      : `One series is one series, and a fitted model that loses here is not a fitted model that `
+        + `loses everywhere.`}`);
   set('verdict-interval',
     `A hundred sampled continuations give ${pc(m95, 1)} coverage against a promised 95%, with no `
     + `distributional assumption.`);

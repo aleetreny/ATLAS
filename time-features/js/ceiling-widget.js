@@ -90,13 +90,10 @@ export function initCeilingWidget(data) {
         a number above it: the highest this forecast reaches is
         ${maxLevels.toFixed(4)}. ${E.over_ceiling} of the ${nf} months being
         forecast are above the ceiling, so those ${E.over_ceiling} are
-        unreachable before the model has learned anything at all. Trained on the
-        change instead, the same model with the same columns scores
-        ${E.diff.mase_mean} against ${E.levels.mase_mean} over
-        ${E.n_origins} origins, a factor of
-        ${(E.levels.mase_mean / E.diff.mase_mean).toFixed(2)}, because the thing
-        it is now bounded by is the size of a monthly change, and that is not
-        going anywhere.
+        unreachable before the model has learned anything at all. The line stays
+        where it is when you press the other button; what changes is that the
+        forecast is allowed to cross it. The paragraph below is about the one
+        line of code that does that.
       </div>`;
   }
 

@@ -63,14 +63,21 @@ export function initReceptiveWidget(data) {
     ? `The stack with ${last.layers} layers can see ${last.receptive} samples,
          less than a period, and scores ${last.snr_db} dB; the one with
          ${first.layers} layers sees ${first.receptive}, more than a period, and
-         scores ${first.snr_db} dB. That step of
-         ${(first.snr_db - last.snr_db).toFixed(2)} dB is the largest in the
-         table, and it happens exactly where the arithmetic said it would.`
+         scores ${first.snr_db} dB, a step of
+         ${(first.snr_db - last.snr_db).toFixed(2)} dB.
+         ${(() => {
+    const steps = rows.slice(1).map((r, i) => ({ from: rows[i], to: r,
+      gain: r.snr_db - rows[i].snr_db }));
+    const top = steps.reduce((a, b) => (b.gain > a.gain ? b : a), steps[0]);
+    return top.from === last
+      ? 'That is the largest step in the table, exactly where the arithmetic '
+             + 'said it would be.'
+      : `It is not the largest step here either: that is
+             ${top.from.receptive} to ${top.to.receptive} samples, worth
+             ${top.gain.toFixed(2)} dB, which is the same verdict the loss
+             gave, on a scale a listener would recognise.`;
+  })()}`
     : `Every stack here covers a period.`}
-      Nothing about that is a hyperparameter search: the reach of a stack of
-      dilated causal convolutions is one plus the sum of its dilations, so the
-      depth needed to hear a pitch is a division, and the depth needed to hear a
-      whole syllable is another one.
     </div>`;
 
   d3.select('#receptive-widget').insert('div', ':first-child').attr('class', 'controls-row')

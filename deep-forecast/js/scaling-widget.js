@@ -96,10 +96,7 @@ export function initScalingWidget(data) {
 
   function render() {
     if (view === 'curve') drawCurve(); else drawHorizons();
-    const last = S.rows[S.rows.length - 1];
-    const first = S.rows[0];
     const beatsLocal = S.rows.filter((r) => r.mase < S.local_nbeats);
-    const beatsEts = S.rows.filter((r) => r.mase < S.ets);
     readout.innerHTML = `
       <table class="gen-table">
         <tr><th>trained on</th>${S.rows.map((r) => `<th>${r.series}</th>`).join('')}
@@ -112,25 +109,19 @@ export function initScalingWidget(data) {
             <td colspan="3"></td></tr>
       </table>
       <div class="gen-note">
-        ${beatsLocal.length
-    ? `Sharing overtakes the same architecture fitted to one series alone at
-           <span class="value">${beatsLocal[0].series} series</span>
-           (${beatsLocal[0].mase} against ${S.local_nbeats}), and by
-           ${last.series} it is at ${last.mase}.`
-    : `On this collection the shared model never overtakes the same
-           architecture fitted to each series alone (${S.local_nbeats}), which is
-           the honest result at this size: ${last.series} series is not many.`}
-        ${beatsEts.length
-    ? `Against exponential smoothing fitted to each series it takes
-           ${beatsEts[0].series}.`
-    : `None of these sizes gets under exponential smoothing fitted to each
-           series (${S.ets}), and that is the comparison that matters: a global
-           network is competing with a well understood local model that costs
-           nothing to fit.`}
-        The curve is also not monotone (${first.series} series scores
-        ${first.mase} and ${S.rows[1].series} scores ${S.rows[1].mase}), which is
-        what a single training run per point looks like: these differences are
-        one seed each and the small end of the axis is where that shows.
+        ${view === 'curve'
+    ? `Three dashed lines and one solid curve. Two of the dashed lines are
+           models that need no sharing at all, and where the curve ends up
+           relative to each of them is the result;
+           ${beatsLocal.length
+      ? `it is already under one of them at the left hand end of the axis.`
+      : `it is under neither of them anywhere on this axis.`}`
+    : `The same four models, split by how far ahead they are asked to
+           forecast. A curve that is flat across the horizons and one that
+           climbs are two different kinds of model, whatever their averages
+           say.`}
+        The paragraph below reads the whole picture, including the two things
+        this axis is not.
       </div>`;
   }
 

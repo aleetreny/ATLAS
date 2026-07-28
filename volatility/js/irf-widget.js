@@ -78,11 +78,9 @@ export function initIrfWidget(data) {
         is permitted to respond inside the same quarter, and the largest single
         difference in the whole picture is
         <span class="value">${I.max_gap}</span> percent, on
-        ${NICE[I.worst_var]}. The response of GDP peaks
-        ${I.peak.realgdp.ratio} times higher under one ordering than the other,
-        so a chart like this one is an answer to "what happens if investment is
-        shocked" only once somebody has decided what investment is allowed to
-        shock first, and that decision is not in the data.
+        ${NICE[I.worst_var]}. Press the two buttons back and forth a few times
+        and watch the top row of the table rather than the curves; the paragraph
+        below is about what that row means for a chart like this one.
       </div>`;
   }
 

@@ -63,8 +63,6 @@ export function initAlphabetWidget(data) {
     wrapLabel(title, `${bins} letters: the worst value moves ${worst.toFixed(3)} parts `
       + `per million`, w - 8);
 
-    const row = Q.rows.find((r) => r.bins === bins);
-    const model = data.pretrain.co2.mase;
     readout.innerHTML = `
       <table class="gen-table">
         <tr><th>letters</th>${Q.rows.map((r) => `<th>${r.bins}</th>`).join('')}</tr>
@@ -75,20 +73,15 @@ export function initAlphabetWidget(data) {
     + `${r.mase}</td>`).join('')}</tr>
       </table>
       <div class="gen-note">
-        The last row is a lower bound on anything this alphabet can express: it is
-        the error made by writing down the <span class="bold">true</span> next
-        twelve months in ${bins} letters and reading them back, over
+        The last row is a lower bound on anything this alphabet can express: it
+        is the error made by writing down the <span class="bold">true</span>
+        next twelve months in that many letters and reading them back, over
         ${Q.n_origins} origins, in the same units as every other error in this
-        branch. At the ${data.meta.bins} letters the model uses it is
-        ${Q.rows.find((r) => r.bins === data.meta.bins).mase}, and the model
-        itself scores ${model}, which is
-        ${(model / Q.rows.find((r) => r.bins === data.meta.bins).mase).toFixed(0)}
-        times worse. So the alphabet is not what is limiting it, and buying more
-        letters would buy nothing: on this page, at least, the tokeniser is not
-        the bottleneck people worry that it is. Note also the round trip on this
-        window: ${sum.toFixed(3)} parts per million of total error at ${bins}
-        letters, against ${(sum * 0 + worst).toFixed(3)} for the worst single
-        month.
+        branch. At ${bins} letters the round trip on the window drawn above
+        costs ${sum.toFixed(3)} parts per million in total and
+        ${worst.toFixed(3)} on its worst single month. Drag to the left until
+        the accent line stops following the grey one, then read the paragraph
+        below for where the model actually sits on this row.
       </div>`;
   }
 

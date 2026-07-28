@@ -378,8 +378,11 @@ def stage_bases():
                 e_se = float(np.sqrt(np.mean(((season_hat - season_hat.mean())
                                               - (se_true - se_true.mean())) ** 2))) / sd
                 rows.setdefault(s["family"], []).append((e_tr, e_se))
-                if len(examples) < 3 and o == LOOKBACK + 12 and s["family"] in (
-                        "trend_season", "ar1", "level_shift"):
+                # one example per family rather than the first three that
+                # matched, which came back as level_shift three times over
+                if (o == LOOKBACK + 12
+                        and s["family"] in ("trend_season", "ar1", "level_shift")
+                        and s["family"] not in {e["family"] for e in examples}):
                     examples.append({
                         "family": s["family"],
                         "context": r(win, 4),

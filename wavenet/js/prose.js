@@ -90,14 +90,26 @@ export function initProse(data) {
     + `${R.period}. Five stacks, ${rows[0].layers} to ${rows[rows.length - 1].layers} layers, `
     + `trained identically on the same ${R.seconds} seconds.`);
 
+  const crossing = rows.slice(1).map((row, i) => ({
+    from: rows[i], to: row, drop: rows[i].nll - row.nll,
+  })).find((step) => step.from.receptive < R.period && step.to.receptive >= R.period);
   set('dilation-note',
-    `${under.length && over.length
-      ? `The prediction holds. The largest single improvement in held out loss is from `
-        + `${biggest.from.receptive} samples to ${biggest.to.receptive} `
-        + `(${biggest.from.nll} to ${biggest.to.nll}), and ${R.period} lies `
-        + `${biggest.from.receptive < R.period && biggest.to.receptive >= R.period
-          ? 'exactly between them' : `near that step`}.`
-      : `Every stack here already covers a period, so the crossing is not on this chart.`} `
+    `${!crossing
+      ? `Every stack here is on the same side of a period, so the crossing is not on this chart.`
+      : crossing.from === biggest.from
+        ? `The prediction holds: the largest single improvement in held out loss is exactly the `
+          + `step that crosses a period, from ${crossing.from.receptive} samples to `
+          + `${crossing.to.receptive} (${crossing.from.nll} to ${crossing.to.nll}).`
+        : `<span class="bold">The prediction is only half right, and the half that fails is worth `
+          + `more than the half that works.</span> The step that crosses a period does improve, `
+          + `from ${crossing.from.receptive} samples to ${crossing.to.receptive} `
+          + `(${crossing.from.nll} to ${crossing.to.nll}, a drop of `
+          + `${crossing.drop.toFixed(4)}), but it is not the largest step in the table: that is `
+          + `${biggest.from.receptive} to ${biggest.to.receptive}, a drop of `
+          + `${biggest.jump.toFixed(4)}. A reach of ${biggest.to.receptive} samples is `
+          + `${(biggest.to.receptive / R.period).toFixed(2)} of a period, and most of what there `
+          + `is to learn about a waveform is local: the shape of one glottal pulse, not where the `
+          + `next one falls. Covering a whole period buys the last of it, not the bulk.`} `
     + `The bars below are the same five models scored differently, as the signal to noise ratio of `
     + `the waveform they predict, which is the number a listener would care about.`);
 

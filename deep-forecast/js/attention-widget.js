@@ -77,26 +77,20 @@ export function initAttentionWidget(data) {
             <td><span class="value">${A.both_copies.ratio}</span></td></tr>
       </table>
       <div class="gen-note">
-        The second and third columns are two different questions. The last row is
-        where they come apart: the promotion and its exact duplicate carry the
-        same information, the model puts
-        ${driver.weight > copy.weight ? `${driver.weight} on one and ${copy.weight} on the other`
-    : `${copy.weight} on one and ${driver.weight} on the other`},
-        and breaking either one alone costs
-        ${Math.min(driver.ratio, copy.ratio).toFixed(3)}x to
-        ${Math.max(driver.ratio, copy.ratio).toFixed(3)}x, while breaking both
-        costs <span class="value">${A.both_copies.ratio}x</span>.
-        ${Math.min(driver.ratio, copy.ratio) < 1.05
-    ? `So permutation says one of the two copies does not matter, which is
-           true only because the other one is still there.`
-    : `So permutation finds both of them, which happens when the model has
-           spread its reliance across the pair.`}
-        And ${echo.name} gets a weight of ${echo.weight} while breaking it still
-        costs ${echo.ratio}x: a weight of zero does not mean no effect, because
-        the weights themselves are computed from all the inputs, so destroying
-        an input the model claims to ignore still changes what it decides to
-        attend to. Noise gets ${noise.weight} and costs ${noise.ratio}x, which is
-        the one row where the two agree completely.
+        ${view === 'weight'
+    ? `These are the numbers a dashboard would show, and the first two rows are
+           the same column entered twice.`
+    : `These are the numbers you get by breaking each input and measuring, and
+           the first two rows are the same column entered twice.`}
+        Press the other button and read the four rows in the new order: the two
+        rankings are not the same ranking. The last row is the one that decides
+        which of them you can trust, since breaking one copy of a duplicated
+        input recovers ${(((Math.min(driver.ratio, copy.ratio) - 1)
+    / (A.both_copies.ratio - 1)) * 100).toFixed(0)}% of what breaking both
+        does. Noise is the only row the two agree on completely
+        (${noise.weight} and ${noise.ratio}x), and ${echo.name} is the row that
+        buys the least with the most weight (${echo.weight} for ${echo.ratio}x).
+        The paragraph below takes all three in order.
       </div>`;
   }
 

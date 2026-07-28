@@ -176,7 +176,7 @@ export function initProse(data) {
     + `${P.sweep_default} on the sweep's origins, and ${P.mase_mean} on all ${P.n_origins} of `
     + `them, so the shortcut of sweeping on every fourth origin costs `
     + `${Math.abs(P.sweep_default - P.mase_mean).toFixed(4)} and the two can be read together. `
-    + `Rerun at the best price on all ${P.best_full.n_origins} origins it scores `
+    + `Rerun at the best price on all ${P.best_full.n_origins} origins, it scores `
     + `${P.best_full.mase_mean}.`);
 
   set('decomp-intro',

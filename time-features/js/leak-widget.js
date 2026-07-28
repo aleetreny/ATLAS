@@ -143,23 +143,18 @@ export function initLeakWidget(data) {
       <div class="gen-note">
         ${P.key === 'shuffled'
     ? `Look at any red cell and notice what is blue on either side of it. The
-           model is asked for a value it is surrounded by, which on a smooth
-           series is barely a question at all: it reports ${L.shuffled_mase}
-           where the honest experiment says ${L.rolling_mase}, so the number a
-           tutorial would print is ${((L.rolling_mase / L.shuffled_mase - 1) * 100).toFixed(0)}%
-           optimistic.`
+           model is being asked for a value it is surrounded by, which on a
+           smooth series is barely a question at all.`
     : P.key === 'blocked'
-      ? `Contiguous blocks fix the interpolation and introduce something worse.
-             The first block is scored by a model trained entirely on <i>later</i>
-             data, and this series trends, so that model is being asked for values
-             below everything it ever saw: ${L.blocked_mase}, which is
-             ${(L.blocked_mase / L.rolling_mase).toFixed(1)} times the honest
-             number in the other direction. Two wrong protocols, failing
-             opposite ways.`
+      ? `No cell is surrounded any more, and something worse has arrived: the
+             first block is scored by a model trained entirely on <i>later</i>
+             data, so read the top of the picture and ask what that model has
+             ever seen.`
       : `The only arrangement with no blue to the right of any red. Each origin
              trains on everything above it and is scored on what comes next,
-             which is the experiment the deployed model will actually face:
-             ${L.rolling_mase}.`}
+             which is the experiment the deployed model will actually face.`}
+        The three numbers in the table are all on the same series with the same
+        model; only the picture changed. The paragraph below reads them.
       </div>`;
   }
 

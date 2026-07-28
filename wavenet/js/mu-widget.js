@@ -72,19 +72,10 @@ export function initMuWidget(data) {
             <td>${lawQ.snr_db} dB</td></tr>
       </table>
       <div class="gen-note">
-        ${law.snr_db > lin.snr_db
-    ? `Over the whole clip mu-law wins by ${(law.snr_db - lin.snr_db).toFixed(2)} dB.`
-    : `Over the whole clip the even spacing wins by
-           ${(lin.snr_db - law.snr_db).toFixed(2)} dB, which is what a signal to
-           noise ratio computed over everything will always tend to say: it is
-           dominated by the loudest samples, and that is exactly where even
-           spacing is at its best.`}
-        The second column is the one that decides it. On the
-        ${(Q.quiet_share * 100).toFixed(0)}% of samples below a tenth of full
-        scale, mu-law is at ${lawQ.snr_db} dB against ${linQ.snr_db} dB, a
-        difference of ${(lawQ.snr_db - linQ.snr_db).toFixed(2)} dB, because
-        evenly spaced levels put almost none of their resolution down there and
-        the ear spends most of its time listening to it. Press the three buttons.
+        Two columns, and they are two different questions: the whole clip, and
+        the ${(Q.quiet_share * 100).toFixed(0)}% of samples that sit below a
+        tenth of full scale. Press the three buttons and listen before deciding
+        which one you care about; the paragraph below reads them in that order.
         This is also why the model that comes next predicts a
         <span class="bold">category</span> rather than a number: with 256 levels
         placed like this, choosing one of them is a decision a softmax can make.

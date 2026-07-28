@@ -159,22 +159,19 @@ export function initWindowWidget(data) {
           ${row ? `The generator measured ${row.rms_hz} hertz at this window and this page
              computed ${rms.toFixed(2)} from the same samples.` : ''}
           ${S.key === 'chirp'
-    ? `On a straight sweep the error just keeps falling as the window grows, all
-             the way to ${best.win} samples (${best.rms_hz} hertz), which is not what the
-             textbook picture promises. The reason is worth the detour: over a long
-             window a linear sweep smears symmetrically about its middle, so the
-             loudest bin stays at the instantaneous frequency of the window's centre
-             and the bias cancels exactly. Nothing about that survives a frequency
-             that bends, which is the next button.`
-    : `Here the error is U shaped: ${S.rows[0].rms_hz} hertz at ${S.rows[0].win}
-             samples, down to ${best.rms_hz} at ${best.win}, and back up to
-             ${S.rows[S.rows.length - 1].rms_hz} at
-             ${S.rows[S.rows.length - 1].win}. The wobble is
+    ? `Read the row along: on a straight sweep the error just keeps falling as the
+             window grows, all the way to ${best.win} samples (${best.rms_hz} hertz),
+             with no penalty anywhere for a window a quarter of a second long. That is
+             not what the tradeoff promises, and the paragraph below the widget is
+             about why. Press the next button first.`
+    : `Here the row turns around: down to ${best.rms_hz} hertz at ${best.win}
+             samples and worse in both directions from there. The wobble is
              ${data.chirp.vibrato.rate_hz} times a second, so a window longer than
              about ${Math.round(1000 / (2 * data.chirp.vibrato.rate_hz))} milliseconds
-             contains a whole cycle of it and averages it away. That is the tradeoff
-             every audio pipeline is choosing when it picks a window length, and it
-             is only visible on a signal that moves.`}
+             contains a whole cycle of it and averages it away, and a window shorter
+             than a few of the tone's own cycles cannot place a frequency at all.
+             That U is the tradeoff every audio pipeline is choosing when it picks a
+             window length.`}
         </div>`;
     } else {
       const [lo, hi] = S.band;

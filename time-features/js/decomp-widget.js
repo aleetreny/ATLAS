@@ -64,20 +64,14 @@ export function initDecompWidget(data) {
     + `"${E.family.replace('_', ' ')}"`, w - 8);
 
   const readout = document.querySelector('#decomp-readout');
-  const easy = D.rows[0];
-  const hard = D.rows[D.rows.length - 1];
   readout.innerHTML = `
     <div class="gen-note">
       Both panels are the same fit. The trend it recovered sits on top of the
       real one because this family is exactly what the model is: a slope that
-      changes at a few places, plus a Fourier season. The table below runs the
-      same comparison over ${D.n_series} series from four families, and the
-      spread across it is the whole story:
-      ${easy.trend_err} of a standard deviation of error on
-      ${easy.family.replace('_', ' ')}, and ${hard.trend_err} on
-      ${hard.family.replace('_', ' ')}, which is
-      ${(hard.trend_err / easy.trend_err).toFixed(0)} times worse for a picture
-      that looks just as convincing.
+      changes at a few places, plus a Fourier season. This is the easy case, and
+      it is the only kind of picture anybody ever puts in a slide. The table
+      below runs the same comparison over ${D.n_series} series from four
+      families, and the spread across it is the whole story.
     </div>`;
 
   return { render: () => {} };

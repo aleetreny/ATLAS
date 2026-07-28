@@ -76,10 +76,9 @@ export function initRiskWidget(data) {
            one percent case: it draws its line too far out
            (${(rows.find((r) => r.model === 'normal constant').obs5 * 100).toFixed(2)}%
            against 5%) because it is averaging calm years with 2008.`}
-        Switch levels and read the constant variance row both ways: it is the
-        one model that is too cautious in the body of the distribution and not
-        cautious enough in the tail, which is what a single number for the
-        spread buys you.
+        Press the other level and watch the constant variance row: it is the one
+        row that changes the direction of its error, and the paragraph below is
+        about what that costs.
       </div>`;
   }
 

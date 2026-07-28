@@ -100,9 +100,11 @@ export function initForecastWidget(data) {
     if (view === 'paths') drawPaths(); else drawCoverage();
     const c = P.co2.coverage;
     const m95 = c.reduce((a, r) => a + r.c95, 0) / c.length;
-    const m80 = c.reduce((a, r) => a + r.c80, 0) / c.length;
     const prev = data.board ? data.board.coverage : null;
     const p95 = prev ? prev.reduce((a, r) => a + r.c95, 0) / prev.length : null;
+    const best = data.board
+      ? data.board.rows.reduce((a, b) => (b.mase_mean < a.mase_mean ? b : a), data.board.rows[0])
+      : null;
     readout.innerHTML = `
       <table class="gen-table">
         <tr><th></th><th>error, one month</th><th>error, averaged over twelve</th>
@@ -111,25 +113,22 @@ export function initForecastWidget(data) {
             <td>${P.co2.per_h[0]}</td>
             <td><span class="value">${P.co2.mase}</span></td>
             <td><span class="value">${(m95 * 100).toFixed(1)}%</span></td></tr>
-        ${data.board ? `<tr><td>the best model of the first article, fitted to it</td>
-            <td>${data.board.rows[0].mase[0]}</td>
-            <td>${data.board.rows[0].mase_mean}</td>
+        ${best ? `<tr><td>${best.model}, from the first article, fitted to it</td>
+            <td>${best.mase[0]}</td>
+            <td>${best.mase_mean}</td>
             <td>${(p95 * 100).toFixed(1)}%</td></tr>` : ''}
       </table>
       <div class="gen-note">
-        ${Math.abs(m95 - 0.95) < 0.025
-    ? `The interval keeps its promise: ${(m95 * 100).toFixed(1)}% of the truth
-           falls inside the 95% band and ${(m80 * 100).toFixed(1)}% inside the
-           80% one, on a series this model was never fitted to and in a branch
-           where the fitted models' analytic intervals were not always this
-           honest.`
-    : `The interval holds ${(m95 * 100).toFixed(1)}% rather than 95%, and
-           ${(m80 * 100).toFixed(1)}% rather than 80%.`}
-        The interval costs nothing extra here, which is worth saying plainly:
-        every other model in this branch needed a distributional assumption to
-        produce one, and three of them could not produce one at all. Sampling a
-        hundred continuations and taking percentiles needs no assumption beyond
-        the one already made when the alphabet was chosen.
+        ${view === 'paths'
+    ? `Each faint line is one sampled continuation, drawn letter by letter. The
+           point forecast is their median and the band is their percentiles, so
+           both come out of the same hundred draws and neither needed a formula.`
+    : `Each bar counts, at one horizon, how often the truth landed inside the
+           band that promised to contain it. The dashed lines are the two
+           promises.`}
+        Nothing in the last column of the table was assumed; it was counted.
+        The paragraph below puts both rows next to what the rest of this branch
+        managed.
       </div>`;
   }
 

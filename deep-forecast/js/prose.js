@@ -53,8 +53,10 @@ export function initProse(data) {
     + `low order polynomials and the later ones only sums of sines and cosines at the seasonal `
     + `frequency. That is the whole difference, and it costs `
     + `${B.generic.mase < B.interpretable.mase
-      ? `${(B.generic.mase - B.interpretable.mase).toFixed(4)} of accuracy`
-      : `nothing measurable: ${B.interpretable.mase} against ${B.generic.mase}`}. `
+      ? `${(B.interpretable.mase - B.generic.mase).toFixed(4)} of accuracy `
+        + `(${B.interpretable.mase} against ${B.generic.mase}), which the section after next `
+        + `weighs against the spread across seeds`
+      : `nothing at all: ${B.interpretable.mase} against ${B.generic.mase}`}. `
     + `Below is one held out window through the constrained stack, with the components the series `
     + `was actually built from drawn underneath.`);
 
@@ -93,9 +95,14 @@ export function initProse(data) {
 
   set('scaling-note',
     `${beatsLocal.length
-      ? `Sharing overtakes the same architecture fitted to one series alone at `
-        + `${beatsLocal[0].series} series (${beatsLocal[0].mase} against ${S.local_nbeats}), `
-        + `and the curve keeps falling to ${last.mase}.`
+      ? `${beatsLocal[0].series === first.series
+        ? `Sharing is already ahead of the same architecture fitted to one series alone at the `
+          + `smallest pile tried, ${first.series} series (${first.mase} against `
+          + `${S.local_nbeats}), so this sweep does not bracket the crossing: it is somewhere `
+          + `below four.`
+        : `Sharing overtakes the same architecture fitted to one series alone at `
+          + `${beatsLocal[0].series} series (${beatsLocal[0].mase} against ${S.local_nbeats}).`} `
+        + `The curve keeps falling to ${last.mase}.`
       : `On this collection sharing never overtakes the same architecture fitted to each series `
         + `alone (${last.mase} against ${S.local_nbeats}), which is the honest result at this `
         + `size and worth stating plainly: ${last.series} series is not many, and the published `

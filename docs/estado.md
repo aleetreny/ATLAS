@@ -132,6 +132,13 @@ pérdida; (6) en audio, la ventana larga sobre un barrido **lineal** mejora sin 
 sesgo se cancela por simetría, y solo al doblar la frecuencia aparece la U que todo el mundo
 dibuja (2,36 Hz a 32 muestras contra 446,72 a 2.048).
 
+**Sobre los acentos de estos siete**: el encargo repartió `#713f12` a la sesión, que es el reparto
+normal de un artículo por sesión. Como aquí van siete, los seis restantes salen de la `RESERVA` de
+`check_publication.py` en su orden, que es lo que dice la propia herramienta cuando se le pide un
+reparto (`--reparte`): variantes del mismo acento o colores nuevos que `--next` diga libres. No se
+eligieron a ojo, y por eso están garantizados a distancia visible unos de otros: esa reserva salió
+de un barrido CIELAB con el peor vecino a dE 15,5.
+
 Y dos identidades que la página comprueba en el navegador: el suavizado exponencial simple y el
 ARIMA(0,1,1) son **la misma recursión** (5,684e-13 sobre 526 meses y las 50 tasas del control)
 aunque sus dos estimadores acaben a 0,6995 ppm uno del otro, y el campo receptivo de una pila de

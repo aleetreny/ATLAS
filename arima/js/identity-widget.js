@@ -121,16 +121,13 @@ export function initIdentityWidget(data) {
             <td>implies alpha = ${E.co2.implied_alpha}; next month: ${E.co2.f_arima} ppm</td></tr>
       </table>
       <div class="gen-note">
-        The largest gap the generator found over the same
+        Move the slider anywhere: the first row never leaves float noise, and
+        the largest gap the generator found over the same
         ${E.identity_grid[2]} rates was
-        <span class="value">${E.identity_worst.toExponential(2)}</span>, so the
-        identity is exact to the last bit of a double at every rate. The two
-        <i>fits</i> are ${E.co2.h1_gap} parts per million apart at one month,
-        and the reason is in the last two rows: the likelihood lands at theta =
-        ${E.co2.theta_hat}, which implies a smoothing rate of
-        ${E.co2.implied_alpha}, and a smoothing rate above one is not a
-        smoothing rate at all. The estimator that is allowed to go there goes
-        there.
+        <span class="value">${E.identity_worst.toExponential(2)}</span>. Then
+        look at the last two rows, which are the two libraries fitting the same
+        model to the same series and landing ${E.co2.h1_gap} parts per million
+        apart. The paragraph below is about how both of those can be true.
       </div>`;
   }
 

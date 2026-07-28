@@ -44,8 +44,6 @@ export function initProphetWidget(data) {
     .style('font-size', '11px')
     .text('grey: the series. accent: the trend, with its surviving bends marked');
 
-  const best = P.sweep.reduce((a, b) => (b.mase < a.mase ? b : a), P.sweep[0]);
-
   function render() {
     const row = P.sweep[+slider.value];
     trendPath.datum(row.trend).transition('tr').duration(350)
@@ -64,8 +62,8 @@ export function initProphetWidget(data) {
       .attr('y1', 0).attr('y2', h)
       .attr('stroke', 'var(--primary)').attr('stroke-width', 1).attr('opacity', 0.35);
     valueOut.textContent = `${row.tau}`;
-    wrapLabel(title, `a bend costs ${row.tau}: ${row.active} of ${P.n_changepoints} survive, `
-      + `and the forecast scores ${row.mase}`, w - 8);
+    wrapLabel(title, `a bend costs ${row.tau}: ${row.active} of ${P.n_changepoints} `
+      + `${row.active === 1 ? 'survives' : 'survive'}, and the forecast scores ${row.mase}`, w - 8);
 
     readout.innerHTML = `
       <table class="gen-table">
@@ -81,16 +79,13 @@ export function initProphetWidget(data) {
     ? `At this price nothing bends: the trend is a straight line through
            forty three years of a curve that is not straight, and the forecast
            scores ${row.mase}, the worst in the row.`
-    : `${row.active} bends survive here.`}
-        The library's own default is ${P.tau}, which on this series leaves
-        ${P.sweep.find((s) => s.tau === P.tau).active} bends and scores
-        ${P.sweep.find((s) => s.tau === P.tau).mase}; the best price on this
-        sweep is <span class="value">${best.tau}</span> at
-        <span class="value">${best.mase}</span>, with ${best.active} bends. That
-        is a factor of ${(P.sweep[P.sweep.length - 1].mase / best.mase).toFixed(2)}
-        between the ends of one slider, on a model whose fit to the history
-        looks reasonable at every setting: the price of a bend is not a
-        smoothing preference, it is the extrapolation.
+    : `${row.active === 1 ? 'One bend survives here'
+      : `${row.active} bends survive here`}, and the forecast scores
+           ${row.mase}.`}
+        Drag the slider from one end to the other watching only the chart: the
+        fitted curve stays plausible the whole way, while the bottom row of the
+        table does not. Whichever setting you stop at, the library's own default
+        is ${P.tau}. The paragraph below is about the size of that range.
       </div>`;
   }
 

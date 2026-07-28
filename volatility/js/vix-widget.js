@@ -111,16 +111,13 @@ export function initVixWidget(data) {
         instruments measuring the same slowly moving thing with different noise.
         ${V.corr_vix_real > V.corr_garch_real
     ? `Of the two, the market's number is the better forecast here:
-           ${V.corr_vix_real} against ${V.corr_garch_real}. It also sits
-           ${V.premium} points <span class="bold">above</span> what actually
-           happened on average (${V.mean_vix} against ${V.mean_real}), which is
-           not an error: an option is insurance, and insurance is sold above its
-           expected cost. That gap has a name, the variance risk premium, and it
-           is the reason a model fitted to returns and a number quoted by a
-           market are not competing to be the same thing.`
+           ${V.corr_vix_real} against ${V.corr_garch_real}.`
     : `Of the two, the fitted model is the better forecast here:
-           ${V.corr_garch_real} against ${V.corr_vix_real}, while the market's
-           number sits ${V.premium} points from the outcome on average.`}
+           ${V.corr_garch_real} against ${V.corr_vix_real}.`}
+        Then read the first row again: both forecasts sit above what actually
+        happened, and the market's sits highest of all. Press the other button
+        to see the same fact as a cloud that hangs off the diagonal. The
+        paragraph below is about why that offset is not a mistake anybody made.
       </div>`;
   }
 
