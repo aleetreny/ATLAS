@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Where You Weren't | ATLAS</title>
+  <meta name="description" content="Neural radiance fields and gaussian splatting on a scene that is written down in closed form, so the ground truth is the function itself: the rendering equation as a quadrature rule, what Fourier features are worth measured against a parameter-matched control, and both renderers running live in your browser at the same camera." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/nerf/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="Where You Weren't | ATLAS" />
+  <meta property="og:description" content="Neural radiance fields and gaussian splatting on a scene written down in closed form, with both renderers running live in your browser at the same camera." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/nerf/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Where You Weren't | ATLAS" />
+  <meta name="twitter:description" content="A radiance field and a pile of gaussians, fitted to the same photographs of the same closed-form scene, both running live in your browser." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    /* Per-article theme. Everything else inherits from these two. */
+    :root {
+      --primary: #581c87;
+      --secondary: #46156b;
+    }
+    /* A rendered frame next to the chart that explains it. Declared here
+       because nothing in global.css pairs a canvas with a chart. */
+    .side-by-side {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 1.5rem;
+      align-items: center;
+    }
+    /* Three or four frames of the same camera, read across. */
+    .frame-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1rem;
+      align-items: start;
+      justify-items: center;
+    }
+    /* A ladder of seven or more small frames, kept on one line. */
+    .frame-row.dense {
+      grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+      gap: 0.6rem;
+    }
+    .frame-cell {
+      width: 100%;
+      max-width: 220px;
+    }
+    .frame-cell .cap {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      text-align: center;
+      margin-top: 0.35rem;
+      color: var(--squidink);
+    }
+    .frame-cell .cap b {
+      font-family: var(--font-heavy);
+      color: var(--anchor);
+      font-weight: normal;
+    }
+    @media (max-width: 950px) {
+      .side-by-side {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+    /* A contact sheet is wider than it is tall and must not be blown up past
+       its own pixels, or a 64 pixel frame turns into a poster. */
+    .sheet-wrap {
+      overflow-x: auto;
+    }
+    .sheet-wrap canvas {
+      image-rendering: pixelated;
+    }
+    /* The orbit pad reads as draggable rather than as a picture. */
+    .orbit-pad {
+      cursor: grab;
+      touch-action: none;
+    }
+    .orbit-pad.dragging {
+      cursor: grabbing;
+    }
+  </style>
+</head>
+<body>
+  <!-- ======================= chrome ======================= -->
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <!-- ======================= hero ======================= -->
+  <section id="intro">
+    <h1 id="intro-hed">Where You Weren't</h1>
+    <h1 id="intro-sub">A still life photographed from a couple of dozen places, and never from here. Two ways to answer that, the same integral underneath both of them, and both of them running in this page</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 1.3 · Computer Vision · Neural Rendering</span>
+  </section>
+
+  <br />
+
+  <!-- ======================= introduction ======================= -->
+  <section>
+    <p class="body-text">
+      Every article in this module so far has worked on a flat picture. A
+      classifier reads one, a detector puts a box on one, the
+      <a href="../segmentation/">previous article</a> decided which of its
+      pixels belong to what. But a picture is a projection of something, and the
+      something is where the information went missing: a photograph cannot tell
+      you what is behind the sphere, because nothing behind the sphere reached
+      the sensor.
+    </p>
+    <br />
+    <p class="body-text">
+      So the question changes. Given a handful of photographs of a scene, can
+      you produce the photograph nobody took? Not a plausible one. The right
+      one, checkable against the truth.
+    </p>
+    <br />
+    <p class="body-text" id="dataset-note">Measured below.</p>
+    <br />
+    <p class="body-text">
+      Here is the whole training set, and the object of the exercise is
+      everything in between.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="gallery-widget">
+    <div class="sheet-wrap" id="gallery-sheet"></div>
+    <div class="widget-readout" id="gallery-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="rig-note">Measured below.</p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the integral ======================= -->
+  <section>
+    <h1 class="body-header">A Pixel Is An Integral</h1>
+    <p class="body-text">
+      Forget learning for a moment. Suppose you already had the scene, written
+      down as two functions of a point in space: how much stuff is there,
+      \(\sigma(\mathbf{x})\), and what colour it emits towards you,
+      \(\mathbf{c}(\mathbf{x}, \mathbf{d})\). A pixel is then a line integral
+      along the ray through it, and the only subtlety is that things in front
+      hide things behind:
+    </p>
+    <div style="text-align: center; margin: 1.2rem 0">
+      \( C(\mathbf{r}) = \displaystyle\int_{t_n}^{t_f} T(t)\, \sigma(\mathbf{r}(t))\, \mathbf{c}(\mathbf{r}(t), \mathbf{d})\, dt,
+         \qquad T(t) = \exp\!\left(-\displaystyle\int_{t_n}^{t} \sigma(\mathbf{r}(s))\, ds\right) \)
+    </div>
+    <p class="body-text">
+      \(T\) is the transmittance: the fraction of light from depth \(t\) that
+      survives everything in front of it. Scroll through the four quantities on
+      one ray of one of those photographs.
+    </p>
+  </section>
+
+  <section id="ray-scrolly" class="scrolly">
+    <div class="scrolly-container">
+      <div class="charts-container">
+        <div class="chart-wrap" id="ray-chart"></div>
+      </div>
+      <div class="steps-container" id="ray-steps">
+        <div class="step" data-index="0">
+          <div class="step-content">
+            <h3>One ray</h3>
+            <p>The ray leaves the camera, crosses the box the scene lives in between \(t_n\) and \(t_f\), and everything that happens to the pixel happens on this segment.</p>
+          </div>
+        </div>
+        <div class="step" data-index="1">
+          <div class="step-content">
+            <h3>Density</h3>
+            <p>\(\sigma\) along the ray. Empty for most of the way, then a wall where the ray meets a solid. Nothing here is a surface: a surface is what a tall narrow \(\sigma\) looks like from far enough away.</p>
+          </div>
+        </div>
+        <div class="step" data-index="2">
+          <div class="step-content">
+            <h3>Transmittance</h3>
+            <p>\(T\) starts at one and is destroyed by whatever the ray has already passed through. Once it reaches zero the rest of the ray cannot be seen, which is occlusion falling out of the arithmetic rather than being coded up.</p>
+          </div>
+        </div>
+        <div class="step" data-index="3">
+          <div class="step-content">
+            <h3>Weight</h3>
+            <p>The product \(T(t)\,\sigma(t)\) is the weight the pixel gives to depth \(t\). It is large only where there is something and nothing in front of it, so it is a spike at the first surface. The pixel is the weighted average of the colour along the ray.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="body-text">
+      A computer cannot do that integral, so it does a sum. Split the segment
+      into \(N\) pieces, take the density at the middle of each, and the
+      integral becomes the thing every renderer on this page actually computes:
+    </p>
+    <div style="text-align: center; margin: 1.2rem 0">
+      \( \hat{C} = \displaystyle\sum_{i=1}^{N} T_i\, \alpha_i\, \mathbf{c}_i,
+         \qquad \alpha_i = 1 - e^{-\sigma_i \delta_i},
+         \qquad T_i = \displaystyle\prod_{j\,&lt;\,i} (1 - \alpha_j) \)
+    </div>
+    <p class="body-text">
+      Which is alpha compositing, arrived at from physics rather than from
+      graphics. Click any pixel and take the sum apart; then take steps away
+      and watch the answer stop being the answer.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="quad-widget">
+    <div class="side-by-side">
+      <div>
+        <div id="quad-canvas"></div>
+        <div class="controls-row" style="justify-content: center" id="quad-view-buttons"></div>
+      </div>
+      <div>
+        <div class="controls-row" style="justify-content: center">
+          <span class="slider-label">steps: <span class="value" id="quad-steps-value">64</span></span>
+          <input type="range" class="atlas-range" id="quad-steps" aria-label="how many steps the sum uses" min="0" max="13" step="1" value="8" />
+        </div>
+        <div id="quad-chart"></div>
+      </div>
+    </div>
+    <div class="widget-readout" id="quad-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="quad-note">Measured below.</p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the field ======================= -->
+  <section>
+    <h1 class="body-header">The Scene As A Function</h1>
+    <p class="body-text" id="nerf-intro">Measured below.</p>
+    <br />
+    <p class="body-text">
+      Nothing in that loop knows about geometry. There are no surfaces, no
+      meshes, no correspondences between photographs. There is a function with
+      some weights in it, a differentiable sum, and photographs to disagree
+      with.
+    </p>
+    <br />
+    <p class="body-text" id="encoding-intro">Measured below.</p>
+    <div style="text-align: center; margin: 1.2rem 0">
+      \( \gamma(x) = \big(x,\ \sin(2^{0}\pi x),\ \cos(2^{0}\pi x),\ \ldots,\ \sin(2^{L-1}\pi x),\ \cos(2^{L-1}\pi x)\big) \)
+    </div>
+    <p class="body-text">
+      The left panel is the reason, and it needs no training to see: how far
+      apart two points are <span class="bold">in the encoding</span>, as a
+      function of how far apart they are in the scene. With no bands that is
+      the separation itself, so two points inside one pixel arrive at the
+      network almost identical and it has to work hard to say different things
+      about them. Each band added bends that curve up until it saturates within
+      a fraction of a pixel, after which the network is free. Drag \(L\) and
+      read the two panels together.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="encoding-widget">
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">frequency bands \(L\): <span class="value" id="enc-l-value">6</span></span>
+      <!-- one stop per measured row of the ladder, not one per band: the
+           widget rewrites min and max from the data at load -->
+      <input type="range" class="atlas-range" id="enc-l" aria-label="how many frequency bands the encoding uses" min="0" max="4" step="1" value="3" />
+    </div>
+    <div class="side-by-side">
+      <div id="enc-kernel"></div>
+      <div id="enc-bars"></div>
+    </div>
+    <div class="sheet-wrap" id="enc-sheet"></div>
+    <div class="widget-readout" id="enc-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="encoding-result">Measured below.</p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the field, live ======================= -->
+  <section>
+    <h1 class="body-header">The Field, Running Here</h1>
+    <p class="body-text" id="live-intro">Measured below.</p>
+    <br />
+    <p class="body-text">
+      Drag the picture to move the camera. The left frame is the scene's closed
+      form evaluated at your camera, the middle is the fitted field, and the
+      right is what separates them, amplified so it is visible at all. Both
+      frames are computed here, now, in this tab.
+    </p>
+    <br />
+    <p class="body-text">
+      Then switch to depth, which is the question the colour frames cannot
+      answer. Nothing in the loss ever asked the field where the surfaces are;
+      it asked for photographs, and a wrong shape that happens to produce the
+      right photographs from the twenty-four places anyone stood would have
+      scored just as well. The depth panels are the expected depth of the same
+      rays, \(\sum_i T_i \alpha_i t_i\), so they say whether it got the shape as
+      well as the picture.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="field-widget">
+    <div class="frame-row" id="field-frames"></div>
+    <div class="controls-row" style="justify-content: center" id="field-views"></div>
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">resolution: <span class="value" id="field-res-value">40</span></span>
+      <input type="range" class="atlas-range" id="field-res" aria-label="render resolution in pixels" min="0" max="3" step="1" value="1" />
+      <span class="slider-label">samples per ray: <span class="value" id="field-steps-value">24</span></span>
+      <input type="range" class="atlas-range" id="field-steps" aria-label="how many samples each ray takes" min="0" max="5" step="1" value="2" />
+    </div>
+    <div class="controls-row" style="justify-content: center" id="field-toggles"></div>
+    <div class="widget-readout" id="field-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="skip-note">Measured below.</p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= views ======================= -->
+  <section>
+    <h1 class="body-header">Only Where You Stood</h1>
+    <p class="body-text" id="views-intro">Measured below.</p>
+  </section>
+
+  <div class="interactive-full" id="views-widget">
+    <div class="controls-row" style="justify-content: center" id="views-buttons"></div>
+    <div class="side-by-side">
+      <div id="views-rig"></div>
+      <div id="views-chart"></div>
+    </div>
+    <div class="sheet-wrap" id="views-sheet"></div>
+    <div class="widget-readout" id="views-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="views-result">Measured below.</p>
+    <br />
+    <p class="body-text" id="viewdep-intro">Measured below.</p>
+  </section>
+
+  <div class="interactive-full" id="viewdep-widget">
+    <div class="sheet-wrap" id="viewdep-sheet"></div>
+    <div class="widget-readout" id="viewdep-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="viewdep-result">Measured below.</p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= splatting ======================= -->
+  <section>
+    <h1 class="body-header">A Scene Made Of Blobs</h1>
+    <p class="body-text" id="splat-intro">Measured below.</p>
+    <br />
+    <p class="body-text">
+      Each blob is an ellipsoid: a centre, a covariance, an opacity and a
+      colour. Projecting one to the screen is a linear map, and the projected
+      shape stays a gaussian, which is the entire trick:
+    </p>
+    <div style="text-align: center; margin: 1.2rem 0">
+      \( \Sigma = R\,S\,S^{\top}R^{\top}, \qquad \Sigma' = J\,W\,\Sigma\,W^{\top}J^{\top} \)
+    </div>
+    <p class="body-text">
+      \(W\) puts the world in the camera's frame and \(J\) is the linearised
+      perspective divide at the blob's centre. Sort the results by depth,
+      composite them front to back with the same \(\alpha\) rule as before, and
+      that is the renderer. Drag to orbit, read the third frame to see what the
+      picture is made of, and then take blobs away with the slider until it
+      stops being a picture.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="blob-widget">
+    <div class="frame-row" id="blob-frames"></div>
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">blobs drawn: <span class="value" id="blob-k-value">1200</span></span>
+      <input type="range" class="atlas-range" id="blob-k" aria-label="how many blobs are composited" min="0" max="10" step="1" value="10" />
+    </div>
+    <div class="controls-row" style="justify-content: center" id="blob-toggles"></div>
+    <div class="widget-readout" id="blob-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="blob-note">Measured below.</p>
+    <br />
+    <p class="body-text" id="aniso-intro">Measured below.</p>
+  </section>
+
+  <div class="interactive-full" id="aniso-widget">
+    <div id="aniso-chart"></div>
+    <div class="sheet-wrap" id="aniso-sheet"></div>
+    <div class="widget-readout" id="aniso-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="aniso-result">Measured below.</p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= cost ======================= -->
+  <section>
+    <h1 class="body-header">What A Frame Costs</h1>
+    <p class="body-text" id="cost-intro">Measured below.</p>
+    <br />
+    <p class="body-text">
+      Press the button and both renderers draw the same camera at the same
+      resolution, in this tab, on your machine. The bar chart underneath is the
+      arithmetic rather than the clock: multiply-accumulates counted off the
+      two algorithms, which is the same number everywhere and does not care how
+      busy your laptop is.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="cost-widget">
+    <div class="frame-row" id="cost-frames"></div>
+    <div class="controls-row" style="justify-content: center" id="cost-buttons"></div>
+    <div id="cost-chart"></div>
+    <div class="sheet-wrap" id="compare-sheet"></div>
+    <div class="widget-readout" id="cost-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="cost-result">Measured below.</p>
+    <br />
+    <p class="body-text" id="geometry-note">Measured below.</p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= verdict ======================= -->
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text">
+      What each idea on this page is worth, at this scale, on this scene.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Idea</th>
+          <th>What it buys</th>
+          <th>Measured here</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">Volume rendering</span></td>
+          <td>A differentiable path from a scene to a pixel, with occlusion for free</td>
+          <td id="verdict-quad">Measured above.</td>
+          <td>It is a quadrature rule before it is anything else. Too few steps and you are fitting a model to compensate for your own integrator.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Fourier features</span></td>
+          <td>A coordinate network that can hold an edge instead of smearing it</td>
+          <td id="verdict-encoding">Measured above.</td>
+          <td>More bands is also more weights, so the honest control is a network with the same budget spent on width. And the ladder saturates, so how many bands to use is a property of the scene rather than a constant to copy.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">A field, not a mesh</span></td>
+          <td>A whole scene, view dependence included, in one small array of weights</td>
+          <td id="verdict-field">Measured above.</td>
+          <td>Every pixel is an integral, so a frame costs one network evaluation per sample per pixel. Empty space skipping is not an optimisation here, it is the difference between interactive and not.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Explicit gaussians</span></td>
+          <td>The same equation over primitives that can be culled, sorted and rasterised</td>
+          <td id="verdict-splat">Measured above.</td>
+          <td>The blobs are only ever constrained where a photograph looked, and nothing stops one from being any shape at all in a direction nobody stood in. The depth error below the photographed band is where that shows up as a number rather than as a worry.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="limits-note">Measured below.</p>
+    <br />
+    <p class="body-text" id="runtime-note">Measured below.</p>
+    <br />
+    <p class="body-text" id="closing-note">Measured below.</p>
+    <br />
+    <p class="body-text">
+      That closes module 1.3, and with it the whole of section 1. Seven
+      articles ago a photograph became a histogram of gradients computed by
+      hand, and the argument since then has been one long climb away from hand-written
+      features: a cascade, a convolution, depth, a budget, a box, a mask, and
+      now a scene that was never photographed from here. What comes next leaves
+      supervision behind entirely, and it is already written: section 2 runs
+      from <a href="../kmeans/">K-Means</a> through to
+      <a href="../affinities/">Affinities</a> and
+      <a href="../autoencoders/">Bottleneck</a>, and the place to start it is
+      <a href="../directions/">Directions</a>, where the data arrives without
+      any labels at all and the first question is what its axes are.
+    </p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! Every number here comes from
+      <code>src/utils/generate_nerf_data.py</code>, which writes the scene down
+      in closed form, photographs it, fits both models to those photographs and
+      then hands the browser the same weights it measured, quantised to the
+      same half precision, so that what you dragged around above is the model
+      the numbers describe.
+    </p>
+  </section>
+
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text" id="resources-note">Measured below.</p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/2003.08934">[1] NeRF: Representing Scenes as Neural Radiance Fields for View Synthesis</a><br />
+      (Mildenhall, B., Srinivasan, P. P., Tancik, M., Barron, J. T., Ramamoorthi, R. &amp; Ng, R., ECCV, 2020)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/2006.10739">[2] Fourier Features Let Networks Learn High Frequency Functions in Low Dimensional Domains</a><br />
+      (Tancik, M. et al., NeurIPS, 2020; why the encoding is a kernel and not a trick)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/2308.04079">[3] 3D Gaussian Splatting for Real-Time Radiance Field Rendering</a><br />
+      (Kerbl, B., Kopanas, G., Leimkühler, T. &amp; Drettakis, G., SIGGRAPH, 2023)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://ieeexplore.ieee.org/document/1021576">[4] EWA Splatting</a><br />
+      (Zwicker, M., Pfister, H., van Baar, J. &amp; Gross, M., IEEE TVCG, 2002; where the projected covariance comes from)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://dl.acm.org/doi/10.1145/964965.808594">[5] Optical Models for Direct Volume Rendering</a><br />
+      (Max, N., IEEE TVCG, 1995; the emission-absorption integral both methods discretise)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/2201.05989">[6] Instant Neural Graphics Primitives with a Multiresolution Hash Encoding</a><br />
+      (Müller, T., Evans, A., Schied, C. &amp; Keller, A., SIGGRAPH, 2022; occupancy grids, and encodings that are looked up rather than computed)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>

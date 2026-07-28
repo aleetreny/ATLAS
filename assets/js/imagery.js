@@ -91,6 +91,29 @@ export function paintGray(ctx, gray, w, h, { zoom = 1, x0 = 0, y0 = 0, colour = 
   ctx.drawImage(off, x0, y0, w * zoom, h * zoom);
 }
 
+/* The same as paintGray for a colour image: `rgb` is a flat Float32Array of
+ * r, g, b triples in [0, 1], row major, which is what a renderer produces. */
+export function paintRGB(ctx, rgb, w, h, { zoom = 1, x0 = 0, y0 = 0 } = {}) {
+  const img = ctx.createImageData(w, h);
+  for (let i = 0, p = 0; i < w * h; i++, p += 4) {
+    for (let k = 0; k < 3; k++) {
+      const v = rgb[i * 3 + k];
+      img.data[p + k] = v <= 0 ? 0 : v >= 1 ? 255 : Math.round(v * 255);
+    }
+    img.data[p + 3] = 255;
+  }
+  if (zoom === 1) {
+    ctx.putImageData(img, x0, y0);
+    return;
+  }
+  const off = document.createElement('canvas');
+  off.width = w;
+  off.height = h;
+  off.getContext('2d').putImageData(img, 0, 0);
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(off, x0, y0, w * zoom, h * zoom);
+}
+
 /* A hairline grid over a zoomed pixel block: only worth drawing when the
  * zoom is large enough that a grid line is thinner than a pixel cell. */
 export function pixelGrid(ctx, w, h, zoom, { x0 = 0, y0 = 0, colour = 'rgba(35,47,62,0.25)' } = {}) {
