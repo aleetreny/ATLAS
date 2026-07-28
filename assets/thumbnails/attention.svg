@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <rect width="400" height="300" fill="#f1f3f3" />
+  <!-- el alcance del gradiente de la atencion contra la distancia: -->
+  <!-- plano donde una recurrencia ya ha perdido la mitad -->
+  <path d="M20,280 L380,280" stroke="#232f3e" stroke-width="1" stroke-dasharray="4 3" opacity="0.4" fill="none"/>
+  <path d="M20,20 L28,158 L35,-432 L43,-526 L51,-543 L58,-799 L66,-623 L74,-192 L81,-282 L89,-45 L97,-235 L104,90 L112,-366 L120,-107 L127,-124 L135,-475 L143,-221 L150,-680 L158,-1417 L166,-1341 L173,280 L181,-662 L189,-553 L196,-911 L204,-472 L211,-382 L219,-1281 L227,-529 L234,-776 L242,-1121 L250,-328 L257,-255 L265,-86 L273,-294 L280,-280 L288,-532 L296,-365 L303,-384 L311,-69 L319,-806 L326,94 L334,-579 L342,195 L349,-74 L357,-301 L365,-1620 L372,-286 L380,-211" fill="none" stroke="#831843" stroke-width="2.8" opacity="1.0"/>
+</svg>

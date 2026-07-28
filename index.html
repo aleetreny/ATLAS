@@ -901,18 +901,154 @@
           Understanding human language and forecasting the future from history.
         </p>
       </div>
+
+      <div class="articles-container">
+        <!-- card: tf-idf -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./tf-idf/';" style="cursor: pointer">
+            <img src="assets/thumbnails/tf-idf.svg"
+                 alt="What A Word Is Worth article image: the rank-frequency curve of a corpus on logarithmic axes, a straight line falling from left to right, with the long tail of words that occur exactly once shaded in teal." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">What A Word Is Worth</h2>
+            <p class="article-description">
+              Turning a document into a vector is three separate decisions, not
+              one formula. All twelve combinations measured on one split, with a
+              noise floor drawn in, and the decision that is not in the name
+              turns out to be the one doing the work.
+            </p>
+            <button class="content-button">
+              <a href="./tf-idf/">Dive In</a>
+            </button>
+          </div>
+        </div>
+
+        <!-- card: topics -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./topics/';" style="cursor: pointer">
+            <img src="assets/thumbnails/topics.svg"
+                 alt="What It Is About article image: six hundred documents as rows grouped into their true categories by horizontal rules, with the topic each one was assigned picked out in olive, forming a staircase of blocks." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">What It Is About</h2>
+            <p class="article-description">
+              Thousands of axes reduced to eight, on a corpus where the eight
+              real answers are sitting right there to check against. The
+              collapsed Gibbs sampler runs in the page, from a random start.
+            </p>
+            <button class="content-button">
+              <a href="./topics/">Dive In</a>
+            </button>
+          </div>
+        </div>
+
+        <!-- card: embeddings -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./embeddings/';" style="cursor: pointer">
+            <img src="assets/thumbnails/embeddings.svg"
+                 alt="The Company It Keeps article image: a scatter of word-context pairs with the dot product the training produced against the mutual information a count predicts, and the dashed diagonal the theorem says they should lie on." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">The Company It Keeps</h2>
+            <p class="article-description">
+              Give a word a position instead of an axis and the position has to
+              be learned from its neighbours. Three ways of doing it on one
+              tagged corpus, with a part-of-speech tag on every neighbour.
+            </p>
+            <button class="content-button">
+              <a href="./embeddings/">Dive In</a>
+            </button>
+          </div>
+        </div>
+
+        <!-- card: sequences -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./sequences/';" style="cursor: pointer">
+            <img src="assets/thumbnails/sequences.svg"
+                 alt="What Came Before article image: a Viterbi trellis, twelve grey candidate tags at each of eight words, with the single best path drawn through it in dark green." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">What Came Before</h2>
+            <p class="article-description">
+              Four models of memory on one task where every token has a known
+              right answer, and two measurements of how far back each of them
+              can really see.
+            </p>
+            <button class="content-button">
+              <a href="./sequences/">Dive In</a>
+            </button>
+          </div>
+        </div>
+
+        <!-- card: attention -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./attention/';" style="cursor: pointer">
+            <img src="assets/thumbnails/attention.svg"
+                 alt="Everything At Once article image: how much an input still moves the state as the distance grows, a nearly flat line where a recurrence would already have lost half of it." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Everything At Once</h2>
+            <p class="article-description">
+              Make every pair of positions one step apart and pay for it in a
+              currency that grows with the square of the length. The trained
+              encoder runs in the page, so the constants can be switched off.
+            </p>
+            <button class="content-button">
+              <a href="./attention/">Dive In</a>
+            </button>
+          </div>
+        </div>
+
+        <!-- card: pretraining -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./pretraining/';" style="cursor: pointer">
+            <img src="assets/thumbnails/pretraining.svg"
+                 alt="Three Ways To Read article image: three indigo bars of very different heights, the supervised predictions each pretraining objective extracts from every token of text it reads." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Three Ways To Read</h2>
+            <p class="article-description">
+              One architecture and one budget, asked to predict three different
+              things. The fifteen percent masking rate is swept instead of
+              assumed, and the column nobody prints explains the rest.
+            </p>
+            <button class="content-button">
+              <a href="./pretraining/">Dive In</a>
+            </button>
+          </div>
+        </div>
+
+        <!-- card: state-space -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./state-space/';" style="cursor: pointer">
+            <img src="assets/thumbnails/state-space.svg"
+                 alt="Back To Recurrence article image: three convolution kernels from three initialisations, one diverging off the top, one decaying almost immediately and one reaching far to the right." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Back To Recurrence</h2>
+            <p class="article-description">
+              A linear recurrence is also a convolution, exactly, so it trains
+              in parallel and runs one step at a time. The page computes both
+              and reports how far apart they are.
+            </p>
+            <button class="content-button">
+              <a href="./state-space/">Dive In</a>
+            </button>
+          </div>
+        </div>
+      </div>
       <details class="roadmap">
         <summary>Full branch map: 4. Sequential Intelligence</summary>
         <div class="branch">
           <h4>4.1 NLP</h4>
           <div class="chips">
-            <span class="chip">TF-IDF · N-Grams</span>
-            <span class="chip">LDA Topics</span>
-            <span class="chip">Word2Vec · GloVe · FastText</span>
-            <span class="chip">HMM · RNN · LSTM · GRU</span>
-            <span class="chip">Self-Attention</span>
-            <span class="chip">BERT · GPT · T5</span>
-            <span class="chip">Mamba / SSMs</span>
+            <span class="chip live"><a href="./tf-idf/">TF-IDF · N-Grams</a></span>
+            <span class="chip live"><a href="./topics/">LDA Topics</a></span>
+            <span class="chip live"><a href="./embeddings/">Word2Vec · GloVe · FastText</a></span>
+            <span class="chip live"><a href="./sequences/">HMM · RNN · LSTM · GRU</a></span>
+            <span class="chip live"><a href="./attention/">Self-Attention</a></span>
+            <span class="chip live"><a href="./pretraining/">BERT · GPT · T5</a></span>
+            <span class="chip live"><a href="./state-space/">Mamba / SSMs</a></span>
           </div>
         </div>
         <div class="branch">

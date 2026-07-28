@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <rect width="400" height="300" fill="#f1f3f3" />
+  <!-- la estructura de bloques que el muestreador encuentra: documentos -->
+  <!-- agrupados por su categoria real, temas en columnas -->
+  <rect x="16" y="16" width="368" height="268" fill="#3f6212" opacity="0.12"/>
+  <g fill="#3f6212" opacity="0.85">
+    <rect x="16" y="16" width="46" height="8"/><rect x="16" y="23" width="46" height="8"/><rect x="16" y="30" width="46" height="8"/><rect x="16" y="37" width="46" height="8"/><rect x="62" y="44" width="46" height="8"/><rect x="62" y="51" width="46" height="8"/>
+    <rect x="62" y="58" width="46" height="8"/><rect x="62" y="65" width="46" height="8"/><rect x="62" y="72" width="46" height="8"/><rect x="62" y="79" width="46" height="8"/><rect x="108" y="87" width="46" height="8"/><rect x="108" y="94" width="46" height="8"/>
+    <rect x="108" y="101" width="46" height="8"/><rect x="154" y="108" width="46" height="8"/><rect x="154" y="115" width="46" height="8"/><rect x="154" y="122" width="46" height="8"/><rect x="154" y="129" width="46" height="8"/><rect x="154" y="136" width="46" height="8"/>
+    <rect x="154" y="143" width="46" height="8"/><rect x="200" y="150" width="46" height="8"/><rect x="200" y="157" width="46" height="8"/><rect x="200" y="164" width="46" height="8"/><rect x="200" y="171" width="46" height="8"/><rect x="200" y="178" width="46" height="8"/>
+    <rect x="200" y="185" width="46" height="8"/><rect x="200" y="192" width="46" height="8"/><rect x="246" y="199" width="46" height="8"/><rect x="246" y="206" width="46" height="8"/><rect x="246" y="213" width="46" height="8"/><rect x="246" y="221" width="46" height="8"/>
+    <rect x="246" y="228" width="46" height="8"/><rect x="292" y="235" width="46" height="8"/><rect x="292" y="242" width="46" height="8"/><rect x="292" y="249" width="46" height="8"/><rect x="292" y="256" width="46" height="8"/><rect x="292" y="263" width="46" height="8"/>
+    <rect x="292" y="270" width="46" height="8"/><rect x="338" y="277" width="46" height="8"/>
+  </g>
+  <path d="M16,16 L384,16" stroke="#232f3e" stroke-width="1" opacity="0.5" fill="none"/>
+  <path d="M16,44 L384,44" stroke="#232f3e" stroke-width="1" opacity="0.5" fill="none"/>
+  <path d="M16,87 L384,87" stroke="#232f3e" stroke-width="1" opacity="0.5" fill="none"/>
+  <path d="M16,108 L384,108" stroke="#232f3e" stroke-width="1" opacity="0.5" fill="none"/>
+  <path d="M16,150 L384,150" stroke="#232f3e" stroke-width="1" opacity="0.5" fill="none"/>
+  <path d="M16,199 L384,199" stroke="#232f3e" stroke-width="1" opacity="0.5" fill="none"/>
+  <path d="M16,235 L384,235" stroke="#232f3e" stroke-width="1" opacity="0.5" fill="none"/>
+  <path d="M16,277 L384,277" stroke="#232f3e" stroke-width="1" opacity="0.5" fill="none"/>
+</svg>

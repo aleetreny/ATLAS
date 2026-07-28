@@ -213,10 +213,32 @@ export function matrix(g, values, n, m, w, h, { scale, stroke = null,
   }
 }
 
-/** A monochrome ramp in the article's accent, for a non-negative quantity. */
+/**
+ * A monochrome ramp in the article's accent, for a non-negative quantity.
+ *
+ * The accent has to be RESOLVED before d3 sees it. `d3.interpolateLab` parses
+ * a colour string, and `var(--primary)` is not a colour: it is an instruction
+ * to the style engine, meaningless to anything outside a document. Passing it
+ * in produces an interpolator that returns nothing usable, and the result is
+ * not an error or a wrong colour, it is an <b>invisible</b> grid, which is the
+ * hardest kind of bug to notice in a numeric audit and the easiest to see in a
+ * screenshot. This site has now paid for that twice, once when serialising an
+ * SVG and once here.
+ *
+ * Resolved once and cached, because a computed style read per cell on a grid
+ * of a few thousand is a measurable cost for a value that cannot change.
+ */
+let ACCENT_RAMP = null;
+
 export function accentRamp(t) {
-  const u = Math.max(0, Math.min(1, t));
-  return d3.interpolateLab('#f1f3f3', 'var(--primary)')(u);
+  if (!ACCENT_RAMP) {
+    const accent = getComputedStyle(document.documentElement)
+      .getPropertyValue('--primary').trim() || '#164e63';
+    const paper = getComputedStyle(document.documentElement)
+      .getPropertyValue('--paper').trim() || '#f1f3f3';
+    ACCENT_RAMP = d3.interpolateLab(paper, accent);
+  }
+  return ACCENT_RAMP(Math.max(0, Math.min(1, t)));
 }
 
 /**

@@ -365,9 +365,13 @@ export function initProse(data, facts) {
     + `all, and the search is what you actually get. Here the assumption is that co-occurrence is `
     + `the only relationship there is, and the search is exact; and even with an exact search over `
     + `an honest count, ${pc(P.mean_rules / P.real_rules, 0)} of what comes out survives having `
-    + `the data shuffled. What comes next is a different question altogether. Everything in this `
-    + `module has been about finding structure that was already in the data; module 3 is about `
-    + `learning the distribution well enough to <span class="bold">make more of it</span>.`);
+    + `the data shuffled. What comes next changes the object again, and more sharply than this `
+    + `article did. Everything in the first two modules has started from a row of numbers or, `
+    + `here, from a set. A <span class="bold">document</span> is neither: it is a sequence of `
+    + `words, of no fixed length, drawn from a vocabulary nobody wrote down, and before any of the `
+    + `machinery in this atlas can touch it somebody has to decide what its numbers are. That `
+    + `decision is older than most of this atlas and it is still the one to beat. `
+    + `<a href="../tf-idf/">Counting words</a> is next.`);
 
   set('ref-note',
     `The baskets are the Groceries dataset that ships with the R package arules: ${n0(G.n)} `
