@@ -24,10 +24,12 @@ export function initMetricsWidget(data) {
   const c = makeChart('#ppl-chart', {
     width: 560, height: 320, margin: { top: 40, right: 30, bottom: 70, left: 76 },
   });
+  /* Short enough to sit under a bar without colliding with its neighbour: the
+     full names are in the table under the chart. */
   const bars = [
-    { k: 'latent at the input, z', v: plain.path.z.perceptual, colour: 'var(--anchor)' },
-    { k: 'latent at every layer, z', v: styled.path.z.perceptual, colour: 'var(--primary)' },
-    { k: 'latent at every layer, w', v: styled.path.w.perceptual, colour: 'var(--cosmos)' },
+    { k: 'input, in z', v: plain.path.z.perceptual, colour: 'var(--anchor)' },
+    { k: 'every layer, in z', v: styled.path.z.perceptual, colour: 'var(--primary)' },
+    { k: 'every layer, in w', v: styled.path.w.perceptual, colour: 'var(--cosmos)' },
   ];
   const x = d3.scaleBand().domain(bars.map((b) => b.k)).range([0, c.w]).padding(0.3);
   const y = d3.scaleLinear().domain([0, d3.max(bars, (b) => b.v) * 1.18]).range([c.h, 0]);

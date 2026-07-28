@@ -93,15 +93,19 @@ export function initNoiseWidget(data, gen) {
     const N = data.noise;
     document.querySelector('#noise-readout').innerHTML =
       `<p>${n} images from one style vector, `
-      + (state.on ? 'each with its own noise' : 'with every noise input set to zero, so all six are the same picture')
+      + (state.on ? 'each with its own draw of the noise inputs'
+        : 'with every noise input set to zero, so all six are the same picture')
       + `. Across these six the position moves by ${spread('cx').toFixed(3)} pixels, the size by `
       + `${spread('size').toFixed(3)} and the hue by ${spread('hue').toFixed(4)}. Across style `
       + `vectors, the same three move by ${N.across_w.cx.toFixed(2)}, ${N.across_w.size.toFixed(2)} `
-      + `and ${N.across_w.hue.toFixed(3)}. That is the division of labour the noise inputs are `
-      + `there to make: the style decides what the sprite is, the noise decides the grain.</p>`
+      + `and ${N.across_w.hue.toFixed(3)}. The style decides what the sprite is; on this dataset `
+      + `the noise decides essentially nothing, which is what a network should do when the data `
+      + `it is copying has nothing left to chance.</p>`
       + `<p>The right hand panel is the per-pixel standard deviation over these realisations, `
-      + `scaled so its largest value is full strength. Its peak here is `
-      + `${peak.toFixed(4)} of a unit of brightness, against a data grain of ${M.grain}.</p>`;
+      + `scaled so its largest value is full strength, which is the only reason there is anything `
+      + `to see in it: its peak is <span class="bold">${peak.toFixed(4)}</span> of a unit of `
+      + `brightness, and the sprites in this dataset carry no stochastic detail at all, so the `
+      + `network learned to leave nothing to chance.</p>`;
   }
 
   const row = document.querySelector('#noise-buttons');

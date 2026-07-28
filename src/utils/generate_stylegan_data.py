@@ -90,7 +90,17 @@ SIZE_LO, SIZE_HI = 4.0, 11.0
 POS_LO, POS_HI = 11.0, 21.0
 BIG = 8.0                      # above this counts as large
 BLUE_LO, BLUE_HI = 0.50, 0.75  # the hue band that large sprites never wear
-GRAIN = 0.04
+# No per-pixel grain in the data, and that is a measurement rather than a
+# preference. With a grain of 0.04 the discriminator separates real from
+# generated on texture statistics alone, which costs the generator every
+# gradient it might have received about shape: after 1500 steps it produces
+# smeared multi-coloured mush. The same run with the grain removed produces
+# clean saturated sprites, and even a grain of 0.015 is enough to bring the
+# mush back. So the sprites are deterministic given their factors, which also
+# makes the noise-input study below ask a better question: what do the
+# per-pixel noise inputs learn to do when the data has no stochastic detail in
+# it at all.
+GRAIN = 0.0
 
 
 def hsv_to_rgb(h, s, v):
@@ -305,17 +315,12 @@ def stage_dataset():
 # ----------------------------------------------------------------------------
 # 1. The shape reader
 # ----------------------------------------------------------------------------
-def stage_reader(data):
+def build_reader():
+    """The reader's shape in one place, so the cache can rebuild it."""
     import torch
     import torch.nn as nn
 
-    torch.set_num_threads(THREADS)
     torch.manual_seed(5)
-    img = data["images"]
-    y = data["factors"]["shape"]
-    n_tr = int(len(img) * 0.85)
-    x = torch.from_numpy(img.transpose(0, 3, 1, 2).copy())
-    yt = torch.from_numpy(y).long()
     # Flatten rather than average: a global average over the whole image
     # throws away where things are, and "which of these four outlines is it"
     # is exactly a question about where things are. With the average pool the
@@ -326,7 +331,43 @@ def stage_reader(data):
         nn.Conv2d(32, 64, 3, 2, 1), nn.ReLU(True),
         nn.Flatten(), nn.Linear(64 * 4 * 4, 64), nn.ReLU(True))
     head = nn.Linear(64, len(SHAPES))
-    net = nn.Sequential(body, head)
+    return nn.Sequential(body, head), body, head
+
+
+def stage_reader(data):
+    import torch
+
+    key = f"reader-{data['n']}-{RES}-v2"
+    h = hashlib.sha1(key.encode()).hexdigest()[:16]
+    path = CACHE / f"{h}.pkl"
+    if path.exists():
+        with open(path, "rb") as fh:
+            saved = pickle.load(fh)
+        net, body, head = build_reader()
+        net.load_state_dict({k: torch.from_numpy(v) for k, v in saved["state"].items()})
+        net.eval()
+        print(f"    the shape reader reaches {saved['acc']*100:.2f}% on held-out sprites",
+              flush=True)
+        return net, body, head, saved["acc"]
+    net, body, head, acc = train_reader(data)
+    with open(path, "wb") as fh:
+        pickle.dump(dict(acc=acc, state={k: v.detach().numpy()
+                                         for k, v in net.state_dict().items()}), fh)
+    return net, body, head, acc
+
+
+def train_reader(data):
+    import torch
+    import torch.nn as nn
+
+    torch.set_num_threads(THREADS)
+    torch.manual_seed(5)
+    img = data["images"]
+    y = data["factors"]["shape"]
+    n_tr = int(len(img) * 0.85)
+    x = torch.from_numpy(img.transpose(0, 3, 1, 2).copy())
+    yt = torch.from_numpy(y).long()
+    net, body, head = build_reader()
     opt = torch.optim.Adam(net.parameters(), 2e-3)
     lossf = nn.CrossEntropyLoss()
     for ep in range(1 if SMALL else 6):
@@ -757,7 +798,13 @@ def noise_study(G, reader, n_w=64, n_noise=24, seed=8):
             across_w[kk] = rnd(float(np.mean(hue_dist(h, np.median(h)))), 5)
         else:
             across_w[kk] = rnd(float(np.std(mm[kk])), 5)
+    # The learned scale on each noise map, which is the model's own answer to
+    # "how much of this picture should be left to chance": one number per
+    # channel per block, reported as the mean absolute value per block against
+    # the typical size of the activations it is added to.
+    scales = [rnd(float(np.abs(b.noise.detach().numpy()).mean()), 6) for b in G.blocks]
     return dict(
+        learned_scales=scales,
         std_map=np.round(std_map, 5).tolist(),
         mean_std=rnd(float(std_map.mean()), 5),
         high_share=rnd(float(np.abs(high).mean() / max(np.abs(std_map).mean(), 1e-9)), 4),
@@ -802,17 +849,17 @@ def truncation(G, body, reader, real_feats, n=1500, seed=10):
 def main():
     print(f"threads: {THREADS}{'  (SMALL smoke run)' if SMALL else ''}", flush=True)
     print("0. the sprites", flush=True)
-    data = cached(f"sprites-{RES}-{SMALL}-v1", stage_dataset)
+    data = cached(f"sprites-{RES}-{SMALL}-v2", stage_dataset)
     print(f"    {data['n']} sprites, measurement floor {data['floor']}", flush=True)
     print("1. the shape reader", flush=True)
     reader = stage_reader(data)
     print("2. two generators", flush=True)
-    steps = 40 if SMALL else 4000
+    steps = 40 if SMALL else 5000
     batch = 64
     runs = {}
     for kind in ("plain", "styled"):
         for seed in ([1] if SMALL else [1, 2]):
-            key = f"gan-{kind}-s{seed}-st{steps}-b{batch}-z{Z_DIM}-ch{CH}-v1"
+            key = f"gan-{kind}-s{seed}-st{steps}-b{batch}-z{Z_DIM}-ch{CH}-g{GRAIN}-v2"
             runs[f"{kind}/{seed}"] = cached(key,
                                             lambda k=kind, s=seed: train_gan(k, s, data["images"],
                                                                              steps, batch))
@@ -851,6 +898,47 @@ def main():
 
     n_eval = 400 if SMALL else 3000
     real_feats = read_features(body, data["images"][:n_eval])
+    # The yardstick, calibrated before anything is judged by it: two disjoint
+    # halves of the real sprites (the floor, what identical looks like), the
+    # same sprites blurred, and uniform noise (the ceiling). Without these,
+    # "151 against 384" is two numbers with no scale under them.
+    other = read_features(body, data["images"][n_eval:2 * n_eval])
+    rng_c = np.random.default_rng(77)
+    noise_imgs = rng_c.uniform(0, 1, (n_eval, RES, RES, 3)).astype(np.float32)
+
+    def box_blur(x, k):
+        out = x.copy()
+        pad = k // 2
+        for ax in (1, 2):
+            p = np.pad(out, [(0, 0)] + [(pad, pad) if a == ax else (0, 0) for a in (1, 2)]
+                       + [(0, 0)], mode="edge")
+            c = np.cumsum(p, axis=ax)
+            sl = lambda s, e: tuple(slice(None) if a != ax else slice(s, e) for a in range(4))
+            out = (c[sl(k, None)] - c[sl(0, -k)]) / k
+        return out
+
+    scale = dict(
+        floor=rnd(frechet(real_feats, other), 4),
+        blur3=rnd(frechet(real_feats, read_features(body, box_blur(data["images"][:n_eval], 3))), 4),
+        noise=rnd(frechet(real_feats, read_features(body, noise_imgs)), 4),
+        n=n_eval)
+    print(f"    the yardstick: real against real {scale['floor']:.2f}, blurred "
+          f"{scale['blur3']:.2f}, noise {scale['noise']:.2f}", flush=True)
+
+    # And a floor under the hole itself. The rectangle is exactly empty in the
+    # factors that were DRAWN, but the numbers this page compares are measured
+    # off pixels, and the measured size carries a bias of about a third of a
+    # pixel from the antialiased edge. A sprite drawn just under the threshold
+    # measures just over it, so a share of the real data lands in the forbidden
+    # region by measurement error alone. Every generator's share has to be read
+    # against this, not against zero.
+    real_hole = hole_leak(data["images"][:n_eval], net)
+    scale["hole_floor"] = real_hole["share"]
+    scale["hole_floor_expected"] = real_hole["expected_if_independent"]
+    print(f"    the hole, measured off real pixels: {real_hole['share']*100:.2f}% "
+          f"(exactly 0 in the factors that were drawn)", flush=True)
+    assert scale["floor"] < scale["blur3"] < scale["noise"], \
+        f"the yardstick is not ordered, so it cannot rank anything: {scale}"
 
     print("3. path lengths and separability", flush=True)
     metrics = {}
@@ -861,9 +949,9 @@ def main():
         kind = key.split("/")[0]
         G = quant[key]["G"]
         n = 60 if SMALL else 600
-        pl = cached(f"ppl-{key}-{n}-v2", lambda G=G, kind=kind, n=n:
+        pl = cached(f"ppl-{key}-{n}-v3", lambda G=G, kind=kind, n=n:
                     path_lengths(G, body, net, kind, n))
-        sep = cached(f"sep-{key}-v2", lambda G=G, kind=kind:
+        sep = cached(f"sep-{key}-v3", lambda G=G, kind=kind:
                      separability(G, net, kind, 400 if SMALL else 4000))
         imgs = generate(G, n_eval, seed=21)
         leak = hole_leak(imgs, net)
@@ -883,21 +971,21 @@ def main():
     print("4. style mixing", flush=True)
     styled_key = f"styled/{seeds[0]}"
     Gs = quant[styled_key]["G"]
-    mixing = cached(f"mix-{styled_key}-v2", lambda: style_mixing(Gs, net,
+    mixing = cached(f"mix-{styled_key}-v3", lambda: style_mixing(Gs, net,
                                                                  n=64 if SMALL else 400))
     for r in mixing["rows"]:
         print(f"    layer {r['layer']} ({r['res']}x{r['res']}): "
               + ", ".join(f"{k} {r[k]:.2f}" for k in mixing["keys"]), flush=True)
 
     print("5. the noise inputs", flush=True)
-    noise = cached(f"noise-{styled_key}-v2",
+    noise = cached(f"noise-{styled_key}-v3",
                    lambda: noise_study(Gs, net, n_w=8 if SMALL else 48,
                                        n_noise=6 if SMALL else 24))
     print(f"    per pixel std {noise['mean_std']:.4f}, "
           f"{noise['high_share']*100:.1f}% of it high frequency", flush=True)
 
     print("6. truncation", flush=True)
-    trunc = cached(f"trunc-{styled_key}-v2",
+    trunc = cached(f"trunc-{styled_key}-v3",
                    lambda: truncation(Gs, body, net, real_feats, n=300 if SMALL else 1500))
 
     # ------------------------------------------------------------------ write
@@ -946,6 +1034,7 @@ def main():
                   blocks=[dict(res=r, ch=c) for r, c in zip([4, 8, 8, 16, 32], CH)]),
         dataset=dict(floor=data["floor"], hole=data["hole"]),
         metrics=metrics, mixing=mixing, noise=noise, truncation=trunc, scatter=scatter,
+        scale=scale,
         net=dict(weights_b64=b64, count=int(vals.size), layers=layers,
                  w_mean=[rnd(v, 6) for v in trunc["w_mean"]],
                  format="float16 little-endian, base64, concatenated in the order of `layers`"),

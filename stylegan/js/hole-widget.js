@@ -34,10 +34,14 @@ export function initHoleWidget(data, sheets) {
   const pts = c.g.append('g');
   drawAxes(c.g, x, y, c.w, c.h, { xTicks: 6, yTicks: 5 });
   axisLabels(c.g, c.w, c.h, { x: 'measured size, in pixels', y: 'measured hue' });
-  c.g.append('text').attr('class', 'chart-annotation')
-    .attr('x', x(M.big) + 8).attr('y', y((M.blue[0] + M.blue[1]) / 2))
-    .style('font-size', '11px').style('letter-spacing', '0.4px').style('fill', 'var(--cosmos)')
-    .text('large and blue: never in the data');
+  /* Two short lines inside the rectangle rather than one long one starting at
+     its left edge, which ran off the panel. */
+  ['large and blue:', 'never in the data'].forEach((line, i) => {
+    c.g.append('text').attr('class', 'chart-annotation')
+      .attr('x', x(M.big) + 8).attr('y', y((M.blue[0] + M.blue[1]) / 2) - 6 + i * 14)
+      .style('font-size', '10.5px').style('letter-spacing', '0.3px').style('fill', 'var(--cosmos)')
+      .text(line);
+  });
 
   function render() {
     const rows = data.scatter[state.which] || [];
@@ -53,8 +57,11 @@ export function initHoleWidget(data, sheets) {
     if (state.which === 'real') {
       document.querySelector('#hole-readout').innerHTML =
         `<p>${rows.length} sprites drawn by the generator, measured back off their own pixels. `
-        + `${inHole} of them are in the forbidden rectangle, which is what it means for the `
-        + `rectangle to be forbidden. Both marginals are flat: `
+        + `${inHole} of them land in the forbidden rectangle, which is not zero and is not a `
+        + `broken hole: the rectangle is exactly empty in the numbers that were drawn, and these `
+        + `points are what a measurement of those numbers off ${data.meta.res} pixels gives back. `
+        + `That share, <span class="bold">${(data.scale.hole_floor * 100).toFixed(2)}%</span>, is `
+        + `the floor every generator below is read against. Both marginals are flat: `
         + `${(data.dataset.hole.big_share * 100).toFixed(1)}% of sprites are large and `
         + `${(data.dataset.hole.blue_share * 100).toFixed(1)}% are blue, so if the two factors `
         + `were independent, ${(data.dataset.hole.expected_joint * 100).toFixed(1)}% would be `
@@ -62,13 +69,15 @@ export function initHoleWidget(data, sheets) {
         + `and the hard kind to reproduce.</p>`;
     } else {
       const ref = data.metrics[`${state.which}/${M.seeds[0]}`].hole;
+      const floor = data.scale.hole_floor;
       document.querySelector('#hole-readout').innerHTML =
         `<p><span class="bold">${NAME[state.which]}</span>: `
         + `<span class="bold">${(ref.share * 100).toFixed(2)}%</span> of what it makes lands in `
-        + `the rectangle the data never occupies, against `
-        + `${(ref.expected_if_independent * 100).toFixed(2)}% if it had simply forgotten that the `
-        + `two factors are related and ${(0).toFixed(2)}% for the data itself. It produces large `
-        + `sprites ${(ref.big * 100).toFixed(1)}% of the time and blue ones `
+        + `the rectangle, which is ${(ref.share / Math.max(floor, 1e-9)).toFixed(1)} times the `
+        + `${(floor * 100).toFixed(2)}% that the real sprites themselves measure at, and far below `
+        + `the ${(ref.expected_if_independent * 100).toFixed(2)}% it would produce had it learned `
+        + `each factor on its own and nothing about the pair. It draws large sprites `
+        + `${(ref.big * 100).toFixed(1)}% of the time and blue ones `
         + `${(ref.blue * 100).toFixed(1)}% of the time.</p>`;
     }
   }
