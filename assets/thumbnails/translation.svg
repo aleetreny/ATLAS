@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <rect width="400" height="300" fill="#f1f3f3" />
+  <!-- one plan and its render: everything in the second picture that is not in the first is what the network has to invent -->
+  <g transform="translate(28,81.0)">
+    <rect width="138" height="138" fill="#b8d6f0"/>
+    <rect y="38.8" width="138" height="99.2" fill="#85b86b"/>
+    <rect y="60.4" width="138" height="17.2" fill="#8a8a91"/>
+    <rect x="30.2" y="-8.6" width="38.8" height="47.4" fill="#5973d9"/>
+    <rect width="138" height="138" fill="none" stroke="#232f3e" stroke-width="1.6"/>
+  </g>
+  <g transform="translate(234,81.0)">
+    <rect width="138" height="138" fill="#b8d6f0"/>
+    <rect y="38.8" width="138" height="99.2" fill="#85b86b"/>
+    <rect y="60.4" width="138" height="17.2" fill="#8a8a91"/>
+    <rect x="30.2" y="-8.6" width="38.8" height="47.4" fill="#d17057"/>
+    <rect x="38.8" y="4.3" width="8.6" height="8.6" fill="#fae66b"/>
+    <rect x="56.1" y="4.3" width="8.6" height="8.6" fill="#333847"/>
+    <rect x="38.8" y="21.6" width="8.6" height="8.6" fill="#333847"/>
+    <rect x="56.1" y="21.6" width="8.6" height="8.6" fill="#fae66b"/>
+    <rect x="4.3" y="69.0" width="8.6" height="4.3" fill="#eeeee4"/>
+    <rect x="21.6" y="69.0" width="8.6" height="4.3" fill="#eeeee4"/>
+    <rect x="38.8" y="69.0" width="8.6" height="4.3" fill="#eeeee4"/>
+    <rect x="56.1" y="69.0" width="8.6" height="4.3" fill="#eeeee4"/>
+    <rect x="73.3" y="69.0" width="8.6" height="4.3" fill="#eeeee4"/>
+    <rect x="90.6" y="69.0" width="8.6" height="4.3" fill="#eeeee4"/>
+    <rect x="107.8" y="69.0" width="8.6" height="4.3" fill="#eeeee4"/>
+    <rect x="125.1" y="69.0" width="8.6" height="4.3" fill="#eeeee4"/>
+    <rect width="138" height="138" fill="none" stroke="#232f3e" stroke-width="1.6"/>
+  </g>
+  <line x1="180" y1="150.0" x2="212" y2="150.0" stroke="#134e4a" stroke-width="3"/>
+  <path d="M210,143.0 L220,150.0 L210,157.0 Z" fill="#134e4a"/>
+</svg>

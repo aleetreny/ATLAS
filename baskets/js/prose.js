@@ -31,8 +31,13 @@ function set(id, html) {
 
 /* 748288838313422294120286634350736906063837462003711 is not a number anybody
  * reads. Group it the way a person would say it. */
+/* A 51 digit number grouped in threes is a 67 character token with no space in
+   it, and a comma is not a line break opportunity, so on a 375px screen it does
+   not wrap: it runs to 653px and drags the whole document sideways. A <wbr>
+   after each comma lets it break where a reader would already pause, and
+   nowhere else. */
 function bigDigits(s) {
-  return s.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return s.replace(/\B(?=(\d{3})+(?!\d))/g, ',').replace(/,/g, ',<wbr>');
 }
 
 export function initProse(data, facts) {
@@ -365,6 +370,7 @@ export function initProse(data, facts) {
     + `all, and the search is what you actually get. Here the assumption is that co-occurrence is `
     + `the only relationship there is, and the search is exact; and even with an exact search over `
     + `an honest count, ${pc(P.mean_rules / P.real_rules, 0)} of what comes out survives having `
+<<<<<<< HEAD
     + `the data shuffled. What comes next changes the object again, and more sharply than this `
     + `article did. Everything in the first two modules has started from a row of numbers or, `
     + `here, from a set. A <span class="bold">document</span> is neither: it is a sequence of `
@@ -372,6 +378,16 @@ export function initProse(data, facts) {
     + `machinery in this atlas can touch it somebody has to decide what its numbers are. That `
     + `decision is older than most of this atlas and it is still the one to beat. `
     + `<a href="../tf-idf/">Counting words</a> is next.`);
+=======
+    + `the data shuffled. What comes next is a different question altogether. Everything in this `
+    + `module has been about finding structure that was already in the data; module 3 is about `
+    + `learning the distribution well enough to <span class="bold">make more of it</span>. It `
+    + `opens on <a href="../gans/">the road with no loss function on it</a>, where the objective `
+    + `is a second network that is trying to lose, and it comes back later to the quieter one, `
+    + `which starts <a href="../vae/">where the bottleneck article left off</a> by taking that `
+    + `article's own decoder, sampling it, and asking what it takes to make the samples worth `
+    + `looking at.`);
+>>>>>>> origin/main
 
   set('ref-note',
     `The baskets are the Groceries dataset that ships with the R package arules: ${n0(G.n)} `

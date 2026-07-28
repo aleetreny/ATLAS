@@ -75,18 +75,30 @@ Se han colado fallos visuales en paginas dadas por verificadas, tres veces. **Co
 
 47. **Una etiqueta colocada respecto a un punto de datos se mide, no se estima.** En el 35 la etiqueta del hijo más ocupado del árbol de prefijos se anclaba a la izquierda del nodo, que está bien hasta que el orden "el más raro primero" pone ese nodo a treinta unidades del borde y el texto se sale por la izquierda. Colocarla, preguntar `getComputedTextLength()` y decidir el lado con el ancho real cuesta dos líneas y no se rompe con los datos. Estimar "unas siete unidades por letra" funciona hasta que no.
 
-48. **Matar el bash padre no mata al python nieto, y dos generadores escribiendo los mismos cachés no dan error.** Al parar una tirada larga del 37 se mató el envoltorio y el proceso de python siguió vivo veinte minutos más, en paralelo con la tirada nueva. El síntoma no fue un fallo: fueron **marcas de tiempo fuera de orden** en el directorio de caché (una etapa posterior escrita antes que una anterior) y etapas que aparecían ya calculadas sin haberse impreso. Antes de dar por muerta una tirada, `ps -eo pid,ppid,etime,cmd | grep` y matar el PID de python; después, validar que todos los `.pkl` cargan, porque un pickle a medio escribir sí rompe la tirada siguiente.
+48. **`torch.std` divide por n-1 y las capas de normalización de torch dividen por n.** No es la misma convención dentro del mismo framework: `x.std(dim=(2,3))` escrito a mano en un AdaIN es insesgado, y `GroupNorm`/`InstanceNorm`/`BatchNorm` usan la varianza sesgada. Una reimplementación en JavaScript tiene que copiar **cada una por separado**; copiar una sola mueve la imagen lo justo para que no cuadre con la referencia y no lo suficiente para que se vea.
 
-49. **Un `timeout ... python -u ... | tail` esconde toda la salida hasta el final.** Es la trampa 9 otra vez por otro camino: `-u` desbufferiza python pero `tail` no imprime hasta que el flujo se cierra. Para una tirada larga en segundo plano, redirigir a un fichero y hacer `tail` del fichero, nunca canalizar a `tail` dentro del propio comando.
+49. **La nube recicla el contenedor y mata el generador, y el caché por etapas lo hace gratis.** Pasó otra vez en el módulo 3.1, a mitad de la tirada de imágenes: el proceso desaparece (`ps` no lo lista), `nohup` no lo salva, pero `~/.atlas_vision_data/<algo>_cache/` sigue entero y relanzar entra por donde se quedó. Antes de dar nada por perdido: mirar el caché y relanzar. El único trabajo que se pierde es la etapa que estaba a medias. Y dos detalles que la hacen gratis del todo: la escritura del caché va a un temporal y luego `rename`, porque lo que hay que sobrevivir no es un fallo del código sino que la máquina desaparezca a mitad de un `pickle.dump`; y antes de dejar correr algo largo, comprobar que relanzarlo **reanuda** en vez de empezar, que se ve en un segundo porque el log imprime las etapas cacheadas al vuelo.
 
-50. **Un guardia se prueba interceptando el JSON, no editando el fichero.** Con Playwright, `page.route('**/data/x.json')` deja perturbar una referencia en vuelo y recargar, así que se puede comprobar que el guardia dispara para **cada clase de error** sin tocar el árbol de trabajo ni tener que restaurarlo. En el 36 se probaron seis clases (un peso, el orden de un ranking, una suma de cuadrados, un techo analítico, una dirección del factorial y el recuento de no nulos) y las seis dispararon; en el 37, cinco. Cuesta un fichero de treinta líneas y es lo que convierte "el guardia calla" en "el guardia sabe hablar".
+50. **Editar el generador mientras corre no cambia el proceso vivo, y eso incluye las etapas nuevas.** Añadir un bloque de falsación al fichero mientras la tirada estaba en la etapa 4 no lo ejecutó: Python ya había leído el módulo. La etapa nueva entra en la siguiente ejecución, que con el caché cuesta solo lo que la etapa nueva cueste. Es la contrapartida útil de la trampa 16.
 
-51. **La regla de los ids de `prose.js`, en su versión fuerte.** No basta con que el id exista en el HTML: hay que exigir que su contenido **haya cambiado** respecto al relleno que el HTML trae escrito. El arnés baja el HTML crudo, extrae el contenido inicial de cada id y compara contra el renderizado. Sin eso, un `prose.js` que lanza a mitad deja media página con prosa de marcador válida y ningún barrido de texto la caza.
+51. **Una función que transforma imágenes lleva `assert out.shape == x.shape`, porque una red convolucional se traga el error.** El desenfoque de caja del 42 devolvía 31x31 en vez de 32x32 (a una diferencia de sumas acumuladas le falta el cero inicial), y el extractor de features, al ser convolucional, puntuó tan contento una imagen recortada y desplazada medio píxel contra las de referencia: el brazo "borroso" del patrón de calidad salía inflado y nada avisaba. Solo se destapó cuando otra etapa restó esa imagen de la original y numpy se quejó del broadcast. Regla: toda función imagen a imagen afirma su forma de salida, y toda comparación entre dos conjuntos de imágenes afirma que ambos tienen la misma.
 
-52. **El arnés del módulo 4.1 está en un solo fichero y merece copiarse.** `audit.mjs`: para cada artículo y a 1440px y 375px, carga en el puerto frío, recoge errores y avisos de consola, recorre toda la página para disparar los `IntersectionObserver`, espera 1.600 ms, llama a `window.__atlasCheck(true)`, comprueba los ids de prosa contra el relleno, y luego recorre **cada botón que no esté ya activo, cada paso de cada slider y cada paso de scrolly** reauditando en cada estado: texto malo (`undefined`, `NaN`, `${`), LaTeX crudo leído sin los nodos que KaTeX esconde, rayas largas, doble codificación UTF-8, recorte contra el viewBox **y** contra el elemento svg, tamaño de fuente renderizado, solapes por SAT con las cajas encogidas 2,5 unidades, ritmo vertical y filas de controles que se desbordan. Sale a unos 40 estados por artículo y tarda medio minuto.
+52. **El modo pequeño de un generador no vale para probar una etapa que depende de un modelo entrenado.** `ATLAS_STYLE_SMALL=1` en el 42 entrena el lector de formas con 2.000 esprites y 40 pasos, así que sus features son degeneradas y el patrón de calidad sale `0,00 / 0,00 / 0,0007`: el `assert` del orden dispara y el humo se lee como un fallo de la etapa nueva. Para probar una etapa nueva contra los modelos de verdad, se importa el módulo y se llama a la etapa a mano con los cachés grandes (`cached(f"sprites-{RES}-False-v2", ...)`, `stage_reader(data)`) y parámetros mínimos. Diez segundos, y prueba lo que hay que probar.
 
-53. **El contenedor se reinicia solo, y una tirada larga sin caché por unidad de trabajo se pierde entera.** Pasó a mitad del 41 y el 42: dos generadores llevaban una hora corriendo y los dos procesos murieron sin aviso. Lo que sobrevivió fue lo que ya estaba escrito en `~/.atlas_vision_data`, y el precio del reinicio fue exactamente **una unidad de trabajo por generador** (el brazo que estaba entrenando y la longitud de secuencia que estaba entrenando), no las dos horas. La regla, entonces, no es "cachear el resultado" sino **cachear cada experimento terminado, por separado y con escritura atómica** (a un temporal y `rename`), porque lo que hay que sobrevivir no es un fallo del código sino que la máquina desaparezca a mitad de un `pickle.dump`. Y el corolario: antes de dejar correr algo largo, comprobar que relanzarlo **reanuda** en vez de empezar, que se ve en un segundo porque el log imprime las etapas cacheadas al vuelo.
-54. **Un caché sin la configuración en el nombre convierte un relanzamiento en una mentira.** Cuando la tirada larga hay que recortarla a mitad (aquí, ocho modelos que iban a tardar siete horas), lo que se cambia son tamaños, y los caches escritos con la configuración vieja siguen ahí con el mismo nombre. La tirada siguiente lee unos brazos del tamaño viejo y entrena los otros con el nuevo, y publica una comparación entre configuraciones distintas **sin un solo aviso**. El nombre lleva la huella (`arm_bert.d96l2h4s1200b32v8000q48p6000.pkl`) y lo que no depende de ella, como la partición del corpus, se marca aparte para no volver a descargarla.
+
+53. **Una entidad HTML de raya renderiza la raya que la regla dura prohíbe, y el guardia por carácter no la ve.** La celda vacía de la tabla de subsamples del 34 se escribía con la entidad de em dash en un template de `prose.js`: en el fuente no hay ningún carácter prohibido y en la página hay una raya larga. El barrido de `check_publication.py` caza ahora también las entidades (`mdash`, `ndash` y sus formas numéricas), construidas por concatenación dentro del guardia para que no se acuse a sí mismo. Una celda sin medida se deja vacía, que en una columna numérica se lee sola.
+
+54. **Matar el bash padre no mata al python nieto, y dos generadores escribiendo los mismos cachés no dan error.** Al parar una tirada larga del 37 se mató el envoltorio y el proceso de python siguió vivo veinte minutos más, en paralelo con la tirada nueva. El síntoma no fue un fallo: fueron **marcas de tiempo fuera de orden** en el directorio de caché (una etapa posterior escrita antes que una anterior) y etapas que aparecían ya calculadas sin haberse impreso. Antes de dar por muerta una tirada, `ps -eo pid,ppid,etime,cmd | grep` y matar el PID de python; después, validar que todos los `.pkl` cargan, porque un pickle a medio escribir sí rompe la tirada siguiente.
+
+55. **Un `timeout ... python -u ... | tail` esconde toda la salida hasta el final.** Es la trampa 9 otra vez por otro camino: `-u` desbufferiza python pero `tail` no imprime hasta que el flujo se cierra. Para una tirada larga en segundo plano, redirigir a un fichero y hacer `tail` del fichero, nunca canalizar a `tail` dentro del propio comando.
+
+56. **Un guardia se prueba interceptando el JSON, no editando el fichero.** Con Playwright, `page.route('**/data/x.json')` deja perturbar una referencia en vuelo y recargar, así que se puede comprobar que el guardia dispara para **cada clase de error** sin tocar el árbol de trabajo ni tener que restaurarlo. En el 36 se probaron seis clases (un peso, el orden de un ranking, una suma de cuadrados, un techo analítico, una dirección del factorial y el recuento de no nulos) y las seis dispararon; en el 37, cinco. Cuesta un fichero de treinta líneas y es lo que convierte "el guardia calla" en "el guardia sabe hablar".
+
+57. **La regla de los ids de `prose.js`, en su versión fuerte.** No basta con que el id exista en el HTML: hay que exigir que su contenido **haya cambiado** respecto al relleno que el HTML trae escrito. El arnés baja el HTML crudo, extrae el contenido inicial de cada id y compara contra el renderizado. Sin eso, un `prose.js` que lanza a mitad deja media página con prosa de marcador válida y ningún barrido de texto la caza.
+
+58. **El arnés del módulo 4.1 está en un solo fichero y merece copiarse.** `audit.mjs`: para cada artículo y a 1440px y 375px, carga en el puerto frío, recoge errores y avisos de consola, recorre toda la página para disparar los `IntersectionObserver`, espera 1.600 ms, llama a `window.__atlasCheck(true)`, comprueba los ids de prosa contra el relleno, y luego recorre **cada botón que no esté ya activo, cada paso de cada slider y cada paso de scrolly** reauditando en cada estado: texto malo (`undefined`, `NaN`, `${`), LaTeX crudo leído sin los nodos que KaTeX esconde, rayas largas, doble codificación UTF-8, recorte contra el viewBox **y** contra el elemento svg, tamaño de fuente renderizado, solapes por SAT con las cajas encogidas 2,5 unidades, ritmo vertical y filas de controles que se desbordan. Sale a unos 40 estados por artículo y tarda medio minuto.
+
+59. **Un caché sin la configuración en el nombre convierte un relanzamiento en una mentira.** Cuando la tirada larga hay que recortarla a mitad (aquí, ocho modelos que iban a tardar siete horas), lo que se cambia son tamaños, y los caches escritos con la configuración vieja siguen ahí con el mismo nombre. La tirada siguiente lee unos brazos del tamaño viejo y entrena los otros con el nuevo, y publica una comparación entre configuraciones distintas **sin un solo aviso**. El nombre lleva la huella (`arm_bert.d96l2h4s1200b32v8000q48p6000.pkl`) y lo que no depende de ella, como la partición del corpus, se marca aparte para no volver a descargarla.
 
 ## El arnés, y no medirlo a mano
 Escribir `_audit.js` en la raíz del repo (temporal, borrarlo antes de commitear) e importarlo desde la consola. Exporta `audit()`, `sweepControls()`, `sweepScrolly()`, `sliderResponse()` y `statics()`. Dos detalles que lo hacen fiable:
@@ -117,3 +129,57 @@ Para una revisión completa, un `Workflow` con un revisor por artículo más uno
 Commitear, **pushear siempre sin preguntar**, y verificar la web real en https://aleetreny.github.io/ATLAS/. Pages tarda 1-2 minutos y cachea 10 (`max-age=600`); si algo se ve viejo, es la caché de borde, no el código. Comprobar por HTTP que el HTML/JS desplegado contiene literalmente cada arreglo.
 
 Mensajes de commit: usar `git commit -F fichero` (los here-strings de PowerShell se rompen con comillas). Sin em dashes, sin atribución IA, autor `aleetreny`.
+
+## Trampa 18: el arnés también tiene falsos positivos, y se calibra contra un artículo publicado
+
+El barrido del módulo 3.2 (playwright sobre chromium, cada botón y cada posición
+de cada slider, a 1440 y a 375) empezó dando 94 hallazgos, y tres clases eran
+del arnés y no de la página:
+
+- **KaTeX guarda el LaTeX original** en un nodo `.katex-mathml` oculto, así que
+  un chequeo de "LaTeX en bruto en la página" lo encuentra siempre. Hay que
+  clonar el nodo y borrar `.katex-mathml` antes de leer el texto.
+- **Un slider puesto al valor que ya tenía** no cambia nada, y eso no es un
+  control muerto. El arnés compara el valor actual antes de escribirlo.
+- **El scrolly parece roto y no lo está.** `scrolly.js` no marca ninguna clase
+  en el paso activo, así que un selector `.is-active` cae siempre al primer
+  paso y reporta offsets de miles de píxeles. El paso activo es el que cubre la
+  banda central, que es lo que dispara el observador.
+
+Y la lección general: **antes de creerse un hallazgo geométrico, medir un
+artículo ya publicado con el mismo arnés**. El baseline del sitio, medido sobre
+`autoencoders/`, es 165px de offset medio del scrolly a 1440px y 249px a 375px,
+con 5 de 15 y 8 de 15 tarjetas fuera de pantalla en los extremos del recorrido,
+Un artículo nuevo con 143px y 4 de 15 no
+tiene un problema de scrolly: tiene el scrolly del sitio.
+
+Con una salvedad que costó descubrir: el baseline **también puede estar mal**.
+El mismo `autoencoders/` traía cinco etiquetas de 4,84px a 375px, que es
+ilegible, y se quedaron ahí precisamente por leerse como "así es el sitio". Un
+baseline sirve para calibrar la geometría del scrolly, que es común a todas las
+páginas; no sirve para absolver un tamaño de letra, que es de cada widget. Si el
+artículo de referencia falla una comprobación que no dependa del layout común,
+se arregla el artículo de referencia.
+
+## Trampa 20: el margen de holgura del arnés está pensado para texto horizontal
+
+El barrido perdona 4px de desbordamiento antes de llamarlo recorte, porque la
+caja de un texto horizontal incluye espacio de ascendentes y descendentes que
+los glifos no usan. Una etiqueta **rotada** no tiene esa holgura: su caja es
+justa. La etiqueta del eje del widget de temperatura del 37 se salía por arriba
+exactamente 4,0px, quedaba bajo el umbral, y en la captura se veía cortada. El
+arnés distingue ahora los dos casos (`rotated ? 1.5 : 4`), y con el umbral
+ajustado apareció además un segundo caso en el 36 que llevaba desde el principio.
+La regla general: **cada tolerancia de un arnés es una hipótesis sobre lo que
+mide**, y cuando el arnés calla mientras una captura enseña el fallo, el
+sospechoso es la tolerancia, no la captura.
+
+## Trampa 19: un bucle de espera que busca su propio nombre no termina nunca
+
+Para encadenar generadores se escribió
+`while pgrep -f generate_ebm_data > /dev/null; do sleep 20; done; python ...`.
+La línea de comandos de ESE shell contiene `generate_ebm_data`, así que `pgrep`
+se encuentra a sí mismo y el bucle es infinito. Se encadena con `;` en un solo
+`sh -c`, o se busca el patrón con `pgrep -f "python3 -u src/utils/generate_..."`,
+que no coincide con el shell que espera.
+

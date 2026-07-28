@@ -82,14 +82,18 @@ export function initRollWidget(data) {
         .attr('y', (r) => y(r.disparity)).attr('height', (r) => h - y(r.disparity))
         .attr('fill', 'var(--primary)').attr('opacity', 0.85)
         .attr('stroke', 'var(--squidink)').attr('stroke-width', 0.6);
+      /* This panel's viewBox is 780 wide, so on a 375 pixel screen it is drawn
+         at 0.44 and every size here is cut by more than half: at 11px these
+         labels landed at 4.84 on screen, which is not a readable size. Chart
+         text has to be sized against the NARROW scale, not the wide one. */
       body.selectAll('text.lab').data(rows).join('text').attr('class', 'lab')
-        .attr('x', (r, i) => x(i)).attr('y', (r) => y(r.disparity) - 6)
-        .attr('text-anchor', 'middle').style('font-size', '11.5px')
+        .attr('x', (r, i) => x(i)).attr('y', (r) => y(r.disparity) - 7)
+        .attr('text-anchor', 'middle').style('font-size', '14px')
         .style('font-family', 'var(--font-mono)').attr('fill', 'var(--squidink)')
         .text((r) => r.disparity);
       body.selectAll('text.cfg').data(rows).join('text').attr('class', 'cfg')
-        .attr('x', (r, i) => x(i)).attr('y', h + 16)
-        .attr('text-anchor', 'middle').style('font-size', '11px')
+        .attr('x', (r, i) => x(i)).attr('y', h + 18)
+        .attr('text-anchor', 'middle').style('font-size', '14px')
         .style('font-family', 'var(--font-mono)').attr('fill', 'var(--squidink)')
         .text((r) => `${r.hidden}h ${r.epochs}e`);
       body.append('line').attr('x1', 0).attr('x2', w)
