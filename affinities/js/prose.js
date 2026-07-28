@@ -93,7 +93,9 @@ export function initProse(data) {
   const bestD = defaults.reduce((a, b) => (b[1].ari > a[1].ari ? b : a));
   set('default-note',
     `The library default for the preference is the median of all the similarities, and on this `
-    + `module's datasets it is wrong every time. Six datasets, six answers for k: `
+    + `module's datasets it is wrong ${wrong.length === defaults.length ? 'every time'
+      : `on ${word(wrong.length)} of the ${word(defaults.length)}`}. `
+    + `${cap(word(defaults.length))} datasets, ${word(defaults.length)} answers for k: `
     + `${defaults.map(([n, v]) => `${n} ${v.k}`).join(', ')}, against true values of two or three. `
     + `${wrong.length === defaults.length
       ? `Not one of the six is right`
@@ -108,6 +110,7 @@ export function initProse(data) {
   const withGaps = sets.filter(([, v]) => v.missing.length);
   const nonMono = sets.filter(([, v]) => v.drops > 0);
   const rings = AP.sweep.rings;
+  const ringTwos = rings.ari.filter((_, i) => rings.k[i] === 2);
   set('stair-note',
     `The staircase from preference to k is not a staircase. Swept over `
     + `${AP.sweep.blobs.grid.length} prices spanning two orders of magnitude, on all five `
@@ -122,9 +125,11 @@ export function initProse(data) {
     + `either. What you can do is sweep, which is the thing not needing k was supposed to save `
     + `you from. `
     + `On the rings the sweep is worth reading twice: the best it ever manages is `
-    + `${f3(rings.best.ari)} at k = ${rings.best.k}, and the one price that does return two `
-    + `clusters splits the two circles down a diameter, because an exemplar has to be one of the `
-    + `points and a ring has no point in the middle of it.`);
+    + `${f3(rings.best.ari)} at k = ${rings.best.k}, and the ${word(ringTwos.length)} prices that `
+    + `do return two clusters score between ${f3(Math.min(...ringTwos))} and `
+    + `${f3(Math.max(...ringTwos))}, which is the two circles cut down a diameter rather than `
+    + `apart: an exemplar has to be one of the points, and a ring has no point in the middle of `
+    + `it to be one.`);
 
   /* the damping */
   const D = AP.damping;
@@ -132,18 +137,29 @@ export function initProse(data) {
   const ok = D.rows.filter((r) => r.converged);
   const flips = ok.filter((r, i) => i > 0 && r.k !== ok[i - 1].k).length;
   const worstSwing = Math.max(...bad.map((r) => r.swing), 0);
+  /* "below x it never settles, above it always does" is a claim about the shape
+     of the failures, not just their count: it only holds if the ones that fail
+     really are the bottom of the grid. */
+  const contiguous = bad.length > 0 && D.rows.slice(0, bad.length).every((r) => !r.converged);
   set('damping-note',
     `And the damping is not a numerical detail. It exists because the two messages feed each `
     + `other and the iteration swings, so each update keeps a fraction of the last one, and `
     + `scikit-learn refuses values below ${D.floor} outright. Measured on the blobs at a `
-    + `preference of ${n0(D.preference)}: below ${bad.length ? ok[0].damping : D.floor} the run `
-    + `never settles at all, and over its last 200 iterations the number of points electing `
-    + `themselves still swings by as much as ${worstSwing}. Above it, every run converges, in `
-    + `${Math.min(...ok.map((r) => r.iters))} to ${Math.max(...ok.map((r) => r.iters))} iterations. `
+    + `preference of ${n0(D.preference)}: `
+    + (contiguous
+      ? `below ${ok[0].damping} the run never settles at all, and over its last 200 iterations the `
+        + `number of points electing themselves still swings by as much as ${worstSwing}. Above `
+        + `it, every run converges, in ${Math.min(...ok.map((r) => r.iters))} to `
+        + `${Math.max(...ok.map((r) => r.iters))} iterations. `
+      : `${plural(bad.length, 'of the ' + word(D.rows.length) + ' damping value')} never settle at `
+        + `all (${list(bad.map((r) => r.damping.toFixed(2)))}), swinging by as much as `
+        + `${worstSwing} over their last 200 iterations, and they are not the low end of the range. `
+        + `The rest converge in ${Math.min(...ok.map((r) => r.iters))} to `
+        + `${Math.max(...ok.map((r) => r.iters))} iterations. `)
     + `But they do not converge to the same thing: the ${ok.length} settings that work return `
     + `${plural(D.answers.length, 'different answer')} for k, ${D.answers.join(' and ')}, `
-    + `and they alternate rather than cross over once (${flips} changes of mind across the `
-    + `range). A parameter introduced to make an iteration stable is choosing the number of `
+    + `and they alternate rather than cross over once (${plural(flips, 'change')} of mind across `
+    + `the range). A parameter introduced to make an iteration stable is choosing the number of `
     + `clusters, which is the parameter this algorithm advertises not having.`);
 
   /* ---------------------------------------------------------------- the spectral */
@@ -151,7 +167,7 @@ export function initProse(data) {
   const T = SP.sets.trap;
   set('rings-note',
     `The rings are the dataset this module opened its failure gallery with, and the one every `
-    + `centre-based algorithm since has scored about zero on: k-means ${f3(byName.rings.kmeans)}, `
+    + `centre-based algorithm since has failed on: k-means ${f3(byName.rings.kmeans)}, `
     + `k-medoids ${f3(byName.rings.pam)}, mean shift ${f3(byName.rings.meanshift)}, affinity `
     + `propagation ${f3(byName.rings.ap)}. Spectral clustering scores `
     + `<span class="bold">${f3(R.ari)}</span> on them at ${SP.knn} neighbours, and the reason is `
@@ -170,9 +186,14 @@ export function initProse(data) {
   set('band-note',
     `The parameter that replaced k has a band, and outside it the answer collapses. On the rings, `
     + `any graph from ${ringsBand[0]} to ${ringsBand[1]} neighbours scores ${f3(R.best_knn.ari)}. `
-    + `${ringLow.length ? `Below that the graph shatters into more pieces than there are rings and the score falls to ${f3(Math.min(...ringLow.map((r) => r.ari)))}` : ''}`
+    + `${ringLow.length ? `Below that the graph shatters into more pieces than there are rings `
+      + `(${list(ringLow.map((r) => `${word(r.components)} at ${r.k}`))} neighbours) and the score `
+      + `drops as far as ${f3(Math.min(...ringLow.map((r) => r.ari)))}` : ''}`
     + `${ringLow.length && ringHigh.length ? '; ' : ''}`
-    + `${ringHigh.length ? `above it the two circles are joined by enough short-cuts to become one piece, and it falls to ${f3(Math.min(...ringHigh.map((r) => r.ari)))}, which is what k-means was getting all along` : ''}. `
+    + `${ringHigh.length ? `above it the two circles are joined by enough short-cuts to become one `
+      + `piece, and it falls to ${f3(Math.min(...ringHigh.map((r) => r.ari)))}`
+      + `${Math.abs(Math.min(...ringHigh.map((r) => r.ari)) - byName.rings.kmeans) < 0.005
+        ? `, which is what k-means was getting all along` : ''}` : ''}. `
     + `The gaussian graph behaves the same way with its own parameter. Nothing was removed by `
     + `going to a graph: the question "how many clusters" was traded for the question "what counts `
     + `as near", and the second one is answered before the algorithm starts rather than after.`);
