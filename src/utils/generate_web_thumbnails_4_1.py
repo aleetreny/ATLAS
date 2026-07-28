@@ -32,15 +32,16 @@ INK = "#232f3e"
 
 ACCENT = {
     "tf-idf": "#164e63",
-    "topics": "#3f6212",
-    "embeddings": "#7c2d12",
-    "sequences": "#134e4a",
-    "attention": "#831843",
+    "topics": "#706b11",
+    "embeddings": "#713f12",
+    "sequences": "#3c4e85",
+    "attention": "#5c0e40",
     "pretraining": "#3730a3",
-    # No es el verde que este articulo llevaba al escribirse: #065f46 ya lo usa
-    # el articulo 34, y el guardia de publicacion lo habria cazado en el push.
-    # La regla 3 exige un acento por articulo y la reserva garantiza que dos
-    # cualesquiera de ella se distinguen.
+    # Cuatro de estos siete acentos no son los que el modulo llevaba al
+    # escribirse. Mientras se escribia, otra sesion publico el modulo 3 entero
+    # y se llevo #3f6212, #7c2d12, #134e4a y #831843, asi que estos salen de la
+    # reserva libre: la regla 3 exige un acento por articulo y quien lanza las
+    # sesiones reparte, pero el guardia es la red de abajo y aqui la uso.
     "state-space": "#0e5c29",
 }
 

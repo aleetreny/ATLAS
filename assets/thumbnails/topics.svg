@@ -2,8 +2,8 @@
   <rect width="400" height="300" fill="#f1f3f3" />
   <!-- la estructura de bloques que el muestreador encuentra: documentos -->
   <!-- agrupados por su categoria real, temas en columnas -->
-  <rect x="16" y="16" width="368" height="268" fill="#3f6212" opacity="0.12"/>
-  <g fill="#3f6212" opacity="0.85">
+  <rect x="16" y="16" width="368" height="268" fill="#706b11" opacity="0.12"/>
+  <g fill="#706b11" opacity="0.85">
     <rect x="16" y="16" width="46" height="8"/><rect x="16" y="23" width="46" height="8"/><rect x="16" y="30" width="46" height="8"/><rect x="16" y="37" width="46" height="8"/><rect x="62" y="44" width="46" height="8"/><rect x="62" y="51" width="46" height="8"/>
     <rect x="62" y="58" width="46" height="8"/><rect x="62" y="65" width="46" height="8"/><rect x="62" y="72" width="46" height="8"/><rect x="62" y="79" width="46" height="8"/><rect x="108" y="87" width="46" height="8"/><rect x="108" y="94" width="46" height="8"/>
     <rect x="108" y="101" width="46" height="8"/><rect x="154" y="108" width="46" height="8"/><rect x="154" y="115" width="46" height="8"/><rect x="154" y="122" width="46" height="8"/><rect x="154" y="129" width="46" height="8"/><rect x="154" y="136" width="46" height="8"/>

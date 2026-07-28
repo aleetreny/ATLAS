@@ -3,7 +3,7 @@
   <!-- lo que skip-gram aprende contra lo que el teorema predice: -->
   <!-- la diagonal no es un ajuste, es la igualdad de Levy y Goldberg -->
   <path d="M18,282 L382,18" stroke="#df2a5d" stroke-width="2" stroke-dasharray="6 4" fill="none"/>
-  <g fill="#7c2d12" opacity="0.4">
+  <g fill="#713f12" opacity="0.4">
     <circle cx="88" cy="244" r="1.8"/><circle cx="145" cy="181" r="1.8"/><circle cx="76" cy="196" r="1.8"/><circle cx="44" cy="242" r="1.8"/><circle cx="65" cy="228" r="1.8"/><circle cx="115" cy="235" r="1.8"/><circle cx="156" cy="166" r="1.8"/><circle cx="109" cy="185" r="1.8"/>
     <circle cx="57" cy="216" r="1.8"/><circle cx="61" cy="224" r="1.8"/><circle cx="115" cy="213" r="1.8"/><circle cx="112" cy="230" r="1.8"/><circle cx="66" cy="245" r="1.8"/><circle cx="70" cy="220" r="1.8"/><circle cx="105" cy="208" r="1.8"/><circle cx="35" cy="257" r="1.8"/>
     <circle cx="105" cy="181" r="1.8"/><circle cx="92" cy="193" r="1.8"/><circle cx="73" cy="235" r="1.8"/><circle cx="104" cy="222" r="1.8"/><circle cx="154" cy="155" r="1.8"/><circle cx="104" cy="185" r="1.8"/><circle cx="103" cy="213" r="1.8"/><circle cx="48" cy="220" r="1.8"/>
