@@ -33,11 +33,17 @@ pega en el prompt de cada una la línea que le toca:
 python src/utils/check_publication.py --reparte 3
 ```
 
-Eso da a cada sesión su número y su acento ya asignados. Es lo único que cierra
-la carrera de verdad: `--next` no vale con varias a la vez, porque tres sesiones
-que arrancan el mismo día leen las tres el mismo "siguiente libre" y vuelven a
-chocar, solo que ahora el guardia las caza en el push, con el artículo escrito.
-Un reparto hecho antes de empezar no tiene carrera que perder.
+Eso reparte **los acentos**, que es lo que hay que fijar antes de empezar porque
+va dentro del artículo desde la primera línea. Y los reparte mirando también las
+**ramas sin mergear**, no solo lo publicado: sin eso el reparto miente en la
+dirección que más duele, dándole a una sesión nueva un color que otra rama lleva
+dos días pintando.
+
+**El número no se reparte: se coge al mergear**, con `--next`. Vive solo en la
+tabla de `estado.md` y ninguna página lo enseña, así que fijarlo al empezar no
+aporta nada y sí crea la carrera (tres sesiones que arrancan el mismo día leen
+las tres el mismo "siguiente libre"). Al mergear esa carrera no existe, porque
+main serializa los merges.
 
 El procedimiento, para cada rama que entre después de la primera:
 

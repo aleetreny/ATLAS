@@ -50,21 +50,27 @@ y lo que quede pendiente.
 
 ## El número, el acento, y el merge a main
 
-**Si el encargo te da un número de artículo y un acento, son esos.** No los
-elijas ni los deduzcas del repositorio: quiere decir que hay otras sesiones
-escribiendo a la vez y que el reparto ya está hecho. Si el encargo no te da
-ninguno, eres la única sesión y lo preguntas tú:
+Las dos cosas se reparten distinto, y el motivo es cuándo se fijan:
+
+- **El acento te lo da el encargo.** Va dentro del artículo desde la primera
+  línea que escribes, así que no puede esperar. Si el encargo trae un
+  `--primary`, es ese: quiere decir que hay otras sesiones escribiendo a la vez
+  y que el reparto ya está hecho. No lo elijas ni lo deduzcas del repositorio.
+- **El número lo coges al mergear**, no al empezar. Vive solo en la tabla de
+  `docs/estado.md` y ninguna página lo enseña, así que fijarlo antes no aporta
+  nada y sí crea una carrera: tres sesiones que arrancan el mismo día leen las
+  tres el mismo "siguiente libre". Al mergear no hay carrera, porque main
+  serializa.
 
 ```
-python src/utils/check_publication.py --next   # qué número y qué acento quedan libres
+python src/utils/check_publication.py --next   # el número libre AHORA, y qué acentos quedan
 python src/utils/check_publication.py          # ¿es coherente lo que voy a publicar?
 ```
 
-Con varias sesiones abiertas sobre este repo, cada una en su rama, dos pueden
-elegir el mismo número y el mismo color sin verse (ya pasó: tres ramas
-reclamando el 27 el mismo día, y dos el acento `#7e22ce`). Quien lanza las
-sesiones reparte con `--reparte N` antes de empezar; el guardia es la red de
-abajo, no el reparto.
+Ya pasó lo contrario: tres ramas reclamando el 27 el mismo día y dos el acento
+`#7e22ce`. Quien lanza las sesiones reparte los acentos con `--reparte N` antes
+de empezar, y ese reparto **mira también las ramas sin mergear**, no solo lo
+publicado. El guardia es la red de abajo, no el reparto.
 
 **Autorización permanente del dueño del repo para cerrar el trabajo (no hace
 falta preguntar cada vez):** cuando el artículo esté verificado, **mergea tu

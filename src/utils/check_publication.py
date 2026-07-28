@@ -37,6 +37,7 @@ empezar no tiene carrera que perder.
 Sale con código 1 si algo falla, para que sirva en CI y en un hook.
 """
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -62,6 +63,49 @@ SEC_FACTOR = 0.80
 def secundario(primario):
     r, g, b = (int(primario[i:i + 2], 16) for i in (1, 3, 5))
     return "#%02x%02x%02x" % tuple(round(c * SEC_FACTOR) for c in (r, g, b))
+
+
+def git(*args):
+    r = subprocess.run(["git", "-C", str(ROOT), *args], capture_output=True, text=True)
+    return r.stdout if r.returncode == 0 else None
+
+
+def acentos_en_vuelo(ya_publicados):
+    """Los acentos que las ramas sin mergear ya están usando, y nadie ve.
+
+    Sin esto el reparto miente, y miente en la dirección que más duele: mira
+    solo `main`, así que le da a una sesión nueva un color que otra rama lleva
+    dos días pintando y que nadie ha publicado todavía. Es el mismo agujero de
+    siempre visto desde otro lado, y aquí sí tiene arreglo, porque las ramas de
+    las otras sesiones están en origin y se pueden leer.
+
+    Devuelve {color: rama}. Si no hay git, o no hay refs remotas (en CI se
+    clona una rama sola), devuelve vacío: esto informa al reparto, nunca
+    decide si el guardia pasa o falla.
+    """
+    refs = git("for-each-ref", "--format=%(refname:short)", "refs/remotes/origin")
+    if not refs:
+        return {}
+    fuera = {}
+    for rama in refs.split():
+        if rama in ("origin/HEAD", "origin/main"):
+            continue
+        if git("merge-base", "--is-ancestor", rama, "origin/main") is not None:
+            continue                       # ya está en main, sus colores ya se ven
+        arbol = git("ls-tree", "-r", "--name-only", rama)
+        if not arbol:
+            continue
+        for path in arbol.split():
+            m = re.fullmatch(r"([^/]+)/index\.html", path)
+            # Solo las carpetas que la rama trae NUEVAS: una rama arrastra los
+            # treinta artículos ya publicados y listarlos no informa de nada.
+            if not m or m.group(1) in ya_publicados:
+                continue
+            t = git("show", f"{rama}:{path}")
+            c = re.search(r"--primary:\s*(#[0-9a-fA-F]{6})", t or "")
+            if c:
+                fuera.setdefault(c.group(1).lower(), f"{rama} ({m.group(1)}/)")
+    return fuera
 
 
 def articulos_en_disco():
@@ -208,35 +252,48 @@ def main():
         fallos.append(f"rayas largas o medias en {len(malos)} sitios: "
                       f"{', '.join(malos[:6])}{' ...' if len(malos) > 6 else ''}")
 
-    libres = [c for c in RESERVA if c not in vistos]
+    quiere_reparto = "--reparte" in sys.argv
+    en_vuelo = (acentos_en_vuelo(set(carpetas))
+                if (quiere_reparto or "--next" in sys.argv) else {})
+    ocupados = set(vistos) | set(en_vuelo)
+    libres = [c for c in RESERVA if c not in ocupados]
     siguiente = max(nums) + 1 if nums else 1
 
     if "--next" in sys.argv:
         print(f"artículos publicados: {len(carpetas)}")
         print(f"siguiente número libre: {siguiente}")
         print(f"acentos libres de la reserva: {', '.join(libres) if libres else '(ninguno, elige uno nuevo)'}")
-        print(f"acentos ya en uso: {len(vistos)}")
+        print(f"acentos en uso: {len(vistos)} publicados"
+              + (f" y {len(en_vuelo)} en ramas sin mergear" if en_vuelo else ""))
+        for col, quien in sorted(en_vuelo.items()):
+            print(f"    {col} lo está usando {quien}")
 
-    if "--reparte" in sys.argv:
+    if quiere_reparto:
         try:
             n = int(sys.argv[sys.argv.index("--reparte") + 1])
         except (IndexError, ValueError):
             print("uso: --reparte N, con N el número de sesiones que vas a lanzar")
             return 1
         if n > len(libres):
-            print(f"solo quedan {len(libres)} acentos en la reserva y pides {n}: "
+            print(f"solo quedan {len(libres)} acentos sin pedir y necesitas {n}: "
                   f"añade colores a RESERVA antes de repartir")
             return 1
         print(f"\nreparto para {n} sesiones simultáneas, sobre {len(carpetas)} "
-              f"artículos publicados.")
-        print("pega en el prompt de cada sesión la línea que le toca, y ninguna "
-              "tendrá que adivinar:\n")
+              f"artículos publicados"
+              + (f" y {len(en_vuelo)} acento(s) ya pedidos por ramas en vuelo" if en_vuelo else "")
+              + ".")
+        print("pega en el prompt de cada sesión la línea que le toca:\n")
         for i in range(n):
             col = libres[i]
-            print(f"  sesión {i + 1}: tu artículo es el número {siguiente + i}, "
-                  f"su acento es --primary: {col} y --secondary: {secundario(col)}. "
-                  f"No los elijas tú ni los deduzcas del repositorio, ya están "
-                  f"asignados y hay otras sesiones escribiendo a la vez.")
+            print(f"  sesión {i + 1}: el acento de tus artículos es "
+                  f"--primary: {col} y --secondary: {secundario(col)}. No lo elijas "
+                  f"tú ni lo deduzcas del repositorio: hay otras sesiones "
+                  f"escribiendo a la vez y el reparto ya está hecho. El NÚMERO de "
+                  f"cada artículo no se reparte: lo coges al mergear, con "
+                  f"--next, que es cuando ya no hay carrera.")
+        print("\n  (si una sesión escribe varios artículos, el segundo y los "
+              "siguientes llevan\n   variantes del mismo acento o colores nuevos "
+              "que --next diga libres en ese momento)")
         print()
 
     for a in avisos:
