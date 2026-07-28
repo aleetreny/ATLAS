@@ -117,13 +117,18 @@ export function initProse(data, facts) {
     + `really about size, it is about whether the anomalies are clustered, and the honest way to `
     + `check it is to run it on one dataset of each kind.`);
 
+  const psiHead = document.querySelector('#psi-table thead tr');
+  if (psiHead) {
+    psiHead.innerHTML = '<th>Samples per tree</th>'
+      + keys.map((k) => `<th>${cap(k)}</th>`).join('');
+  }
   const pt = document.querySelector('#psi-table tbody');
   if (pt) {
     const allPsi = [...new Set(keys.flatMap((k) => sets[k].map((r) => r.psi)))].sort((a, b) => a - b);
     pt.innerHTML = allPsi.map((psi) => {
       const cells = keys.map((k) => {
         const row = sets[k].find((r) => r.psi === psi);
-        if (!row) return '<td>&mdash;</td>';
+        if (!row) return '<td></td>';
         const best = summary[k].best.psi === psi;
         return `<td>${best ? '<span class="bold">' : ''}${f4(row.ap)}`
           + ` &plusmn; ${row.sd.toFixed(4)}${best ? '</span>' : ''}</td>`;
