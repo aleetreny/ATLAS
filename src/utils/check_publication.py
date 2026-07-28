@@ -20,6 +20,9 @@ Comprueba, sobre el árbol de trabajo:
   5. cada chip vivo apunta a una carpeta que existe, y ninguna carpeta
      publicada se queda sin chip
   6. no hay rayas largas ni medias en nada de lo que se lee
+  7. el orden de las tarjetas es el orden de lectura, y cada artículo enlaza
+     al siguiente
+  8. los chips de cada rama van en ese mismo orden, agrupados por artículo
 
 Uso:
     python src/utils/check_publication.py            # comprueba, 0 si todo bien
@@ -150,6 +153,36 @@ def portada():
     return tarjetas, chips
 
 
+def ramas():
+    """Los chips vivos de cada rama del mapa, en el orden en que se leen.
+
+    Devuelve [(titulo, [carpeta, ...]), ...]. Si la portada no declara ramas
+    (el sitio de prueba no lo hace), todos los chips vivos cuentan como una.
+    """
+    t = PORTADA.read_text("utf-8")
+    fuera = []
+    for m in re.finditer(r'<h4>(.*?)</h4>(.*?)</div>', t, re.S):
+        vivos = re.findall(r'<span class="chip live"><a href="\./([^"]+)/">', m.group(2))
+        if vivos:
+            fuera.append((re.sub(r'<[^>]+>|&[a-z]+;', ' ', m.group(1)).strip(), vivos))
+    if not fuera:
+        _, chips = portada()
+        fuera = [("el mapa entero", chips)] if chips else []
+    return fuera
+
+
+def enlaza_a(carpeta, destino):
+    """¿La prosa de `carpeta` manda al lector a `destino`?
+
+    Se mira el HTML y su `prose.js`, que son los dos sitios donde vive prosa:
+    a partir del artículo 21 los cierres se componen desde el JSON al cargar,
+    así que el enlace del cierre puede no estar escrito en el HTML.
+    """
+    fuentes = [ROOT / carpeta / "index.html", ROOT / carpeta / "js" / "prose.js"]
+    aguja = f"../{destino}/"
+    return any(f.is_file() and aguja in f.read_text("utf-8") for f in fuentes)
+
+
 def sin_rayas():
     """La regla dura 2 de CLAUDE.md, comprobada donde se lee.
 
@@ -251,6 +284,35 @@ def main():
     if malos:
         fallos.append(f"rayas largas o medias en {len(malos)} sitios: "
                       f"{', '.join(malos[:6])}{' ...' if len(malos) > 6 else ''}")
+
+    # ---- 7. la cadena de lectura, que es el orden de las tarjetas
+    #
+    # Tres sesiones en paralelo escribieron tres secciones y ninguna podía ver
+    # los cierres de las otras dos: una dejó su "next article in this branch"
+    # apuntando a la portada esperando una continuación que ya existía, y otra
+    # mandó al lector a mitad de otro módulo. Ni git ni un comprobador de
+    # enlaces rotos ven nada, porque `../` existe y la otra carpeta también.
+    # Lo que sí lo ve es preguntarle a la portada quién va después y buscar ese
+    # enlace en la página de antes.
+    lectura = [c for c in tarjetas if c in carpetas]
+    for antes, despues in zip(lectura, lectura[1:]):
+        if not enlaza_a(antes, despues):
+            fallos.append(f"la cadena de lectura se corta: `{antes}/` no enlaza a "
+                          f"`{despues}/`, que es la tarjeta siguiente en la portada")
+
+    # ---- 8. los chips de cada rama, en el orden de las tarjetas
+    #
+    # Un chip es un algoritmo y una tarjeta es un artículo, así que un artículo
+    # enciende varios chips seguidos; lo que no puede pasar es que la rama los
+    # baraje, porque entonces el mapa cuenta un orden de lectura y la galería
+    # cuenta otro. El orden bueno es el taxonómico de las tarjetas, no el
+    # cronológico en el que se fueron escribiendo.
+    posicion = {c: i for i, c in enumerate(lectura)}
+    for titulo, vivos in ramas():
+        idx = [posicion[c] for c in vivos if c in posicion]
+        if idx != sorted(idx):
+            fallos.append(f"los chips de «{titulo}» no siguen el orden de las tarjetas: "
+                          f"{', '.join(vivos)}")
 
     quiere_reparto = "--reparte" in sys.argv
     en_vuelo = (acentos_en_vuelo(set(carpetas))

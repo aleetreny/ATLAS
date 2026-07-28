@@ -338,7 +338,7 @@ export function initProse(data) {
     }).join('');
   }
   set('closing-scoreboard',
-    `${cap(word(BOARD_KEYS.length + 1))} algorithms across ${word(board.length)} datasets, every `
+    `${cap(word(BOARD_KEYS.length))} algorithms across ${word(board.length)} datasets, every `
     + `cell an adjusted Rand index measured on the coordinates this page ships, with the best of `
     + `each row in bold. The DBSCAN column is the best any radius achieves, which is a favour no `
     + `other column gets, and affinity propagation runs at its library default, which is the `
@@ -367,8 +367,8 @@ export function initProse(data) {
   const nok = data.nok;
   const score = data.nok_score;
   set('nok-note',
-    `Three of those ten do not take k as an argument, which makes the column worth reading on its `
-    + `own. Mean shift gets the number of clusters right on ${word(score.shift_k)} of the `
+    `Three of those ${word(BOARD_KEYS.length)} do not take k as an argument, which makes the column worth `
+    + `reading on its own. Mean shift gets the number of clusters right on ${word(score.shift_k)} of the `
     + `${word(nok.length)} datasets, the eigengap rule on ${word(score.gap_k)}, and affinity propagation `
     + `at its default preference on ${word(score.ap_k)}: it answered `
     + `${nok.map((r) => r.ap_k).join(', ')} where the truth is ${nok.map((r) => r.true_k).join(', ')}. `
