@@ -122,16 +122,55 @@ function check(data, deep = false) {
   if (Math.abs(lam2 - C.lambda2) > 1e-6) {
     problems.push(`the relaxed value: ${lam2.toFixed(6)} here against ${C.lambda2} offline`);
   }
+  /* the eigenvector itself, entry by entry, up to the sign that is arbitrary */
+  const { vectors } = jacobiEigen(M);
+  let f = Array.from(vectors[1], (v, i) => v / Math.sqrt(deg[i]));
+  if (f.reduce((s, v) => s + v, 0) < 0) f = f.map((v) => -v);
+  const ref = C.fiedler.reduce((s, v) => s + v, 0) < 0 ? C.fiedler.map((v) => -v) : C.fiedler;
+  const worstF = Math.max(...f.map((v, i) => Math.abs(v - ref[i])));
+  if (worstF > 1e-5) {
+    problems.push(`the second eigenvector: entries differ by up to ${worstF.toExponential(2)}`);
+  }
+
   let best = Infinity;
-  for (let bits = 1; bits < 2 ** (n - 1); bits++) {
+  let bestMask = null;
+  for (let bits = 0; bits < 2 ** (n - 1); bits++) {
     const mask = new Array(n).fill(false);
     mask[0] = true;
     for (let i = 1; i < n; i++) if (bits & (1 << (i - 1))) mask[i] = true;
     if (mask.every(Boolean)) continue;
-    best = Math.min(best, ncut(W, n, mask));
+    const v = ncut(W, n, mask);
+    if (v < best) {
+      best = v;
+      bestMask = mask;
+    }
   }
   if (Math.abs(best - C.optimum) > 1e-6) {
     problems.push(`the exhaustive best cut: ${best.toFixed(6)} here against ${C.optimum} offline`);
+  }
+  /* and that it is the same split, not merely the same number: a partition and
+     its complement are one split, so either match is a match */
+  const same = C.optimum_mask.every((v, i) => !!v === bestMask[i])
+    || C.optimum_mask.every((v, i) => !!v !== bestMask[i]);
+  if (!same) {
+    problems.push('the exhaustive best cut has the same value here but a different split');
+  }
+  /* the threshold that reaches it: the generator counts points from the low end
+     of the eigenvector, so its t is directly comparable */
+  const order = f.map((v, i) => i).sort((a, b) => f[a] - f[b]);
+  let bestT = 0;
+  let bestTv = Infinity;
+  for (let t = 1; t < n; t++) {
+    const mask = new Array(n).fill(false);
+    for (let i = 0; i < t; i++) mask[order[i]] = true;
+    const v = ncut(W, n, mask);
+    if (v < bestTv) {
+      bestTv = v;
+      bestT = t;
+    }
+  }
+  if (bestT !== C.sweep_t) {
+    problems.push(`the eigenvector's best threshold: ${bestT} points here against ${C.sweep_t} offline`);
   }
 
   if (problems.length) {

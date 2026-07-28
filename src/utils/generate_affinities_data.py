@@ -370,10 +370,11 @@ for name, X, y, k in SETS:
     best_i = max(i for i, v in enumerate(sw["ari"]) if v == max(sw["ari"]))
     ap_sweep[name] = {
         "grid": grid, **sw,
+        # `reachable` stays although only `missing` is quoted: it is the
+        # trace for a claim the page makes in bold, which is the one exception
+        # to shipping nothing the page does not read.
         "reachable": reachable, "missing": missing, "drops": drops,
-        "true_k_reachable": k in reachable,
         "best": {"pref": grid[best_i], "k": ks[best_i], "ari": sw["ari"][best_i], "index": best_i},
-        "default_index": len(grid) - 1,
     }
     print(f"  {name:<12} sweep of {len(grid)} preferences: k from {min(ks)} to {max(ks)}, "
           f"{len(missing)} value(s) of k unreachable {missing}, {drops} step(s) where a higher "
@@ -800,11 +801,12 @@ out = {
     "meta": {
         "seed": SEED, "knn": KNN, "damping": 0.9, "min_samples": MIN_SAMPLES,
         "shared_datasets_verified": {k: bool(v) for k, v in checks.items()},
-        "board_reproduces_previous": not drift,
+        # No seconds anywhere, not even here: this article's whole cost section
+        # is counted rather than timed, and a stray wall clock in the JSON is a
+        # wall clock somebody will quote one day.
         "board_drift": drift,
         "sklearn": sklearn.__version__,
         "sklearn_previous": "1.8.0",
-        "seconds_to_generate": rnd(time.perf_counter() - t_start, 1),
     },
 }
 path = OUT / "affinity.json"

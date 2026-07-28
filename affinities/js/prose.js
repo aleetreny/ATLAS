@@ -82,8 +82,11 @@ export function initProse(data) {
     + (O.same_set
       ? `. The same three points, from two searches with nothing in common but the objective.`
       : `, which is not the same set: the two searches part company here.`)
-    + ` Both score ${f3(O.ari_ap)} against the groups the data was built from, where k-means `
-    + `scores ${f3(byName.blobs.kmeans)}.`);
+    + (Math.abs(O.ari_ap - O.ari_pam) < 0.0005
+      ? ` Both score ${f3(O.ari_ap)} against the groups the data was built from, where k-means `
+        + `scores ${f3(byName.blobs.kmeans)}.`
+      : ` They score ${f3(O.ari_ap)} and ${f3(O.ari_pam)} against the groups the data was built `
+        + `from, where k-means scores ${f3(byName.blobs.kmeans)}.`));
 
   /* ------------------------------------------------------------- the preference */
   const defaults = Object.entries(AP.default);
@@ -194,7 +197,11 @@ export function initProse(data) {
       + `piece, and it falls to ${f3(Math.min(...ringHigh.map((r) => r.ari)))}`
       + `${Math.abs(Math.min(...ringHigh.map((r) => r.ari)) - byName.rings.kmeans) < 0.005
         ? `, which is what k-means was getting all along` : ''}` : ''}. `
-    + `The gaussian graph behaves the same way with its own parameter. Nothing was removed by `
+    + `The gaussian graph has a band of its own and it is no wider: on the rings, of the `
+    + `${word(R.rbf_sweep.length)} values of gamma swept from ${R.rbf_sweep[0].gamma} to `
+    + `${R.rbf_sweep[R.rbf_sweep.length - 1].gamma}, ${word(R.rbf_sweep.filter((r) => r.ari >= R.best_rbf.ari - 0.001).length)} `
+    + `reach ${f3(R.best_rbf.ari)} and the rest fall as low as `
+    + `${f3(Math.min(...R.rbf_sweep.map((r) => r.ari)))}. Nothing was removed by `
     + `going to a graph: the question "how many clusters" was traded for the question "what counts `
     + `as near", and the second one is answered before the algorithm starts rather than after.`);
 
