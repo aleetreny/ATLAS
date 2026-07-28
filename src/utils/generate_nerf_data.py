@@ -1112,7 +1112,9 @@ def main():
     out["splat"]["seconds"] = round(sp_got["seconds"], 1)
 
     def sp_score(m, tag):
-        return cached(f"spscore-v1-{tag}-r{RES}-i{SP_ITERS}",
+        """The blob count goes in the key as well as the tag: an ablation named
+        `iso` is only unique while N_BLOBS does not move."""
+        return cached(f"spscore-v1-{tag}-r{RES}-n{m.n}-i{SP_ITERS}",
                       lambda: mean_psnr(lambda c: render_splat_image(m, c), in_c, in_img))
 
     counts = []
