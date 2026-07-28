@@ -106,15 +106,19 @@ export function initProse(data) {
 
   set('arms-intro',
     `Glow is three pieces, and each one can be removed. Two seeds per arm, the same data, the `
-    + `same budget, and the widest seed range in the table becomes the floor every verdict is `
-    + `read against.`);
+    + `same budget, and every verdict is read against the seed range of <i>its own pair</i> of `
+    + `rows rather than against the widest range anywhere in the table. That distinction matters `
+    + `here: one arm is far noisier than the rest (${A.floor} bits against `
+    + `${Math.min(...A.rows.map((r) => r.spread))} for the steadiest), and letting it set the bar `
+    + `for the others would hide every difference behind the worst measurement in the table.`);
 
   set('arms-note',
     `${resolved.length
-      ? `The changes that move the result by more than the ${A.floor} bit floor are `
-        + `${resolved.map((r) => `${r.label} (${r.gap > 0 ? '+' : ''}${r.gap})`).join(', ')}.`
-      : `Nothing in the table moves the result by more than the ${A.floor} bit seed floor, which `
-        + `is a result about this size of model rather than about the architecture.`} `
+      ? `The changes that clear the floor of their own comparison are `
+        + `${resolved.map((r) => `${r.label} (${r.gap > 0 ? '+' : ''}${r.gap} against a floor of `
+          + `${r.floor}, ${r.times_floor} times it)`).join(', ')}.`
+      : `Nothing in the table moves the result by more than the floor of its own comparison, `
+        + `which is a result about this size of model rather than about the architecture.`} `
     + `The one worth dwelling on is the learned mixing, because it is the piece Glow is named `
     + `for. `
     + `${(() => {
@@ -123,8 +127,9 @@ export function initProse(data) {
         ? `Replacing it with a fixed random permutation costs ${p.gap} bits, which is outside `
           + `the floor, so at this size the learning really is doing something a permutation `
           + `cannot.`
-        : `Replacing it with a fixed random permutation costs ${p.gap} bits, which is inside the `
-          + `floor: with four channels after a single squeeze there are only ${4 * 3 * 2} `
+        : `Replacing it with a fixed random permutation costs ${p.gap} bits, which is inside its `
+          + `own floor of ${p.floor}: with four channels after a single squeeze there are only `
+          + `${4 * 3 * 2} `
           + `permutations to choose between, and a learned mixing has very little room to beat `
           + `them. This is a measurement about a small model, and it is exactly the kind of `
           + `result that gets quietly dropped when the ablation is run once.`;
@@ -137,22 +142,39 @@ export function initProse(data) {
     + `middle of it.`);
 
   set('temp-note',
-    `${P.best === 1.0
-      ? `The classic recipe is to sample below one, and here it does not help: the judge's `
-        + `confidence rises all the way to temperature one, ${P.rows[0].confidence} at `
-        + `${P.rows[0].t} and ${one.confidence} at one, against ${M.judge_confidence} on real `
-        + `held out digits. Nothing on this page is turned down to make the samples look better.`
-      : `The judge likes ${P.best} best, at ${best.confidence} against ${one.confidence} at `
-        + `temperature one and ${M.judge_confidence} on real held out digits.`} But the second column `
-    + `is the one that stops a bad model looking good: a model that produced one convincing `
-    + `digit over and over would score well on confidence and badly on class spread, and at `
-    + `${P.best} the spread is ${best.class_entropy} nats where ten classes equally often would `
-    + `be ${P.uniform_entropy}, with the most popular taking `
-    + `${(best.top_class_share * 100).toFixed(1)}%, so nothing here has collapsed. Lowering the `
-    + `temperature is not making the model better in any case: it is refusing to ask it about `
-    + `the parts of its own distribution it is least sure of, and the fraction of pixels that `
-    + `come back outside the range a picture can have is the measure of how much is being `
-    + `refused: ${(P.rows[0].outside * 100).toFixed(1)}% at ${P.rows[0].t} against `
+    `The judge's confidence climbs all the way across the sweep, ${P.rows[0].confidence} at `
+    + `${P.rows[0].t} and ${one.confidence} at one, against ${M.judge_confidence} on real held `
+    + `out digits, so read on its own this table says the classic recipe of sampling below one `
+    + `does not help here. `
+    + `${P.confounded
+      ? `It does not say that, and the reason is the last column. `
+        + `<a href="../ebm/">The energy article</a> measured that this same shared judge scores `
+        + `<span class="bold">ink</span> rather than digits, so the honest thing is to re-run `
+        + `that check on this axis instead of assuming it stayed in that article. It does not `
+        + `stay: across these six temperatures the ink of the samples correlates `
+        + `<span class="bold">${P.ink_corr}</span> with the judge's confidence, and every one of `
+        + `the six is fainter than a real digit (${P.rows[0].ink} to `
+        + `${P.rows[P.rows.length - 1].ink} against ${P.real_ink}, so even the darkest is `
+        + `${P.ink_ratio} of the real thing). The judge is not ranking temperatures on this `
+        + `page. It is ranking how much ink came out, and temperature one wins because it is the `
+        + `least faint of six faint options. What the recipe is worth cannot be measured with `
+        + `this instrument, and this page does not pretend otherwise: the number stays on the `
+        + `chart because it is what was measured, and the claim it looked like it supported comes `
+        + `off.`
+      : `And that reading survives the check it has to survive: `
+        + `<a href="../ebm/">the energy article</a> measured that this same judge scores ink `
+        + `rather than digits, but across these six temperatures the ink correlates `
+        + `${P.ink_corr} with the confidence, so the ranking is not simply a ranking of ink.`} `
+    + `The other two columns are worth reading in their own right, because they do not depend on `
+    + `the judge's ranking being meaningful. A model that produced one convincing digit over and `
+    + `over would score well on confidence and badly on class spread, and at ${P.best} the `
+    + `spread is ${best.class_entropy} nats where ten classes equally often would be `
+    + `${P.uniform_entropy}, with the most popular taking `
+    + `${(best.top_class_share * 100).toFixed(1)}%, so nothing here has collapsed. And lowering `
+    + `the temperature is not making the model better whatever the judge says: it is refusing to `
+    + `ask it about the parts of its own distribution it is least sure of, and the fraction of `
+    + `pixels that come back outside the range a picture can have is the measure of how much is `
+    + `being refused, ${(P.rows[0].outside * 100).toFixed(1)}% at ${P.rows[0].t} against `
     + `${(one.outside * 100).toFixed(1)}% at one.`);
 
   set('ood-intro',
@@ -275,11 +297,19 @@ export function initProse(data) {
       : ''}Bits per pixel is only comparable between models that dequantise the same way, and it `
     + `says nothing about whether the samples look like anything.`);
   set('verdict-temp',
-    `The judge prefers ${P.best} at ${best.confidence} over ${one.confidence} at one, and the `
-    + `class spread stays at ${best.class_entropy} nats, so it is not collapsing.`);
+    `${P.confounded
+      ? `The class spread stays at ${best.class_entropy} nats across the sweep, so nothing is `
+        + `collapsing, and the pixels outside the range say how much each temperature refuses to `
+        + `draw.`
+      : `The judge prefers ${P.best} at ${best.confidence} over ${one.confidence} at one, and the `
+        + `class spread stays at ${best.class_entropy} nats, so it is not collapsing.`}`);
   set('verdict-temp-warn',
-    `It is not an improvement to the model, and the sample it refuses to draw is exactly the `
-    + `part of its own distribution it was least sure of.`);
+    `${P.confounded
+      ? `The judge cannot rank these temperatures: its confidence correlates ${P.ink_corr} with `
+        + `the ink, and all six are fainter than a real digit. Lowering the temperature is not an `
+        + `improvement to the model either way.`
+      : `It is not an improvement to the model, and the sample it refuses to draw is exactly the `
+        + `part of its own distribution it was least sure of.`}`);
   set('verdict-ood',
     `The two by two table says what the likelihood prefers, and its correlation with gzip says `
     + `why: ${O.correlation}.`);

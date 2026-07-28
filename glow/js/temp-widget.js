@@ -29,7 +29,11 @@ export function initTempWidget(data, glow) {
   const caption = document.querySelector('#temp-caption');
   slider.min = 0;
   slider.max = temps.length - 1;
-  slider.value = Math.max(0, temps.indexOf(data.temperature.best));
+  /* Opens at the model's own distribution, which is temperature one, and not at
+     whichever temperature the judge scored highest: on this page the judge's
+     ranking is confounded by ink, so opening at "the best" would be presenting
+     an answer the measurement does not support. */
+  slider.value = Math.max(0, temps.indexOf(1.0));
 
   const layer = g.append('g');
   const title = g.append('text').attr('class', 'chart-note')
@@ -67,32 +71,53 @@ export function initTempWidget(data, glow) {
     paint(t);
     const row = data.temperature.rows.find((r) => r.t === t);
 
-    const x = d3.scalePoint().domain(temps.map(String)).range([0, w]).padding(0.5);
-    const conf = data.temperature.rows.map((r) => r.confidence);
-    const lo = Math.min(...conf, data.meta.judge_confidence);
-    const hi = Math.max(...conf, data.meta.judge_confidence);
-    const y = d3.scaleLinear().domain([lo - (hi - lo) * 0.2, hi + (hi - lo) * 0.2]).range([h, 0]);
-    drawGrid(g, x, y, w, h, { xValues: [], yTicks: 5 });
-    drawAxes(g, x, y, w, h, { yTicks: 5 });
+    /* The chart is the judge's score against the INK, not against the
+       temperature, because that is the picture that answers the question the
+       page actually has to answer: does this judge rank the samples, or does it
+       rank how dark they are? Six points on a straight line, and the real digits
+       far off past the end of it, is the whole argument in one panel. Drawn
+       against temperature it looked like a result. */
+    const rows = data.temperature.rows;
+    const T = data.temperature;
+    const xs = rows.map((r) => r.ink).concat([T.real_ink]);
+    const ys = rows.map((r) => r.confidence).concat([data.meta.judge_confidence]);
+    const xpad = (Math.max(...xs) - Math.min(...xs)) * 0.12;
+    const ypad = (Math.max(...ys) - Math.min(...ys)) * 0.14;
+    const x = d3.scaleLinear()
+      .domain([Math.min(...xs) - xpad, Math.max(...xs) + xpad]).range([0, w]);
+    const y = d3.scaleLinear()
+      .domain([Math.min(...ys) - ypad, Math.max(...ys) + ypad]).range([h, 0]);
+    drawGrid(g, x, y, w, h, { xTicks: 4, yTicks: 5 });
+    drawAxes(g, x, y, w, h, { xTicks: 4, yTicks: 5 });
     /* a rotated axis label is as long as the panel is TALL, and this panel is
        214 pixels of drawing area against a label that wanted 322: the long
        version was cut off at the top. Who the judge is, is said in the prose. */
-    axisLabels(g, w, h, { x: 'temperature', y: "the judge's confidence" });
+    axisLabels(g, w, h, { x: 'ink in the samples', y: "the judge's confidence" });
 
     layer.selectAll('*').remove();
-    layer.append('line').attr('x1', 0).attr('x2', w)
-      .attr('y1', y(data.meta.judge_confidence)).attr('y2', y(data.meta.judge_confidence))
-      .attr('stroke', 'var(--anchor)').attr('stroke-width', 1.5).attr('stroke-dasharray', '6 4');
-    layer.append('text').attr('class', 'chart-note')
-      .attr('x', 2).attr('y', y(data.meta.judge_confidence) - 7)
-      .style('font-size', '11.5px').attr('fill', 'var(--anchor)').text('real held out digits');
     layer.append('path')
-      .attr('d', d3.line().x((r) => x(String(r.t))).y((r) => y(r.confidence))(data.temperature.rows))
+      .attr('d', d3.line().x((r) => x(r.ink)).y((r) => y(r.confidence))(rows))
       .attr('fill', 'none').attr('stroke', 'var(--primary)').attr('stroke-width', 2);
-    layer.selectAll('circle').data(data.temperature.rows).join('circle')
-      .attr('cx', (r) => x(String(r.t))).attr('cy', (r) => y(r.confidence))
+    layer.selectAll('circle.t').data(rows).join('circle').attr('class', 't')
+      .attr('cx', (r) => x(r.ink)).attr('cy', (r) => y(r.confidence))
       .attr('r', (r) => (r.t === t ? 6.5 : 3.4)).attr('fill', 'var(--primary)');
-    wrapLabel(title, 'confidence is a weak measure, so read it with the next two columns', w - 8);
+    /* only the two ends are labelled: six labels on a short line collide */
+    [rows[0], rows[rows.length - 1]].forEach((r, i) => {
+      layer.append('text').attr('class', 'chart-note')
+        .attr('x', x(r.ink) + (i === 0 ? 8 : -2)).attr('y', y(r.confidence) + (i === 0 ? 14 : -10))
+        .attr('text-anchor', i === 0 ? 'start' : 'end')
+        .style('font-size', '11.5px').attr('fill', 'var(--primary)').text(`t = ${r.t}`);
+    });
+    layer.append('circle')
+      .attr('cx', x(T.real_ink)).attr('cy', y(data.meta.judge_confidence)).attr('r', 6)
+      .attr('fill', 'none').attr('stroke', 'var(--anchor)').attr('stroke-width', 2.2);
+    layer.append('text').attr('class', 'chart-note')
+      .attr('x', x(T.real_ink) - 4).attr('y', y(data.meta.judge_confidence) + 16)
+      .attr('text-anchor', 'end')
+      .style('font-size', '11.5px').attr('fill', 'var(--anchor)').text('real held out digits');
+    wrapLabel(title, T.confounded
+      ? `the judge's score tracks the ink at ${T.ink_corr}, so it is not ranking the temperatures`
+      : `the judge's score does not simply track the ink (${T.ink_corr})`, w - 8);
 
     caption.textContent = `${COLS * ROWS} pictures, made in this page by pushing a gaussian `
       + `scaled by ${t} backwards through the flow`;
@@ -101,15 +126,14 @@ export function initTempWidget(data, glow) {
     readout.innerHTML = `
       <table class="gen-table">
         <tr>
-          <th>temperature</th><th>judge confidence</th><th>spread over the ten classes</th>
-          <th>most popular class</th><th>pixels outside the range</th>
-          <th>round trip, in this page</th>
+          <th>temp</th><th>judge</th><th>ink</th>
+          <th>class spread</th><th>outside</th><th>round trip</th>
         </tr>
         <tr>
           <td><span class="value">${t}</span></td>
-          <td><span class="value">${row.confidence}</span>, real digits ${data.meta.judge_confidence}</td>
-          <td>${row.class_entropy} nats of ${data.temperature.uniform_entropy}</td>
-          <td>${(row.top_class_share * 100).toFixed(1)}%</td>
+          <td><span class="value">${row.confidence}</span></td>
+          <td><span class="value">${row.ink}</span></td>
+          <td>${row.class_entropy} of ${data.temperature.uniform_entropy}</td>
           <td>${(row.outside * 100).toFixed(1)}%</td>
           <td><span class="value">${trip.toExponential(1)}</span></td>
         </tr>
@@ -119,13 +143,26 @@ export function initTempWidget(data, glow) {
         out digit, ran it forwards through every layer to a latent, ran it backwards again, and
         the worst pixel came back ${trip.toExponential(1)} from where it started. That is not a
         reconstruction and it is not a bound: it is the same arithmetic run twice.
-        On the samples, the judge is ${row.confidence} confident at this temperature against
-        ${one.confidence} at one and ${data.meta.judge_confidence} on real digits, but confidence
-        is the weakest of the three columns, so read the class spread beside it:
-        ${row.class_entropy} nats where all ten classes equally often would be
+        ${data.temperature.confounded
+    ? `The first two columns have to be read together, and that is the point of this table. The
+       judge is ${row.confidence} confident here${t === 1.0 ? ''
+    : `, against ${one.confidence} at temperature one`}, and ${data.meta.judge_confidence} on
+       real digits. But across the six temperatures its confidence correlates
+       ${data.temperature.ink_corr} with the ink beside it, and all six are fainter than a real
+       digit (${data.temperature.real_ink} there, so even the darkest sample is
+       ${data.temperature.ink_ratio} of it). So the judge is not telling you which temperature
+       makes better digits, it is telling you which one made more ink. The energy article
+       measured the same failure on the same judge, which is why it is re-tested here rather
+       than assumed away.`
+    : `The judge is ${row.confidence} confident here${t === 1.0 ? ''
+      : `, against ${one.confidence} at temperature one`}, and ${data.meta.judge_confidence} on
+       real digits, and its ranking survives the ink check (correlation
+       ${data.temperature.ink_corr}), so it can be read as a ranking.`}
+        Either way the class spread is the column that catches a collapse: ${row.class_entropy}
+        nats where all ten classes equally often would be
         ${data.temperature.uniform_entropy}, with the most popular taking
         ${(row.top_class_share * 100).toFixed(1)}%. A model producing one convincing digit over
-        and over would score well on the first column and badly on the second.
+        and over would score well on confidence and badly there.
       </div>`;
   }
 

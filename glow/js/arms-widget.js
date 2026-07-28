@@ -66,25 +66,30 @@ export function initArmsWidget(data) {
   readout.innerHTML = `
     <table class="gen-table">
       <tr>
-        <th>what changed</th><th>bits per pixel</th><th>seeds</th>
-        <th>against the full model</th><th>weights</th>
+        <th>what changed</th><th>bits</th><th>seeds</th>
+        <th>gap</th><th>its floor</th>
       </tr>
       ${rows.map((r) => `<tr>
-        <td>${r.name === 'full' ? '<span class="bold">' + r.label + '</span>' : r.label}</td>
+        <td>${r.name === 'full' ? '<span class="bold">' + r.short + '</span>' : r.short}</td>
         <td><span class="value">${r.mean}</span></td>
         <td>${r.min} to ${r.max}</td>
-        <td>${r.name === 'full' ? 'the reference'
-    : `${r.gap > 0 ? '+' : ''}${r.gap}${r.resolves ? '' : ', inside the floor'}`}</td>
-        <td>${r.params.toLocaleString('en-US')}</td>
+        <td>${r.name === 'full' ? 'reference'
+    : (r.resolves
+      ? `<span class="bold">${r.gap > 0 ? '+' : ''}${r.gap}</span>`
+      : `${r.gap > 0 ? '+' : ''}${r.gap}`)}</td>
+        <td>${r.name === 'full' ? '' : r.floor}</td>
       </tr>`).join('')}
     </table>
     <div class="gen-note">
-      The widest seed range in this table is ${A.floor} bits, and that is the floor every
-      comparison is read against.
+      A gap counts only when it is bigger than the floor beside it, and that floor is the seed
+      range of <i>this row and the full model</i>, not the widest range in the table: that widest
+      range is ${A.floor} bits and belongs to a single noisy arm, so using it everywhere would
+      score the one real difference here against a bar almost ten times its own.
       ${resolved.length
-    ? `${resolved.length === 1 ? 'One change is' : `${resolved.length} changes are`} bigger than
-       it: ${resolved.map((r) => `${r.label} (${r.gap > 0 ? '+' : ''}${r.gap})`).join(', ')}.`
-    : 'Nothing in this table moves the result by more than that floor.'}
+    ? `${resolved.length === 1 ? 'One change clears' : `${resolved.length} changes clear`} their
+       own: ${resolved.map((r) => `${r.label} (${r.gap > 0 ? '+' : ''}${r.gap}, ${r.times_floor}
+       times its floor of ${r.floor})`).join(', ')}.`
+    : 'Nothing in this table clears the floor of its own comparison.'}
       ${inside.length
     ? ` ${inside.length === 1 ? 'The other one is' : 'The others are'} inside it:
         ${inside.map((r) => `${r.label} (${r.gap > 0 ? '+' : ''}${r.gap})`).join(', ')}, and this

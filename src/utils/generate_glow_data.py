@@ -312,34 +312,52 @@ def spread(vals):
 
 # ========================================================== A. the three pieces
 banner("A. the three pieces, one at a time, same data and same budget")
+# Two names per arm: the sentence goes on the chart, where there is room for it,
+# and the short one goes in the readout table, which has five columns to fit
+# inside the article's width and cannot afford a sentence in the first of them.
 ARMS = [
-    ("full", {}, "actnorm, a learned 1x1 mixing, affine coupling"),
-    ("permute", {"mix": "permute"}, "the mixing replaced by a fixed random permutation"),
-    ("reverse", {"mix": "reverse"}, "the mixing replaced by reversing the channels"),
-    ("no_actnorm", {"actnorm": False}, "actnorm removed"),
-    ("additive", {"additive": True}, "additive coupling, so every step preserves volume"),
+    ("full", {}, "actnorm, a learned 1x1 mixing, affine coupling", "the full model"),
+    ("permute", {"mix": "permute"},
+     "the mixing replaced by a fixed random permutation", "fixed permutation"),
+    ("reverse", {"mix": "reverse"},
+     "the mixing replaced by reversing the channels", "channels reversed"),
+    ("no_actnorm", {"actnorm": False}, "actnorm removed", "no actnorm"),
+    ("additive", {"additive": True},
+     "additive coupling, so every step preserves volume", "additive coupling"),
 ]
 arm_rows = []
-for name, kw, label in ARMS:
+for name, kw, label, short in ARMS:
     vals = []
     for s in SEEDS:
         net = train_glow(DIG_TR, s, tag="digits", **kw)
         bpd, _ = evaluate(net, DIG_TE)
         vals.append(bpd)
     sp = spread(vals)
-    arm_rows.append({"name": name, "label": label, **sp,
+    arm_rows.append({"name": name, "label": label, "short": short, **sp,
                      "params": sum(p.numel() for p in train_glow(
                          DIG_TR, SEEDS[0], tag="digits", **kw).parameters())})
     print(f"  {label:<56}: {sp['mean']:.4f} bits per dimension "
           f"(seeds {sp['min']:.4f} to {sp['max']:.4f})")
-FLOOR = max(r["spread"] for r in arm_rows)
+# The floor a comparison is read against belongs to the TWO cells being
+# compared, not to the widest range anywhere in the table. Here one arm
+# (permute) is far noisier than the rest, and a single worst case floor lets it
+# set the bar for every other verdict: the additive arm, which is the one real
+# difference in this table, was being scored against a floor almost ten times
+# its own. The worst case number is kept as well, because it is the right one
+# for a claim about the table as a whole.
+FLOOR_WORST = max(r["spread"] for r in arm_rows)
 full = next(r for r in arm_rows if r["name"] == "full")
 for r in arm_rows[1:]:
     d = r["mean"] - full["mean"]
+    floor = max(r["spread"], full["spread"])
     r["gap"] = rnd(d, 4)
-    r["resolves"] = bool(abs(d) > FLOOR)
-    print(f"    {r['name']:<12} costs {d:+.4f} bits against the full model, with a seed floor "
-          f"of {FLOOR:.4f}: {'bigger than the floor' if abs(d) > FLOOR else 'inside it, so this page does not call it a difference'}")
+    r["floor"] = rnd(floor, 4)
+    r["resolves"] = bool(abs(d) > floor)
+    r["times_floor"] = rnd(abs(d) / floor, 2) if floor > 0 else None
+    print(f"    {r['name']:<12} costs {d:+.4f} bits against the full model, against the floor of "
+          f"that pair ({floor:.4f}): "
+          f"{'bigger than it' if abs(d) > floor else 'inside it, so this page does not call it a difference'}")
+FLOOR = FLOOR_WORST
 
 # ================================================== B. the dequantisation trap
 banner("B. what happens when a continuous density is fitted to discrete pixels")
@@ -486,14 +504,46 @@ for t in TEMPS:
         "class_entropy": rnd(float(-(q * np.log(np.maximum(q, 1e-12))).sum()), 4),
         "top_class_share": rnd(float(q.max()), 4),
         "outside": rnd(float(((x < 0) | (x > 1)).mean()), 4),
+        # the confound the energy article already measured on THIS judge
+        "ink": rnd(float(pix.mean()), 4),
     })
     print(f"  temperature {t}: judge confidence {temp_rows[-1]['confidence']}, class entropy "
           f"{temp_rows[-1]['class_entropy']} (uniform over ten is {np.log(10):.4f}), "
-          f"{temp_rows[-1]['outside'] * 100:.1f}% of pixels outside the range a picture has")
+          f"{temp_rows[-1]['outside'] * 100:.1f}% of pixels outside the range a picture has, "
+          f"ink {temp_rows[-1]['ink']}")
 best_t = max(temp_rows, key=lambda r: r["confidence"])
 print(f"  the judge likes {best_t['t']} best at {best_t['confidence']}, against "
       f"{next(r for r in temp_rows if r['t'] == 1.0)['confidence']} at temperature one and "
       f"{JUDGE['real_confidence']:.4f} on real held out digits")
+
+# Whether that ranking means anything at all. The energy article measured that
+# this same shared judge scores ink rather than digits (its energy correlates
+# -0.68 with ink, and uniform noise rescaled to a digit's ink jumps from 0.1396
+# to 0.9153). A metric with a known confound has to be re-tested every time it
+# is reused, so here is the same test on this axis: if confidence is monotone in
+# ink across the sweep, and every temperature is fainter than a real digit, then
+# the judge cannot separate "better digits" from "more ink" anywhere in the
+# range, and the page must not read its ranking as an answer.
+real_ink = float(DIG_TE.astype(np.float64).mean() / 255.0)
+ink_corr = float(np.corrcoef([r["ink"] for r in temp_rows],
+                             [r["confidence"] for r in temp_rows])[0, 1])
+faintest = max(r["ink"] for r in temp_rows)
+temp_confounded = bool(abs(ink_corr) > 0.9 and faintest < real_ink)
+temperature = {
+    "rows": temp_rows, "best": best_t["t"],
+    "uniform_entropy": rnd(float(np.log(10)), 4),
+    "real_ink": rnd(real_ink, 4), "ink_corr": rnd(ink_corr, 4),
+    "all_fainter_than_real": bool(faintest < real_ink),
+    "confounded": temp_confounded,
+    "ink_ratio": rnd(faintest / real_ink, 3),
+}
+print(f"  ink runs {temp_rows[0]['ink']} to {temp_rows[-1]['ink']} against {real_ink:.4f} on "
+      f"real held out digits, and correlates {ink_corr:+.4f} with the judge's confidence")
+if temp_confounded:
+    print("  so the ranking is CONFOUNDED: confidence is monotone in ink and every temperature "
+          "is fainter than a real digit, so this judge cannot rank temperatures here")
+else:
+    print("  the ranking survives the ink check, so the page may read it as an answer")
 
 # =========================================================== F. what the browser runs
 banner("F. exporting a flow the page can invert")
@@ -561,12 +611,14 @@ payload = {
         "note": "one level, no split, six flow steps: smaller than the paper's model, and "
                 "every ablation is against the same shape so the comparisons are fair",
     },
-    "arms": {"rows": arm_rows, "floor": rnd(FLOOR, 4)},
+    "arms": {"rows": arm_rows, "floor": rnd(FLOOR, 4),
+             "floor_note": "every verdict is read against the floor of ITS OWN pair of cells; "
+                           "`floor` here is the widest range anywhere in the table, which is "
+                           "the right number for a claim about the table as a whole"},
     "trap": trap,
     "compress": compress,
     "ood": ood,
-    "temperature": {"rows": temp_rows, "best": best_t["t"],
-                    "uniform_entropy": rnd(float(np.log(10)), 4)},
+    "temperature": temperature,
     "board": board,
     "net": {
         "format": "float16 little-endian, base64; the tensors in the order of the spec below, "
