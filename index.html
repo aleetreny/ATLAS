@@ -817,14 +817,77 @@
           never existed. The shift from "classifying a cat" to "drawing a cat".
         </p>
       </div>
+
+      <div class="articles-container">
+        <!-- card: gans -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./gans/';" style="cursor: pointer">
+            <img src="assets/thumbnails/gans.svg"
+                 alt="Counterfeit article image: eight thin rings arranged on a circle marking where the data is, with a generator's samples piled onto only two of them." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Counterfeit</h2>
+            <p class="article-description">
+              Two networks that want opposite things. Watch four divergences pick
+              four different answers out of the same family, see the gradient of
+              the original loss die where the model is worst, and train a GAN in
+              your own tab until it forgets half the data.
+            </p>
+            <button class="content-button">
+              <a href="./gans/">Dive In</a>
+            </button>
+          </div>
+        </div>
+
+        <!-- card: stylegan -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./stylegan/';" style="cursor: pointer">
+            <img src="assets/thumbnails/stylegan.svg"
+                 alt="Style article image: a scatter of sprites by measured size and colour, with a dashed rectangle marking the one combination the data never contains, empty." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Style</h2>
+            <p class="article-description">
+              A latent space nobody asked anything of, and what changes when you
+              do. On sprites whose factors are known exactly and whose joint
+              distribution has a hole in it: mix two samples layer by layer and
+              measure which idea each block was holding.
+            </p>
+            <button class="content-button">
+              <a href="./stylegan/">Dive In</a>
+            </button>
+          </div>
+        </div>
+
+        <!-- card: translation -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./translation/';" style="cursor: pointer">
+            <img src="assets/thumbnails/translation.svg"
+                 alt="Translation article image: a flat plan of a scene on the left, an arrow, and the same scene rendered with lit windows and road markings on the right." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Translation</h2>
+            <p class="article-description">
+              One picture into another, with the answer in hand and then without
+              it. Why an averaging loss is obliged to blur, how wide a patch
+              critic really sees, and what a cycle constraint fails to pin down.
+              Draw a plan and both translators answer live.
+            </p>
+            <button class="content-button">
+              <a href="./translation/">Dive In</a>
+            </button>
+          </div>
+        </div>
+      </div>
+
       <details class="roadmap">
         <summary>Full branch map: 3. Generative AI</summary>
         <div class="branch">
           <h4>3.1 Adversarial &nbsp;·&nbsp; 3.2 Probabilistic &amp; Flows &nbsp;·&nbsp; 3.3 Diffusion</h4>
           <div class="chips">
-            <span class="chip">GANs · DCGAN · WGAN</span>
-            <span class="chip">StyleGAN</span>
-            <span class="chip">Pix2Pix · CycleGAN</span>
+            <span class="chip live"><a href="./gans/">GANs · DCGAN · WGAN</a></span>
+            <span class="chip live"><a href="./stylegan/">StyleGAN</a></span>
+            <span class="chip live"><a href="./translation/">Pix2Pix · CycleGAN</a></span>
             <span class="chip">VAEs · VQ-VAE · EBMs</span>
             <span class="chip">Normalizing Flows · Glow</span>
             <span class="chip">DDPM</span>

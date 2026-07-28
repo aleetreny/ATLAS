@@ -56,12 +56,15 @@ Este repositorio empezó como notebooks de ML y se está convirtiendo (notebooks
 | 30 | Bottleneck (plano latente arrastrable con decoder vivo, curva de k, cuello contra Isomap) | `autoencoders/` | `#be123c` |
 | 31 | Affinities (mensajes vivos, dial de preferencia, grafo y espectro, los 32.767 cortes) | `affinities/` | `#7f1d1d` |
 | 32 | Where You Weren't (escena en forma cerrada, campo de radiancia y blobs vivos, órbita arrastrable) | `nerf/` | `#581c87` |
+| 33 | Counterfeit (cuatro divergencias sobre la misma familia, gradiente saturado medido, GAN entrenándose en el navegador) | `gans/` | `#3f6212` |
+| 34 | Style (esprites con factores conocidos y un agujero en la conjunta, mezcla de estilos viva, truncamiento medido) | `stylegan/` | `#831843` |
+| 35 | Translation (la mediana condicional muestreada, campo receptivo medido, dos traductores vivos, ciclo sin pares) | `translation/` | `#134e4a` |
 
 Los artículos 1 a 6 pasaron una **revisión completa** (commit `5e4852b`, 2026-07-25): auditoría estática en paralelo más un barrido en navegador de cada control, cada paso de scrolly y cada etiqueta a 1425px y 375px. 73 hallazgos aplicados. Todas las páginas tienen ahora `canonical` + Open Graph, los 20 sliders tienen `aria-label`, y cada cierre enlaza al siguiente artículo.
 
 Dos de esos hallazgos eran errores numéricos publicados: `polyFit` del artículo 1 formaba `X'X` (grado 9 daba r² test 0.681 en vez de 0.649, invirtiendo la moraleja) y el lasso del artículo 2 no convergía por debajo de λ=1e-3. Ver [la receta de un artículo](receta-de-articulo.md).
 
-**La sección 1 entera está cerrada, y con el artículo 32 también el módulo 1.3; 2.1 y 2.2 están completos. El 21 cumplió la promesa del 20 (ReLU gana a tanh con profundidad: 89,37/83,77 a 20 capas) y desmintió midiendo el tópico del gradiente que se desvanece (crece 1.271×). El 23 cerró el arco que abrió el 19: un clasificador de ventanas sobre un recorte y el mismo en una pasada convolucional dan el mismo número exacto. El 24 corre sobre los lienzos del 23. El 32 cierra el 1.3 dejando la imagen plana: la escena está escrita en forma cerrada, así que la verdad de referencia no es una anotación sino la función, y la cadena de cierres 23 -> 24 -> 32 está enganchada. Los artículos 25 a 30 son el módulo 2.2 entero, encadenados: directions -> distances -> manifolds -> neighbours -> autoencoders, y el último desemboca en el módulo 3 por el autoencoder variacional. El 31 cierra el 2.1: los ocho chips de clustering están encendidos. Con esto no queda encendido ningún chip de las ramas ya empezadas; de 2.3 en adelante el mapa está entero por escribir.**
+**La sección 1 entera está cerrada, el módulo 3.1 también, y 2.1 y 2.2 están completos. El 21 cumplió la promesa del 20 (ReLU gana a tanh con profundidad: 89,37/83,77 a 20 capas) y desmintió midiendo el tópico del gradiente que se desvanece (crece 1.271×). El 23 cerró el arco que abrió el 19: un clasificador de ventanas sobre un recorte y el mismo en una pasada convolucional dan el mismo número exacto. El 24 corre sobre los lienzos del 23. El 32 cierra el 1.3 dejando la imagen plana: la escena está escrita en forma cerrada, así que la verdad de referencia no es una anotación sino la función, y la cadena de cierres 23 -> 24 -> 32 está enganchada. Los artículos 25 a 30 son el módulo 2.2 entero, encadenados: directions -> distances -> manifolds -> neighbours -> autoencoders, y el último desemboca en el módulo 3 por el autoencoder variacional. El 31 cierra el 2.1: los ocho chips de clustering están encendidos. Los artículos 33 a 35 son el módulo 3.1 entero, encadenados y en ese orden (gans -> stylegan -> translation), y el 30 (`autoencoders/`) los enlaza desde el 2.2. Lo que queda por escribir: 2.3 entero, el resto del módulo 3 (3.2 probabilístico y flujos, 3.3 difusión, adonde apunta el cierre del 35) y de 4 en adelante el mapa está intacto.**
 
 **Artículo 32** (`nerf/`) cierra el módulo 1.3 y con él la sección 1 entera, y es el primero cuyo dataset no es un dataset: la escena está escrita en forma cerrada (cuatro sólidos como funciones de distancia con una cáscara de soporte compacto de 0,045 y radiancia Blinn-Phong con lóbulo especular), así que una fotografía es esa forma cerrada integrada a lo largo de 4.096 rayos y la verdad de referencia no es una anotación, es la función. 24 fotos de 64x64 en tres anillos (10°, 28°, 46°), 8 retenidas entre los anillos y 6 fuera de la banda (-14° y 68°), todas a 512 pasos de cuadratura y **redondeadas a bytes**, porque eso es lo que el navegador lee del PNG.
 
@@ -73,6 +76,45 @@ Y la geometría, que ninguna de las dos pérdidas pidió nunca: el campo pone la
 
 **Tres implementaciones del mismo cálculo corren en el navegador** (la escena en forma cerrada, el MLP y el rasterizador de blobs) y las tres se comprueban al cargar contra referencias que el generador calculó con los mismos pesos ya cuantizados a float16: el peor píxel discrepa del orden de 1e-6, y las 28 PSNR por cámara se reproducen a 0,036 dB (campo) y 0,006 dB (blobs). El suelo de ruido entre semillas es 0,13 dB para el campo y 0,107 para los blobs, y toda comparación de la página se lee contra él.
 
+
+**Artículo 33** (`gans/`) abre el módulo 3 y es el primero del sitio cuya pérdida
+es un jugador. Tres datasets en orden de cuánto esconden: una mezcla de dos
+gaussianas en la recta donde **todo se integra en una rejilla** en vez de
+estimarse (y el navegador la recalcula al cargar, cuadrando con el generador a
+4,6e-9), el anillo de ocho gaussianas, y 20.000 dígitos de MNIST. Cifras
+ancladas. Las cuatro divergencias eligen respuestas distintas de la **misma**
+familia de un solo gaussiano: KL directa en (0, 1.58) cubriendo los dos modos,
+KL inversa en (-1.5, 0.52) sentada en uno solo (y el espejo puntúa igual a todos
+los dígitos, así que el objetivo tiene literalmente dos respuestas),
+Jensen-Shannon en (0, 1.56), que está entre las dos **por los pelos** (1,01
+veces más estrecha que la que cubre), y Wasserstein en (0, 1.58). La identidad
+`V(D*,G) = 2·JSD − 2·log2` cuadra a 3,3e-16 en su forma corregida por masa, y el
+hueco crudo de 1,0e-7 **es** la masa que la rejilla pierde en las colas. El
+gradiente saturado muere donde el modelo está peor: a separación 4,5 el mejor
+discriminador acierta el 99,91% y la pérdida original devuelve 1,75e-2 contra
+1,20e+1 de la no saturada (factor 6,8e2); a 6,0, factor 2,7e5. Con soportes
+disjuntos, JS es log 2 en todas partes y el crítico estima la distancia real con
+un 8,6% de error en el peor caso.
+
+El resultado que va contra el guion está en el anillo: **el reparto entre
+semillas es mayor que el reparto entre objetivos** (69,4% de muestras sobre el
+anillo entre dos semillas del mismo objetivo, contra 49,0% entre el mejor y el
+peor objetivo), y se publica con cuatro intentos de falsación, no con una
+tirada: al triple de presupuesto la no saturada pasa su peor semilla de 2 a 6
+modos y WGAN-GP de 3 y 3 a 8 y 6, así que parte de lo que parecía diferencia de
+objetivo era diferencia de velocidad. En MNIST, con un patrón de calidad
+calibrado por los dos lados (suelo 0,61 real contra real, 17,47 al borrar tres
+dígitos, 1.654,98 contra ruido, con un clasificador sonda al 94,14%): WGAN-GP
+4,00, saturada 10,09, WGAN recortada 16,75, DCGAN 21,38, sin convoluciones
+165,17, **y las dos semillas del DCGAN (31,70 y 11,06) encierran a la WGAN
+recortada entera**. Ninguno de los dos mecanismos de Lipschitz entrega un
+crítico 1-Lipschitz (0,03 recortando, 1,05 con penalización). Y la promesa de
+WGAN de que su estimación sirve de barra de progreso **no se reproduce**: las
+correlaciones de los dos brazos con crítico salen negativas (-0,569 y -0,352) y
+al restringirlas a la segunda mitad del entrenamiento ni siquiera coinciden en
+el signo (0,892 y -0,728). El widget final entrena una GAN **en la pestaña**,
+escrita dos veces (numpy y JavaScript, mismo generador congruencial, misma
+inicialización, mismo Adam): las trayectorias de 200 pasos coinciden a 4,9e-9.
 
 **Artículo 31** (`affinities/`) cierra el módulo 2.1 con los dos algoritmos que no miran una coordenada nunca: affinity propagation y spectral clustering, los dos sobre la tabla n×n de parecidos, y sobre los MISMOS puntos de los artículos 12 a 15 (el generador vuelve a afirmar coordenada a coordenada que los cinco datasets son idénticos, y además **reproduce siete columnas del marcador del 26**, que salen iguales salvo dos celdas de HDBSCAN que se mueven 0,004-0,005 por el salto de scikit-learn 1.8.0 a 1.9.0). Los dos algoritmos corren en el navegador: el paso de mensajes elige los mismos ejemplares que scikit-learn en los 9 controles, y los autovalores del laplaciano salen de una iteración de Lanczos que cuadra con `eigh` de scipy en los 15 grafos comprobados. Cifras ancladas: **la preferencia por defecto (la mediana) se equivoca en los seis datasets** (10, 12, 14, 16, 12 y 15 clusters donde la verdad es 2 o 3, ARI de 0,070 a 0,603); el mapa de preferencia a k **ni es monótono ni es exhaustivo** (tres de cinco datasets tienen un k que ningún precio produce, y en cuatro hay al menos un escalón donde abaratar el cluster devuelve menos), así que no se puede pedir k ni buscarlo por bisección; **el damping decide el resultado**, no la velocidad (por debajo de 0,45 no converge en 2.000 iteraciones y el recuento oscila hasta 217, y de las 11 tasas que sí convergen salen dos respuestas, 3 y 4, alternándose); pero donde acierta la k, el paso de mensajes **encuentra el óptimo exacto de su propio objetivo**: los mismos ejemplares que PAM sobre las mismas similitudes en los 300 blobs, y el mejor de los 768.211 subconjuntos en la submuestra de 30. Del lado espectral: **anillos 1,000 y trampa 1,000** (k-means saca -0,003 y 0,459), y no por aproximar nada, porque el grafo de 10 vecinos cae literalmente en dos trozos y los dos autovalores cero son sus indicadores; fuera de la banda de vecinos (5 a 25 en los anillos) el resultado se desploma; el hueco espectral acierta la k en cuatro de seis mirando cuatro autovalores y en tres mirando nueve, que es la forma honesta de toda heurística que dice encontrar k; y **"spectral clustering" nombra al menos tres últimos pasos distintos**, que en el par desigual dan 0,463, 0,650 y 0,628, más un cuarto sin paper detrás (el que trae scikit-learn) que en la cizalla saca 0,960 donde los tres del libro sacan entre 0,751 y 0,768. El widget final enumera **los 32.767 cortes** de un grafo de 16 puntos en el navegador: el mejor umbral del autovector ES el corte óptimo, cortar en cero queda segundo, y el autovalor (0,092881) está un 10,2% por debajo del mejor corte que existe y no lo alcanza nadie. Nada de esto publica un reloj de pared: la sección de coste cuenta similitudes y actualizaciones de mensajes (18.900.000 contra 2.700 distancias de k-means en los mismos 300 puntos).
 

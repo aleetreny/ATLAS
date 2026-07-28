@@ -227,7 +227,10 @@ export function initProse(data) {
     + `point will land somewhere the decoder handles well, which is a question about the `
     + `distribution of the code and not about reconstruction at all. Putting a distribution there `
     + `on purpose is what a variational autoencoder does, and that is module 3, where the objective `
-    + `stops being "rebuild this" and starts being "produce something that could have been this".`);
+    + `stops being "rebuild this" and starts being "produce something that could have been this". `
+    + `Module 3 opens somewhere else, though: <a href="../gans/">Counterfeit</a> takes the harder `
+    + `road of not writing the objective down at all and training a second network to be it, and `
+    + `nearly everything awkward about generative models is visible there in miniature.`);
 
   set('resources-note',
     `${n0(M.n)} stratified MNIST digits, seed ${M.seed}, mean pooled to ${M.side} by ${M.side} and `

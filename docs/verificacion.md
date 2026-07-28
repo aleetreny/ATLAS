@@ -63,6 +63,12 @@ Se han colado fallos visuales en paginas dadas por verificadas, tres veces. **Co
 
 41. **Un informe de revisión con cero hallazgos puede ser cero hallazgos o cero revisores.** El workflow de revisión del 32 devolvió `{"confirmed": [], "note": "nothing survived the skeptics"}`, que se lee como "todo limpio", y lo que había pasado es que 12 de sus 13 agentes murieron por límite de cuota: el único que terminó traía trece hallazgos, de los cuales nueve eran reales y dos graves. La síntesis final no distingue "refutado" de "nunca ejecutado". Antes de creerse un informe vacío, mirar el `journal.jsonl` de la tirada y contar cuántos agentes devolvieron resultado, y leer las líneas de `failures` de la notificación.
 
+42. **`torch.std` divide por n-1 y las capas de normalización de torch dividen por n.** No es la misma convención dentro del mismo framework: `x.std(dim=(2,3))` escrito a mano en un AdaIN es insesgado, y `GroupNorm`/`InstanceNorm`/`BatchNorm` usan la varianza sesgada. Una reimplementación en JavaScript tiene que copiar **cada una por separado**; copiar una sola mueve la imagen lo justo para que no cuadre con la referencia y no lo suficiente para que se vea.
+
+43. **La nube recicla el contenedor y mata el generador, y el caché por etapas lo hace gratis.** Pasó otra vez en el módulo 3.1, a mitad de la tirada de imágenes: el proceso desaparece (`ps` no lo lista), `nohup` no lo salva, pero `~/.atlas_vision_data/<algo>_cache/` sigue entero y relanzar entra por donde se quedó. Antes de dar nada por perdido: mirar el caché y relanzar. El único trabajo que se pierde es la etapa que estaba a medias.
+
+44. **Editar el generador mientras corre no cambia el proceso vivo, y eso incluye las etapas nuevas.** Añadir un bloque de falsación al fichero mientras la tirada estaba en la etapa 4 no lo ejecutó: Python ya había leído el módulo. La etapa nueva entra en la siguiente ejecución, que con el caché cuesta solo lo que la etapa nueva cueste. Es la contrapartida útil de la trampa 16.
+
 ## El arnés, y no medirlo a mano
 Escribir `_audit.js` en la raíz del repo (temporal, borrarlo antes de commitear) e importarlo desde la consola. Exporta `audit()`, `sweepControls()`, `sweepScrolly()`, `sliderResponse()` y `statics()`. Dos detalles que lo hacen fiable:
 - **`javascript_tool` corta a los 30 s.** Lanzar el barrido sin `await`, guardarlo en `window.__R`, y sondear en llamadas siguientes.

@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Counterfeit | ATLAS</title>
+  <meta name="description" content="Generative adversarial networks from the game up: which distribution each divergence picks out of the same family, why the loss in the original paper is not the loss anybody trains, what happens when two distributions do not overlap, and five objectives measured against a yardstick that is calibrated before it is used." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/gans/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="Counterfeit | ATLAS" />
+  <meta property="og:description" content="Two networks that want opposite things. The minimax game, the divergence hiding inside it, the gradient that dies, and what a Wasserstein critic changes, all measured." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/gans/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Counterfeit | ATLAS" />
+  <meta name="twitter:description" content="A GAN trained live in your browser tab, and the closed form arithmetic that says what it is doing." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    /* Per-article theme. Everything else inherits from these two. */
+    :root {
+      --primary: #3f6212;
+      --secondary: #324e0e;
+    }
+    /* Two panels that have to be read across, which nothing in global.css
+       pairs up. */
+    .side-by-side {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 1.5rem;
+      align-items: start;
+    }
+    .side-by-side.narrow-left {
+      grid-template-columns: minmax(0, 0.42fr) minmax(0, 1fr);
+    }
+    @media (max-width: 950px) {
+      .side-by-side,
+      .side-by-side.narrow-left {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+    /* A contact sheet is wider than it is tall and must never be blown up
+       past its own pixels. */
+    .sheet-wrap {
+      overflow-x: auto;
+    }
+    .sheet-wrap canvas {
+      image-rendering: pixelated;
+    }
+    .sheet-label {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      text-align: center;
+      margin-bottom: 0.35rem;
+      color: var(--squidink);
+    }
+    /* The grid of twelve runs: one row per objective, one small panel per
+       seed, because the spread between seeds is the point. */
+    .ring-row {
+      display: grid;
+      grid-template-columns: 132px minmax(0, 1fr);
+      gap: 0.8rem;
+      align-items: center;
+      margin-bottom: 0.9rem;
+    }
+    .ring-row-label {
+      font-family: var(--font-heavy);
+      font-size: 13px;
+      line-height: 1.25;
+      text-align: right;
+      color: var(--squidink);
+    }
+    .ring-panels {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 0.7rem;
+    }
+    .ring-cell {
+      max-width: 210px;
+    }
+    .ring-cap {
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      text-align: center;
+      margin-top: 0.2rem;
+      color: var(--squidink);
+    }
+    .ring-cap b {
+      font-family: var(--font-heavy);
+      color: var(--anchor);
+      font-weight: normal;
+    }
+    @media (max-width: 700px) {
+      .ring-row {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .ring-row-label {
+        text-align: left;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- ======================= chrome ======================= -->
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <!-- ======================= hero ======================= -->
+  <section id="intro">
+    <h1 id="intro-hed">Counterfeit</h1>
+    <h1 id="intro-sub">Two networks that want opposite things, one learning to draw and one learning to tell, and nearly every practical fact about the pair falling out of taking the game literally</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 3.1 · Generative AI · Adversarial</span>
+  </section>
+
+  <br />
+
+  <!-- ======================= introduction ======================= -->
+  <section>
+    <p class="body-text">
+      Everything in the first two sections of this site was handed some data and
+      asked a question about it. Predict this column, split these points, find
+      the axes. Even the
+      <a href="../autoencoders/">autoencoder</a>, which had to put an image back
+      together, was only ever asked to reproduce something it had already been
+      shown.
+    </p>
+    <br />
+    <p class="body-text">
+      This one is asked for a picture nobody took. Not a compressed copy of one
+      in the training set: a new sample from the distribution the training set
+      came out of. And the trouble is immediate, because there is no loss for
+      that. You cannot write down how wrong a picture that nobody has ever seen
+      is, since the thing it is supposed to be near is a distribution rather
+      than an answer.
+    </p>
+    <br />
+    <p class="body-text">
+      The adversarial answer is to stop trying to write the loss down and hire
+      one instead. Train a second network whose whole job is to tell the real
+      samples from the produced ones, and let the first network's loss be
+      whatever makes the second one wrong. The loss is now a player, and it
+      moves back.
+    </p>
+    <br />
+    <p class="body-text" id="dataset-note">Measured below.</p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the game ======================= -->
+  <section>
+    <h1 class="body-header">A Classifier Standing In For A Distance</h1>
+    <p class="body-text">
+      The two players, written down. The generator turns noise into samples and
+      the discriminator scores them, and the value they are fighting over is:
+    </p>
+    <div style="text-align: center; margin: 1.2rem 0">
+      \( \min_G \max_D \; V(D, G) = \mathbb{E}_{x \sim p_{\text{data}}}\big[\log D(x)\big]
+         + \mathbb{E}_{z \sim p_z}\big[\log\big(1 - D(G(z))\big)\big] \)
+    </div>
+    <p class="body-text">
+      For any fixed generator, the inner maximisation has a closed form answer,
+      and it is worth seeing that it is not a network at all but a ratio of
+      densities:
+    </p>
+    <div style="text-align: center; margin: 1.2rem 0">
+      \( D^{*}(x) = \dfrac{p_{\text{data}}(x)}{p_{\text{data}}(x) + p_{g}(x)},
+         \qquad V(D^{*}, G) = 2\,\mathrm{JSD}(p_{\text{data}} \,\|\, p_g) - 2\log 2 \)
+    </div>
+    <p class="body-text">
+      So the discriminator is a divergence with a training loop wrapped around
+      it. Below, on a mixture of two gaussians with a single gaussian trying to
+      match it, all of that is integrated on a grid rather than quoted.
+    </p>
+  </section>
+
+  <section id="game-scrolly" class="scrolly">
+    <div class="scrolly-container">
+      <div class="charts-container">
+        <div class="chart-wrap" id="game-chart"></div>
+      </div>
+      <div class="steps-container" id="game-steps">
+        <div class="step" data-index="0">
+          <div class="step-content">
+            <h3>The data</h3>
+            <p>An even mixture of two gaussians. It has two modes, and nothing in the model family below has two of anything.</p>
+          </div>
+        </div>
+        <div class="step" data-index="1">
+          <div class="step-content">
+            <h3>A model that cannot be right</h3>
+            <p>One gaussian, two parameters. There is no setting of them that equals the data, so every objective on this page has to choose how to be wrong, and they choose differently.</p>
+          </div>
+        </div>
+        <div class="step" data-index="2">
+          <div class="step-content">
+            <h3>The best discriminator there is</h3>
+            <p>Not trained: computed. \(D^{*}\) is one where only the data has mass, zero where only the model does, and one half where they are equally likely. No amount of architecture beats this, because it is the answer.</p>
+          </div>
+        </div>
+        <div class="step" data-index="3">
+          <div class="step-content">
+            <h3>Which makes the game a divergence</h3>
+            <p>Put \(D^{*}\) back into \(V\) and the Jensen-Shannon divergence falls out. Training a discriminator well is estimating a distance; training it badly is estimating it badly.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="body-text" id="game-caption">Measured below.</p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= divergences ======================= -->
+  <section>
+    <h1 class="body-header">Which Wrong Answer</h1>
+    <p class="body-text" id="div-note">Measured below.</p>
+    <br />
+    <p class="body-text">
+      Drag the model's mean and width. The four numbers underneath are four
+      different opinions about how badly it is doing, and each one has its own
+      favourite place to be. The buttons take you to each of their favourites,
+      which is the fastest way to see that they disagree about more than a
+      decimal.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="line-widget">
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">model mean: <span class="value" id="line-mu-value">1.200</span></span>
+      <input type="range" class="atlas-range" id="line-mu" aria-label="the mean of the model gaussian" min="-3" max="3" step="0.025" value="1.2" />
+      <span class="slider-label">model width: <span class="value" id="line-sd-value">0.70</span></span>
+      <input type="range" class="atlas-range" id="line-sd" aria-label="the standard deviation of the model gaussian" min="0.2" max="2.5" step="0.02" value="0.7" />
+    </div>
+    <div class="controls-row" style="justify-content: center" id="line-buttons"></div>
+    <div class="side-by-side">
+      <div id="line-density"></div>
+      <div id="line-curves"></div>
+    </div>
+    <div class="widget-readout" id="line-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="div-result">Measured below.</p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the gradient ======================= -->
+  <section>
+    <h1 class="body-header">The Loss Nobody Trains</h1>
+    <p class="body-text" id="grad-intro">Measured below.</p>
+    <div style="text-align: center; margin: 1.2rem 0">
+      \( \mathcal{L}_{\text{sat}} = \mathbb{E}_z\big[\log\big(1 - D(G(z))\big)\big],
+         \qquad \mathcal{L}_{\text{ns}} = -\,\mathbb{E}_z\big[\log D(G(z))\big] \)
+    </div>
+    <p class="body-text">
+      They have the same fixed point and completely different slopes on the way
+      to it. Below, the size of the gradient each one hands the generator, with
+      the discriminator held at \(D^{*}\), as the model is slid away from the
+      data. Both axes are measured: the horizontal one is where the model sits,
+      and the vertical one is on a log scale because otherwise one of the two
+      curves is a flat line along the bottom.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="grad-widget">
+    <div id="grad-chart"></div>
+    <div class="widget-readout" id="grad-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="grad-result">Measured below.</p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= disjoint supports ======================= -->
+  <section>
+    <h1 class="body-header">When Nothing Overlaps</h1>
+    <p class="body-text" id="disjoint-intro">Measured below.</p>
+    <br />
+    <p class="body-text">
+      Two segments of unit length, one at \(x = 0\) and one at \(x = \theta\).
+      They are as simple as two distributions get, and they share not a single
+      point. Move them apart and read what each answer says about the distance
+      between them, including the two answers that come from networks that were
+      actually trained on samples.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="disjoint-widget">
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">distance: <span class="value" id="disjoint-theta-value">1.00</span></span>
+      <input type="range" class="atlas-range" id="disjoint-theta" aria-label="how far apart the two supports are" min="0" max="9" step="1" value="7" />
+    </div>
+    <div class="side-by-side narrow-left">
+      <div id="disjoint-pic"></div>
+      <div id="disjoint-chart"></div>
+    </div>
+    <div class="widget-readout" id="disjoint-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="disjoint-result">Measured below.</p>
+    <br />
+    <p class="body-text">
+      Which is the argument for replacing the classifier with a critic: drop the
+      sigmoid, ask for a function that is 1-Lipschitz instead of one that is
+      bounded, and the quantity it estimates becomes the earth mover's distance
+      rather than a divergence that saturates.
+    </p>
+    <div style="text-align: center; margin: 1.2rem 0">
+      \( W(p_{\text{data}}, p_g) = \sup_{\|f\|_L \le 1} \;
+         \mathbb{E}_{x \sim p_{\text{data}}}[f(x)] - \mathbb{E}_{x \sim p_g}[f(x)] \)
+    </div>
+    <p class="body-text">
+      The two ways to enforce that constraint are the two WGAN papers: clip
+      every weight into a small box, or penalise the critic when the norm of its
+      input gradient leaves 1. Both appear in the runs below, and neither of
+      them enforces anything exactly.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the ring ======================= -->
+  <section>
+    <h1 class="body-header">Eight Modes</h1>
+    <p class="body-text" id="ring-intro">Measured below.</p>
+    <br />
+    <p class="body-text">
+      Before any of it counts, the counter has to be shown to work. It reports
+      how many of the eight modes a cloud of samples covers, and it is calibrated
+      in both directions: real samples have to score eight, one mode has to score
+      one, and points scattered over the square have to score nothing.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="ring-widget">
+    <div id="ring-grid"></div>
+    <div class="widget-readout" id="ring-calib"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="ring-result">Measured below.</p>
+    <br />
+    <p class="body-text" id="falsify-note">Measured below.</p>
+  </section>
+
+  <div class="interactive-full" id="falsify-widget">
+    <div class="widget-readout" id="falsify-table"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= live ======================= -->
+  <section>
+    <h1 class="body-header">The Game, In This Tab</h1>
+    <p class="body-text" id="live-intro">Measured below.</p>
+    <br />
+    <p class="body-text">
+      The background is what the discriminator currently believes: green where it
+      thinks the data is real, blue where it thinks it is generated, white where
+      it cannot tell. The generator can only ever learn by climbing that surface,
+      so wherever the surface is white it is being told nothing at all. It opens
+      already trained for a couple of hundred steps, which is where the generator
+      recorded its reference run; train it further a few steps at a time and
+      watch the boundary get pushed around.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="live-widget">
+    <div class="controls-row" style="justify-content: center" id="live-arm"></div>
+    <div class="controls-row" style="justify-content: center" id="live-buttons"></div>
+    <div class="side-by-side">
+      <div id="live-canvas"></div>
+      <div id="live-loss"></div>
+    </div>
+    <div class="widget-readout" id="live-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="live-result">Measured below.</p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= images ======================= -->
+  <section>
+    <h1 class="body-header">Now With Pixels</h1>
+    <p class="body-text" id="arch-note">Measured below.</p>
+    <br />
+    <p class="body-text">
+      Which raises the question every generative model paper has to answer and
+      most of them answer by showing you a nice picture: how do you know it got
+      better. So the yardstick comes first, and it gets calibrated before it is
+      allowed to judge anything.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="metric-widget">
+    <div id="metric-chart"></div>
+    <div class="widget-readout" id="metric-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="metric-intro">Measured below.</p>
+  </section>
+
+  <div class="interactive-full" id="sample-widget">
+    <div class="controls-row" style="justify-content: center" id="sample-buttons"></div>
+    <div class="side-by-side">
+      <div class="sheet-wrap" id="sample-sheet"></div>
+      <div id="sample-hist"></div>
+    </div>
+    <div class="widget-readout" id="sample-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="samples-result">Measured below.</p>
+    <br />
+    <p class="body-text" id="sat-note">Measured below.</p>
+  </section>
+
+  <div class="interactive-full" id="curve-widget">
+    <div id="curve-chart"></div>
+    <div class="widget-readout" id="curve-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="curve-note">Measured below.</p>
+    <br />
+    <p class="body-text" id="track-intro">Measured below.</p>
+  </section>
+
+  <div class="interactive-full" id="track-widget">
+    <div class="controls-row" style="justify-content: center" id="track-buttons"></div>
+    <div id="track-chart"></div>
+    <div class="widget-readout" id="track-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="track-result">Measured below.</p>
+    <br />
+    <p class="body-text" id="nn-note">Measured below.</p>
+    <br />
+    <p class="body-text">
+      And the last thing a sheet of samples cannot tell you: whether the map
+      from noise to picture is a map at all, or a lookup table with a random
+      index. Walk in a straight line between two points in the latent space and
+      look at what happens in between.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="interp-widget">
+    <div class="sheet-wrap" id="interp-sheet"></div>
+    <div class="widget-readout" id="interp-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="interp-note">Measured below.</p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= verdict ======================= -->
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text">
+      What each idea on this page is worth, at this scale, on these datasets.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Idea</th>
+          <th>What it buys</th>
+          <th>Measured here</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">A learned loss</span></td>
+          <td>An objective for "make something new" where no hand written one exists</td>
+          <td id="verdict-game">Measured above.</td>
+          <td>The loss is only as good as the opponent, and the opponent is itself a fit. A number going down here does not mean what it means anywhere else on this site.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">The non-saturating loss</span></td>
+          <td>A usable gradient in exactly the regime where the original one has none</td>
+          <td id="verdict-grad">Measured above.</td>
+          <td>It is not the divergence the theory analyses, so the neat statement about Jensen-Shannon describes a loss nobody trains with.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">A Wasserstein critic</span></td>
+          <td>A distance that still has a slope when the two distributions do not overlap</td>
+          <td id="verdict-wgan">Measured above.</td>
+          <td>Neither clipping nor the gradient penalty actually delivers a 1-Lipschitz function, and the critic needs several updates per generator step, so an equal number of generator updates is not an equal amount of arithmetic.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Convolutions in both players</span></td>
+          <td>Weight sharing on a signal that is translation structured, in the generator as well as the classifier</td>
+          <td id="verdict-dcgan">Measured above.</td>
+          <td>The DCGAN recipe is a list of things that stopped a 2015 training run diverging, not a theorem. Several of its rules are worth less than the seed.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">A calibrated yardstick</span></td>
+          <td>Being able to say a generator improved without pointing at a picture</td>
+          <td id="verdict-metric">Measured above.</td>
+          <td>Every automatic score is a distance in some network's feature space, and it inherits that network's opinions. Calibrate it against a floor and a ceiling or it is decoration.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="limits-note">Measured below.</p>
+    <br />
+    <p class="body-text" id="closing-note">Measured below.</p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! Every number here comes from
+      <code>src/utils/generate_gan_data.py</code>, which integrates the closed
+      form parts on a grid, trains the rest, and hands the browser the same
+      constants it measured so that the divergences on this page are recomputed
+      in your tab rather than copied out of a table.
+    </p>
+  </section>
+
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text" id="resources-note">Measured below.</p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1406.2661">[1] Generative Adversarial Networks</a><br />
+      (Goodfellow, I. et al., NeurIPS, 2014; the minimax game, the optimal discriminator, and the non-saturating trick in a single paragraph of section 3)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1511.06434">[2] Unsupervised Representation Learning with Deep Convolutional Generative Adversarial Networks</a><br />
+      (Radford, A., Metz, L. &amp; Chintala, S., ICLR, 2016; the architecture rules, the latent walks, and the vector arithmetic)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1701.04862">[3] Towards Principled Methods for Training Generative Adversarial Networks</a><br />
+      (Arjovsky, M. &amp; Bottou, L., ICLR, 2017; the parallel lines example this page measures, and why perfect discriminators are the problem rather than the goal)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1701.07875">[4] Wasserstein GAN</a><br />
+      (Arjovsky, M., Chintala, S. &amp; Bottou, L., ICML, 2017; the critic, and the claim that its estimate tracks sample quality)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1704.00028">[5] Improved Training of Wasserstein GANs</a><br />
+      (Gulrajani, I. et al., NeurIPS, 2017; the gradient penalty, and what weight clipping does to a critic)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1706.08500">[6] GANs Trained by a Two Time-Scale Update Rule Converge to a Local Nash Equilibrium</a><br />
+      (Heusel, M. et al., NeurIPS, 2017; the Frechet distance between feature gaussians that this page borrows the shape of)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1904.06991">[7] Improved Precision and Recall Metric for Assessing Generative Models</a><br />
+      (Kynkaanniemi, T. et al., NeurIPS, 2019; splitting one quality number into "looks real" and "covers the data")
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1711.10337">[8] Are GANs Created Equal? A Large-Scale Study</a><br />
+      (Lucic, M. et al., NeurIPS, 2018; the finding this page reproduces in miniature, that the spread over seeds swallows the spread over objectives)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>
