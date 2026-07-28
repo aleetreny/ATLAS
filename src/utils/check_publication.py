@@ -22,8 +22,17 @@ Comprueba, sobre el árbol de trabajo:
   6. no hay rayas largas ni medias en nada de lo que se lee
 
 Uso:
-    python src/utils/check_publication.py          # comprueba, 0 si todo bien
-    python src/utils/check_publication.py --next   # qué número y qué acentos quedan libres
+    python src/utils/check_publication.py            # comprueba, 0 si todo bien
+    python src/utils/check_publication.py --next     # qué número y qué acentos quedan libres
+    python src/utils/check_publication.py --reparte 3  # reparto para N sesiones a la vez
+
+`--next` sirve para una sesión sola. Con varias a la vez **no vale**, y ese es el
+agujero que dejó el choque original: tres sesiones que arrancan el mismo día leen
+las tres el mismo "siguiente libre" y vuelven a chocar, solo que ahora el guardia
+las caza en el push, con el artículo ya escrito. Para eso está `--reparte N`: lo
+corre **quien lanza las sesiones**, una sola vez, y le da a cada una su número y
+su acento ya asignados para pegarlos en el prompt. Un reparto hecho antes de
+empezar no tiene carrera que perder.
 
 Sale con código 1 si algo falla, para que sirva en CI y en un hook.
 """
@@ -41,6 +50,18 @@ RESERVA = [
     "#1d4ed8", "#3f6212", "#7c2d12", "#134e4a", "#581c87", "#831843",
     "#164e63", "#713f12", "#3730a3", "#065f46", "#701a75", "#7f1d1d",
 ]
+
+# El secundario de los artículos publicados es el primario a un 80% por canal:
+# medido contra cuatro parejas ya en el sitio, el peor canal se desvía 6 de 255
+# (#7e22ce -> #6b1ba9 publicado, #651ba5 calculado) y tres de las cuatro caen
+# dentro de 3. Se calcula en vez de escribirse a ojo para que un acento nuevo
+# traiga su pareja sin que nadie tenga que pensarla.
+SEC_FACTOR = 0.80
+
+
+def secundario(primario):
+    r, g, b = (int(primario[i:i + 2], 16) for i in (1, 3, 5))
+    return "#%02x%02x%02x" % tuple(round(c * SEC_FACTOR) for c in (r, g, b))
 
 
 def articulos_en_disco():
@@ -187,12 +208,36 @@ def main():
         fallos.append(f"rayas largas o medias en {len(malos)} sitios: "
                       f"{', '.join(malos[:6])}{' ...' if len(malos) > 6 else ''}")
 
+    libres = [c for c in RESERVA if c not in vistos]
+    siguiente = max(nums) + 1 if nums else 1
+
     if "--next" in sys.argv:
-        libres = [c for c in RESERVA if c not in vistos]
         print(f"artículos publicados: {len(carpetas)}")
-        print(f"siguiente número libre: {max(nums) + 1 if nums else 1}")
+        print(f"siguiente número libre: {siguiente}")
         print(f"acentos libres de la reserva: {', '.join(libres) if libres else '(ninguno, elige uno nuevo)'}")
         print(f"acentos ya en uso: {len(vistos)}")
+
+    if "--reparte" in sys.argv:
+        try:
+            n = int(sys.argv[sys.argv.index("--reparte") + 1])
+        except (IndexError, ValueError):
+            print("uso: --reparte N, con N el número de sesiones que vas a lanzar")
+            return 1
+        if n > len(libres):
+            print(f"solo quedan {len(libres)} acentos en la reserva y pides {n}: "
+                  f"añade colores a RESERVA antes de repartir")
+            return 1
+        print(f"\nreparto para {n} sesiones simultáneas, sobre {len(carpetas)} "
+              f"artículos publicados.")
+        print("pega en el prompt de cada sesión la línea que le toca, y ninguna "
+              "tendrá que adivinar:\n")
+        for i in range(n):
+            col = libres[i]
+            print(f"  sesión {i + 1}: tu artículo es el número {siguiente + i}, "
+                  f"su acento es --primary: {col} y --secondary: {secundario(col)}. "
+                  f"No los elijas tú ni los deduzcas del repositorio, ya están "
+                  f"asignados y hay otras sesiones escribiendo a la vez.")
+        print()
 
     for a in avisos:
         print(f"aviso: {a}")

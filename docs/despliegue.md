@@ -26,6 +26,19 @@ número o un chip apuntando a una carpeta que no existe. **El trabajo no se
 pierde nunca** (las ramas siguen en origin y un conflicto no borra nada), pero
 la portada puede quedar mintiendo, y eso sí se publica.
 
+**Quien lanza las sesiones reparte antes de empezar**, con una sola orden, y
+pega en el prompt de cada una la línea que le toca:
+
+```
+python src/utils/check_publication.py --reparte 3
+```
+
+Eso da a cada sesión su número y su acento ya asignados. Es lo único que cierra
+la carrera de verdad: `--next` no vale con varias a la vez, porque tres sesiones
+que arrancan el mismo día leen las tres el mismo "siguiente libre" y vuelven a
+chocar, solo que ahora el guardia las caza en el push, con el artículo escrito.
+Un reparto hecho antes de empezar no tiene carrera que perder.
+
 El procedimiento, para cada rama que entre después de la primera:
 
 1. `git fetch origin main && git merge origin/main` **sobre la rama**, no al

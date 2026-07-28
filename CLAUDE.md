@@ -48,18 +48,44 @@ publicadas, dilo antes de hacerlo, pero hazlo.
 Lo mismo con `docs/estado.md` cuando publiques un artículo: tabla, color de acento
 y lo que quede pendiente.
 
-## Antes de empezar un artículo, y antes de pushearlo
+## El número, el acento, y el merge a main
+
+**Si el encargo te da un número de artículo y un acento, son esos.** No los
+elijas ni los deduzcas del repositorio: quiere decir que hay otras sesiones
+escribiendo a la vez y que el reparto ya está hecho. Si el encargo no te da
+ninguno, eres la única sesión y lo preguntas tú:
 
 ```
 python src/utils/check_publication.py --next   # qué número y qué acento quedan libres
 python src/utils/check_publication.py          # ¿es coherente lo que voy a publicar?
 ```
 
-Con varias sesiones abiertas sobre este repo, cada una en su rama, dos sesiones
-pueden elegir el mismo número de artículo y el mismo color sin verse (ya pasó:
-tres ramas reclamando el 27 el mismo día). El guardia no lo evita, pero lo hace
-imposible de publicar sin enterarse: corre en CI en cada push. Cómo se resuelve
-un choque está en [docs/despliegue.md](docs/despliegue.md).
+Con varias sesiones abiertas sobre este repo, cada una en su rama, dos pueden
+elegir el mismo número y el mismo color sin verse (ya pasó: tres ramas
+reclamando el 27 el mismo día, y dos el acento `#7e22ce`). Quien lanza las
+sesiones reparte con `--reparte N` antes de empezar; el guardia es la red de
+abajo, no el reparto.
+
+**Autorización permanente del dueño del repo para cerrar el trabajo (no hace
+falta preguntar cada vez):** cuando el artículo esté verificado, **mergea tu
+propia rama a `main` y pushea**, que es lo que lo publica, porque Pages sirve
+`main` desde `/(root)`. El procedimiento exacto, con lo que hay que hacer cuando
+main se ha movido mientras escribías, está en
+[docs/despliegue.md](docs/despliegue.md). En corto:
+
+```
+git fetch origin main && git merge origin/main   # sobre TU rama, primero
+python src/utils/test_check_publication.py       # el guardia sabe disparar
+python src/utils/check_publication.py            # y calla sobre tu árbol
+git checkout main && git merge --ff-only <tu-rama> && git push origin main
+```
+
+Las dos comprobaciones van **antes** del merge y las dos tienen que salir en
+verde: son la única condición. Si alguna falla, se arregla, no se mergea. Y si
+el merge de `origin/main` sobre tu rama da conflicto en `docs/estado.md`,
+`index.html` o `docs/receta-de-articulo.md`, es lo normal con varias sesiones:
+se resuelve quedándote con lo de main y volviendo a aplicar lo tuyo encima,
+nunca al revés.
 
 ## Documentación
 
