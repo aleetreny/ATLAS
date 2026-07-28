@@ -50,9 +50,20 @@ PORTADA = ROOT / "index.html"
 
 # Los acentos del sitio son oscuros a propósito: el texto va en blanco encima.
 # Esta reserva es de dónde tirar cuando toque uno nuevo, no una regla.
+#
+# La segunda tanda no se eligió a ojo. Con 43 colores ya comprometidos, elegir
+# "uno que se vea distinto" deja de ser fiable: se barrió el espacio HSV a la
+# banda de luminosidad donde vive el resto (L* de 18 a 48) y se fueron cogiendo,
+# uno a uno, los que más lejos quedaban de todo lo aceptado hasta entonces, en
+# distancia CIELAB. El peor de los catorce está a dE 15,5 del vecino más
+# cercano, que sigue siendo una diferencia que cualquiera ve. Cuando estos se
+# acaben, se repite ese barrido en vez de improvisar.
 RESERVA = [
     "#1d4ed8", "#3f6212", "#7c2d12", "#134e4a", "#581c87", "#831843",
     "#164e63", "#713f12", "#3730a3", "#065f46", "#701a75", "#7f1d1d",
+    "#3e295c", "#705e32", "#5c2938", "#853c6f", "#706b11", "#143b85",
+    "#5c0e40", "#643c85", "#5c3e29", "#5c0e1d", "#0e5c29", "#3c4e85",
+    "#853c43", "#851463",
 ]
 
 # El secundario de los artículos publicados es el primario a un 80% por canal:
