@@ -46,8 +46,13 @@ PORTADA = """<!DOCTYPE html>
 
 ARTICULO = """<!DOCTYPE html>
 <html><head><style>:root { --primary: %s; --secondary: #000000; }</style></head>
-<body></body></html>
+<body>%s</body></html>
 """
+
+# La prosa de "uno" manda al lector a "dos", que es la tarjeta siguiente en la
+# portada de mentira. Sin esa frase el sitio de control no pasa limpio, que es
+# justo lo que la regla de la cadena de lectura exige.
+CIERRE = '<p>Next: <a href="../dos/">Dos</a>.</p>'
 
 
 def sitio(raiz):
@@ -56,9 +61,9 @@ def sitio(raiz):
     (raiz / "docs" / "estado.md").write_text(ESTADO, encoding="utf-8")
     (raiz / "index.html").write_text(PORTADA, encoding="utf-8")
     (raiz / "assets" / "thumbnails").mkdir(parents=True)
-    for nombre, color in [("uno", "#111111"), ("dos", "#222222")]:
+    for nombre, color, cierre in [("uno", "#111111", CIERRE), ("dos", "#222222", "")]:
         (raiz / nombre / "js").mkdir(parents=True)
-        (raiz / nombre / "index.html").write_text(ARTICULO % color, encoding="utf-8")
+        (raiz / nombre / "index.html").write_text(ARTICULO % (color, cierre), encoding="utf-8")
         (raiz / nombre / "js" / "main.js").write_text("// nada\n", encoding="utf-8")
         (raiz / "assets" / "thumbnails" / f"{nombre}.svg").write_text("<svg/>", encoding="utf-8")
     dest = raiz / "src" / "utils"
@@ -80,7 +85,7 @@ def rompe_numero(raiz):
 
 def rompe_acento(raiz):
     p = raiz / "dos" / "index.html"
-    p.write_text(ARTICULO % "#111111", encoding="utf-8")
+    p.write_text(ARTICULO % ("#111111", CIERRE), encoding="utf-8")
     return "el acento #111111 lo usan dos"
 
 
@@ -99,7 +104,7 @@ def rompe_carpeta_fantasma(raiz):
 
 def rompe_articulo_sin_fila(raiz):
     (raiz / "tres" / "js").mkdir(parents=True)
-    (raiz / "tres" / "index.html").write_text(ARTICULO % "#333333", encoding="utf-8")
+    (raiz / "tres" / "index.html").write_text(ARTICULO % ("#333333", ""), encoding="utf-8")
     (raiz / "tres" / "js" / "main.js").write_text("// nada\n", encoding="utf-8")
     return "no tiene fila en la tabla"
 
@@ -132,6 +137,22 @@ def rompe_chip(raiz):
     return "apunta a `cuatro/`, que no existe"
 
 
+def rompe_cadena(raiz):
+    p = raiz / "uno" / "index.html"
+    p.write_text(p.read_text("utf-8").replace('href="../dos/"', 'href="../"'), encoding="utf-8")
+    return "la cadena de lectura se corta"
+
+
+def rompe_orden_chips(raiz):
+    p = raiz / "index.html"
+    t = p.read_text("utf-8")
+    uno = '<span class="chip live"><a href="./uno/">Uno</a></span>'
+    dos = '<span class="chip live"><a href="./dos/">Dos</a></span>'
+    assert uno in t and dos in t, "los dos chips tienen que existir antes de cruzarlos"
+    p.write_text(t.replace(uno, "@@").replace(dos, uno).replace("@@", dos), encoding="utf-8")
+    return "no siguen el orden de las tarjetas"
+
+
 def rompe_raya(raiz):
     p = raiz / "uno" / "index.html"
     p.write_text(p.read_text("utf-8").replace("<body>", "<body>texto con " + chr(0x2014)),
@@ -148,6 +169,8 @@ CASOS = [
     ("una miniatura que falta", rompe_miniatura),
     ("un artículo sin tarjeta", rompe_tarjeta),
     ("un chip vivo a la nada", rompe_chip),
+    ("un cierre que no lleva al siguiente", rompe_cadena),
+    ("los chips de una rama barajados", rompe_orden_chips),
     ("una raya larga", rompe_raya),
 ]
 
