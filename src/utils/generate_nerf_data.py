@@ -1039,16 +1039,21 @@ def main():
             m, got = nerf, nerf_got          # the same model, not another copy of it
         else:
             m, _, got = get_nerf(f"lx{L}", train_c, tr_img, **kw)
-        ladder.append(dict(L=L, params=m.n_params(), model=m,
-                           inside=mean_psnr(lambda c: render_model(m, c, EVAL_STEPS), in_c, in_img),
-                           train=mean_psnr(lambda c: render_model(m, c, EVAL_STEPS), train_c, tr_img),
-                           seconds=round(got["seconds"], 1)))
+        # the scores are cached against the model's own key, so re-running the
+        # generator to add a stage costs the new stage and nothing else
+        sc = cached("ladscore-v1-" + nerf_key(f"lx{L}", dict(kw, iters=ITERS, steps=TRAIN_STEPS, seed=SEED))
+                    + f"-e{EVAL_STEPS}",
+                    lambda mm=m: dict(inside=mean_psnr(lambda c: render_model(mm, c, EVAL_STEPS), in_c, in_img),
+                                      train=mean_psnr(lambda c: render_model(mm, c, EVAL_STEPS), train_c, tr_img)))
+        ladder.append(dict(L=L, params=m.n_params(), model=m, seconds=round(got["seconds"], 1), **sc))
         print(f"    Lx={L}: {ladder[-1]['inside']:.2f} dB inside, {m.n_params()} params", flush=True)
     W0, p0 = match_width(nerf.n_params(), 0, main_kw["Ld"], main_kw["D"], True)
     kw = dict(main_kw, Lx=0, W=W0)
     mw, _, gotw = get_nerf(f"lx0w{W0}", train_c, tr_img, **kw)
     wide = dict(L=0, W=W0, params=mw.n_params(),
-                inside=mean_psnr(lambda c: render_model(mw, c, EVAL_STEPS), in_c, in_img))
+                inside=cached("widescore-v1-" + nerf_key(f"lx0w{W0}", dict(kw, iters=ITERS, steps=TRAIN_STEPS, seed=SEED))
+                              + f"-e{EVAL_STEPS}",
+                              lambda: mean_psnr(lambda c: render_model(mw, c, EVAL_STEPS), in_c, in_img)))
     print(f"    Lx=0 widened to W={W0} ({mw.n_params()} params): {wide['inside']:.2f} dB", flush=True)
     out["nerf"]["encoding"] = dict(
         ladder=[{k: (rnd(v, 3) if isinstance(v, float) else v)
@@ -1058,7 +1063,10 @@ def main():
 
     # view dependence, measured where it lives rather than over the whole frame
     mnv, _, _ = get_nerf("noview", train_c, tr_img, **dict(main_kw, viewdep=False))
-    out["viewdep"] = _viewdep(nerf, mnv, in_c, in_img)
+    out["viewdep"] = cached(
+        "viewdep-v1-" + nerf_key("noview", dict(main_kw, viewdep=False, iters=ITERS,
+                                                steps=TRAIN_STEPS, seed=SEED)) + f"-e{EVAL_STEPS}",
+        lambda: _viewdep(nerf, mnv, in_c, in_img))
 
     # photographs
     vcurve = []
@@ -1066,15 +1074,20 @@ def main():
         sub = [train_c[i] for i in VIEW_SUBSETS[k]]
         subimg = [tr_img[i] for i in VIEW_SUBSETS[k]]
         m = nerf if k == 24 else get_nerf(f"views{k}", sub, subimg, **main_kw)[0]
-        vcurve.append(dict(
-            views=k,
-            inside=rnd(mean_psnr(lambda c: render_model(m, c, EVAL_STEPS), in_c, in_img), 3),
-            outside=rnd(mean_psnr(lambda c: render_model(m, c, EVAL_STEPS), out_c, out_img), 3),
-            train=rnd(mean_psnr(lambda c: render_model(m, c, EVAL_STEPS), sub, subimg), 3),
-            per_inside=[rnd(psnr(render_model(m, c, EVAL_STEPS), t), 3)
-                        for c, t in zip(in_c, in_img)],
-            per_outside=[rnd(psnr(render_model(m, c, EVAL_STEPS), t), 3)
-                         for c, t in zip(out_c, out_img)]))
+
+        def score(mm=m, sub=sub, subimg=subimg, k=k):
+            ev = lambda c: render_model(mm, c, EVAL_STEPS)
+            return dict(
+                views=k,
+                inside=rnd(mean_psnr(ev, in_c, in_img), 3),
+                outside=rnd(mean_psnr(ev, out_c, out_img), 3),
+                train=rnd(mean_psnr(ev, sub, subimg), 3),
+                per_inside=[rnd(psnr(ev(c), t), 3) for c, t in zip(in_c, in_img)],
+                per_outside=[rnd(psnr(ev(c), t), 3) for c, t in zip(out_c, out_img)])
+
+        vcurve.append(cached(
+            "viewscore-v1-" + nerf_key(f"views{k}", dict(main_kw, iters=ITERS, steps=TRAIN_STEPS, seed=SEED))
+            + f"-e{EVAL_STEPS}", score))
         print(f"    {k} views: inside {vcurve[-1]['inside']:.2f}, outside {vcurve[-1]['outside']:.2f}", flush=True)
     out["views"] = vcurve
 
@@ -1082,21 +1095,30 @@ def main():
     seeds = []
     for s in ([SEED] if SMALL else [SEED, 7, 41]):
         m = nerf if s == SEED else get_nerf(f"seed{s}", train_c, tr_img, **dict(main_kw, seed=s))[0]
-        seeds.append(mean_psnr(lambda c: render_model(m, c, EVAL_STEPS), in_c, in_img))
+        seeds.append(cached(
+            "seedscore-v1-" + nerf_key(f"seed{s}", dict(main_kw, seed=s, iters=ITERS, steps=TRAIN_STEPS))
+            + f"-e{EVAL_STEPS}",
+            lambda mm=m: mean_psnr(lambda c: render_model(mm, c, EVAL_STEPS), in_c, in_img)))
     out["nerf"]["seed_psnr"] = [rnd(v, 3) for v in seeds]
     out["nerf"]["seed_spread"] = rnd(max(seeds) - min(seeds), 3)
 
     # ---- 3. splats -----------------------------------------------------------
     print("3. gaussian splatting", flush=True)
     splat, splat_raw, sp_got = get_splats("main", train_c, tr_img)
-    out["splat"] = _splat_stats(splat, splat_raw, train_c, tr_img, in_c, in_img, out_c, out_img)
+    sp_key = f"splat-v1-main-r{RES}-n{N_BLOBS}-i{SP_ITERS}-s{SEED}"
+    out["splat"] = cached("spstats-v1-" + sp_key,
+                          lambda: _splat_stats(splat, splat_raw, train_c, tr_img,
+                                               in_c, in_img, out_c, out_img))
     out["splat"]["seconds"] = round(sp_got["seconds"], 1)
+
+    def sp_score(m, tag):
+        return cached(f"spscore-v1-{tag}-r{RES}-i{SP_ITERS}",
+                      lambda: mean_psnr(lambda c: render_splat_image(m, c), in_c, in_img))
 
     counts = []
     for n in BLOB_LADDER:
         m = splat if n == N_BLOBS else get_splats(f"n{n}", train_c, tr_img, n=n)[0]
-        counts.append(dict(n=n, dof=m.dof() * n,
-                           inside=mean_psnr(lambda c: render_splat_image(m, c), in_c, in_img)))
+        counts.append(dict(n=n, dof=m.dof() * n, inside=sp_score(m, f"n{n}")))
         print(f"    {n} blobs: {counts[-1]['inside']:.2f} dB", flush=True)
     out["splat"]["counts"] = counts
 
@@ -1107,22 +1129,20 @@ def main():
     norc, _, _ = get_splats("norecycle", train_c, tr_img, recycle=0)
     out["splat"]["ablations"] = [
         dict(key="aniso", n=N_BLOBS, dof=splat.dof() * N_BLOBS,
-             inside=mean_psnr(lambda c: render_splat_image(splat, c), in_c, in_img)),
-        dict(key="iso", n=N_BLOBS, dof=iso.dof() * N_BLOBS,
-             inside=mean_psnr(lambda c: render_splat_image(iso, c), in_c, in_img)),
+             inside=sp_score(splat, f"n{N_BLOBS}")),
+        dict(key="iso", n=N_BLOBS, dof=iso.dof() * N_BLOBS, inside=sp_score(iso, "iso")),
         dict(key="iso_matched", n=n_match, dof=isom.dof() * n_match,
-             inside=mean_psnr(lambda c: render_splat_image(isom, c), in_c, in_img)),
-        dict(key="no_viewdep", n=N_BLOBS, dof=nov.dof() * N_BLOBS,
-             inside=mean_psnr(lambda c: render_splat_image(nov, c), in_c, in_img)),
+             inside=sp_score(isom, f"isomatch{n_match}")),
+        dict(key="no_viewdep", n=N_BLOBS, dof=nov.dof() * N_BLOBS, inside=sp_score(nov, "noview")),
         dict(key="no_recycle", n=N_BLOBS, dof=splat.dof() * N_BLOBS,
-             inside=mean_psnr(lambda c: render_splat_image(norc, c), in_c, in_img)),
+             inside=sp_score(norc, "norecycle")),
     ]
     for a in out["splat"]["ablations"]:
         print(f"    {a['key']}: {a['inside']:.2f} dB ({a['dof']} numbers)", flush=True)
     sp_seeds = []
     for s in ([SEED] if SMALL else [SEED, 7, 41]):
         m = splat if s == SEED else get_splats(f"seed{s}", train_c, tr_img, seed=s)[0]
-        sp_seeds.append(mean_psnr(lambda c: render_splat_image(m, c), in_c, in_img))
+        sp_seeds.append(sp_score(m, f"n{N_BLOBS}" if s == SEED else f"seed{s}"))
     out["splat"]["seed_psnr"] = [rnd(v, 3) for v in sp_seeds]
     out["splat"]["seed_spread"] = rnd(max(sp_seeds) - min(sp_seeds), 3)
 

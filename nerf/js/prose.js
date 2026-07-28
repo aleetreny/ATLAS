@@ -46,12 +46,23 @@ function convergence(curve, iters) {
 }
 
 export function initProse(data) {
+  /* Named up front, and named in the error too. A block missing from the JSON
+     throws somewhere in the middle of composing and leaves every sentence
+     after it saying "Measured below.", which is loud enough to catch but says
+     nothing about what went wrong; this says which block is absent. */
+  const need = ['meta', 'nerf', 'splat', 'cost', 'quadrature', 'viewdep', 'geometry', 'views',
+    'cameras', 'shapes', 'box'];
+  const missing = need.filter((k) => !data[k]);
+  if (missing.length) {
+    throw new Error(`scene.json is missing ${missing.join(', ')}: regenerate before publishing`);
+  }
   const M = data.meta;
   const N = data.nerf;
   const S = data.splat;
   const C = data.cost;
   const Q = data.quadrature;
   const V = data.viewdep;
+  const G = data.geometry;
   const bandLo = Math.min(...M.rings);
   const bandHi = Math.max(...M.rings);
   const outEl = data.cameras.outside.map((c) => c.el);
@@ -345,7 +356,6 @@ export function initProse(data) {
   /* Neither loss ever mentioned geometry, so whether either of them got it is
      a separate question with a separate answer, in scene units rather than in
      decibels, and it is the one the colour frames cannot be asked. */
-  const G = data.geometry;
   set('geometry-note',
     `Neither of these models was ever told where anything is. Both were shown photographs, and a wrong `
     + `shape that happened to produce the right photographs from the ${M.n_train} places somebody stood `
@@ -365,8 +375,19 @@ export function initProse(data) {
         + `better than the colour does.`));
 
   const compact = N.params < S.dof;
+  /* The two do not hold the same number of numbers, so the blob ladder is read
+     at the field's own budget rather than at the count that happened to be
+     chosen: the rows either side of it are the honest bracket. */
+  const below18 = [...S.counts].reverse().find((r) => r.dof <= N.params);
+  const above18 = S.counts.find((r) => r.dof >= N.params);
+  const bracket = (below18 && above18 && below18.n !== above18.n)
+    ? `The two do not store the same amount, so read the blob ladder at the field's own budget: `
+      + `${n0(N.params)} numbers falls between the ${n0(below18.n)} blob row at ${db(below18.inside)} `
+      + `and the ${n0(above18.n)} blob row at ${db(above18.inside)}. `
+    : '';
   set('cost-result',
-    `So: the field is the more compact of the two, ${n0(N.params)} numbers against ${n0(S.dof)}, `
+    bracket
+    + `So: the field is the more compact of the two, ${n0(N.params)} numbers against ${n0(S.dof)}, `
     + `a factor of ${f1(compact ? S.dof / N.params : N.params / S.dof)}, and the blobs are the cheaper `
     + `to draw, by ${f1(C.ratio)} times in arithmetic. Neither of those is an accident of this scene: `
     + `a field pays per pixel because every pixel is an integral and every sample on it is a network `
