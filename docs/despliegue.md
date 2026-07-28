@@ -9,4 +9,4 @@ En el repo ATLAS: tras commitear, **hacer push a origin/main siempre, sin pedir 
 
 **Why:** El usuario lo pidió explícitamente ("haz el push siempre, sin preguntarme y revisando la web real"). Pages tarda ~1-2 min en desplegar tras el push.
 
-**How to apply:** commit → push → esperar/poll el deploy → navegar la URL pública y comprobar consola/DOM. Además: firmas de artículos = "aleetreny" sin fecha; evitar logos/emblemas decorativos (el compass rose le pareció "muy IA" y se eliminó — favicon es una "A" tipográfica simple). Relacionado: [el estado del proyecto](estado.md).
+**How to apply:** commit → push → esperar/poll el deploy → navegar la URL pública y comprobar consola/DOM. Además: firmas de artículos = "aleetreny" sin fecha; evitar logos/emblemas decorativos (el compass rose le pareció "muy IA" y se eliminó; el favicon es una "A" tipográfica simple). Relacionado: [el estado del proyecto](estado.md).
