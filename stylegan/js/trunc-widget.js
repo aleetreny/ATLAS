@@ -67,14 +67,20 @@ export function initTruncWidget(data, gen) {
     marker.attr('cx', x(r.psi)).attr('cy', yF(r.fd));
     document.querySelector('#trunc-psi-value').textContent = r.psi.toFixed(2);
     const full = rows[rows.findIndex((q) => q.psi === 1.0)];
+    /* At full spread every comparison would be against itself, and "439.17
+       against 439.17" reads as a broken readout rather than as the reference
+       it is, so that position says what it is instead of comparing. */
+    const here = r === full;
     document.querySelector('#trunc-readout').innerHTML =
       `<p>At <span class="bold">${r.psi.toFixed(2)}</span> of the spread, the distance from the `
-      + `data is <span class="bold">${r.fd.toFixed(2)}</span> against ${full.fd.toFixed(2)} at `
-      + `full spread, the sizes produced have a standard deviation of `
-      + `${r.size_sd.toFixed(2)} against ${full.size_sd.toFixed(2)}, and `
-      + `${(r.hole * 100).toFixed(2)}% of samples land in the forbidden rectangle against `
-      + `${(full.hole * 100).toFixed(2)}%. ${r.shapes} of the ${M.shapes.length} shapes still `
-      + `appear.</p>`
+      + `data is <span class="bold">${r.fd.toFixed(2)}</span>`
+      + (here ? ', which is the untruncated model and the reference every other setting on this '
+        + 'slider is read against' : ` against ${full.fd.toFixed(2)} at full spread`)
+      + `, the sizes produced have a standard deviation of ${r.size_sd.toFixed(2)}`
+      + (here ? '' : ` against ${full.size_sd.toFixed(2)}`)
+      + `, and ${(r.hole * 100).toFixed(2)}% of samples land in the forbidden rectangle`
+      + (here ? '' : ` against ${(full.hole * 100).toFixed(2)}%`)
+      + `. ${r.shapes} of the ${M.shapes.length} shapes still appear.</p>`
       + `<p>The eight sprites above are the same eight latents at every setting, so what changes `
       + `along the slider is the setting rather than the sample.</p>`;
   }

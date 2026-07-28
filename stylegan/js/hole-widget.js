@@ -17,6 +17,20 @@ const NAME = {
   styled: 'latent at every layer',
 };
 
+/* The same hue to RGB conversion the sprites were drawn with, at full
+ * saturation, so a dot is the colour of the sprite it stands for. */
+export function hueHex(h, s = 0.85, v = 0.95) {
+  const hh = ((h % 1) + 1) % 1 * 6;
+  const i = Math.floor(hh) % 6;
+  const f = hh - Math.floor(hh);
+  const p = v * (1 - s);
+  const q = v * (1 - f * s);
+  const t = v * (1 - (1 - f) * s);
+  const [r, g, b] = [[v, t, p], [q, v, p], [p, v, t], [p, q, v], [t, p, v], [v, p, q]][i];
+  const hex = (u) => Math.round(u * 255).toString(16).padStart(2, '0');
+  return `#${hex(r)}${hex(g)}${hex(b)}`;
+}
+
 export function initHoleWidget(data, sheets) {
   const M = data.meta;
   const state = { which: 'real' };
@@ -46,14 +60,16 @@ export function initHoleWidget(data, sheets) {
   function render() {
     const rows = data.scatter[state.which] || [];
     const sel = pts.selectAll('circle').data(rows);
+    /* Every dot wears the colour it stands for. The vertical axis IS hue, so
+       painting these grey throws away the one thing that makes the empty
+       rectangle legible at a glance: it is a band of blue that stops. */
     sel.enter().append('circle').merge(sel)
-      .attr('cx', (p) => x(p[0])).attr('cy', (p) => y(p[1])).attr('r', 2)
-      .attr('fill', state.which === 'real' ? 'var(--squidink)' : 'var(--primary)')
-      .attr('fill-opacity', 0.5);
+      .attr('cx', (p) => x(p[0])).attr('cy', (p) => y(p[1])).attr('r', 2.6)
+      .attr('fill', (p) => (Number.isFinite(p[1]) ? hueHex(p[1]) : 'var(--stone)'))
+      .attr('fill-opacity', 0.8);
     sel.exit().remove();
 
     const inHole = rows.filter((p) => p[0] > M.big && p[1] >= M.blue[0] && p[1] < M.blue[1]).length;
-    const share = rows.length ? inHole / rows.length : 0;
     if (state.which === 'real') {
       document.querySelector('#hole-readout').innerHTML =
         `<p>${rows.length} sprites drawn by the generator, measured back off their own pixels. `
@@ -94,14 +110,14 @@ export function initHoleWidget(data, sheets) {
         o.className = keys[i] === k ? 'atlas-btn' : 'atlas-btn ghost';
       });
       render();
-      drawTiles(document.querySelector('#hole-sheet'), sheets[k].tiles.slice(0, 16), M.tile, 16,
-        { zoom: 2, gap: 3 });
+      drawTiles(document.querySelector('#hole-sheet'), sheets[k].tiles.slice(0, 16), M.tile, 8,
+        { zoom: 3, gap: 4, label: `sprites from ${NAME[k]}` });
     });
     row.appendChild(b);
     return b;
   });
-  drawTiles(document.querySelector('#hole-sheet'), sheets.real.tiles.slice(0, 16), M.tile, 16,
-    { zoom: 2, gap: 3 });
+  drawTiles(document.querySelector('#hole-sheet'), sheets.real.tiles.slice(0, 16), M.tile, 8,
+    { zoom: 3, gap: 4, label: `sprites from ${NAME.real}` });
   render();
   return { state, render };
 }

@@ -14,6 +14,7 @@ import { initMetricsWidget } from './metrics-widget.js';
 import { initMixWidget, initMixTable } from './mix-widget.js';
 import { initNoiseWidget } from './noise-widget.js';
 import { initTruncWidget } from './trunc-widget.js';
+import { initGrainWidget } from './grain-widget.js';
 import { StyleGen, measure } from './stylekit.js';
 
 function renderMath() {
@@ -97,6 +98,7 @@ async function boot() {
   safely('the mixing table', () => initMixTable(data));
   safely('the noise inputs', () => initNoiseWidget(data, gen));
   safely('truncation', () => initTruncWidget(data, gen));
+  safely('the grain probe', () => initGrainWidget(data));
   renderMath();
 
   const run = () => check(data, gen);

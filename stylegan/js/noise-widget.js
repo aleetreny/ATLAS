@@ -2,7 +2,7 @@
  *
  * Same style vector, different per-pixel noise: whatever changes is what the
  * network chose to leave to chance, and whatever does not is what the style
- * decides. The right hand panel is the standard deviation over realisations,
+ * decides. The captioned panel is the standard deviation over realisations,
  * amplified so it is visible at all, which is the picture the StyleGAN paper
  * uses to argue that the noise buys stochastic detail rather than content.
  * Both halves are measured here rather than asserted: the factor readout under
@@ -79,6 +79,13 @@ export function initNoiseWidget(data, gen) {
     off.getContext('2d').putImageData(img, 0, 0);
     ctx.imageSmoothingEnabled = false;
     ctx.drawImage(off, 0, 0, M.res * 4, M.res * 4);
+    /* the caption travels with the panel, because at 375px the two halves of
+       this widget stack and "the panel on the right" stops being true */
+    const cap = document.createElement('div');
+    cap.className = 'sheet-label';
+    cap.style.marginTop = '0.35rem';
+    cap.textContent = 'where the draws differed at all';
+    host.appendChild(cap);
 
     const ms = imgs.map((im) => measure(im, M.res));
     const spread = (k) => {
@@ -91,21 +98,29 @@ export function initNoiseWidget(data, gen) {
       return Math.sqrt(vals.reduce((s, v) => s + (v - mu) ** 2, 0) / vals.length);
     };
     const N = data.noise;
-    document.querySelector('#noise-readout').innerHTML =
-      `<p>${n} images from one style vector, `
-      + (state.on ? 'each with its own draw of the noise inputs'
-        : 'with every noise input set to zero, so all six are the same picture')
-      + `. Across these six the position moves by ${spread('cx').toFixed(3)} pixels, the size by `
-      + `${spread('size').toFixed(3)} and the hue by ${spread('hue').toFixed(4)}. Across style `
+    /* Under four decimals a spread prints as 0.0000, which reads as a bug
+       rather than as the answer, so the small values say how small they are. */
+    const tiny = (v, d) => (v < 0.5 * 10 ** -d ? `under ${(10 ** -d).toFixed(d)}` : v.toFixed(d));
+    const across = `Across these ${n} the position moves by ${tiny(spread('cx'), 3)} pixels, the `
+      + `size by ${tiny(spread('size'), 3)} and the hue by ${tiny(spread('hue'), 4)}. Across style `
       + `vectors, the same three move by ${N.across_w.cx.toFixed(2)}, ${N.across_w.size.toFixed(2)} `
-      + `and ${N.across_w.hue.toFixed(3)}. The style decides what the sprite is; on this dataset `
-      + `the noise decides essentially nothing, which is what a network should do when the data `
-      + `it is copying has nothing left to chance.</p>`
-      + `<p>The right hand panel is the per-pixel standard deviation over these realisations, `
-      + `scaled so its largest value is full strength, which is the only reason there is anything `
-      + `to see in it: its peak is <span class="bold">${peak.toFixed(4)}</span> of a unit of `
-      + `brightness, and the sprites in this dataset carry no stochastic detail at all, so the `
-      + `network learned to leave nothing to chance.</p>`;
+      + `and ${N.across_w.hue.toFixed(3)}.`;
+    document.querySelector('#noise-readout').innerHTML =
+      (state.on
+        ? `<p>${n} images from one style vector, each with its own draw of the noise inputs. `
+          + `${across} The style decides what the sprite is; on this dataset the noise decides `
+          + `essentially nothing, which is what a network should do when the data it is copying `
+          + `has nothing left to chance.</p>`
+          + `<p>The captioned panel is the per-pixel standard deviation over these realisations, `
+          + `scaled so its largest value is full strength, which is the only reason there is `
+          + `anything to see in it: its peak is <span class="bold">${peak.toFixed(4)}</span> of a `
+          + `unit of brightness, and the sprites in this dataset carry no stochastic detail at all, `
+          + `so the network learned to leave nothing to chance.</p>`
+        : `<p>${n} images from one style vector with every noise input set to zero. They are the `
+          + `same picture, exactly, and that is arithmetic rather than a result: with the only `
+          + `random input held at zero the generator is a function of the style alone. The captioned `
+          + `panel is the per-pixel standard deviation over them, which is blank for the same `
+          + `reason. Turn the noise back on to see how little changes.</p>`);
   }
 
   const row = document.querySelector('#noise-buttons');

@@ -77,6 +77,86 @@ Y la geometría, que ninguna de las dos pérdidas pidió nunca: el campo pone la
 **Tres implementaciones del mismo cálculo corren en el navegador** (la escena en forma cerrada, el MLP y el rasterizador de blobs) y las tres se comprueban al cargar contra referencias que el generador calculó con los mismos pesos ya cuantizados a float16: el peor píxel discrepa del orden de 1e-6, y las 28 PSNR por cámara se reproducen a 0,036 dB (campo) y 0,006 dB (blobs). El suelo de ruido entre semillas es 0,13 dB para el campo y 0,107 para los blobs, y toda comparación de la página se lee contra él.
 
 
+**Artículo 35** (`translation/`) cierra el módulo 3.1 y es el primero del sitio
+que **muestrea la condicional entera** en vez de razonar sobre ella: 128 renders
+del mismo plano, y el píxel de una ventana sale con dos valores y nada en medio.
+Ahí está el argumento del artículo medido en vez de contado: el error cuadrático
+lo minimiza la media (0,5167), que es un brillo que los datos **no contienen
+nunca**, y el error absoluto la mediana (0,7667), que salta al estado más común.
+No es que L1 "difumine menos", es que la condicional es bimodal y cada pérdida
+elige un sitio distinto de ella. Cifras ancladas. El campo receptivo del
+discriminador se mide con autodiff, no se calcula a mano: 1, 7, 18 y 30 píxeles
+para las cuatro ventanas, **y con una capa de normalización los cuatro pasan a
+32**, o sea la imagen entera, porque normalizar mezcla espacialmente y el
+"PatchGAN" deja de mirar un parche. Ese resultado se publica en la tabla junto al
+otro. Con la ventana de 7: L1 sola queda a 0,04237 del render verdadero con el
+31,5% del detalle de uno real, la adversaria sola a 0,07421 con el 112,7% (se
+pasa), y las dos juntas a 0,04845 con el 58,8%. La ventana de 1 píxel se comporta
+como L1 (0,04246 y 32,5%) y la de 30 como la adversaria (0,05695 y 77,8%). **Dos
+traductores entrenados corren en el navegador** sobre un plano que el lector
+pinta a mano, con las mismas cifras calculadas en vivo. La mitad sin pares: con
+la consistencia cíclica como única atadura, dos semillas de tres conservan el
+tipo de edificio al 100% y la tercera se queda en el 31,2%, o sea que el ciclo
+**no elige la correspondencia correcta**, solo una invertible. Y la prueba de
+esteganografía sale limpia: la traducción se mueve 0,895 y 0,882 veces lo que se
+mueve una imagen real bajo el mismo ruido (1,292 en la semilla que no acertó), y
+redondear la imagen intermedia a 4 bits deja el error de ciclo en 0,02189 contra
+0,02172, así que el round trip no va montado sobre una marca de agua invisible.
+
+**Artículo 34** (`stylegan/`) es el primero del sitio cuyos datos **los dibuja el
+propio fichero que los mide**, y esa es toda la tesis: la estructura de un
+espacio latente no se puede comprobar sobre caras porque nadie sabe cuáles son
+los factores verdaderos de una cara. Aquí hay 24.000 esprites de 32x32 con cinco
+factores escritos (forma, tamaño, dos posiciones y tono), recuperables de la
+imagen por aritmética (posición a 0,08 px, tamaño a 0,28, tono **exacto**) salvo
+la forma, que necesita un lector al 99,31%. Y un agujero deliberado en la
+conjunta: un esprite grande nunca es azul, con las dos marginales planas (43,0% y
+14,5%, o sea 6,3% si fueran independientes). Cifras ancladas. El agujero tiene
+**suelo de medida**, no cero: los propios esprites reales medidos sobre sus
+píxeles caen dentro el 1,03% de las veces (el borde antialiaseado sesga el tamaño
+0,28 px hacia arriba), y todo se lee contra ese 1,03%. Los dos generadores están
+igualados en pesos (76.371 y 74.111, 3,0% de diferencia, mismo discriminador de
+70.169) y el patrón está calibrado por los dos extremos (1,50 real contra real,
+121,58 con desenfoque de 3 px, 972,81 contra ruido). **La claridad del resultado
+depende de dónde se mida**: lo que se compara *dentro* de una red vale, lo que se
+compara *entre* las dos está confundido porque el de estilos dibuja bastante peor
+(434,99 contra 70,86, y sus dos semillas 434,99 y 880,38). Lo que sí sale: la
+longitud de camino perceptual es más corta en \(w\) que en \(z\) **en las dos
+semillas** (1,29 y 1,44 veces), que es la única comparación de la página inmune a
+ese sesgo, y la tercera columna que nadie tiene con datos reales (el mismo camino
+medido en los factores **verdaderos**) está de acuerdo. "Está a la derecha" es 8,9
+puntos más separable linealmente en \(w\) que en \(z\). En mezcla de estilos, el
+bloque de 16x16 mueve el tamaño **al 139%**, o sea que se pasa del valor objetivo
+en vez de alcanzarlo, y el bloque de 32x32 mueve todos los factores menos que
+ningún otro (0,04 a 0,11): la especialización existe y no es exclusiva. Las
+entradas de ruido por píxel **se apagan solas** (escalas aprendidas de 1,9e-3 a
+3,0e-4; la posición se mueve 92,1 veces menos con el ruido que con el estilo, el
+color 2.202,5 veces), que es lo que un modelo debe hacer cuando en los datos no
+queda nada al azar. Y el truncamiento **no reproduce su propio compromiso**: la
+distancia baja de forma monótona hasta psi = 1,15, y lo único que compra es tapar
+el agujero (3,53% a spread completo, 1,73% a la mitad).
+
+La última sección del 34 es la única del sitio donde **el artículo mide una
+decisión de su propio dataset**. Los esprites se dibujan sin grano por píxel, y
+eso no es gusto: tres copias de los mismos 24.000 esprites que solo difieren en
+el grano, entrenadas con la misma arquitectura, la misma semilla y los mismos
+5.000 pasos (el brazo sin grano **es** el generador que mide el resto de la
+página, por la misma clave de caché, no una repetición suya). El mecanismo es un
+atajo y se mide sin entrenar nada: una sola cifra, cuánto le quita a una imagen
+un desenfoque de 3 px, separa un esprite con grano del mismo esprite limpio el
+95,5% de las veces a 0,015 y el 100% a 0,04, así que el discriminador gana sin
+mirar una forma; a 0,50 sin grano, que es el control exacto. Y sigue ahí al
+final: después de 5.000 pasos esa misma cifra distingue el real de lo dibujado el
+93,5% y el 86,3% de las veces. El resultado, en una escala con los dos extremos
+clavados (real contra real 6,44, un rectángulo gris liso 1.600,08): **368,88 sin
+grano contra 847,81 y 575,93**. Y las columnas de conteo separan dos formas
+distintas de fallar que la distancia sola no distingue: el brazo de 0,015 tiene
+menos manchas sueltas (1,32 contra 2,04) y **más** saturación (0,698 contra
+0,661) que el bueno, y dibuja **la misma forma el 98,9% de las veces** (los datos
+reales, 28,0%); el de 0,04 conserva las formas y pierde el color (0,615 contra
+0,717). El brazo bueno tiene su propio defecto, 2,04 manchas por muestra contra
+1,00.
+
 **Artículo 33** (`gans/`) abre el módulo 3 y es el primero del sitio cuya pérdida
 es un jugador. Tres datasets en orden de cuánto esconden: una mezcla de dos
 gaussianas en la recta donde **todo se integra en una rejilla** en vez de

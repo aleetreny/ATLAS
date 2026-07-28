@@ -10,9 +10,9 @@ of the data are known, which they never are on a face dataset. So the data
 here is drawn by this file:
 
     a 32x32 RGB sprite: one of four shapes, at a size, at a position, in a
-    colour, on a background, with a grain of per-pixel noise on top.
+    colour, on a grey background, drawn deterministically from those.
 
-Six factors, all written down, all recoverable from an image by arithmetic
+Five factors, all written down, all recoverable from an image by arithmetic
 rather than opinion (area, centroid and mean hue of the foreground; the shape
 needs a small classifier, whose held-out accuracy is reported before it is
 used). And one deliberate hole in the joint distribution: large sprites are
@@ -38,6 +38,8 @@ Blocks:
 4. Style mixing, layer by layer, scored by which factor actually moved.
 5. The noise inputs: what they change, and what they leave alone.
 6. Truncation: the quality against diversity trade, swept.
+7. The grain: why the sprites carry none, which is the one decision in the
+   dataset that was made by measurement after the first version failed.
 
 Run from anywhere: `python src/utils/generate_stylegan_data.py`. Stages cache
 into ~/.atlas_vision_data/stylegan_cache/.
@@ -91,15 +93,20 @@ POS_LO, POS_HI = 11.0, 21.0
 BIG = 8.0                      # above this counts as large
 BLUE_LO, BLUE_HI = 0.50, 0.75  # the hue band that large sprites never wear
 # No per-pixel grain in the data, and that is a measurement rather than a
-# preference. With a grain of 0.04 the discriminator separates real from
-# generated on texture statistics alone, which costs the generator every
-# gradient it might have received about shape: after 1500 steps it produces
-# smeared multi-coloured mush. The same run with the grain removed produces
-# clean saturated sprites, and even a grain of 0.015 is enough to bring the
-# mush back. So the sprites are deterministic given their factors, which also
-# makes the noise-input study below ask a better question: what do the
-# per-pixel noise inputs learn to do when the data has no stochastic detail in
-# it at all.
+# preference: block 7 below trains this exact architecture on three copies of
+# these sprites that differ in nothing but the grain, and publishes the result.
+# At the budget this file uses, the grainless arm ends 368.88 from the data
+# against 847.81 at a grain of 0.015 and 575.93 at 0.04, on a scale where real
+# against real is 6.44. The mechanism is a shortcut: one number, how much of an
+# image a three pixel blur removes, separates a grainy sprite from the same
+# sprite drawn clean 95.5% of the time at 0.015 and 100% at 0.04, so the
+# discriminator can win without ever looking at a shape. The two grainy arms
+# then fail in different ways, one collapsing onto a single shape and one
+# losing the colour, which is in the article.
+#
+# Deterministic sprites also make the noise-input study below ask a better
+# question: what do the per-pixel noise inputs learn to do when the data has no
+# stochastic detail in it at all.
 GRAIN = 0.0
 
 
@@ -135,7 +142,8 @@ def rgb_to_hue(rgb):
 
 
 def sample_factors(n, rng, hole=True):
-    """Six factors. The hole: a large sprite is never in the blue band, which
+    """Five factors: shape, size, and where it is in each direction, and its
+    hue. The hole: a large sprite is never in the blue band, which
     the rejection loop below enforces by resampling the hue rather than by
     reshaping the marginal, so both marginals stay uniform and only the JOINT
     has the gap in it."""
@@ -716,7 +724,22 @@ def hole_leak(imgs, reader):
 def style_mixing(G, reader, n=256, seed=6):
     """Which factor each layer's style controls, attributed rather than
     asserted: swap ONE layer's style from another sample and measure how far
-    each factor travelled towards that other sample."""
+    each factor travelled towards that other sample.
+
+    Two decisions that a first version got wrong and the numbers caught.
+
+    The travel is NOT clipped. A clip at 1.5 turned every overshoot into the
+    same 1.5 and then the spread across blocks, which is what the page reads
+    as "localisation", was reading the ceiling rather than the model. An
+    overshoot is a real and interesting outcome: the block that owns a factor
+    can push it past the target, which is exactly what "owns" fails to say.
+
+    A pair whose two samples already agree on a factor cannot answer "how far
+    did that factor travel", and dividing by their near-zero difference turns
+    measurement noise into an enormous ratio. So each factor is scored only on
+    the pairs that differ by more than a visible amount, one pixel of geometry
+    or a tenth of the hue circle, and the share of pairs that survives is
+    exported with the row."""
     import torch
 
     torch.manual_seed(seed)
@@ -729,8 +752,9 @@ def style_mixing(G, reader, n=256, seed=6):
     ma, mb = measure(ia), measure(ib)
     sa, sb = read_shapes(reader, ia), read_shapes(reader, ib)
     keys = ["cx", "cy", "size", "hue"]
-    denom = {k: np.maximum(hue_dist(ma[k], mb[k]) if k == "hue" else np.abs(ma[k] - mb[k]), 1e-6)
-             for k in keys}
+    visible = {"cx": 1.0, "cy": 1.0, "size": 1.0, "hue": 0.1}
+    denom = {k: (hue_dist(ma[k], mb[k]) if k == "hue" else np.abs(ma[k] - mb[k])) for k in keys}
+    use = {k: denom[k] > visible[k] for k in keys}
     rows = []
     for layer in range(nb):
         ws = [wa] * nb
@@ -742,11 +766,15 @@ def style_mixing(G, reader, n=256, seed=6):
         moved = {}
         for k in keys:
             d = hue_dist(ma[k], mm[k]) if k == "hue" else np.abs(ma[k] - mm[k])
-            moved[k] = rnd(float(np.median(np.clip(d / denom[k], 0, 1.5))), 4)
+            m = use[k]
+            moved[k] = rnd(float(np.median(d[m] / denom[k][m])), 4) if m.sum() >= 30 else None
         agree = (sa != sb)
         moved["shape"] = rnd(float((sm[agree] == sb[agree]).mean()) if agree.any() else 0.0, 4)
         rows.append(dict(layer=layer, res=[4, 8, 8, 16, 32][layer], **moved))
-    return dict(rows=rows, keys=keys + ["shape"], n=n)
+    share = {k: rnd(float(use[k].mean()), 4) for k in keys}
+    share["shape"] = rnd(float((sa != sb).mean()), 4)
+    return dict(rows=rows, keys=keys + ["shape"], n=n, pairs_used=share,
+                visible=visible)
 
 
 # ----------------------------------------------------------------------------
@@ -823,6 +851,201 @@ def frechet(a, b):
     wm = np.linalg.eigvalsh(sa @ cb @ sa)
     return float(((mu_a - mu_b) ** 2).sum() + np.trace(ca) + np.trace(cb)
                  - 2 * np.sqrt(np.maximum(wm, 0)).sum())
+
+
+def blur_k(x, k):
+    """Box blur over the two spatial axes, edge padded, and the SAME size out
+    as in. The first version of this dropped a row and a column, because a
+    difference of cumulative sums needs the leading zero that `cumsum` does not
+    produce, and nothing complained: the reader that consumed the result is
+    convolutional, so it happily scored a 31 by 31 image against 32 by 32 ones
+    and the blurred arm of the yardstick came out inflated by a half pixel
+    shift on top of the blur it was supposed to measure."""
+    assert k % 2 == 1, f"an even box blur has no centre pixel: k = {k}"
+    out = x.copy()
+    pad = k // 2
+    for ax in (1, 2):
+        p = np.pad(out, [(0, 0)] + [(pad, pad) if a == ax else (0, 0) for a in (1, 2)]
+                   + [(0, 0)], mode="edge")
+        sl = lambda s, e: tuple(slice(None) if a != ax else slice(s, e) for a in range(4))
+        c = np.cumsum(p, axis=ax)
+        c = np.concatenate([np.zeros_like(c[sl(0, 1)]), c], axis=ax)
+        out = (c[sl(k, None)] - c[sl(0, -k)]) / k
+        assert out.shape == x.shape, f"blur changed the image size: {out.shape} from {x.shape}"
+    return out
+
+
+def hf_energy(imgs):
+    """One number per image: how much of it a three pixel blur removes. This is
+    the cheapest thing a discriminator can look at, and on a grainy dataset it
+    is enough to win with."""
+    return np.abs(imgs - blur_k(imgs, 3)).mean(axis=(1, 2, 3))
+
+
+def auc(pos, neg):
+    """Rank based, so it is exactly the probability that a random positive
+    scores above a random negative, with ties counted as half."""
+    v = np.concatenate([pos, neg])
+    order = np.argsort(v, kind="mergesort")
+    ranks = np.empty(len(v))
+    ranks[order] = np.arange(1, len(v) + 1)
+    i = 0
+    while i < len(v):
+        j = i
+        while j + 1 < len(v) and v[order[j + 1]] == v[order[i]]:
+            j += 1
+        if j > i:
+            ranks[order[i:j + 1]] = (i + j + 2) / 2
+        i = j + 1
+    n1, n0 = len(pos), len(neg)
+    return float((ranks[:n1].sum() - n1 * (n1 + 1) / 2) / (n1 * n0))
+
+
+def blob_score(imgs):
+    """Is this a sprite: one connected patch of one saturated colour on a flat
+    background. Measured with the article's own arithmetic rather than with a
+    distance in some network's features, and grain blind by construction,
+    because the mask is taken after a three pixel blur.
+
+    Three numbers rather than a verdict, each with the value real sprites give
+    printed next to it, because every single one of them can be gamed by a
+    failure of a different kind: mush that covers the whole tile is one
+    connected region, and so is a sprite. Read the row, not a cell."""
+    sm = blur_k(imgs, 3)
+    border = np.concatenate([sm[:, 0, :, :], sm[:, -1, :, :],
+                             sm[:, :, 0, :], sm[:, :, -1, :]], axis=1)
+    bg = np.median(border, axis=1)[:, None, None, :]
+    mask = np.abs(sm - bg).sum(axis=-1) > 0.30
+    ones, cover, sat, counts = [], [], [], []
+    for i in range(len(imgs)):
+        m = mask[i]
+        cover.append(m.mean())
+        # connected components, four neighbours, by flood fill on the mask
+        lab = np.zeros_like(m, dtype=np.int32)
+        cur = 0
+        big = 0
+        ys, xs = np.nonzero(m)
+        for y0, x0 in zip(ys, xs):
+            if lab[y0, x0]:
+                continue
+            cur += 1
+            stack = [(y0, x0)]
+            lab[y0, x0] = cur
+            size = 0
+            while stack:
+                y, x = stack.pop()
+                size += 1
+                for dy, dx in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                    yy, xx = y + dy, x + dx
+                    if 0 <= yy < m.shape[0] and 0 <= xx < m.shape[1] and m[yy, xx] and not lab[yy, xx]:
+                        lab[yy, xx] = cur
+                        stack.append((yy, xx))
+            if size >= 4:
+                big += 1
+        ones.append(1.0 if big == 1 else 0.0)
+        counts.append(big)
+        px = imgs[i][m]
+        if len(px) >= 4:
+            mu = px.mean(axis=0)
+            sat.append((mu.max() - mu.min()) / max(mu.max(), 1e-9))
+    return dict(one_blob=rnd(float(np.mean(ones)), 4),
+                blobs=rnd(float(np.mean(counts)), 3),
+                coverage=rnd(float(np.mean(cover)), 4),
+                sat=rnd(float(np.mean(sat)) if sat else 0.0, 4))
+
+
+def grain_probe(reader, body, grains, steps, seed=1, n=8000, n_eval=1500):
+    """Why this dataset has no per pixel grain, measured instead of asserted.
+
+    The first version of this article drew its sprites with a grain of 0.04 and
+    the generator produced mush. Four controlled probes later the cause was the
+    data rather than the model: a grain is a texture a generator has to match
+    before anything else, and until it does, one number tells every one of its
+    samples from every real sprite. So the discriminator can win without ever
+    looking at a shape, and a discriminator that is winning hands back nothing
+    to learn from.
+
+    The arms are the article's own run and two of its counterfactuals: same
+    architecture, same seed, same number of steps, same sprites down to the
+    factor, and the only difference is how much grain sits on the pixels. The
+    grainless arm is not a re-run of the published generator, it IS the
+    published generator, reached through the same cache key, which is why the
+    comparison is at the page's budget rather than at a cheap one.
+
+    The shortcut is free to measure: hold the sprites fixed and compare the
+    grainy version against the grainless one with the single high frequency
+    statistic, which is the probability that one number separates them.
+
+    The outcome is read three ways and they do not all agree, which is
+    published rather than resolved. A Frechet distance in the reader's features
+    with the grain blurred off both sides ranks the arms one way, and counting
+    what a sample IS, one connected patch of one saturated colour, ranks them
+    another. Both are printed, with real sprites and a flat grey rectangle as
+    the two controls that say what each scale can and cannot see."""
+    import torch
+
+    rows = []
+    rng0 = np.random.default_rng(19)
+    f = sample_factors(n, rng0)
+    clean = draw(f, np.random.default_rng(21), grain=0.0)
+    ref = read_features(body, blur_k(clean[:n_eval], 3))
+    for g in grains:
+        imgs = draw(f, np.random.default_rng(21), grain=g)
+        shortcut = auc(hf_energy(imgs[:n_eval]), hf_energy(clean[:n_eval]))
+        # deliberately the SAME key template the main stage uses, so that the
+        # grainless arm of this probe is a cache hit on the published model
+        run = cached(f"gan-styled-s{seed}-st{steps}-b64-z{Z_DIM}-ch{CH}-g{g}-v2",
+                     lambda g=g, imgs=imgs: train_gan("styled", seed, imgs, steps, 64))
+        G = load_gen("styled", seed, run["state"])
+        fake = generate(G, n_eval, seed=31)
+        fd = frechet(ref, read_features(body, blur_k(fake, 3)))
+        # and the same one number at the END of training, now between what this
+        # generator draws and what it was trying to copy: if the grain is a
+        # shortcut the discriminator never has to give up, it is still there.
+        # Reported two sided, because a generator can end up NOISIER than its
+        # data as easily as smoother, and either way one number still tells
+        # them apart.
+        after = auc(hf_energy(imgs[:n_eval]), hf_energy(fake))
+        # how easy the game stayed for the discriminator, averaged over the last
+        # tenth of training rather than read off one batch
+        tail = [c["d"] for c in run["curve"][-3:]]
+        blob = blob_score(fake[:400])
+        # and whether it still draws more than one thing, because the grainiest
+        # arm is not the only way to fail: a run can be saturated, clean and
+        # collapsed onto a single shape, and the columns above would all like it
+        sh = read_shapes(reader, fake)
+        blob["top_shape"] = rnd(float(np.bincount(sh, minlength=len(SHAPES)).max() / len(sh)), 4)
+        rows.append(dict(grain=g, shortcut=rnd(shortcut, 4),
+                         shortcut_end=rnd(max(after, 1 - after), 4),
+                         fake_noisier=bool(after < 0.5),
+                         fd_blind=rnd(fd, 4), d_loss=rnd(float(np.mean(tail)), 4),
+                         hf_real=rnd(float(hf_energy(imgs[:n_eval]).mean()), 5),
+                         hf_fake=rnd(float(hf_energy(fake).mean()), 5), **blob))
+        print(f"      grain {g}: one number separates it from the same sprites clean "
+              f"{shortcut*100:.1f}% of the time, and from what the generator drew "
+              f"{max(after, 1-after)*100:.1f}%; patches {blob['blobs']:.2f}, "
+              f"coverage {blob['coverage']*100:.1f}%, saturation {blob['sat']:.3f}, "
+              f"commonest shape {blob['top_shape']*100:.1f}%, blind distance {fd:.2f}", flush=True)
+    # The two controls that put a top and a bottom on every column above: real
+    # sprites, and a flat grey rectangle, which is what "made no effort at all"
+    # scores on each of these scales.
+    grey = np.full((n_eval, RES, RES, 3), float(np.median(clean)), np.float32)
+    real_blob = blob_score(clean[:400])
+    real_sh = read_shapes(reader, clean[:400])
+    real_blob["top_shape"] = rnd(float(np.bincount(real_sh, minlength=len(SHAPES)).max()
+                                       / len(real_sh)), 4)
+    ctrl = dict(real=real_blob,
+                grey=dict(fd_blind=rnd(frechet(ref, read_features(body, blur_k(grey, 3))), 4),
+                          **blob_score(grey[:50])),
+                real_fd=rnd(frechet(ref, read_features(body,
+                                                       blur_k(clean[n_eval:2 * n_eval], 3))), 4))
+    print(f"      controls: real sprites are {ctrl['real']['blobs']:.2f} patches covering "
+          f"{ctrl['real']['coverage']*100:.1f}% at saturation {ctrl['real']['sat']:.3f}; a flat "
+          f"grey rectangle scores {ctrl['grey']['fd_blind']:.2f} on the blind distance, against "
+          f"{ctrl['real_fd']:.2f} for real sprites", flush=True)
+    assert ctrl["real"]["one_blob"] > 0.9, \
+        f"real sprites do not read as one blob, so the score cannot judge anything: {ctrl['real']}"
+    return dict(rows=rows, steps=steps, seed=seed, n=n, n_eval=n_eval, control=ctrl)
 
 
 def truncation(G, body, reader, real_feats, n=1500, seed=10):
@@ -906,20 +1129,9 @@ def main():
     rng_c = np.random.default_rng(77)
     noise_imgs = rng_c.uniform(0, 1, (n_eval, RES, RES, 3)).astype(np.float32)
 
-    def box_blur(x, k):
-        out = x.copy()
-        pad = k // 2
-        for ax in (1, 2):
-            p = np.pad(out, [(0, 0)] + [(pad, pad) if a == ax else (0, 0) for a in (1, 2)]
-                       + [(0, 0)], mode="edge")
-            c = np.cumsum(p, axis=ax)
-            sl = lambda s, e: tuple(slice(None) if a != ax else slice(s, e) for a in range(4))
-            out = (c[sl(k, None)] - c[sl(0, -k)]) / k
-        return out
-
     scale = dict(
         floor=rnd(frechet(real_feats, other), 4),
-        blur3=rnd(frechet(real_feats, read_features(body, box_blur(data["images"][:n_eval], 3))), 4),
+        blur3=rnd(frechet(real_feats, read_features(body, blur_k(data["images"][:n_eval], 3))), 4),
         noise=rnd(frechet(real_feats, read_features(body, noise_imgs)), 4),
         n=n_eval)
     print(f"    the yardstick: real against real {scale['floor']:.2f}, blurred "
@@ -971,11 +1183,14 @@ def main():
     print("4. style mixing", flush=True)
     styled_key = f"styled/{seeds[0]}"
     Gs = quant[styled_key]["G"]
-    mixing = cached(f"mix-{styled_key}-v3", lambda: style_mixing(Gs, net,
+    mixing = cached(f"mix-{styled_key}-v4", lambda: style_mixing(Gs, net,
                                                                  n=64 if SMALL else 400))
+    print("    pairs that differ visibly: "
+          + ", ".join(f"{k} {v*100:.0f}%" for k, v in mixing["pairs_used"].items()), flush=True)
     for r in mixing["rows"]:
         print(f"    layer {r['layer']} ({r['res']}x{r['res']}): "
-              + ", ".join(f"{k} {r[k]:.2f}" for k in mixing["keys"]), flush=True)
+              + ", ".join(f"{k} " + ("--" if r[k] is None else f"{r[k]:.2f}")
+                          for k in mixing["keys"]), flush=True)
 
     print("5. the noise inputs", flush=True)
     noise = cached(f"noise-{styled_key}-v3",
@@ -987,6 +1202,13 @@ def main():
     print("6. truncation", flush=True)
     trunc = cached(f"trunc-{styled_key}-v3",
                    lambda: truncation(Gs, body, net, real_feats, n=300 if SMALL else 1500))
+
+    print("7. the grain, which is why this dataset has none", flush=True)
+    grain = grain_probe(net, body, grains=[GRAIN, 0.015, 0.04],
+                        steps=steps, seed=seeds[0],
+                        n=data["n"], n_eval=300 if SMALL else 1500)
+    assert grain["rows"][0]["shortcut"] == 0.5, \
+        "the grainless arm has to be indistinguishable from itself, or the probe is broken"
 
     # ------------------------------------------------------------------ write
     print("writing", flush=True)
@@ -1030,11 +1252,12 @@ def main():
                   steps=steps, batch=batch, seeds=seeds, n_train=data["n"],
                   size_lo=SIZE_LO, size_hi=SIZE_HI, pos_lo=POS_LO, pos_hi=POS_HI,
                   big=BIG, blue=[BLUE_LO, BLUE_HI], grain=GRAIN,
+                  factors=list(data["factors"].keys()),
                   reader_acc=rnd(reader_acc, 4), png_bytes=png, tile=RES, sheet_cols=16,
                   blocks=[dict(res=r, ch=c) for r, c in zip([4, 8, 8, 16, 32], CH)]),
         dataset=dict(floor=data["floor"], hole=data["hole"]),
         metrics=metrics, mixing=mixing, noise=noise, truncation=trunc, scatter=scatter,
-        scale=scale,
+        scale=scale, grain=grain,
         net=dict(weights_b64=b64, count=int(vals.size), layers=layers,
                  w_mean=[rnd(v, 6) for v in trunc["w_mean"]],
                  format="float16 little-endian, base64, concatenated in the order of `layers`"),

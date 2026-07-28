@@ -35,6 +35,17 @@ def write(name, lines):
     print(f"  {path.name}: {path.stat().st_size / 1024:.1f} kB")
 
 
+def hue_hex(h, s=0.85, v=0.95):
+    """The same hue to RGB conversion the sprite generator draws with, so a dot
+    on the thumbnail is the colour of the sprite it stands for."""
+    h = (h % 1.0) * 6
+    i = int(h) % 6
+    f = h - int(h)
+    p, q, t = v * (1 - s), v * (1 - f * s), v * (1 - (1 - f) * s)
+    r, g, b = [(v, t, p), (q, v, p), (p, v, t), (p, q, v), (t, p, v), (v, p, q)][i]
+    return "#%02x%02x%02x" % tuple(int(round(c * 255)) for c in (r, g, b))
+
+
 def dots(points, colour, r, opacity=0.85, per_line=6):
     """Circles grouped under one fill, which is what keeps these files small."""
     out = [f'  <g fill="{colour}" fill-opacity="{opacity}">']
@@ -106,8 +117,22 @@ def thumb_stylegan(accent="#831843"):
                  f'height="{sy(M["blue"][0]) - sy(M["blue"][1]):.0f}" '
                  f'fill="{accent}" fill-opacity="0.10" stroke="{accent}" '
                  f'stroke-width="1.6" stroke-dasharray="6 4"/>')
+    # Each dot wears the colour it is a measurement of: the vertical axis IS
+    # hue, so painting the points grey would throw away the one thing that
+    # makes the empty box legible at the size of a card. The conversion is the
+    # same one the dataset draws with, at full saturation.
     thin = pts[::max(1, len(pts) // 170)]
-    lines += dots([(sx(p[0]), sy(p[1])) for p in thin], INK, 3.0, 0.5)
+    lines.append('  <g fill-opacity="0.85">')
+    row = []
+    for p in thin:
+        row.append(f'<circle cx="{sx(p[0]):.0f}" cy="{sy(p[1]):.0f}" r="3.2" '
+                   f'fill="{hue_hex(p[1])}"/>')
+        if len(row) == 5:
+            lines.append("    " + "".join(row))
+            row = []
+    if row:
+        lines.append("    " + "".join(row))
+    lines.append('  </g>')
     lines.append(f'  <line x1="40" y1="{H - 34}" x2="{W - 26}" y2="{H - 34}" '
                  f'stroke="{INK}" stroke-width="1.4"/>')
     lines.append(f'  <line x1="40" y1="{H - 34}" x2="40" y2="28" '
