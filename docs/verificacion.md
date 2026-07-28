@@ -158,3 +158,36 @@ se encuentra a sí mismo y el bucle es infinito. Se encadena con `;` en un solo
 `sh -c`, o se busca el patrón con `pgrep -f "python3 -u src/utils/generate_..."`,
 que no coincide con el shell que espera.
 
+## Trampa 21: `--next` solo ve lo que tu último `git fetch` trajo
+
+El reparto de acentos mira las ramas sin mergear leyendo `refs/remotes/origin`,
+y eso es exactamente tan fresco como el último fetch. Trabajando con
+`git fetch origin main`, que es lo prudente para el merge, las ramas de las
+otras sesiones se quedan congeladas en la foto del clon: `--next` daba
+**libres** los tres acentos que la rama de GANs llevaba puestos
+(`#3f6212`, `#831843`, `#134e4a`), y con esa lista se habrían escrito cuatro
+artículos para chocar en el push. Con `git fetch origin` a secas, los detecta.
+
+La regla: **antes de `--next` o `--reparte`, un `git fetch origin` completo**,
+no el de una rama. El fallo es silencioso por construcción: la función devuelve
+vacío cuando no encuentra nada y cuando no hay nada que encontrar, y esos dos
+casos se leen igual en pantalla.
+
+Y el corolario: **reclama el color el primer día**. Un `index.html` de una
+línea con el `--primary` puesto, empujado a la rama, hace que las demás
+sesiones te vean. Una carpeta sin `js/main.js` no cuenta como artículo
+publicado para el guardia, así que el marcador no rompe nada mientras el
+artículo se escribe.
+
+## Sobre el dE de la reserva, que no es lo que parece
+
+El comentario de `RESERVA` en `check_publication.py` dice que el peor de los
+catorce colores nuevos está a dE 15,5 del vecino más cercano, y es fácil leer
+eso como una garantía sobre el sitio entero. No lo es: es la distancia entre
+**los colores de la reserva entre sí**. Contra lo ya publicado el sitio corre
+mucho más justo, y medirlo lo deja claro: mínimo 4,0 (`manifolds` contra
+`vq-vae`), p25 7,4, mediana 10,1. La familia entera del 3.2 vive entre 4,0 y
+5,3. Así que un acento nuevo a dE 7 de uno publicado no es un fallo del
+reparto, es el estándar de facto de la casa, y no hay que rehacer el barrido
+por eso.
+
