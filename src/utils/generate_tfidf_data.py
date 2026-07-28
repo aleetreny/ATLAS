@@ -62,8 +62,14 @@ def cached(name, fn):
         with path.open("rb") as fh:
             return pickle.load(fh)
     val = fn()
-    with path.open("wb") as fh:
+    # A un temporal y luego rename: si algo falla a mitad de `pickle.dump`, el
+    # fichero definitivo no llega a existir. Sin esto, un fallo posterior deja
+    # un pickle de cero bytes y la tirada siguiente muere al LEERLO, que es un
+    # error mucho mas confuso que el original.
+    tmp = path.with_suffix(".pkl.tmp")
+    with tmp.open("wb") as fh:
         pickle.dump(val, fh)
+    tmp.replace(path)
     return val
 
 

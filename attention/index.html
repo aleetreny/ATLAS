@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Everything At Once | ATLAS</title>
+  <meta name="description" content="Self-attention on the same tagged corpus and the same task as the previous article. The encoder runs in the page, so the scaling can be switched off and a head knocked out while you watch, and the permutation blindness is checked as an exact equality." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/attention/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="Everything At Once | ATLAS" />
+  <meta property="og:description" content="Make every pair of positions one step apart and pay for it in a different currency. The trained encoder runs in the page." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/attention/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Everything At Once | ATLAS" />
+  <meta name="twitter:description" content="Make every pair of positions one step apart and pay for it in a different currency. The trained encoder runs in the page." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    /* Per-article theme. Everything else inherits from these two. */
+    :root {
+      --primary: #831843;
+      --secondary: #691336;
+    }
+  </style>
+</head>
+<body>
+  <!-- ======================= chrome ======================= -->
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <!-- ======================= hero ======================= -->
+  <section id="intro">
+    <h1 id="intro-hed">Everything At Once</h1>
+    <h1 id="intro-sub">Make every pair of positions one step apart, whatever the distance between them, and pay for it in a currency that grows with the square of the length</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 4.1 &middot; NLP &middot; Everything At Once</span>
+  </section>
+
+  <br />
+
+  <!-- ======================= introduction ======================= -->
+  <section>
+    <p class="body-text" id="intro-problem">
+      The previous article ended on a constraint rather than a result.
+    </p>
+    <br />
+    <p class="body-text" id="intro-idea">
+      The fix is to stop passing information along a chain.
+    </p>
+    <p class="body-text">
+      $$\mathrm{Attention}(Q,K,V) = \mathrm{softmax}\!\left(\frac{QK^{\top}}{\sqrt{d_k}}\right)V$$
+    </p>
+    <p class="body-text" id="intro-guard">
+      The trained encoder runs in this page.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the matrix ======================= -->
+  <section>
+    <h1 class="body-header">Who Looks At Whom</h1>
+    <p class="body-text" id="matrix-intro">
+      Each word builds a query, every word offers a key, and the match between
+      them decides where the word looks.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="matrix-widget">
+    <div class="controls-row" style="justify-content: center" id="matrix-heads"></div>
+    <div class="controls-row" style="justify-content: center" id="matrix-knobs"></div>
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">sentence <span class="value" id="matrix-sentence-label">1 of 8</span></span>
+      <input type="range" class="atlas-range" id="matrix-sentence" aria-label="which sentence to attend over" min="0" max="1" step="1" value="0" />
+    </div>
+    <div id="matrix-chart"></div>
+    <div class="widget-readout" id="matrix-readout"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= permutation ======================= -->
+  <section>
+    <h1 class="body-header">It Cannot See The Order At All</h1>
+    <p class="body-text" id="perm-intro">
+      Turning the positions off in the widget above is not a degradation. It is
+      a change of what kind of function the model is.
+    </p>
+    <br />
+    <p class="body-text" id="perm-result">
+      Measured as an equality rather than described:
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the curves ======================= -->
+  <section>
+    <h1 class="body-header">Two Lines Of The Formula</h1>
+    <p class="body-text" id="curves-intro">
+      Two of the choices in that equation look like implementation detail and
+      are not.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="curves-widget">
+    <div class="controls-row" style="justify-content: center" id="curves-views"></div>
+    <div id="curves-chart"></div>
+    <div class="widget-readout" id="curves-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="reach-compare">
+      Put next to the recurrent cells of the previous article, on the same axis:
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table" id="reach-table">
+      <thead>
+        <tr>
+          <th>Model</th>
+          <th>Gradient half life</th>
+          <th>Still carried ten steps back</th>
+          <th>Still carried thirty steps back</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <hr />
+
+  <!-- ======================= heads ======================= -->
+  <section>
+    <h1 class="body-header">What The Heads Are For</h1>
+    <p class="body-text" id="heads-intro">
+      The usual explanation for multiple heads is that each one learns a
+      different kind of relation, illustrated with a picture of one head that
+      obviously does.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table" id="ablation-table">
+      <thead>
+        <tr>
+          <th>Head knocked out</th>
+          <th>Accuracy without it</th>
+          <th>What it cost</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="heads-verdict">
+      Ablation by zeroing rather than by deletion, so the comparison is about
+      the head and not about the parameter count.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the bill ======================= -->
+  <section>
+    <h1 class="body-header">The Bill</h1>
+    <p class="body-text" id="cost-intro">
+      Every path being one step long has a price, and it is the only thing
+      anybody remembers about this architecture.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table" id="cost-table">
+      <thead>
+        <tr>
+          <th>Sequence length</th>
+          <th>Projections</th>
+          <th>Every pair against every pair</th>
+          <th>Share that is pairwise</th>
+          <th>Against a recurrence</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="cost-verdict">
+      The quadratic term is real and it does not dominate where people think.
+    </p>
+    <br />
+    <p class="body-text" id="copy-note">
+      And on the task the previous article used to break the recurrent cells:
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table" id="copy-table">
+      <thead>
+        <tr>
+          <th>Distractors</th>
+          <th>Plain RNN</th>
+          <th>GRU</th>
+          <th>LSTM</th>
+          <th>Self-attention</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <hr />
+
+  <!-- ======================= verdict ======================= -->
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text">
+      One architecture, four measurements, and two of its constants explained.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Property</th>
+          <th>What it gives you</th>
+          <th>What it cost here</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">Every pair one step apart</span></td>
+          <td>No decay with distance, by construction rather than by tuning</td>
+          <td id="v-path">Measured above.</td>
+          <td id="v-path-watch">It is paid for pairwise.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Positional encoding</span></td>
+          <td>The only thing standing between this and a bag of words</td>
+          <td id="v-pos">Measured above.</td>
+          <td id="v-pos-watch">Remove it and the model is exactly order-blind.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Dividing by the root of d</span></td>
+          <td>Keeps the softmax out of saturation at initialisation</td>
+          <td id="v-scale">Measured above.</td>
+          <td id="v-scale-watch">The damage grows with the head size.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Several heads</span></td>
+          <td>More than one relation per layer</td>
+          <td id="v-heads">Measured above.</td>
+          <td id="v-heads-watch">Not all of them are earning their keep.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="closing-1">
+      What this architecture actually removed was the chain.
+    </p>
+    <br />
+    <p class="body-text" id="closing-2">
+      Nothing so far has said what the model should be trained to predict.
+    </p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! Everything above ran here: every projection of every
+      head travels in half precision, so the page runs the encoder itself on
+      each sentence, recomputes the attention when you switch the scaling off or
+      knock a head out, and checks its own forward pass against the generator's
+      at load time, with the training, the permutation test, the entropy sweep,
+      the gradient probe and the ablation from
+      <code>src/utils/generate_attention_data.py</code>.
+    </p>
+  </section>
+
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text" id="ref-note">
+      The corpus and the split are the previous article's, unchanged.
+    </p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1706.03762">[1] Attention Is All You Need</a><br />
+      (Vaswani, A. et al., NIPS, 2017; the equation at the top, including the division this page measures)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1409.0473">[2] Neural Machine Translation by Jointly Learning to Align and Translate</a><br />
+      (Bahdanau, D., Cho, K. &amp; Bengio, Y., ICLR, 2015; attention as an addition to a recurrence, before it replaced one)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1905.10650">[3] Are Sixteen Heads Really Better Than One?</a><br />
+      (Michel, P., Levy, O. &amp; Neubig, G., NeurIPS, 2019; the ablation this page repeats at a much smaller scale)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/2009.06732">[4] Efficient Transformers: A Survey</a><br />
+      (Tay, Y., Dehghani, M., Bahri, D. &amp; Metzler, D., 2020; what the quadratic term costs and the many attempts to remove it)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/2104.09864">[5] RoFormer: Enhanced Transformer with Rotary Position Embedding</a><br />
+      (Su, J. et al., 2021; one answer to the hole the permutation test opens up)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>
