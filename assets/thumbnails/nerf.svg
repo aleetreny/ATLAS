@@ -28,8 +28,8 @@
   </g>
   <!-- and the one that did not -->
   <path d="M0,-9 L15,0 L0,9 Z" transform="translate(100 232) rotate(-28.1)"
-        fill="none" stroke="#7e22ce" stroke-width="2.4" />
-  <g stroke="#7e22ce" stroke-width="2" stroke-dasharray="5 4">
+        fill="none" stroke="#581c87" stroke-width="2.4" />
+  <g stroke="#581c87" stroke-width="2" stroke-dasharray="5 4">
     <line x1="116" y1="225" x2="176" y2="196" />
     <line x1="114" y1="219" x2="182" y2="180" />
   </g>

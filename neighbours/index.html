@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Neighbours | ATLAS</title>
+  <meta name="description" content="A visual, interactive introduction to t-SNE and UMAP: run the gradient descent yourself, watch the number of clumps a counter finds collapse to one while the data does not change at all, and measure what happens to cluster sizes and the gaps between them." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/neighbours/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="Neighbours | ATLAS" />
+  <meta property="og:description" content="A visual, interactive introduction to t-SNE and UMAP: run the gradient descent yourself, watch the number of clumps a counter finds collapse to one while the data does not change at all, and measure what happens to cluster sizes and the gaps between them." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/neighbours/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Neighbours | ATLAS" />
+  <meta name="twitter:description" content="A visual, interactive introduction to t-SNE and UMAP: run the gradient descent yourself, watch the number of clumps a counter finds collapse to one while the data does not change at all, and measure what happens to cluster sizes and the gaps between them." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    /* Per-article theme. Everything else inherits from these two. */
+    :root {
+      --primary: #0e7490;
+      --secondary: #0b5c73;
+    }
+    /* Width only: a margin here would override .interactive-full's rhythm. */
+    .narrow-widget {
+      max-width: 840px;
+    }
+    /* global.css gives .widget-readout no overflow rule of its own, and a table
+       of four measurements is wider than it on a narrow screen. */
+    .widget-readout {
+      overflow-x: auto;
+    }
+    .nb-table {
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      margin-top: 0.4rem;
+      width: 100%;
+    }
+    .nb-table th,
+    .nb-table td {
+      padding: 4px 10px 4px 0;
+      text-align: left;
+      font-weight: 400;
+      white-space: nowrap;
+    }
+    .nb-table th {
+      font-family: var(--font-heavy);
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .nb-table td:first-child,
+    .nb-table th:first-child {
+      opacity: 0.75;
+    }
+    .nb-table td:last-child,
+    .nb-table th:last-child {
+      white-space: normal;
+    }
+    .nb-note {
+      margin-top: 0.6rem;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <!-- ======================= chrome ======================= -->
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <!-- ======================= hero ======================= -->
+  <section id="intro">
+    <h1 id="intro-hed">Neighbours</h1>
+    <h1 id="intro-sub">Stop trying to reproduce distances, keep only who is next to whom, and a plane suddenly has room; the bill arrives later, in sizes and gaps and in how many clusters you think you can see</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 2.2 · Dimensionality Reduction · Neighbour Embeddings</span>
+  </section>
+
+  <br />
+
+  <!-- ======================= introduction ======================= -->
+  <section>
+    <p class="body-text">
+      Everything in this module so far has been an argument about
+      <span class="bold">distances</span>. PCA minimises squared error against
+      them. Classical scaling inverts them. Metric scaling chases them.
+      <a href="../manifolds/">Isomap</a> replaces them with better ones and then
+      inverts those. All four hand back a map whose distances are supposed to
+      mean something, and all four are judged on how well they manage it.
+    </p>
+    <br />
+    <p class="body-text">
+      There is a reason that project is doomed before it starts, and it has
+      nothing to do with the algorithms. It is a fact about planes.
+    </p>
+    <br />
+    <p class="body-text" id="opening-note"></p>
+  </section>
+
+  <!-- ======================= crowding ======================= -->
+  <section>
+    <h1 class="body-header">What a Plane Cannot Hold</h1>
+    <p class="body-text" id="crowding-intro"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="crowding-widget">
+    <div class="controls-row" style="justify-content: center" id="crowding-buttons"></div>
+    <div id="crowding-chart"></div>
+    <div class="widget-readout" id="crowding-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="crowding-note"></p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= scrolly ======================= -->
+  <section>
+    <h1 class="body-header">Ask a Different Question</h1>
+    <p class="body-text">
+      t-SNE's answer is to stop asking for distances at all. It converts the
+      data into a probability distribution over pairs, converts a candidate map
+      into a second one, and moves the map until the two distributions agree.
+      There are five steps and each of them is a decision that shows up later.
+    </p>
+  </section>
+
+  <section id="tsne-scrolly" class="scrolly">
+    <div class="scrolly-container">
+      <div class="steps-container">
+        <div class="step" data-index="0">
+          <div class="step-content">
+            <h3>One Point and Its Neighbours</h3>
+            <p id="scrolly-step-0"></p>
+          </div>
+        </div>
+        <div class="step" data-index="1">
+          <div class="step-content">
+            <h3>A Bandwidth Per Point</h3>
+            <p id="scrolly-step-1"></p>
+          </div>
+        </div>
+        <div class="step" data-index="2">
+          <div class="step-content">
+            <h3>Perplexity Is Not a Distance</h3>
+            <p id="scrolly-step-2"></p>
+          </div>
+        </div>
+        <div class="step" data-index="3">
+          <div class="step-content">
+            <h3>The Map Gets a Heavier Tail</h3>
+            <p id="scrolly-step-3"></p>
+          </div>
+        </div>
+        <div class="step" data-index="4">
+          <div class="step-content">
+            <h3>Then Push Until They Agree</h3>
+            <p id="scrolly-step-4"></p>
+          </div>
+        </div>
+        <div class="step" data-index="5">
+          <div class="step-content">
+            <h3>Which Is All Of It</h3>
+            <p id="scrolly-step-5"></p>
+          </div>
+        </div>
+        <div class="step-spacer"></div>
+      </div>
+      <div class="charts-container">
+        <div class="chart-wrap" id="tsne-chart"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="body-text">
+      In symbols, and there are only three lines. The neighbour distribution in
+      the data, the one in the map, and the thing being minimised:
+    </p>
+    <p class="body-text">
+      $$ p_{j|i} = \frac{\exp(-\lVert x_i - x_j \rVert^2 / 2\sigma_i^2)}{\sum_{k \neq i}\exp(-\lVert x_i - x_k \rVert^2 / 2\sigma_i^2)}, \qquad p_{ij} = \frac{p_{j|i} + p_{i|j}}{2n} $$
+      $$ q_{ij} = \frac{(1 + \lVert y_i - y_j \rVert^2)^{-1}}{\sum_{k \neq l}(1 + \lVert y_k - y_l \rVert^2)^{-1}}, \qquad C = \sum_{i \neq j} p_{ij}\log\frac{p_{ij}}{q_{ij}} $$
+    </p>
+    <p class="body-text" id="asymmetry-note"></p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the live run ======================= -->
+  <section>
+    <h1 class="body-header">Run It Yourself</h1>
+    <p class="body-text" id="live-intro"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="live-widget">
+    <div class="controls-row" style="justify-content: center" id="live-data-buttons"></div>
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">perplexity <span class="value" id="live-perp-label">30</span></span>
+      <input type="range" class="atlas-range" id="live-perp" aria-label="perplexity, the effective number of neighbours" min="0" max="6" step="1" value="4" />
+      <button class="atlas-btn ghost" id="live-step">50 more steps</button>
+      <button class="atlas-btn ghost" id="live-run">run to the end</button>
+      <button class="atlas-btn ghost" id="live-reset">start again</button>
+    </div>
+    <div id="live-chart"></div>
+    <div class="widget-readout" id="live-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="count-note"></p>
+    <br />
+    <p class="body-text" id="size-note"></p>
+    <br />
+    <p class="body-text" id="noise-note"></p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Trying to make t-SNE invent clusters out of nothing</th>
+          <th>Perplexity</th>
+          <th>Clumps it produced</th>
+          <th>Left over as noise</th>
+        </tr>
+      </thead>
+      <tbody id="folklore-table"></tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="folklore-note"></p>
+    <br />
+    <p class="body-text" id="seed-note"></p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the scoreboard ======================= -->
+  <section>
+    <h1 class="body-header">And UMAP</h1>
+    <p class="body-text" id="umap-intro"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="board-widget">
+    <div class="controls-row" style="justify-content: center" id="board-buttons"></div>
+    <div id="board-chart"></div>
+    <div class="widget-readout" id="board-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="board-note"></p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= verdict ======================= -->
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text">
+      Everything these two methods are good at and everything they are not, in
+      one place.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Question</th>
+          <th>Answer</th>
+          <th>Why</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">Are these things similar?</span></td>
+          <td>Yes, that is the one thing the map means</td>
+          <td id="verdict-local"></td>
+          <td id="verdict-local-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">How many clusters are there?</span></td>
+          <td>The map cannot tell you</td>
+          <td id="verdict-count"></td>
+          <td id="verdict-count-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">Is that cluster bigger?</span></td>
+          <td>No information at all</td>
+          <td id="verdict-size"></td>
+          <td id="verdict-size-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">t-SNE or UMAP?</span></td>
+          <td>UMAP, unless you need the exact objective</td>
+          <td id="verdict-which"></td>
+          <td id="verdict-which-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">Reporting a map</span></td>
+          <td>Publish the settings, and more than one run</td>
+          <td id="verdict-report"></td>
+          <td id="verdict-report-warn"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="closing-note"></p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! The bandwidth search, the joint distribution, every
+      gradient step, the divergence, the clump counting and the two synthetic
+      datasets are computed by this page in JavaScript, checked at load time
+      against what <code>src/utils/generate_neighbours_data.py</code> measured
+      running the identical algorithm from the identical starting point. UMAP is
+      the one thing on this page the browser does not run: its embeddings come
+      from the reference package, because reproducing its negative sampling
+      schedule here and calling the result UMAP would be a claim this atlas
+      could not check.
+    </p>
+  </section>
+
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text" id="resources-note"></p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://www.jmlr.org/papers/v9/vandermaaten08a.html">[1] Visualizing Data using t-SNE</a><br />
+      (van der Maaten, L. &amp; Hinton, G., JMLR, 2008; the crowding problem, the heavy tail, and the gradient this page runs)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://papers.nips.cc/paper/2002/hash/6150ccc6069bea6b5716254057a194ef-Abstract.html">[2] Stochastic Neighbor Embedding</a><br />
+      (Hinton, G. &amp; Roweis, S., NIPS, 2002; the original, with a gaussian in the map instead of a t)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1802.03426">[3] UMAP: Uniform Manifold Approximation and Projection</a><br />
+      (McInnes, L., Healy, J. &amp; Melville, J., 2018)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://distill.pub/2016/misread-tsne/">[4] How to Use t-SNE Effectively</a><br />
+      (Wattenberg, M., Viégas, F. &amp; Johnson, I., Distill, 2016; the article this one tried to reproduce and partly could not)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://www.nature.com/articles/s41467-019-13056-x">[5] The Art of Using t-SNE for Single-Cell Transcriptomics</a><br />
+      (Kobak, D. &amp; Berens, P., Nature Communications, 2019; initialisation, learning rate and what they decide)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://www.sciencedirect.com/science/article/pii/0031320390900278">[6] New Index for Clustering Tendency and Its Application to Tests of Item Standardization</a><br />
+      (Lawson, R. G. &amp; Jurs, P. C., Journal of Chemical Information and Computer Sciences, 1990; the statistic this page quotes and declines to lean on)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>

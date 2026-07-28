@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Distances | ATLAS</title>
+  <meta name="description" content="A visual, interactive introduction to multidimensional scaling and factor analysis: rebuild a map from nothing but a table of distances, find out which dissimilarities are not distances at all, bend the numbers without moving their order, and split a variance into the part that is shared and the part that is noise." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/distances/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="Distances | ATLAS" />
+  <meta property="og:description" content="A visual, interactive introduction to multidimensional scaling and factor analysis: rebuild a map from nothing but a table of distances, find out which dissimilarities are not distances at all, bend the numbers without moving their order, and split a variance into the part that is shared and the part that is noise." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/distances/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Distances | ATLAS" />
+  <meta name="twitter:description" content="A visual, interactive introduction to multidimensional scaling and factor analysis: rebuild a map from nothing but a table of distances, find out which dissimilarities are not distances at all, bend the numbers without moving their order, and split a variance into the part that is shared and the part that is noise." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    /* Per-article theme. Everything else inherits from these two. */
+    :root {
+      --primary: #7e22ce;
+      --secondary: #6b1ba9;
+    }
+    /* Width only: a margin here would override .interactive-full's rhythm. */
+    .narrow-widget {
+      max-width: 820px;
+    }
+    /* A five column table of measurements is wider than the readout on a
+       narrow screen, and global.css gives .widget-readout no overflow rule of
+       its own, so the right-hand columns were simply cut off. */
+    .widget-readout {
+      overflow-x: auto;
+    }
+    .dist-table {
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      margin-top: 0.4rem;
+      width: 100%;
+    }
+    .dist-table th,
+    .dist-table td {
+      padding: 4px 10px 4px 0;
+      text-align: left;
+      font-weight: 400;
+      white-space: nowrap;
+    }
+    .dist-table th {
+      font-family: var(--font-heavy);
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .dist-table td:first-child,
+    .dist-table th:first-child {
+      opacity: 0.75;
+    }
+    /* The last column is prose, not a figure, so let it wrap rather than push
+       the columns that carry numbers off the edge of the readout. */
+    .dist-table td:last-child,
+    .dist-table th:last-child {
+      white-space: normal;
+    }
+    .dist-note {
+      margin-top: 0.6rem;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+    /* The metric picker is six wordy buttons, so let them wrap tidily. */
+    #metric-buttons button {
+      padding: 7px 12px;
+    }
+  </style>
+</head>
+<body>
+  <!-- ======================= chrome ======================= -->
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <!-- ======================= hero ======================= -->
+  <section id="intro">
+    <h1 id="intro-hed">Distances</h1>
+    <h1 id="intro-sub">Throw the coordinates away and keep only how far apart things are, and the same map comes back; throw away the belief that every variance is signal, and it does not</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 2.2 · Dimensionality Reduction · Scaling and Latent Variables</span>
+  </section>
+
+  <br />
+
+  <!-- ======================= introduction ======================= -->
+  <section>
+    <p class="body-text">
+      The <a href="../directions/">previous article</a> spent itself on one
+      equation, \(X \approx WH\), and on what changes when you constrain \(W\)
+      and \(H\) in three different ways. Every version of it needed the data
+      matrix: the actual numbers, in actual columns, with an actual origin. This
+      article asks what is left when you do not have that.
+    </p>
+    <br />
+    <p class="body-text">
+      There are two honest reasons not to have it. The first is that sometimes
+      the matrix genuinely does not exist. Nobody has ever measured the
+      coordinates of a smell, or of a chess position, or of a written digit in
+      any space where the axes mean something; what you can measure is how
+      often two of them get mistaken for each other, which is a
+      <span class="bold">dissimilarity</span> and nothing more.
+      Multidimensional scaling is the machinery for turning a table of
+      dissimilarities back into a picture, and the surprise is how little you
+      give up: for the ordinary case it gives back exactly what PCA would have.
+    </p>
+    <br />
+    <p class="body-text">
+      The second reason is that the matrix exists but lies. PCA hands its first
+      direction to whichever column happens to vary most, and a column can vary
+      because something interesting is happening in it or because the instrument
+      that recorded it is noisy. PCA cannot tell those apart, because it has no
+      model of noise and, strictly, no model of anything: it is a rotation.
+      <span class="bold">Factor analysis</span> is the same picture with one
+      extra assumption bolted on, that each variable has a private variance
+      belonging to nobody else, and that single assumption turns a rotation into
+      a generative model that can be fitted, tested and rejected.
+    </p>
+    <br />
+    <p class="body-text" id="opening-note"></p>
+  </section>
+
+  <!-- ======================= scrolly ======================= -->
+  <section>
+    <h1 class="body-header">A Map Out of a Table</h1>
+    <p class="body-text">
+      Same 178 bottles as the <a href="../kmeans/">clustering module</a> and the
+      <a href="../directions/">previous article</a>, standardised, and this time
+      the thirteen measurements get deleted on purpose. All that survives is a
+      table saying how far each bottle is from each other bottle.
+    </p>
+  </section>
+
+  <section id="mds-scrolly" class="scrolly">
+    <div class="scrolly-container">
+      <div class="steps-container">
+        <div class="step" data-index="0">
+          <div class="step-content">
+            <h3>Six Bottles, Fifteen Numbers</h3>
+            <p id="scrolly-step-0"></p>
+          </div>
+        </div>
+        <div class="step" data-index="1">
+          <div class="step-content">
+            <h3>All Of Them</h3>
+            <p id="scrolly-step-1"></p>
+          </div>
+        </div>
+        <div class="step" data-index="2">
+          <div class="step-content">
+            <h3>Put the Origin Back</h3>
+            <p>
+              A table of distances has no origin: shifting every bottle by the
+              same amount leaves it untouched, so the table cannot tell you
+              where the middle is. Declaring the middle to be the average of the
+              bottles fixes that, and doing it costs one line of arithmetic on
+              the squared distances: subtract each row's mean, subtract each
+              column's mean, add the grand mean back, halve and flip the sign.
+              What comes out is a matrix of <span class="bold">inner
+              products</span> rather than distances, which is a different animal
+              entirely.
+            </p>
+          </div>
+        </div>
+        <div class="step" data-index="3">
+          <div class="step-content">
+            <h3>Which Is Already the Answer</h3>
+            <p id="scrolly-step-3"></p>
+          </div>
+        </div>
+        <div class="step" data-index="4">
+          <div class="step-content">
+            <h3>Two Columns of It Is a Map</h3>
+            <p id="scrolly-step-4"></p>
+          </div>
+        </div>
+        <div class="step" data-index="5">
+          <div class="step-content">
+            <h3>And It Is PCA's Map</h3>
+            <p id="scrolly-step-5"></p>
+          </div>
+        </div>
+        <div class="step-spacer"></div>
+      </div>
+      <div class="charts-container">
+        <div class="chart-wrap" id="mds-chart"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="body-text">
+      Written down, the whole of classical scaling is one line, and the line is
+      worth staring at because everything else in this section is a consequence
+      of it. For a distance matrix \(D\) and the centring matrix
+      \(J = I - \tfrac{1}{n}\mathbf{1}\mathbf{1}^{\top}\):
+    </p>
+    <p class="body-text">
+      $$ B \;=\; -\tfrac{1}{2}\,J\,D^{(2)}\,J \;=\; X_c X_c^{\top}, \qquad B = U\Lambda U^{\top}, \qquad Z = U_k \Lambda_k^{1/2} $$
+    </p>
+    <p class="body-text" id="identity-note"></p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= which distance ======================= -->
+  <section>
+    <h1 class="body-header">Not Every Dissimilarity Is a Distance</h1>
+    <p class="body-text">
+      That derivation assumed something it never announced: that the numbers in
+      the table came from points in some Euclidean space in the first place. Ask
+      people how similar two things are, or count how often a classifier mixes
+      them up, and there is no reason on earth the answers should be consistent
+      with any arrangement of points anywhere. The remarkable part is that the
+      algebra tells you when they are not, for free, and to a decimal.
+    </p>
+    <br />
+    <p class="body-text">
+      The eigenvalues of \(B\) are the variances of the recovered coordinates,
+      and a variance cannot be negative. If one comes back negative, there is no
+      configuration of points, in any number of dimensions, whose distances are
+      the ones you handed in. So the share of the eigenvalue mass that arrives
+      negative is a direct measurement of how far the table is from being a
+      geometry. Below, the same 178 bottles under six different definitions of
+      how far apart two of them are. Everything is computed in the page.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="metric-widget">
+    <div class="controls-row" style="justify-content: center" id="metric-buttons"></div>
+    <div id="metric-chart"></div>
+    <div class="widget-readout" id="metric-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="metric-note"></p>
+    <br />
+    <p class="body-text" id="stress-note"></p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= metric vs non-metric ======================= -->
+  <section>
+    <h1 class="body-header">When Only the Order Is Real</h1>
+    <p class="body-text" id="ordinal-note"></p>
+    <br />
+    <p class="body-text">
+      So here is the test. Take a configuration whose answer is known, distort
+      every distance by raising it to a power, which bends the numbers a lot and
+      leaves their ordering untouched, and ask both methods to recover the
+      original. Metric scaling minimises the gap between the dissimilarities and
+      the map's distances directly. Non-metric scaling inserts one step: at
+      every iteration it fits the best increasing staircase through the current
+      distances, using the same pool adjacent violators algorithm the
+      <a href="../calibration/">calibration article</a> used on probabilities,
+      and then chases the staircase instead of the data.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="shepard-widget">
+    <div class="controls-row" style="justify-content: center" id="shepard-view-buttons"></div>
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">distortion: every distance to the power <span class="value" id="shepard-gamma-label">1</span></span>
+      <input type="range" class="atlas-range" id="shepard-gamma" aria-label="exponent applied to every dissimilarity" min="0" max="8" step="1" value="4" />
+    </div>
+    <div id="shepard-chart"></div>
+    <div class="widget-readout" id="shepard-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="shepard-note"></p>
+    <br />
+    <p class="body-text" id="noise-note"></p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Noise added to every dissimilarity</th>
+          <th>Order kept</th>
+          <th>Metric MDS</th>
+          <th>Non-metric MDS</th>
+        </tr>
+      </thead>
+      <tbody id="noise-table"></tbody>
+    </table>
+  </div>
+
+  <hr />
+
+  <!-- ======================= factor analysis ======================= -->
+  <section>
+    <h1 class="body-header">A Variance Is Two Things</h1>
+    <p class="body-text" id="factor-intro"></p>
+    <br />
+    <p class="body-text">
+      Written as a model rather than as a rotation, the claim is that every row
+      is a handful of hidden factors plus noise that belongs to one variable
+      alone, so the covariance splits into a low rank part and a diagonal:
+    </p>
+    <p class="body-text">
+      $$ x \;=\; \Lambda z + \varepsilon, \qquad z \sim \mathcal{N}(0, I_k), \qquad \varepsilon \sim \mathcal{N}(0, \Psi),\; \Psi \text{ diagonal} $$
+      $$ \operatorname{Cov}(x) \;=\; \underbrace{\Lambda \Lambda^{\top}}_{\text{shared}} \;+\; \underbrace{\Psi}_{\text{private}} $$
+    </p>
+    <p class="body-text">
+      PCA has no \(\Psi\). It cannot have one: it has no likelihood to maximise,
+      so it has nowhere to put the idea that some of what it sees is not worth
+      explaining. The widget below builds a dataset where the truth is known,
+      and gives one of the eight variables a volume knob. Everything the panels
+      show, both fits included, is computed in the page.
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="factor-widget">
+    <div class="controls-row" style="justify-content: center" id="factor-view-buttons"></div>
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">noise on variable 1: <span class="value" id="factor-sd-label">0.2</span></span>
+      <input type="range" class="atlas-range" id="factor-sd" aria-label="standard deviation of the private noise on the first variable" min="0" max="14" step="1" value="0" />
+    </div>
+    <div id="factor-chart"></div>
+    <div class="widget-readout" id="factor-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="control-note"></p>
+    <br />
+    <p class="body-text" id="scale-note"></p>
+    <br />
+    <p class="body-text" id="rotation-note"></p>
+    <br />
+    <p class="body-text" id="wine-factor-note"></p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the digits ======================= -->
+  <section>
+    <h1 class="body-header">A Table With No Matrix Behind It</h1>
+    <p class="body-text" id="digits-intro"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="digits-widget">
+    <div class="controls-row" style="justify-content: center" id="digits-view-buttons"></div>
+    <div id="digits-chart"></div>
+    <div class="widget-readout" id="digits-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="digits-note"></p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= verdict ======================= -->
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text">
+      Two ways of not trusting the data matrix, and they fail in opposite
+      directions.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Decision</th>
+          <th>Default</th>
+          <th>Why</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">You have coordinates</span></td>
+          <td>PCA, and skip the distance matrix</td>
+          <td id="verdict-pca"></td>
+          <td id="verdict-pca-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">You only have dissimilarities</span></td>
+          <td>Classical scaling, then check the spectrum</td>
+          <td id="verdict-classical"></td>
+          <td id="verdict-classical-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">The numbers are ranks, ratings or counts</span></td>
+          <td>Non-metric MDS</td>
+          <td id="verdict-nonmetric"></td>
+          <td id="verdict-nonmetric-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">Some columns are noisier than others</span></td>
+          <td>Factor analysis, not PCA</td>
+          <td id="verdict-fa"></td>
+          <td id="verdict-fa-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">Naming the factors</span></td>
+          <td>Rotate, and stop pretending the axes were given</td>
+          <td id="verdict-rotation"></td>
+          <td id="verdict-rotation-warn"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="closing-note"></p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! The double centring, the eigendecomposition, the six
+      distance matrices, every SMACOF iteration, the pool adjacent violators
+      staircase and the EM factor analysis above are computed by this page in
+      JavaScript, checked at load time against the scikit-learn answers that
+      <code>src/utils/generate_distances_data.py</code> measured, which is also
+      where the confusion table, the noise sweep and the varimax rotation come
+      from.
+    </p>
+  </section>
+
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text" id="resources-note"></p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://link.springer.com/article/10.1007/BF02288916">[1] Multidimensional Scaling by Optimizing Goodness of Fit to a Nonmetric Hypothesis</a><br />
+      (Kruskal, J. B., Psychometrika, 1964; stress, and the isotonic regression inside it)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://link.springer.com/article/10.1007/BF02289565">[2] The Analysis of Proximities</a><br />
+      (Shepard, R. N., Psychometrika, 1962; the confusion-table-to-dissimilarity conversion this article's last section uses)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://www.jstor.org/stable/2333639">[3] Some Distance Properties of Latent Root and Vector Methods Used in Multivariate Analysis</a><br />
+      (Gower, J. C., Biometrika, 1966; classical scaling, and why its eigenvalues are PCA's)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://link.springer.com/article/10.1007/BF02289451">[4] An IBM 7090 Program for Guttman-Lingoes Smallest Space Analysis</a><br />
+      (Lingoes, J. C., Behavioral Science, 1965; the additive constant that repairs a non-Euclidean table)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://www.jstor.org/stable/2984997">[5] EM Algorithms for ML Factor Analysis</a><br />
+      (Rubin, D. B. &amp; Thayer, D. T., Psychometrika, 1982; the twelve lines this page runs)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://link.springer.com/article/10.1007/BF02289233">[6] The Varimax Criterion for Analytic Rotation in Factor Analysis</a><br />
+      (Kaiser, H. F., Psychometrika, 1958; the rotation that changes the story and not the fit)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://archive.ics.uci.edu/dataset/109/wine">[7] The Wine Recognition Dataset</a><br />
+      (Forina, M. et al., UCI Machine Learning Repository, 178 samples, 3 cultivars)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>

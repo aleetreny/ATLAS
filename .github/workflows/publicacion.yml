@@ -1,0 +1,32 @@
+# El guardia de publicación, en cada push y en cada pull request.
+#
+# Existe porque tres sesiones a la vez escribieron un artículo cada una, en tres
+# ramas, y las tres numeraron el suyo 27 y dos eligieron el mismo acento. Git no
+# detecta nada de eso: los ficheros compartidos dan conflicto de texto y se
+# resuelven a mano, y una resolución a mano puede publicar una portada que
+# miente. Esto lo caza antes de que llegue a main.
+name: publicacion
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: [main]
+
+jobs:
+  coherencia:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # Primero que el guardia sepa disparar, y luego que calle sobre el arbol.
+      # En ese orden: un guardia que calla solo vale si se ha comprobado que
+      # habla.
+      - name: el guardia sabe disparar
+        run: python src/utils/test_check_publication.py
+
+      - name: la publicacion es coherente
+        run: python src/utils/check_publication.py --next

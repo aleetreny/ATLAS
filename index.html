@@ -653,6 +653,26 @@
           </div>
         </div>
 
+        <!-- card: affinities -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./affinities/';" style="cursor: pointer">
+            <img src="assets/thumbnails/affinities.svg"
+                 alt="Affinities article image: two rings of points joined by a nearest-neighbour graph, drawn in two colours because the graph falls into exactly two pieces." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Affinities</h2>
+            <p class="article-description">
+              Affinity propagation and spectral clustering never look at a point,
+              only at the n&sup2; numbers between them. Watch messages elect
+              exemplars with nobody saying k, bend the space until two rings come
+              apart, and score every one of 32,767 possible cuts.
+            </p>
+            <button class="content-button">
+              <a href="./affinities/">Dive In</a>
+            </button>
+          </div>
+        </div>
+
         <!-- card: directions -->
         <div class="article-card">
           <div class="imgBx" onclick="location.href='./directions/';" style="cursor: pointer">
@@ -672,6 +692,85 @@
             </button>
           </div>
         </div>
+
+        <!-- card: distances -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./distances/';" style="cursor: pointer">
+            <img src="assets/thumbnails/distances.svg"
+                 alt="Distances article image: 178 wines placed by classical scaling in three coloured groups, with dark rings marking where PCA puts the same wines, landing on top of them." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Distances</h2>
+            <p class="article-description">
+              Delete the columns, keep only how far apart the wines are, and the
+              same map comes back. Then bend the numbers until only their order
+              survives, and split a variance into the part that is shared and the
+              part that is nobody else's business.
+            </p>
+            <button class="content-button">
+              <a href="./distances/">Dive In</a>
+            </button>
+          </div>
+        </div>
+
+        <!-- card: manifolds -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./manifolds/';" style="cursor: pointer">
+            <img src="assets/thumbnails/manifolds.svg"
+                 alt="Unrolling article image: a Swiss roll seen down its height axis as a spiral of points coloured along the sheet, with a faint neighbourhood graph and a few thick red edges jumping between turns." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Unrolling</h2>
+            <p class="article-description">
+              Two points a hand's width apart in the room can be a corridor apart
+              along the wall. Build the neighbourhood graph yourself, find the few
+              edges that ruin it, and watch a grid fit the data perfectly while
+              recovering nothing.
+            </p>
+            <button class="content-button">
+              <a href="./manifolds/">Dive In</a>
+            </button>
+          </div>
+        </div>
+
+        <!-- card: neighbours -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./neighbours/';" style="cursor: pointer">
+            <img src="assets/thumbnails/neighbours.svg"
+                 alt="Neighbours article image: two hundred handwritten digits placed by t-SNE, forming ten coloured islands separated by empty space." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Neighbours</h2>
+            <p class="article-description">
+              Stop reproducing distances, keep only who is next to whom, and a
+              plane has room. Run the gradient descent yourself, then watch a
+              clump counter collapse to one group while the data never changes,
+              and measure what happened to the sizes and the gaps.
+            </p>
+            <button class="content-button">
+              <a href="./neighbours/">Dive In</a>
+            </button>
+          </div>
+        </div>
+
+        <!-- card: autoencoders -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./autoencoders/';" style="cursor: pointer">
+            <img src="assets/thumbnails/autoencoders.svg"
+                 alt="Bottleneck article image: the two-number plane an encoder maps digits into, coloured by digit, crossed by a crosshair with a ring at the point being decoded." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Bottleneck</h2>
+            <p class="article-description">
+              Every method so far solved for its coordinates and left nothing
+              behind. Fit two functions instead: drag a crosshair anywhere in the
+              plane and a decoder answers, including where no digit ever was.
+            </p>
+            <button class="content-button">
+              <a href="./autoencoders/">Dive In</a>
+            </button>
+          </div>
+        </div>
       </div>
       <details class="roadmap">
         <summary>Full branch map: 2. Unsupervised Structure Discovery</summary>
@@ -683,19 +782,19 @@
             <span class="chip live"><a href="./dbscan/">DBSCAN · HDBSCAN</a></span>
             <span class="chip live"><a href="./assumptions/">OPTICS · Mean Shift</a></span>
             <span class="chip live"><a href="./gmm/">GMM</a></span>
-            <span class="chip">Affinity Propagation</span>
+            <span class="chip live"><a href="./affinities/">Affinity Propagation</a></span>
             <span class="chip live"><a href="./hierarchical/">Agglomerative · BIRCH</a></span>
-            <span class="chip">Spectral Clustering</span>
+            <span class="chip live"><a href="./affinities/">Spectral Clustering</a></span>
           </div>
         </div>
         <div class="branch">
           <h4>2.2 Dimensionality Reduction &amp; Manifolds</h4>
           <div class="chips">
             <span class="chip live"><a href="./directions/">PCA · ICA · NMF</a></span>
-            <span class="chip">Factor Analysis · MDS</span>
-            <span class="chip">t-SNE · UMAP</span>
-            <span class="chip">Isomap · LLE · SOM</span>
-            <span class="chip">Autoencoders</span>
+            <span class="chip live"><a href="./distances/">Factor Analysis · MDS</a></span>
+            <span class="chip live"><a href="./manifolds/">Isomap · LLE · SOM</a></span>
+            <span class="chip live"><a href="./neighbours/">t-SNE · UMAP</a></span>
+            <span class="chip live"><a href="./autoencoders/">Autoencoders</a></span>
           </div>
         </div>
         <div class="branch">

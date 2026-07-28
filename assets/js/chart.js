@@ -145,6 +145,63 @@ export function axisLabels(g, w, h, { x = '', y = '' } = {}) {
   }
 }
 
+/* Break a caption across as many lines as it needs to fit `maxWidth` user
+ * units, and return how many it used.
+ *
+ * The alternative, shrinking the font until it fits, is worse than it looks: a
+ * caption at 8px inside a 760-unit viewBox renders at about 3.6px on a 375px
+ * screen, which is below the 5px floor the responsive sweep enforces. Wrapping
+ * costs vertical margin and costs nothing else. Callers must leave room: a two
+ * line caption needs `lineHeight` more space above the plot than a one line one.
+ *
+ * Measured rather than counted, because a caption's width depends on the font
+ * that actually loaded, and "about ninety characters" was wrong by a third. */
+export function wrapLabel(sel, text, maxWidth, { lineHeight = 13 } = {}) {
+  sel.text(null);
+  const x = sel.attr('x') ?? 0;
+  const words = String(text).split(/\s+/).filter(Boolean);
+  if (!words.length) return 0;
+  let line = [];
+  let lines = 1;
+  let tspan = sel.append('tspan').attr('x', x).attr('dy', 0);
+  words.forEach((word) => {
+    line.push(word);
+    tspan.text(line.join(' '));
+    if (tspan.node().getComputedTextLength() > maxWidth && line.length > 1) {
+      line.pop();
+      tspan.text(line.join(' '));
+      line = [word];
+      lines += 1;
+      tspan = sel.append('tspan').attr('x', x).attr('dy', lineHeight).text(word);
+    }
+  });
+  return lines;
+}
+
+/* Scales for a map whose two axes must measure the same thing per unit, filling
+ * the whole panel rather than sitting in an inset box.
+ *
+ * The naive version keeps the aspect ratio by shortening the RANGES, which
+ * leaves the x axis floating as a stub across the middle of the panel while the
+ * y axis runs the full height. Widening the DOMAIN instead keeps the units
+ * square and puts both axes where a reader expects to find them. */
+export function equalScales(points, w, h, { pad = 1.08 } = {}) {
+  const xs = points.map((p) => p[0]);
+  const ys = points.map((p) => p[1]);
+  const cx = (Math.min(...xs) + Math.max(...xs)) / 2;
+  const cy = (Math.min(...ys) + Math.max(...ys)) / 2;
+  const spanX = (Math.max(...xs) - Math.min(...xs)) * pad || 1;
+  const spanY = (Math.max(...ys) - Math.min(...ys)) * pad || 1;
+  const unit = Math.min(w / spanX, h / spanY);
+  const dx = w / unit;
+  const dy = h / unit;
+  return {
+    x: d3.scaleLinear().domain([cx - dx / 2, cx + dx / 2]).range([0, w]),
+    y: d3.scaleLinear().domain([cy - dy / 2, cy + dy / 2]).range([h, 0]),
+    unit,
+  };
+}
+
 /* Chart annotation text with white halo (paint-order trick). */
 export function annotate(g, x, y, text, { anchor = 'start' } = {}) {
   return g
