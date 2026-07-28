@@ -23,17 +23,32 @@ export function encDistance(delta, L) {
   return Math.sqrt(s);
 }
 
-/* The separation at which the encoding has used up half its range: the length
-   scale below which the network can no longer tell two points apart cheaply. */
+/* The separation at which the encoding has first used up half its range: the
+ * length scale below which the network cannot cheaply tell two points apart.
+ *
+ * Scan then bisect, and not bisect alone. The curve is a sum of cosines and
+ * therefore not monotone: a plain bisection over [0, dmax] converges to
+ * whichever crossing it happens to fall into, and with eight bands it returned
+ * 0.97 scene units, the same answer as no bands at all, for a curve that
+ * actually saturates two hundred times sooner. What is wanted is the FIRST
+ * crossing, so the bracket has to be found by walking up from zero.
+ */
 export function halfSeparation(L, dmax = 2) {
   const target = 0.5 * encSaturation(L, dmax);
-  let lo = 0;
-  let hi = dmax;
-  for (let k = 0; k < 60; k++) {
-    const mid = 0.5 * (lo + hi);
-    if (encDistance(mid, L) < target) lo = mid; else hi = mid;
+  const N = 4000 * Math.max(1, L);
+  for (let k = 1; k <= N; k++) {
+    const d = (k / N) * dmax;
+    if (encDistance(d, L) >= target) {
+      let lo = ((k - 1) / N) * dmax;
+      let hi = d;
+      for (let it = 0; it < 40; it++) {
+        const mid = 0.5 * (lo + hi);
+        if (encDistance(mid, L) < target) lo = mid; else hi = mid;
+      }
+      return 0.5 * (lo + hi);
+    }
   }
-  return 0.5 * (lo + hi);
+  return dmax;
 }
 
 function encSaturation(L, dmax) {

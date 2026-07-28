@@ -44,6 +44,11 @@
       align-items: start;
       justify-items: center;
     }
+    /* A ladder of seven or more small frames, kept on one line. */
+    .frame-row.dense {
+      grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+      gap: 0.6rem;
+    }
     .frame-cell {
       width: 100%;
       max-width: 220px;

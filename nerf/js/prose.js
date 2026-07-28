@@ -6,6 +6,8 @@
  * survives longest because nothing on the page contradicts it.
  */
 
+import { halfSeparation } from './encoding-widget.js';
+
 const n0 = (v) => Math.round(v).toLocaleString('en-US');
 const f1 = (v) => v.toFixed(1);
 const f2 = (v) => v.toFixed(2);
@@ -117,8 +119,17 @@ export function initProse(data) {
     + (crossing
       ? `The sum passes ${target} dB at <span class="bold">${crossing.steps}</span> steps. `
       : `The sum never reaches ${target} dB in this sweep. `)
-    + `The rate is about <span class="bold">${f1(perDouble)} dB per doubling</span>, which is what `
-    + `first-order quadrature of an integrand with a wall in it looks like. Everything below renders at `
+    + `The rate is about <span class="bold">${f1(perDouble)} dB per doubling</span>, `
+    + (perDouble < 8
+      ? `which is first-order quadrature of an integrand with a wall in it. `
+      : perDouble < 11
+        ? `between the 6 dB a first-order rule gives and the 12 dB of a second-order one, which is what a `
+          + `midpoint rule does on an integrand that is smooth but only just: the shell each solid fades `
+          + `across is ${M.shell * 2} units wide and a step at the low end of this sweep is wider than `
+          + `that. `
+        : `faster than the 6 dB a first-order rule gives, because the shell each solid fades across `
+          + `makes the integrand smooth rather than discontinuous. `)
+    + `Everything below renders at `
     + `${M.eval_steps} steps, and the reason that number is not larger is the next section.`);
 
   /* ------------------------------------------------------------- the field */
@@ -154,12 +165,28 @@ export function initProse(data) {
   const gainWide = usedL.inside - wide.inside;
   const floor = Math.max(0.2, N.seed_spread || 0);
   const saturates = lad.filter((r) => r.inside >= best.inside - floor)[0];
+  /* Where the trained ladder makes its biggest step, and what the closed-form
+     panel says the encoding's resolution is on either side of it. The two
+     panels are the same story told twice and the prose should join them. */
+  const halfX = (M.aabb.hi[0] - M.aabb.lo[0]) / 2;
+  const pixelU = (2 * M.cam_radius * Math.tan((M.fov_deg * Math.PI) / 360)) / M.res;
+  let jump = null;
+  for (let i = 1; i < lad.length; i++) {
+    const step = lad[i].inside - lad[i - 1].inside;
+    if (!jump || step > jump.step) {
+      jump = {
+        step, lo: lad[i - 1], hi: lad[i],
+        loPx: (halfSeparation(lad[i - 1].L) * halfX) / pixelU,
+        hiPx: (halfSeparation(lad[i].L) * halfX) / pixelU,
+      };
+    }
+  }
   set('encoding-result',
     `Measured, and the measurement is smaller than the usual telling of it. Going from no bands to `
     + `${usedL.L} is worth <span class="bold">${f2(gain)} dB</span> on the held-out cameras, `
     + `${db(zero.inside)} against ${db(usedL.inside)}, which is a factor of `
-    + `${f1(10 ** (gain / 10))} in squared error and clearly visible in the strip above, but it is not `
-    + `the difference between a picture and a fog. `
+    + `${f1(10 ** (gain / 10))} in squared error, though in the strip above you have to look at the `
+    + `edges to find it. It is not the difference between a picture and a fog. `
     /* The control is the whole point of the section, so which way it came out
        is a branch: how much of the gap is still there once the encoding-free
        network is given the same number of weights to spend on width. */
@@ -196,9 +223,13 @@ export function initProse(data) {
             + `rows are not distinguishable. `
           : `more than the ${f2(N.seed_spread)} dB this recipe moves between random seeds, so that one `
             + `is a real difference and the page is not showing the best fit. `))
-    + `The reason is in the left panel and it is a length scale. This scene is made of large smooth `
-    + `solids with soft edges; there is no texture anywhere in it. A network that can hold an edge is `
-    + `all it needs, and past that the extra bands have nothing left to resolve.`);
+    + `The reason is in the left panel and it is a length scale, and the two panels line up: the ladder's `
+    + `biggest step is from L = ${jump.lo.L} to L = ${jump.hi.L}, `
+    + `<span class="bold">${f2(jump.hi.inside - jump.lo.inside)} dB</span>, and that is exactly where the `
+    + `encoding stops needing ${f1(jump.loPx)} pixels to tell two points apart and starts needing `
+    + `${f1(jump.hiPx)}. Every band after that halves a number that is already below a pixel, and this `
+    + `scene is made of large smooth solids with no texture anywhere in it: a network that can hold an `
+    + `edge is all it needs, and past that the extra bands have nothing left to resolve.`);
 
   /* --------------------------------------------------------- running it here */
   const kB = (b) => `${Math.round(b / 1024)} kB`;
@@ -248,7 +279,15 @@ export function initProse(data) {
     + `at the underside of a floor that no camera ever saw.`);
 
   const dInside = vN.inside - v0.inside;
-  const dBelow = mean(pick(vN.per_outside, belowIdx)) - mean(pick(v0.per_outside, belowIdx));
+  const belowOf = (r) => mean(pick(r.per_outside, belowIdx));
+  const dBelow = belowOf(vN) - belowOf(v0);
+  /* The below-the-band curve does not have to go the same way as the one
+     inside it, and here it does not: it peaks in the middle. That is worth its
+     own sentence, because "more photographs is better" is exactly the belief
+     this section exists to complicate. */
+  const bestBelow = data.views.reduce((a, b) => (belowOf(b) > belowOf(a) ? b : a));
+  const nonMono = bestBelow.views !== vN.views
+    && belowOf(bestBelow) - belowOf(vN) > Math.max(0.3, N.seed_spread);
   set('views-result',
     `Quadrupling the photographs, ${v0.views} to ${vN.views}, moves the held-out cameras inside the band `
     + `by <span class="bold">${f2(dInside)} dB</span> and the ones below it by `
@@ -257,6 +296,17 @@ export function initProse(data) {
       ? `More cameras in the same band buy the band, and buy much less outside it, which is the honest `
         + `way to read every novel view number ever published: it is interpolation inside the hull of the `
         + `cameras, and the word "novel" is doing less work than it sounds like it is.`
+        + (nonMono
+          ? ` And below the band it is not even monotone. The best score down there belongs to the `
+            + `${bestBelow.views}-photograph fit, ${db(belowOf(bestBelow))} against `
+            + `<span class="bold">${db(belowOf(vN))}</span> for the ${vN.views}-photograph one: `
+            + `<span class="bold">${f2(belowOf(bestBelow) - belowOf(vN))} dB worse for twice the `
+            + `data</span>, and well clear of the ${f2(N.seed_spread)} dB this recipe moves between `
+            + `seeds. Extra photographs inside the band are extra reasons to explain the band, and `
+            + `nothing whatsoever is holding the field honest underneath it, so the better it fits what `
+            + `it was shown the freer it is to drift where it was not. That is the whole argument of `
+            + `this section in one non-monotone curve, and it was not the curve I expected to draw.`
+          : '')
       : dBelow > dInside + 0.3
         ? `Here the cameras outside the band gained more than the ones inside it, which is not what the `
           + `hull argument predicts and is worth more than the prediction was.`
@@ -282,12 +332,27 @@ export function initProse(data) {
     + `inside the lobe the direction <span class="bold">${swing(hotGain)}</span> `
     + `(${db(V.off_hot)} to ${db(V.on_hot)}) and outside it, where nothing depends on where you stand, `
     + `it <span class="bold">${swing(coldGain)}</span>. `
-    + (Math.abs(hotGain) > 3 * Math.abs(coldGain) + 0.2
+    + (hotGain > 3 * Math.abs(coldGain) + 0.2
       ? `The effect is where the theory says it is and nowhere else, which is the cleanest form this kind `
         + `of result comes in: an aggregate that resolves nothing and a decomposition that does.`
-      : `The effect is not confined to the lobe, which the theory did not predict: taking the direction `
-        + `away also costs ${f2(coldGain)} dB where the radiance does not depend on it, so the extra `
-        + `input is doing something besides the highlight.`));
+      : hotGain <= N.seed_spread
+        /* The decomposition was supposed to find the effect inside the lobe. It
+           found it everywhere else instead, and the honest reading is the one
+           the numbers force, not the one the section was written for. */
+        ? `That is the decomposition finding the opposite of what it was built to find. Inside the lobe, `
+          + `where the radiance genuinely depends on where you stand, the direction input is worth `
+          + `${f2(hotGain)} dB, which is inside the ${f2(N.seed_spread)} dB this recipe moves between `
+          + `random seeds: the two are not distinguishable there. All of the gain is outside the lobe, `
+          + `where nothing depends on direction at all. `
+          + `Two things could do that and this page cannot separate them. The lobe is the hardest part `
+          + `of the frame for both models, ${db(V.on_hot)} against ${db(V.on_cold)} elsewhere, so there `
+          + `may simply be no room to win there at this scale; and the direction input is also `
+          + `${3 + 6 * N.arch.Ld} extra numbers into the colour head, which the network is free to spend `
+          + `on anything, including the parts of the scene that never move. The measurement stands and `
+          + `the usual explanation for it does not.`
+        : `The effect is not confined to the lobe, which the theory did not predict: the direction is `
+          + `worth ${f2(coldGain)} dB where the radiance does not depend on it at all, against `
+          + `${f2(hotGain)} where it does, so the extra input is doing something besides the highlight.`));
 
   /* ------------------------------------------------------------- the blobs */
   set('splat-intro',
@@ -397,9 +462,13 @@ export function initProse(data) {
     + `would have scored exactly as well. So here is the other question, in scene units instead of `
     + `decibels: over the pixels where the fit and the scene agree there is a surface at all, the field `
     + `puts it <span class="bold">${G.field_inside.depth_error}</span> away from where it is and the `
-    + `blobs <span class="bold">${G.splat_inside.depth_error}</span>, against a pixel that is `
-    + `${G.pixel} units across at this distance. They disagree with the scene about whether there is `
-    + `anything there at all on ${pc(G.field_inside.silhouette, 2)} and `
+    + `blobs <span class="bold">${G.splat_inside.depth_error}</span>. A pixel is ${G.pixel} units across `
+    + `at this distance, so that is `
+    + `${f2(G.field_inside.depth_error / G.pixel)} against `
+    + `${f2(G.splat_inside.depth_error / G.pixel)} pixels of depth, a factor of `
+    + `<span class="bold">${f1(G.splat_inside.depth_error / G.field_inside.depth_error)}</span> `
+    + `between two models the photographs put ${f2(Math.abs(gap))} dB apart. They disagree with the `
+    + `scene about whether there is anything there at all on ${pc(G.field_inside.silhouette, 2)} and `
     + `${pc(G.splat_inside.silhouette, 2)} of the frame. `
     + `Below the photographed band both get worse, to ${G.field_outside.depth_error} and `
     + `${G.splat_outside.depth_error}, `

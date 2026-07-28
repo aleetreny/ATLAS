@@ -148,7 +148,10 @@ export async function loadSheet(src, tile, cols) {
 export function drawTiles(container, tiles, labels, tile, { max = 132, highlight = -1 } = {}) {
   container.innerHTML = '';
   const row = document.createElement('div');
-  row.className = 'frame-row';
+  /* Seven tiles at the grid's ordinary 150px minimum wrap to five and two,
+     which reads as two groups when it is one strip. Dense drops the minimum so
+     a long ladder stays on one line. */
+  row.className = tiles.length > 5 ? 'frame-row dense' : 'frame-row';
   container.appendChild(row);
   tiles.forEach((t, i) => {
     const f = makeFrame(row, labels[i] ?? '', { max });

@@ -145,11 +145,20 @@ export function initAnisoWidget(data, sheets) {
   const ys = pts.map((p) => p.y).concat(extras.map((e) => e.inside));
   const x = d3.scaleLog().domain([Math.min(...xs) * 0.8, Math.max(...xs) * 1.25]).range([0, c.w]);
   const y = d3.scaleLinear().domain([Math.min(...ys) - 1, Math.max(...ys) + 1]).range([c.h, 0]).nice();
-  /* the whole ladder spans less than a decade, so an exponent-rounded tick list
-     collapses to the same value three times over. Let the shared thinner pick
-     from d3's own log ticks instead. */
-  drawGrid(c.g, x, y, c.w, c.h, { xTicks: 5, yTicks: 5 });
-  drawAxes(c.g, x, y, c.w, c.h, { xTicks: 5, xFmt: d3.format(','), yTicks: 5 });
+  /* The whole ladder spans less than a decade. An exponent-rounded tick list
+     collapses to the same value three times over, and d3's own log ticks put
+     "50,000" and "60,000" on top of each other, so the values are the 1-2-5
+     ladder filtered to the domain: never crowded, always round. */
+  const [xa, xb] = x.domain();
+  const xv = [];
+  for (let e = -1; e <= 9; e++) {
+    [1, 2, 5].forEach((m) => {
+      const v = m * 10 ** e;
+      if (v >= xa && v <= xb) xv.push(v);
+    });
+  }
+  drawGrid(c.g, x, y, c.w, c.h, { xValues: xv, yTicks: 5 });
+  drawAxes(c.g, x, y, c.w, c.h, { xValues: xv, xFmt: d3.format(','), yTicks: 5 });
   axisLabels(c.g, c.w, c.h, { x: 'numbers stored', y: 'held-out PSNR' });
   c.g.append('path').datum(pts.map((p) => [x(p.x), y(p.y)])).attr('d', d3.line())
     .attr('fill', 'none').attr('stroke', 'var(--primary)').attr('stroke-width', 2.6);
