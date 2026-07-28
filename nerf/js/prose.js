@@ -346,10 +346,10 @@ export function initProse(data) {
           + `where nothing depends on direction at all. `
           + `Two things could do that and this page cannot separate them. The lobe is the hardest part `
           + `of the frame for both models, ${db(V.on_hot)} against ${db(V.on_cold)} elsewhere, so there `
-          + `may simply be no room to win there at this scale; and the direction input is also `
-          + `${3 + 6 * N.arch.Ld} extra numbers into the colour head, which the network is free to spend `
-          + `on anything, including the parts of the scene that never move. The measurement stands and `
-          + `the usual explanation for it does not.`
+          + `may simply be no room to win there at this scale; and the direction is also `
+          + `${3 + 6 * N.arch.Ld} extra inputs to the colour head, which is capacity the network can `
+          + `spend on anything at all, including the parts of the scene that never move. The measurement `
+          + `stands and the usual explanation for it does not.`
         : `The effect is not confined to the lobe, which the theory did not predict: the direction is `
           + `worth ${f2(coldGain)} dB where the radiance does not depend on it at all, against `
           + `${f2(hotGain)} where it does, so the extra input is doing something besides the highlight.`));

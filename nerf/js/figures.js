@@ -61,5 +61,13 @@ export function initViewdep(data, sheets) {
     + `frame. Over the whole frame, taking the direction away moves the held-out PSNR from `
     + `${fmt.db(V.on_all)} to ${fmt.db(V.off_all)}. Inside those pixels it moves from `
     + `<span class="bold">${fmt.db(V.on_hot)}</span> to <span class="bold">${fmt.db(V.off_hot)}</span>, `
-    + `and outside them from ${fmt.db(V.on_cold)} to ${fmt.db(V.off_cold)}.`;
+    + `and outside them from ${fmt.db(V.on_cold)} to ${fmt.db(V.off_cold)}. `
+    /* Every one of the three pairs can go either way, and the middle one going
+       up is the finding, so it gets named rather than left looking like a
+       transcription error. */
+    + (V.off_hot > V.on_hot
+      ? `That middle pair is the wrong way round: inside the lobe, the only part of this scene where `
+        + `the radiance depends on where you stand, taking the direction away made it `
+        + `<span class="bold">better</span>. The paragraph below is about that.`
+      : `The middle pair is the one the theory is about.`);
 }
