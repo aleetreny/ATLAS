@@ -45,18 +45,29 @@ OUT = ROOT / "pretraining" / "data"
 CACHE = (Path(os.environ.get("ATLAS_DATA_DIR", Path.home() / ".atlas_vision_data"))
          / "pretraining_cache")
 
-D_MODEL = 128
+D_MODEL = 96
 HEADS = 4
-LAYERS = 3
+LAYERS = 2
 SEQ = 48
-STEPS = 1600
-BATCH = 48
+STEPS = 1200
+BATCH = 32
 MASK_RATE = 0.15
+VOCAB_CAP = 8000
+PROBE_CHUNKS = 6000
+
+# La huella de la configuracion, pegada al nombre de cada cache.
+#
+# Este articulo entrena OCHO modelos, asi que la tentacion de tocar un tamano y
+# volver a lanzar es constante, y sin esto la tirada siguiente leeria los pesos
+# del tamano anterior y publicaria una comparacion entre configuraciones
+# distintas sin decir ni una palabra. Un cache que no sabe con que se hizo es
+# peor que no tener cache.
+TAG = f"d{D_MODEL}l{LAYERS}h{HEADS}s{STEPS}b{BATCH}v{VOCAB_CAP}q{SEQ}p{PROBE_CHUNKS}"
 
 
-def cached(name, fn):
+def cached(name, fn, tag=True):
     CACHE.mkdir(parents=True, exist_ok=True)
-    path = CACHE / f"{name}.pkl"
+    path = CACHE / (f"{name}.{TAG}.pkl" if tag else f"{name}.pkl")
     if path.is_file():
         with path.open("rb") as fh:
             return pickle.load(fh)
@@ -88,20 +99,43 @@ def streams(sents, wi, seq=SEQ):
     flat = []
     for s in sents:
         for w, _ in s:
-            flat.append(wi.get(w.lower(), 1))
+            flat.append(wi.get(w.lower(), 1))  # 1 es <unk>, y 0 solo es relleno
     n = (len(flat) // seq) * seq
     return np.array(flat[:n], dtype=np.int64).reshape(-1, seq)
 
 
-def special_vocab(words):
-    """El vocabulario mas los tokens que los objetivos necesitan.
+def build_vocab(train, cap=VOCAB_CAP):
+    """El vocabulario del corpus recortado, con relleno y desconocido separados.
 
-    <pad> 0 y <unk> 1 ya vienen del articulo anterior; aqui se anaden <mask>,
-    que es lo que BERT pone donde borro, y los centinelas de tramo de T5, que
-    son lo que marca el hueco en la entrada y lo que lo abre en la salida.
+    Dos decisiones, y las dos se pagaron antes en este mismo modulo.
+
+    **El recorte** es lo que hace la comparacion asequible. La capa de salida de
+    los tres brazos es un softmax sobre el vocabulario entero en cada posicion,
+    asi que el tamano del vocabulario, y no la profundidad, es la factura
+    dominante de esta pagina: de 19.429 palabras a 8.000 son cinco veces mas
+    pasos en el mismo tiempo, y lo que se compra con ellos es exactamente lo que
+    el articulo mide, que son pasos y no parametros. El recorte es identico en
+    los tres brazos y en todo el barrido, asi que no puede favorecer a ninguno.
+    Los modelos de verdad resuelven esto con subpalabras, que no dejan nada
+    fuera; aqui lo que cae fuera se lee como <unk> y la cobertura se publica.
+
+    **<pad> y <unk> separados** es la correccion de un fallo real. La primera
+    version heredaba el vocabulario del articulo anterior, donde <unk> es el
+    indice 0, y ademas trataba el 0 como relleno en tres sitios (`x > 0` al
+    elegir que enmascarar, `Y > 0` al contar predicciones supervisadas). O sea
+    que una palabra desconocida se contaba como hueco vacio, y los tres brazos
+    la trataban distinto: el causal la predecia y el enmascarado no. Eso es un
+    sesgo en la unica columna que el articulo dice comparar. Con <pad> en el 0
+    y <unk> en el 1, cero significa relleno y nada mas.
     """
+    from collections import Counter
+    wc = Counter(w.lower() for s in train for w, _ in s)
+    top = [w for w, _ in wc.most_common(cap)]
     extra = ["<mask>", "<bos>", "<eos>"] + [f"<x{i}>" for i in range(8)]
-    return list(words) + extra
+    vocab = ["<pad>", "<unk>"] + sorted(top) + extra
+    index = {w: i for i, w in enumerate(vocab)}
+    kept = sum(wc[w] for w in top)
+    return vocab, index, kept / max(1, sum(wc.values()))
 
 
 class Cfg:
@@ -343,7 +377,7 @@ def pretrain(kind, data, V, ids, steps=STEPS, rate=MASK_RATE, seed=SEED, label="
         torch.nn.utils.clip_grad_norm_(m.parameters(), 1.0)
         opt.step()
         if (step + 1) % 200 == 0:
-            hist.append({"step": step + 1, "loss": float(loss)})
+            hist.append({"step": step + 1, "loss": float(loss.detach())})
             print(f"      {label} paso {step + 1}: perdida {float(loss):.4f}")
     # Se devuelve el state_dict como numpy y no el modelo. Las clases del
     # modelo se declaran DENTRO de `build`, asi que son objetos locales y
@@ -364,13 +398,22 @@ def rebuild(kind, V, bundle):
     return m
 
 
-def probe(m, kind, train_s, test_s, wi, ti, V, seq=SEQ, seed=SEED, epochs=3):
+def probe(m, kind, train_s, test_s, wi, ti, V, seq=SEQ, seed=SEED, epochs=12,
+          chunks=PROBE_CHUNKS):
     """Una sonda lineal CONGELADA sobre la tarea de etiquetado de los dos anteriores.
 
     Congelada de verdad: el unico parametro que se ajusta es una matriz de la
     dimension del modelo por el numero de etiquetas. Si se dejase entrenar el
     cuerpo, lo que se mediria seria la capacidad del cuerpo y no lo que el
     preentrenamiento dejo dentro, que es la pregunta.
+
+    Y como el cuerpo esta congelado, sus representaciones no cambian de una
+    epoca a la siguiente, asi que **se calculan una vez**. La primera version
+    volvia a pasar el corpus entero por el modelo en cada epoca y para cada uno
+    de los ocho brazos, que costaba mas que los entrenamientos que la sonda
+    mide. Codificando una vez y ajustando la cabeza sobre lo codificado sale la
+    misma medida, entra mas barato, y de paso la cabeza da mas vueltas y
+    converge mejor, que es lo unico que la sonda tiene que hacer bien.
     """
     import torch
     import torch.nn as nn
@@ -378,11 +421,7 @@ def probe(m, kind, train_s, test_s, wi, ti, V, seq=SEQ, seed=SEED, epochs=3):
     for p in m.parameters():
         p.requires_grad_(False)
 
-    def rep(x):
-        with torch.no_grad():
-            return m.encode(x)
-
-    def batches(sents):
+    def batches(sents, limit=None):
         out = []
         cur_x, cur_y = [], []
         for s in sents:
@@ -392,34 +431,40 @@ def probe(m, kind, train_s, test_s, wi, ti, V, seq=SEQ, seed=SEED, epochs=3):
                 if len(cur_x) == seq:
                     out.append((cur_x, cur_y))
                     cur_x, cur_y = [], []
+            if limit and len(out) >= limit:
+                break
         X = torch.tensor([a for a, _ in out])
         Y = torch.tensor([b for _, b in out])
         return X, Y
 
-    Xtr, Ytr = batches(train_s)
+    def encode_all(X, B=64):
+        parts = []
+        with torch.no_grad():
+            for s in range(0, len(X), B):
+                parts.append(m.encode(X[s:s + B]))
+        return torch.cat(parts)
+
+    Xtr, Ytr = batches(train_s, limit=chunks)
     Xte, Yte = batches(test_s)
+    Htr = encode_all(Xtr)
+    Hte = encode_all(Xte)
+
     head = nn.Linear(D_MODEL, len(ti))
     opt = torch.optim.Adam(head.parameters(), lr=3e-3)
     lossf = nn.CrossEntropyLoss()
     B = 64
     torch.manual_seed(seed)
     for ep in range(epochs):
-        perm = torch.randperm(len(Xtr))
+        perm = torch.randperm(len(Htr))
         for s in range(0, len(perm), B):
             b = perm[s:s + B]
-            h = rep(Xtr[b])
-            loss = lossf(head(h).reshape(-1, len(ti)), Ytr[b].reshape(-1))
+            loss = lossf(head(Htr[b]).reshape(-1, len(ti)), Ytr[b].reshape(-1))
             opt.zero_grad()
             loss.backward()
             opt.step()
-    hit = tot = 0
     with torch.no_grad():
-        for s in range(0, len(Xte), B):
-            h = rep(Xte[s:s + B])
-            p = head(h).argmax(-1)
-            hit += int((p == Yte[s:s + B]).sum())
-            tot += int(p.numel())
-    return hit / max(1, tot)
+        p = head(Hte).argmax(-1)
+    return float((p == Yte).float().mean())
 
 
 def cloze(m, kind, data, V, ids, seed=SEED, n=400):
@@ -454,19 +499,87 @@ def cloze(m, kind, data, V, ids, seed=SEED, n=400):
     return hit / len(gold)
 
 
+def worked_examples(te, vocab, ids, seed=SEED, span=24):
+    """Un trozo real del test, corrompido por cada objetivo con SU propio codigo.
+
+    Esto es lo que la pagina ensena para sostener la frase "lo unico que cambia
+    es una mascara y un objetivo": los tres ejemplos salen de las mismas
+    funciones que entrenan, `corrupt_mlm` y `corrupt_spans`, y no de una
+    reimplementacion en JavaScript. Una reimplementacion en el navegador seria
+    un dibujo de lo que hace el generador, y este sitio publica medidas.
+
+    La diferencia de forma entre los tres es parte de lo que hay que ensenar:
+    el enmascarado y el causal califican posiciones dentro de la misma
+    secuencia, y el de tramos califica una segunda secuencia entera.
+    """
+    x = te[:1, :span].copy()
+    V = len(vocab)
+    words = [vocab[int(t)] for t in x[0]]
+
+    rng = np.random.default_rng(seed + 31)
+    xx, yy, _ = corrupt_mlm(x, ids["mask"], V, MASK_RATE, rng)
+    bert = {
+        "input": [vocab[int(t)] for t in xx[0]],
+        "graded": [i for i in range(span) if yy[0, i] >= 0],
+        "replaced": [i for i in range(span) if xx[0, i] != x[0, i]],
+    }
+
+    # El causal no corrompe nada: la entrada es el texto y el objetivo es el
+    # mismo texto desplazado un paso, que es por lo que se califica en todas
+    # las posiciones a la vez sin borrar ninguna.
+    gpt = {
+        "input": words[:-1],
+        "graded": list(range(span - 1)),
+        "replaced": [],
+    }
+
+    rng = np.random.default_rng(seed + 31)
+    X, Y = corrupt_spans(x, ids["sentinels"], rng, rate=MASK_RATE)
+    t5 = {
+        "input": [vocab[int(t)] for t in X[0]],
+        "target": [vocab[int(t)] for t in Y[0] if int(t) != 0],
+        "graded": [],
+        "replaced": [i for i, t in enumerate(X[0]) if vocab[int(t)].startswith("<x")],
+    }
+    return {"words": words, "bert": bert, "gpt": gpt, "t5": t5}
+
+
+def rate_examples(te, vocab, ids, rates, seed=SEED, span=24):
+    """El mismo trozo enmascarado a cada tasa del barrido.
+
+    Las cinco tiradas usan la misma semilla a proposito, y eso hace que las
+    elecciones esten anidadas: subir la tasa **anade** mascaras en vez de
+    barajarlas, porque la comparacion es `uniforme < tasa` sobre los mismos
+    numeros. Con semillas distintas el deslizador parpadearia y el lector
+    tendria que buscar el patron en vez de verlo crecer.
+    """
+    out = []
+    for rate in rates:
+        rng = np.random.default_rng(seed + 31)
+        xx, yy, frac = corrupt_mlm(te[:1, :span].copy(), ids["mask"], len(vocab),
+                                   rate, rng)
+        out.append({
+            "rate": rate,
+            "input": [vocab[int(t)] for t in xx[0]],
+            "graded": [i for i in range(span) if yy[0, i] >= 0],
+            "fraction": frac,
+        })
+    return out
+
+
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     print("la misma particion del Brown que los dos articulos anteriores")
-    train_s, test_s = cached("split", load_split)
-    words, wi, tags, ti = vocabularies(train_s)
-    vocab = special_vocab(words)
+    train_s, test_s = cached("split", load_split, tag=False)
+    _, _, tags, ti = vocabularies(train_s)
+    vocab, wi, coverage = build_vocab(train_s)
     V = len(vocab)
     ids = {"mask": vocab.index("<mask>"),
            "sentinels": [vocab.index(f"<x{i}>") for i in range(8)]}
     tr = streams(train_s, wi)
     te = streams(test_s, wi)
     print(f"  {len(tr)} trozos de {SEQ} tokens para entrenar, {len(te)} para test, "
-          f"vocabulario {V}")
+          f"vocabulario {V} que cubre el {100 * coverage:.2f}% de los tokens")
 
     print("los tres objetivos, mismo presupuesto y mismos pasos")
     arms = {}
@@ -501,9 +614,17 @@ def main():
         print(f"    {kind:<5} sonda {acc:.4f}, cloze {cz:.4f}, "
               f"senal por token {rows[-1]['signal_per_token']:.4f}")
 
+    print("un trozo de verdad, corrompido por cada objetivo")
+    ex = worked_examples(te, vocab, ids)
+    for k in ("bert", "gpt", "t5"):
+        n = len(ex[k]["graded"]) or len(ex[k].get("target", []))
+        print(f"    {k:<5} califica {n} de los {len(ex['words'])} tokens ensenados")
+
     print("el barrido de la tasa de enmascarado")
+    RATES = (0.05, 0.15, 0.30, 0.40, 0.50)
+    ex_rates = rate_examples(te, vocab, ids, RATES)
     sweep = []
-    for rate in (0.05, 0.15, 0.30, 0.40, 0.50):
+    for rate in RATES:
         b = cached(f"rate_{int(rate * 100)}",
                    lambda r=rate: pretrain("bert", tr, V, ids, rate=r,
                                            label=f"BERT {int(r * 100)}%"))
@@ -523,10 +644,13 @@ def main():
             "seq": SEQ, "vocab": V, "d_model": D_MODEL, "heads": HEADS,
             "layers": LAYERS, "steps": STEPS, "batch": BATCH, "seed": SEED,
             "tags": tags, "mask_rate": MASK_RATE,
+            "vocab_cap": VOCAB_CAP, "coverage": coverage,
         },
         "arms": rows,
         "hist": {k: v["hist"] for k, v in arms.items()},
         "rate_sweep": sweep,
+        "examples": ex,
+        "rate_examples": ex_rates,
     }
     path = OUT / "pretraining.json"
     path.write_text(json.dumps(data, separators=(",", ":")), encoding="utf-8")
