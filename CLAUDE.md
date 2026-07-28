@@ -48,6 +48,19 @@ publicadas, dilo antes de hacerlo, pero hazlo.
 Lo mismo con `docs/estado.md` cuando publiques un artículo: tabla, color de acento
 y lo que quede pendiente.
 
+## Antes de empezar un artículo, y antes de pushearlo
+
+```
+python src/utils/check_publication.py --next   # qué número y qué acento quedan libres
+python src/utils/check_publication.py          # ¿es coherente lo que voy a publicar?
+```
+
+Con varias sesiones abiertas sobre este repo, cada una en su rama, dos sesiones
+pueden elegir el mismo número de artículo y el mismo color sin verse (ya pasó:
+tres ramas reclamando el 27 el mismo día). El guardia no lo evita, pero lo hace
+imposible de publicar sin enterarse: corre en CI en cada push. Cómo se resuelve
+un choque está en [docs/despliegue.md](docs/despliegue.md).
+
 ## Documentación
 
 - **[docs/receta-de-articulo.md](docs/receta-de-articulo.md)**: qué es fijo y qué
