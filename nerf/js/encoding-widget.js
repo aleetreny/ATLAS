@@ -98,7 +98,14 @@ export function initEncodingWidget(data, sheets) {
     drawAxes(c.g, x, y, c.w, c.h, { xValues: xv, yTicks: 5, xFmt: d3.format('~g') });
     axisLabels(c.g, c.w, c.h, { x: 'separation in scene units', y: 'distance in the encoding' });
 
-    const sample = d3.range(0, 401).map((k) => (k / 400) * (dmaxWorld / half));
+    /* The curve is a sum of cosines whose fastest term has period 2/2^(L-1),
+       so past the rise it genuinely oscillates: with eight bands there are
+       thirty-three periods inside this axis. At 400 samples that came out as a
+       sparse wobble that reads as a jittery line rather than as a function,
+       which is the plot lying about its own smoothness. Enough samples to
+       resolve the fastest band, and the oscillation reads as what it is. */
+    const NS = 2000;
+    const sample = d3.range(0, NS + 1).map((k) => (k / NS) * (dmaxWorld / half));
     const draw = (L, active) => {
       const sat = encSaturation(L, 2);
       const pts = sample.filter((d) => d * half >= pixel / 40)
@@ -158,9 +165,19 @@ export function initEncodingWidget(data, sheets) {
     c.g.append('line').attr('x1', 0).attr('x2', c.w)
       .attr('y1', y(wide.inside)).attr('y2', y(wide.inside))
       .attr('stroke', 'var(--cosmos)').attr('stroke-width', 2).attr('stroke-dasharray', '6 4');
-    seriesLabel(c.g, c.w - 4, y(wide.inside) - 8,
-      `no bands, width ${wide.W}: ${wide.inside.toFixed(1)}`,
-      { anchor: 'end', colour: 'var(--cosmos)' });
+    /* The control line sits below the top of every bar, so a label anywhere
+       along it lands on a bar: at the right end it landed across the
+       highlighted one and the last, and no amount of halo makes that look
+       deliberate. It goes in the empty space above the two shortest bars
+       instead, with a dashed drop into the line through the outer padding,
+       which is the only column of the plot no bar occupies. */
+    const lx = 2;
+    const ly = y(hi) + 14;
+    c.g.append('line').attr('x1', lx + 4).attr('x2', lx + 4)
+      .attr('y1', ly + 5).attr('y2', y(wide.inside))
+      .attr('stroke', 'var(--cosmos)').attr('stroke-width', 1.2).attr('stroke-dasharray', '3 3');
+    seriesLabel(c.g, lx, ly, `no bands, width ${wide.W}: ${wide.inside.toFixed(1)}`,
+      { colour: 'var(--cosmos)' });
     c.svg.append('text').attr('class', 'chart-title')
       .attr('x', c.width / 2).attr('y', 20).attr('text-anchor', 'middle')
       .text('what it is worth once trained');

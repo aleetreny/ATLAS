@@ -133,7 +133,10 @@ export function initAnisoWidget(data, sheets) {
   const S = data.splat;
   const node = document.querySelector('#aniso-chart');
   d3.select(node).selectAll('*').remove();
-  const c = makeChart(node, { width: 620, height: 400, margin: { top: 34, right: 136, bottom: 56, left: 66 } });
+  /* The right margin holds three direct labels instead of a legend box, so it
+     is sized by the longest of them: at 136 the last "t" of "spheres, same
+     budget" fell 12.7px outside the svg and was cut off by the container. */
+  const c = makeChart(node, { width: 620, height: 400, margin: { top: 34, right: 158, bottom: 56, left: 66 } });
   const byKey = Object.fromEntries(S.ablations.map((a) => [a.key, a]));
   const pts = S.counts.map((r) => ({ x: r.dof, y: r.inside, n: r.n }));
   const extras = [
