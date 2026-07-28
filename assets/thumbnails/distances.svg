@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <rect width="400" height="300" fill="#f1f3f3" />
+  <!-- dots: scaling, which only ever saw the distances -->
+  <g stroke="#f1f3f3" stroke-width="0.6">
+    <g fill="#007faa">
+      <circle cx="226" cy="70" r="4.4" /><circle cx="243" cy="117" r="4.4" /><circle cx="251" cy="132" r="4.4" />
+      <circle cx="200" cy="120" r="4.4" /><circle cx="144" cy="102" r="4.4" /><circle cx="217" cy="102" r="4.4" />
+      <circle cx="175" cy="134" r="4.4" /><circle cx="138" cy="103" r="4.4" /><circle cx="195" cy="88" r="4.4" />
+      <circle cx="223" cy="149" r="4.4" /><circle cx="146" cy="116" r="4.4" /><circle cx="244" cy="130" r="4.4" />
+      <circle cx="154" cy="128" r="4.4" /><circle cx="221" cy="125" r="4.4" /><circle cx="129" cy="162" r="4.4" />
+      <circle cx="150" cy="119" r="4.4" /><circle cx="225" cy="87" r="4.4" /><circle cx="190" cy="95" r="4.4" />
+      <circle cx="241" cy="117" r="4.4" /><circle cx="165" cy="134" r="4.4" /><circle cx="190" cy="126" r="4.4" />
+      <circle cx="179" cy="61" r="4.4" /><circle cx="172" cy="115" r="4.4" /><circle cx="214" cy="89" r="4.4" />
+      <circle cx="271" cy="153" r="4.4" /><circle cx="177" cy="114" r="4.4" /><circle cx="179" cy="99" r="4.4" />
+      <circle cx="223" cy="93" r="4.4" /><circle cx="216" cy="89" r="4.4" /><circle cx="231" cy="105" r="4.4" />
+      <circle cx="216" cy="81" r="4.4" /><circle cx="238" cy="96" r="4.4" /><circle cx="244" cy="104" r="4.4" />
+      <circle cx="254" cy="112" r="4.4" /><circle cx="180" cy="91" r="4.4" /><circle cx="174" cy="93" r="4.4" />
+      <circle cx="130" cy="160" r="4.4" /><circle cx="216" cy="145" r="4.4" /><circle cx="172" cy="84" r="4.4" />
+      <circle cx="138" cy="115" r="4.4" /><circle cx="161" cy="95" r="4.4" /><circle cx="178" cy="89" r="4.4" />
+      <circle cx="216" cy="91" r="4.4" /><circle cx="205" cy="123" r="4.4" /><circle cx="219" cy="81" r="4.4" />
+      <circle cx="190" cy="97" r="4.4" /><circle cx="250" cy="107" r="4.4" /><circle cx="211" cy="95" r="4.4" />
+      <circle cx="245" cy="117" r="4.4" /><circle cx="198" cy="91" r="4.4" /><circle cx="157" cy="114" r="4.4" />
+      <circle cx="161" cy="116" r="4.4" /><circle cx="208" cy="101" r="4.4" /><circle cx="237" cy="134" r="4.4" />
+      <circle cx="213" cy="92" r="4.4" /><circle cx="214" cy="101" r="4.4" /><circle cx="187" cy="48" r="4.4" />
+      <circle cx="207" cy="77" r="4.4" /><circle cx="203" cy="101" r="4.4" /><circle cx="268" cy="120" r="4.4" />
+      <circle cx="216" cy="93" r="4.4" /><circle cx="180" cy="116" r="4.4" /><circle cx="163" cy="162" r="4.4" />
+      <circle cx="233" cy="137" r="4.4" /><circle cx="213" cy="138" r="4.4" /><circle cx="173" cy="115" r="4.4" />
+      <circle cx="203" cy="96" r="4.4" /><circle cx="199" cy="120" r="4.4" /><circle cx="245" cy="121" r="4.4" />
+      <circle cx="214" cy="101" r="4.4" /><circle cx="250" cy="123" r="4.4" />
+    </g>
+    <g fill="#7e22ce">
+      <circle cx="108" cy="195" r="4.4" /><circle cx="139" cy="146" r="4.4" /><circle cx="131" cy="184" r="4.4" />
+      <circle cx="96" cy="231" r="4.4" /><circle cx="172" cy="179" r="4.4" /><circle cx="116" cy="214" r="4.4" />
+      <circle cx="132" cy="188" r="4.4" /><circle cx="143" cy="200" r="4.4" /><circle cx="131" cy="180" r="4.4" />
+      <circle cx="124" cy="177" r="4.4" /><circle cx="104" cy="191" r="4.4" /><circle cx="152" cy="172" r="4.4" />
+      <circle cx="142" cy="174" r="4.4" /><circle cx="104" cy="186" r="4.4" /><circle cx="81" cy="213" r="4.4" />
+      <circle cx="136" cy="201" r="4.4" /><circle cx="140" cy="220" r="4.4" /><circle cx="148" cy="200" r="4.4" />
+      <circle cx="102" cy="225" r="4.4" /><circle cx="143" cy="184" r="4.4" /><circle cx="114" cy="177" r="4.4" />
+      <circle cx="170" cy="162" r="4.4" /><circle cx="130" cy="152" r="4.4" /><circle cx="155" cy="141" r="4.4" />
+      <circle cx="152" cy="146" r="4.4" /><circle cx="173" cy="181" r="4.4" /><circle cx="151" cy="174" r="4.4" />
+      <circle cx="166" cy="152" r="4.4" /><circle cx="140" cy="174" r="4.4" /><circle cx="138" cy="160" r="4.4" />
+      <circle cx="131" cy="189" r="4.4" /><circle cx="126" cy="196" r="4.4" /><circle cx="155" cy="156" r="4.4" />
+      <circle cx="148" cy="200" r="4.4" /><circle cx="161" cy="174" r="4.4" /><circle cx="148" cy="160" r="4.4" />
+      <circle cx="162" cy="173" r="4.4" /><circle cx="169" cy="158" r="4.4" /><circle cx="159" cy="134" r="4.4" />
+      <circle cx="130" cy="205" r="4.4" /><circle cx="129" cy="177" r="4.4" /><circle cx="182" cy="160" r="4.4" />
+      <circle cx="115" cy="187" r="4.4" /><circle cx="188" cy="164" r="4.4" /><circle cx="142" cy="153" r="4.4" />
+      <circle cx="169" cy="204" r="4.4" /><circle cx="125" cy="188" r="4.4" /><circle cx="122" cy="173" r="4.4" />
+      <circle cx="145" cy="190" r="4.4" /><circle cx="125" cy="204" r="4.4" /><circle cx="111" cy="160" r="4.4" />
+      <circle cx="121" cy="176" r="4.4" /><circle cx="103" cy="200" r="4.4" /><circle cx="139" cy="207" r="4.4" />
+      <circle cx="141" cy="183" r="4.4" /><circle cx="132" cy="192" r="4.4" /><circle cx="124" cy="195" r="4.4" />
+      <circle cx="140" cy="189" r="4.4" /><circle cx="113" cy="203" r="4.4" />
+    </g>
+    <g fill="#ff9900">
+      <circle cx="237" cy="160" r="4.4" /><circle cx="267" cy="165" r="4.4" /><circle cx="282" cy="162" r="4.4" />
+      <circle cx="260" cy="165" r="4.4" /><circle cx="266" cy="142" r="4.4" /><circle cx="285" cy="165" r="4.4" />
+      <circle cx="309" cy="159" r="4.4" /><circle cx="310" cy="173" r="4.4" /><circle cx="286" cy="165" r="4.4" />
+      <circle cx="266" cy="163" r="4.4" /><circle cx="278" cy="163" r="4.4" /><circle cx="264" cy="165" r="4.4" />
+      <circle cx="283" cy="169" r="4.4" /><circle cx="266" cy="168" r="4.4" /><circle cx="262" cy="187" r="4.4" />
+      <circle cx="273" cy="171" r="4.4" /><circle cx="319" cy="173" r="4.4" /><circle cx="300" cy="190" r="4.4" />
+      <circle cx="278" cy="199" r="4.4" /><circle cx="281" cy="212" r="4.4" /><circle cx="265" cy="220" r="4.4" />
+      <circle cx="271" cy="212" r="4.4" /><circle cx="251" cy="197" r="4.4" /><circle cx="277" cy="214" r="4.4" />
+      <circle cx="276" cy="166" r="4.4" /><circle cx="300" cy="205" r="4.4" /><circle cx="281" cy="208" r="4.4" />
+      <circle cx="295" cy="191" r="4.4" /><circle cx="230" cy="252" r="4.4" /><circle cx="245" cy="222" r="4.4" />
+      <circle cx="288" cy="175" r="4.4" /><circle cx="263" cy="188" r="4.4" /><circle cx="279" cy="170" r="4.4" />
+      <circle cx="273" cy="174" r="4.4" /><circle cx="282" cy="198" r="4.4" /><circle cx="298" cy="179" r="4.4" />
+      <circle cx="267" cy="227" r="4.4" /><circle cx="282" cy="190" r="4.4" /><circle cx="261" cy="213" r="4.4" />
+      <circle cx="267" cy="227" r="4.4" /><circle cx="290" cy="148" r="4.4" /><circle cx="303" cy="178" r="4.4" />
+      <circle cx="269" cy="216" r="4.4" /><circle cx="294" cy="216" r="4.4" /><circle cx="273" cy="204" r="4.4" />
+      <circle cx="275" cy="232" r="4.4" /><circle cx="267" cy="219" r="4.4" /><circle cx="289" cy="232" r="4.4" />
+    </g>
+  </g>
+  <!-- rings: PCA on the thirteen columns, landing on top of them -->
+  <g fill="none" stroke="#232f3e" stroke-width="1.3" opacity="0.8">
+    <circle cx="108" cy="195" r="8" /><circle cx="96" cy="231" r="8" /><circle cx="132" cy="188" r="8" />
+    <circle cx="124" cy="177" r="8" /><circle cx="142" cy="174" r="8" /><circle cx="136" cy="201" r="8" />
+    <circle cx="102" cy="225" r="8" /><circle cx="170" cy="162" r="8" /><circle cx="152" cy="146" r="8" />
+    <circle cx="166" cy="152" r="8" /><circle cx="131" cy="189" r="8" /><circle cx="148" cy="200" r="8" />
+    <circle cx="162" cy="173" r="8" /><circle cx="130" cy="205" r="8" /><circle cx="115" cy="187" r="8" />
+    <circle cx="169" cy="204" r="8" /><circle cx="145" cy="190" r="8" /><circle cx="121" cy="176" r="8" />
+    <circle cx="141" cy="183" r="8" /><circle cx="140" cy="189" r="8" /><circle cx="243" cy="117" r="8" />
+    <circle cx="144" cy="102" r="8" /><circle cx="138" cy="103" r="8" /><circle cx="146" cy="116" r="8" />
+    <circle cx="221" cy="125" r="8" /><circle cx="225" cy="87" r="8" /><circle cx="165" cy="134" r="8" />
+    <circle cx="172" cy="115" r="8" /><circle cx="177" cy="114" r="8" /><circle cx="216" cy="89" r="8" />
+    <circle cx="238" cy="96" r="8" /><circle cx="180" cy="91" r="8" /><circle cx="216" cy="145" r="8" />
+    <circle cx="161" cy="95" r="8" /><circle cx="205" cy="123" r="8" /><circle cx="250" cy="107" r="8" />
+    <circle cx="198" cy="91" r="8" /><circle cx="208" cy="101" r="8" /><circle cx="214" cy="101" r="8" />
+    <circle cx="203" cy="101" r="8" /><circle cx="180" cy="116" r="8" /><circle cx="213" cy="138" r="8" />
+    <circle cx="199" cy="120" r="8" /><circle cx="250" cy="123" r="8" /><circle cx="282" cy="162" r="8" />
+    <circle cx="285" cy="165" r="8" /><circle cx="286" cy="165" r="8" /><circle cx="264" cy="165" r="8" />
+    <circle cx="262" cy="187" r="8" /><circle cx="300" cy="190" r="8" /><circle cx="265" cy="220" r="8" />
+    <circle cx="277" cy="214" r="8" /><circle cx="281" cy="208" r="8" /><circle cx="245" cy="222" r="8" />
+    <circle cx="279" cy="170" r="8" /><circle cx="298" cy="179" r="8" /><circle cx="261" cy="213" r="8" />
+    <circle cx="303" cy="178" r="8" /><circle cx="273" cy="204" r="8" /><circle cx="289" cy="232" r="8" />
+  </g>
+</svg>

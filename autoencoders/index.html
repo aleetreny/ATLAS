@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bottleneck | ATLAS</title>
+  <meta name="description" content="A visual, interactive introduction to autoencoders: drag a point across a two-number latent space and watch a trained decoder answer, see why a linear autoencoder finds PCA's plane but not PCA's axes, and measure what a bottleneck buys over a projection." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/autoencoders/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="Bottleneck | ATLAS" />
+  <meta property="og:description" content="A visual, interactive introduction to autoencoders: drag a point across a two-number latent space and watch a trained decoder answer, see why a linear autoencoder finds PCA's plane but not PCA's axes, and measure what a bottleneck buys over a projection." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/autoencoders/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Bottleneck | ATLAS" />
+  <meta name="twitter:description" content="A visual, interactive introduction to autoencoders: drag a point across a two-number latent space and watch a trained decoder answer, see why a linear autoencoder finds PCA's plane but not PCA's axes, and measure what a bottleneck buys over a projection." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    /* Per-article theme. Everything else inherits from these two. */
+    :root {
+      --primary: #be123c;
+      --secondary: #9b0e30;
+    }
+    /* Width only: a margin here would override .interactive-full's rhythm. */
+    .narrow-widget {
+      max-width: 860px;
+    }
+    .widget-readout {
+      overflow-x: auto;
+    }
+    .ae-table {
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      margin-top: 0.4rem;
+      width: 100%;
+    }
+    .ae-table th,
+    .ae-table td {
+      padding: 4px 10px 4px 0;
+      text-align: left;
+      font-weight: 400;
+      white-space: nowrap;
+    }
+    .ae-table th {
+      font-family: var(--font-heavy);
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .ae-table td:first-child,
+    .ae-table th:first-child {
+      opacity: 0.75;
+    }
+    .ae-table td:last-child,
+    .ae-table th:last-child {
+      white-space: normal;
+    }
+    .ae-note {
+      margin-top: 0.6rem;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+    /* The latent explorer is a chart and a picture side by side. */
+    .ae-pair {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.4rem;
+      align-items: flex-start;
+      justify-content: center;
+    }
+    .ae-pair canvas {
+      border: 1px solid var(--stone);
+      background: var(--white);
+    }
+  </style>
+</head>
+<body>
+  <!-- ======================= chrome ======================= -->
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <!-- ======================= hero ======================= -->
+  <section id="intro">
+    <h1 id="intro-hed">Bottleneck</h1>
+    <h1 id="intro-sub">Every method in this module solved for its coordinates and left nothing behind; this one fits two functions instead, so the map can be applied to a row it has never seen and read backwards</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 2.2 · Dimensionality Reduction · Learned Compression</span>
+  </section>
+
+  <br />
+
+  <!-- ======================= introduction ======================= -->
+  <section>
+    <p class="body-text">
+      Five methods so far, and one thing none of them does. PCA, classical and
+      non-metric scaling, Isomap, locally linear embedding, t-SNE and UMAP all
+      produce coordinates by <span class="bold">solving</span> for them: an
+      eigenproblem, a stress, a graph, a divergence. When the solve is finished
+      the coordinates exist and nothing else does.
+    </p>
+    <br />
+    <p class="body-text">
+      That has two consequences that only show up when you try to use one.
+      Hand it a new row and there is nowhere to put it: PCA can project, because
+      a projection is a matrix, but for
+      <a href="../neighbours/">t-SNE</a> and <a href="../manifolds/">Isomap</a>
+      the honest answer is to run the whole fit again with the new row in it, at
+      which point every old coordinate has moved too. And go the other way, from
+      two coordinates back to a row, and there is no way at all.
+    </p>
+    <br />
+    <p class="body-text" id="opening-note"></p>
+  </section>
+
+  <!-- ======================= scrolly ======================= -->
+  <section>
+    <h1 class="body-header">Ask For Both Directions</h1>
+    <p class="body-text" id="scrolly-intro"></p>
+  </section>
+
+  <section id="ae-scrolly" class="scrolly">
+    <div class="scrolly-container">
+      <div class="steps-container">
+        <div class="step" data-index="0">
+          <div class="step-content">
+            <h3>Squeeze and Rebuild</h3>
+            <p id="scrolly-step-0"></p>
+          </div>
+        </div>
+        <div class="step" data-index="1">
+          <div class="step-content">
+            <h3>With Nothing Bent, It Is PCA</h3>
+            <p id="scrolly-step-1"></p>
+          </div>
+        </div>
+        <div class="step" data-index="2">
+          <div class="step-content">
+            <h3>The Same Plane, Different Axes</h3>
+            <p id="scrolly-step-2"></p>
+          </div>
+        </div>
+        <div class="step" data-index="3">
+          <div class="step-content">
+            <h3>Now Let It Bend</h3>
+            <p id="scrolly-step-3"></p>
+          </div>
+        </div>
+        <div class="step" data-index="4">
+          <div class="step-content">
+            <h3>And Ask It About a Digit It Never Saw</h3>
+            <p id="scrolly-step-4"></p>
+          </div>
+        </div>
+        <div class="step-spacer"></div>
+      </div>
+      <div class="charts-container">
+        <div class="chart-wrap" id="ae-chart"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="body-text">
+      Written down it is two functions and one loss, and the only structural
+      requirement is that \(k\) is smaller than \(p\):
+    </p>
+    <p class="body-text">
+      $$ z = f_{\theta}(x) \in \mathbb{R}^{k}, \qquad \hat{x} = g_{\phi}(z) \in \mathbb{R}^{p}, \qquad k \ll p $$
+      $$ \min_{\theta, \phi}\; \tfrac{1}{n}\textstyle\sum_i \lVert x_i - g_{\phi}(f_{\theta}(x_i)) \rVert^2 $$
+    </p>
+    <p class="body-text" id="theorem-note"></p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the latent space ======================= -->
+  <section>
+    <h1 class="body-header">Two Numbers, and a Digit</h1>
+    <p class="body-text" id="latent-intro"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="latent-widget">
+    <div class="controls-row" style="justify-content: center" id="latent-buttons"></div>
+    <div class="ae-pair">
+      <div id="latent-chart"></div>
+      <div>
+        <div id="latent-canvas"></div>
+        <div id="latent-grid"></div>
+      </div>
+    </div>
+    <div class="widget-readout" id="latent-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="latent-note"></p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the curve ======================= -->
+  <section>
+    <h1 class="body-header">What the Bending Buys</h1>
+    <p class="body-text" id="curve-intro"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="curve-widget">
+    <div class="controls-row" style="justify-content: center" id="curve-buttons"></div>
+    <div id="curve-chart"></div>
+    <div class="widget-readout" id="curve-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="curve-note"></p>
+    <br />
+    <p class="body-text" id="wide-note"></p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>A network wider than its own input</th>
+          <th>Rebuilding a clean digit</th>
+          <th>Rebuilding a clean digit from a noisy one</th>
+          <th>5-nn on its code</th>
+        </tr>
+      </thead>
+      <tbody id="wide-table"></tbody>
+    </table>
+  </div>
+
+  <hr />
+
+  <!-- ======================= the roll ======================= -->
+  <section>
+    <h1 class="body-header">The Swiss Roll, One Last Time</h1>
+    <p class="body-text" id="roll-intro"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="roll-widget">
+    <div class="controls-row" style="justify-content: center" id="roll-buttons"></div>
+    <div id="roll-chart"></div>
+    <div class="widget-readout" id="roll-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="roll-note"></p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= verdict ======================= -->
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text">
+      Six methods, one dataset each time, and the question of which one to reach
+      for is mostly the question of what you are going to do next.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>What you need next</th>
+          <th>Reach for</th>
+          <th>Why</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">To encode new rows</span></td>
+          <td>PCA or an autoencoder</td>
+          <td id="verdict-encode"></td>
+          <td id="verdict-encode-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">To go backwards</span></td>
+          <td>An autoencoder</td>
+          <td id="verdict-decode"></td>
+          <td id="verdict-decode-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">The smallest error at a given k</span></td>
+          <td>A non-linear autoencoder</td>
+          <td id="verdict-error"></td>
+          <td id="verdict-error-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">A curved sheet recovered</span></td>
+          <td>Isomap, still</td>
+          <td id="verdict-roll"></td>
+          <td id="verdict-roll-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">Features without a bottleneck</span></td>
+          <td>Add the constraint somewhere else</td>
+          <td id="verdict-wide"></td>
+          <td id="verdict-wide-warn"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="closing-note"></p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! Both halves of the network above run in this page, in
+      JavaScript, from the float16 weights the generator exported, and every
+      number quoted was measured by
+      <code>src/utils/generate_autoencoders_data.py</code> on those same
+      quantised weights rather than on the full precision ones the training
+      produced.
+    </p>
+  </section>
+
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text" id="resources-note"></p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://www.sciencedirect.com/science/article/abs/pii/0893608089900142">[1] Neural Networks and Principal Component Analysis: Learning from Examples Without Local Minima</a><br />
+      (Baldi, P. &amp; Hornik, K., Neural Networks, 1989; the theorem this article opens by measuring)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://www.science.org/doi/10.1126/science.1127647">[2] Reducing the Dimensionality of Data with Neural Networks</a><br />
+      (Hinton, G. E. &amp; Salakhutdinov, R. R., Science, 2006; the deep autoencoder against PCA on digits)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://dl.acm.org/doi/10.1145/1390156.1390294">[3] Extracting and Composing Robust Features with Denoising Autoencoders</a><br />
+      (Vincent, P., Larochelle, H., Bengio, Y. &amp; Manzagol, P.-A., ICML, 2008; the one knob that makes an overcomplete network learn something)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1312.6114">[4] Auto-Encoding Variational Bayes</a><br />
+      (Kingma, D. P. &amp; Welling, M., 2013; where this article stops and module 3 picks up)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1412.6980">[5] Adam: A Method for Stochastic Optimization</a><br />
+      (Kingma, D. P. &amp; Ba, J., 2014; the optimiser the generator runs)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>

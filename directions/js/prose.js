@@ -321,5 +321,7 @@ export function initProse(data) {
     + `three dimensions, has no low-dimensional flat slice to be projected onto, and every `
     + `factorisation in this article will either flatten the curve or waste its budget describing `
     + `it. Dropping the word <i>linear</i> is what the rest of module 2.2 is about, and it is where `
-    + `neighbourhoods start to matter more than directions.`);
+    + `neighbourhoods start to matter more than directions. The next article takes the first step `
+    + `by taking something away: it throws the ${S.features.length} columns out entirely and keeps `
+    + `only how far apart the wines are, and <a href="../distances/">the same map comes back</a>.`);
 }
