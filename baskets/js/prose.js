@@ -31,8 +31,13 @@ function set(id, html) {
 
 /* 748288838313422294120286634350736906063837462003711 is not a number anybody
  * reads. Group it the way a person would say it. */
+/* A 51 digit number grouped in threes is a 67 character token with no space in
+   it, and a comma is not a line break opportunity, so on a 375px screen it does
+   not wrap: it runs to 653px and drags the whole document sideways. A <wbr>
+   after each comma lets it break where a reader would already pause, and
+   nowhere else. */
 function bigDigits(s) {
-  return s.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return s.replace(/\B(?=(\d{3})+(?!\d))/g, ',').replace(/,/g, ',<wbr>');
 }
 
 export function initProse(data, facts) {
