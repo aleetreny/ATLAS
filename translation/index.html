@@ -57,9 +57,13 @@
     #strip-rows > div {
       margin-bottom: 0.9rem;
     }
+    /* `justify-items: center` on the parent sizes a grid item to its content,
+       which left this one too narrow for auto-fit to place two columns and
+       stacked the two answers vertically. */
     #draw-outputs {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      width: 100%;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
       gap: 1rem;
       justify-items: center;
     }
@@ -110,7 +114,8 @@
       machinery in <a href="../gans/">Counterfeit</a>. And there is still not a
       <span class="bold">unique</span> right answer, because the plan does not
       say which windows are lit, so that regression loss is being asked a
-      question it can only answer with an average.
+      question it can only answer with a summary of every answer that was
+      possible.
     </p>
     <br />
     <p class="body-text" id="dataset-note">Measured below.</p>
@@ -150,8 +155,8 @@
         </div>
         <div class="step" data-index="3">
           <div class="step-content">
-            <h3>And the average lands in the gap</h3>
-            <p>A squared-error loss is minimised by the mean of that distribution and an absolute-error loss by its median. Both sit in the empty middle. A network trained on either is not failing when it produces a grey window: it is answering correctly.</p>
+            <h3>And the two losses miss differently</h3>
+            <p>A squared-error loss is minimised by the mean, which lands in the empty middle: that is the grey window everybody has in mind. An absolute-error loss, which is the one pix2pix uses, is minimised by the median, which snaps to whichever state was commoner: sharp, confident, and wrong about the rest. Neither is failing. Both are answering exactly what was asked.</p>
           </div>
         </div>
       </div>

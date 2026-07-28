@@ -15,6 +15,7 @@ const WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'e
   'ten', 'eleven', 'twelve'];
 const word = (v) => (v >= 0 && v <= 12 && Number.isInteger(v) ? WORDS[v] : n0(v));
 const bold = (s) => `<span class="bold">${s}</span>`;
+const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 const mean = (a) => a.reduce((s, v) => s + v, 0) / a.length;
 
 const ARM_NAME = {
@@ -65,24 +66,47 @@ export function initProse(data) {
     + `than argued, because the same plan can be rendered ${c0.m} times and the distribution `
     + `looked at directly.`);
 
+  const twoValued = c0.window_hist && c0.window_hist.filter((h) => h.n > 0).length <= 4;
+  const lit = c0.window_hist ? c0.window_hist.filter((h) => h.n > 0)
+    .sort((a, b) => b.n - a.n)[0] : null;
   set('cond-result',
     `Rendering one plan ${c0.m} times and taking the pixelwise middle of the results gives an `
     + `image with ${bold(pc(medianShare))} of the detail of any single render `
-    + `(${f4(c0.median_hf)} against ${f4(c0.sample_hf)}), and window pixels that are `
-    + `${bold(pc(c0.median_commit))} committed against ${pc(c0.sample_commit)} for a real one. `
-    + `And it is not an approximation of the best L1 answer, it is the best L1 answer: its average `
-    + `distance to the ${c0.m} renders is ${f4(c0.l1_of_median)} where any single render sits at `
-    + `${f4(c0.l1_of_sample)}. So a network trained on L1 that produces a grey window has not `
-    + `failed to learn. It has learned exactly the thing it was asked for, and the thing it was `
-    + `asked for is an average of two answers, neither of which is grey.`);
+    + `(${f4(c0.median_hf)} against ${f4(c0.sample_hf)}), and it is not an approximation of the `
+    + `best answer under an absolute error, it ${bold('is')} that answer: its average distance to `
+    + `the ${c0.m} renders is ${f4(c0.l1_of_median)} where any single render sits at `
+    + `${f4(c0.l1_of_sample)}.`
+    + `<br /><br />`
+    + (twoValued
+      ? `But the two losses do not fail the same way, and this dataset is sharp enough to separate `
+        + `them. On that one window pixel the ${c0.m} renders take `
+        + `${bold(word(c0.window_hist.filter((h) => h.n > 0).length))} values and nothing between: `
+        + `${c0.window_hist.filter((h) => h.n > 0).map((h) => `${h.n} of them near ${f2((h.lo + h.hi) / 2)}`).join(' and ')}. `
+        + `A squared error is minimised by the ${bold('mean')} of that, `
+        + `${bold(f3(c0.window_mean))}, which is a brightness the data never contains: that is the `
+        + `grey window everybody means by "L1 blurs", and it belongs to L2. An absolute error is `
+        + `minimised by the ${bold('median')}, ${bold(f3(c0.window_median))}, which snaps to `
+        + `whichever state was commoner and is a perfectly sharp, perfectly confident answer that `
+        + `is wrong about ${pc(1 - (lit ? lit.n / c0.m : 0), 0)} of the windows. `
+        + `<br /><br />`
+        + `So the blur an L1 model shows is not in the switches, it is everywhere the conditional `
+        + `is ${bold('continuous')}: the grain of the ground, whose median really is a smooth `
+        + `average of everything it could have been. That is what the ${pc(medianShare)} above is `
+        + `made of, and it is why the sharpening the adversarial term buys is mostly texture `
+        + `rather than decisions.`
+      : `The window pixels here are not two valued, so the sharpest form of this argument does not `
+        + `apply and the detail figure above is the whole of it.`));
 
   /* -------------------------------------------------------------- the arms */
   set('arms-intro',
-    `Which is the argument for the second term. The adversarial loss does not care whether the `
-    + `windows in the output match the windows in the answer; it cares whether they look like `
-    + `windows, and a grey window does not. So pix2pix keeps both: L1 to say where things are and `
-    + `an adversarial term to say what they should look like, with the weight `
-    + `\\(\\lambda = ${M.lam}\\).`);
+    `Which is the argument for the second term, and it is a narrower argument than it is usually `
+    + `given. The adversarial loss cannot tell a model which windows are lit either: it never sees `
+    + `the answer, only the domain. What it can insist on is that the output ${bold('belong')} to `
+    + `the distribution, which the median of a distribution generally does not, and that is exactly `
+    + `where a regression loss has nothing to say. So pix2pix keeps both: an L1 term to put things `
+    + `in the right places, an adversarial term to make what is in them look like the real thing, `
+    + `and a weight \\(\\lambda = ${M.lam}\\) that decides which of the two wins where they `
+    + `disagree.`);
 
   const l1 = arm('l1');
   const gan = arm('gan');
@@ -133,10 +157,15 @@ export function initProse(data) {
     + `${pc(pixel.hf_share)} of a real render's detail with the windows ${pc(pixel.commit_share, 0)} `
     + `committed; at ${F.plain.full} pixels it sees essentially everything and produces `
     + `${pc(full.hf_share)} and ${pc(full.commit_share, 0)}. `
-    + (Math.abs(pixel.commit_share - full.commit_share) > 0.1
-      ? `So the window size does decide how much the critic can ask for. `
-      : `So at this scale the window size barely moves the result, which is worth saying given how `
-        + `much attention that hyperparameter gets. `)
+    + (Math.abs(pixel.hf_share - full.hf_share) > 0.15
+      ? `So the window decides how much texture the critic can ask for, and a great deal of it: `
+        + `${f1(full.hf_share / Math.max(pixel.hf_share, 1e-9))} times as much detail from the `
+        + `widest as from the narrowest. What it barely moves is the windows `
+        + `(${pc(pixel.commit_share, 0)} against ${pc(full.commit_share, 0)}), which is the part `
+        + `of the picture that is a decision rather than a texture, and no amount of local realism `
+        + `tells a model which decision was taken. `
+      : `So at this scale the window size barely moves either number, which is worth saying given `
+        + `how much attention that hyperparameter gets. `)
     + (normNote
       ? `And a detail that is easy to miss and changes what the number means: the same `
         + `discriminators with a normalisation layer inside have a window of `
@@ -148,8 +177,11 @@ export function initProse(data) {
       : ''));
 
   set('draw-intro',
-    `Both trained networks travel with this page, ${n0(data.nets.l1.count)} and `
-    + `${n0(data.nets.l1gan.count)} numbers in half precision, and they run here. Which makes the `
+    `Both trained networks travel with this page, `
+    + (data.nets.l1.count === data.nets.l1gan.count
+      ? `${n0(data.nets.l1.count)} numbers each in half precision, since only their loss differed`
+      : `${n0(data.nets.l1.count)} and ${n0(data.nets.l1gan.count)} numbers in half precision`)
+    + `, and they run here. Which makes the `
     + `comparison something to poke at rather than to read: the difference between the two is `
     + `easiest to see on a plan neither of them was trained on.`);
 
@@ -184,10 +216,12 @@ export function initProse(data) {
         ? `Every run found the mirrored one: the two types are swapped, every render is `
           + `plausible, every round trip closes, and the mapping is wrong in the only way that `
           + `matters.`
-        : `${word(right)} of them found the correspondence the data has, ${word(wrong)} found the `
-          + `mirrored one`
-          + (mixed ? `, and ${word(mixed)} settled on neither consistently` : '')
-          + `. Same code, same data, same objective, different seed.`)
+        : `${cap(word(right))} of them found the correspondence the data has and `
+          + `${word(seeds.length - right)} did not, landing at `
+          + `${agrees.filter((a) => a <= 0.75).map((a) => pc(a)).join(' and ')}, which is nearer `
+          + `the mirrored correspondence than the right one. Same code, same data, same objective, `
+          + `different seed, and nothing in the objective prefers the answer that happens to be `
+          + `true.`)
     + ` This is the part of unpaired translation that a gallery of results cannot show you, `
     + `because to see it you have to know the answer, and the reason anyone uses unpaired `
     + `translation is that they do not.`);
@@ -217,10 +251,11 @@ export function initProse(data) {
       : `Which is not a large factor, so on these scenes the round trip does not appear to be `
         + `riding on a hidden signal, and this section reports a negative result rather than the `
         + `famous positive one.`)
-    + ` Rounding the intermediate image to `
-    + first.quant.map((q) => `${q.bits} bits moves the round trip error to ${f4(q.cycle)}`).join(', ')
-    + `, against ${f4(first.base_cycle)} untouched, which is the same measurement in the units of `
-    + `an actual image file.`);
+    + ` Rounding the intermediate image, which is what saving it as a file would do, moves the `
+    + `round trip error to `
+    + first.quant.map((q) => `${f4(q.cycle)} at ${q.bits} bits`).join(', ')
+    + `, against ${f4(first.base_cycle)} untouched: a signal hidden below the eighth bit would not `
+    + `have survived that, and the round trip did.`);
 
   /* -------------------------------------------------------- the verdict */
   set('verdict-l1',

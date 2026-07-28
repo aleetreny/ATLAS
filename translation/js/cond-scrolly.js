@@ -43,14 +43,21 @@ export function initCondScrolly(data) {
       .style('fill', 'var(--anchor)').text(label);
   });
 
+  /* Two marks, not one, because the two losses do different things here and
+     the difference is the point: a squared error is minimised by the mean,
+     which lands in the empty middle, and an absolute error by the median,
+     which on a two valued distribution snaps to whichever value is commoner. */
   const med = c.g.append('g').attr('opacity', 0);
-  med.append('line').attr('x1', x(C.window_mean)).attr('x2', x(C.window_mean))
-    .attr('y1', 0).attr('y2', c.h)
-    .attr('stroke', 'var(--cosmos)').attr('stroke-width', 2.4).attr('stroke-dasharray', '5 3');
-  med.append('text').attr('class', 'chart-annotation')
-    .attr('x', x(C.window_mean) + 8).attr('y', c.h / 2)
-    .style('font-size', '11.5px').style('letter-spacing', '0.4px').style('fill', 'var(--cosmos)')
-    .text('what an averaging loss will produce');
+  [{ v: C.window_mean, col: 'var(--cosmos)', label: 'the mean, which squared error picks', dy: -14, dx: 8, anchor: 'start' },
+    { v: C.window_median, col: 'var(--anchor)', label: 'the median, which absolute error picks', dy: 14, dx: -8, anchor: 'end' }]
+    .forEach((m) => {
+      med.append('line').attr('x1', x(m.v)).attr('x2', x(m.v)).attr('y1', 0).attr('y2', c.h)
+        .attr('stroke', m.col).attr('stroke-width', 2.4).attr('stroke-dasharray', '5 3');
+      med.append('text').attr('class', 'chart-annotation')
+        .attr('x', x(m.v) + m.dx).attr('y', c.h / 2 + m.dy).attr('text-anchor', m.anchor)
+        .style('font-size', '11px').style('letter-spacing', '0.4px').style('fill', m.col)
+        .text(m.label);
+    });
 
   const show = (sel, on) => sel.transition('fade').duration(400).attr('opacity', on ? 1 : 0);
   const states = {

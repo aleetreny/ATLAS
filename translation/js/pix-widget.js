@@ -54,7 +54,7 @@ export function initCondWidget(data) {
   const seed = data.meta.seeds[0];
   const bars = [
     { k: 'a real render', v: R.hf, colour: 'var(--squidink)' },
-    { k: 'the middle of all renders of one plan', v: C[0].median_hf, colour: 'var(--stone)' },
+    { k: 'the middle of all its renders', v: C[0].median_hf, colour: 'var(--stone)' },
   ].concat(data.meta.arms.map((a) => ({
     k: ARM_NAME[a], v: S[`${a}/${seed}`].hf, colour: ARM_COLOUR[a],
   })));
@@ -180,8 +180,10 @@ export function initDrawWidget(data, nets) {
         return { k: o.k, hf: highFreq(img, res) };
       });
       const real = data.real.hf;
+      const toolName = (TOOLS.find((o) => o.key === state.tool) || {}).name || state.tool;
       document.querySelector('#draw-readout').innerHTML =
-        `<p>Both networks are running on your plan, here, from their quantised weights. On this `
+        `<p>Painting with <span class="bold">${toolName}</span>. Both networks are running on your `
+        + `plan, here, from their quantised weights. On this `
         + `input the detail left after a blur is `
         + results.map((r) => `<span class="bold">${r.hf.toFixed(4)}</span> for `
           + `${r.k === 'l1' ? 'L1 alone' : 'the two together'}`).join(' and ')
@@ -223,6 +225,7 @@ export function initDrawWidget(data, nets) {
       buttons.forEach((o, i) => {
         o.className = TOOLS[i].key === t.key ? 'atlas-btn' : 'atlas-btn ghost';
       });
+      render();
     });
     row.appendChild(b);
     return b;

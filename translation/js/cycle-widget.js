@@ -41,8 +41,8 @@ export function initCycleWidget(data) {
     y: 'how far its translation moved',
   });
   const first = data.cycle[String(seeds[0])];
-  [['moved_fake', 'var(--cosmos)', 'a generated image'],
-    ['moved_real', 'var(--anchor)', 'a real image']].forEach(([k, colour, label], i) => {
+  [['moved_fake', 'var(--cosmos)', 'generated'],
+    ['moved_real', 'var(--anchor)', 'real']].forEach(([k, colour, label], i) => {
     seeds.forEach((s, si) => {
       const r = data.cycle[String(s)].noise;
       c.g.append('path').attr('fill', 'none').attr('stroke', colour)
