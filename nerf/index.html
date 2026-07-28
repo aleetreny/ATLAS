@@ -271,7 +271,9 @@
   <div class="interactive-full" id="encoding-widget">
     <div class="controls-row" style="justify-content: center">
       <span class="slider-label">frequency bands \(L\): <span class="value" id="enc-l-value">6</span></span>
-      <input type="range" class="atlas-range" id="enc-l" aria-label="how many frequency bands the encoding uses" min="0" max="8" step="1" value="6" />
+      <!-- one stop per measured row of the ladder, not one per band: the
+           widget rewrites min and max from the data at load -->
+      <input type="range" class="atlas-range" id="enc-l" aria-label="how many frequency bands the encoding uses" min="0" max="4" step="1" value="3" />
     </div>
     <div class="side-by-side">
       <div id="enc-kernel"></div>

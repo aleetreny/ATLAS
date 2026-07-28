@@ -68,10 +68,17 @@ export function initEncodingWidget(data, sheets) {
   const slider = document.querySelector('#enc-l');
   const lval = document.querySelector('#enc-l-value');
   const readout = document.querySelector('#enc-readout');
-  const state = { L: 6 };
   const LS = ladder.map((r) => r.L);
+  /* The slider indexes the ladder, it does not count bands. The ladder is
+     measured at L = 0, 2, 4, 6, 8, so a slider stepping in ones would stop at
+     odd values with no measured row behind them: the readout would throw
+     inside the input handler, and the reader would be left with the label
+     showing the new L and the sentence under it still describing the old one.
+     Every stop on this control is a row somebody trained. */
+  const state = { L: LS.includes(data.nerf.arch.Lx) ? data.nerf.arch.Lx : LS[0] };
   slider.min = '0';
-  slider.max = String(Math.max(...LS));
+  slider.max = String(LS.length - 1);
+  slider.step = '1';
 
   const kernelNode = document.querySelector('#enc-kernel');
   const barNode = document.querySelector('#enc-bars');
@@ -186,7 +193,7 @@ export function initEncodingWidget(data, sheets) {
       + `The best row here is L = ${best.L} at ${fmt.db(best.inside)}.`;
   };
 
-  slider.addEventListener('input', () => { state.L = +slider.value; render(); });
-  slider.value = '6';
+  slider.addEventListener('input', () => { state.L = LS[+slider.value] ?? state.L; render(); });
+  slider.value = String(LS.indexOf(state.L));
   render();
 }

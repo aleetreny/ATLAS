@@ -67,7 +67,8 @@ export function initViewdep(data, sheets) {
        transcription error. */
     + (V.off_hot > V.on_hot
       ? `That middle pair is the wrong way round: inside the lobe, the only part of this scene where `
-        + `the radiance depends on where you stand, taking the direction away made it `
-        + `<span class="bold">better</span>. The paragraph below is about that.`
+        + `the radiance depends on where you stand, taking the direction away moved the score `
+        + `<span class="bold">up</span>, by ${fmt.db(V.off_hot - V.on_hot)}. Whether a difference that `
+        + `size is real is the paragraph below.`
       : `The middle pair is the one the theory is about.`);
 }

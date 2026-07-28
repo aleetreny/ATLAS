@@ -231,7 +231,7 @@ export function initQuadWidget(data, scene, sheets) {
     readout.innerHTML = `pixel (${state.i}, ${state.j}) of camera at azimuth `
       + `${cam.az.toFixed(0)}°, elevation ${cam.el.toFixed(0)}°. `
       + `<span class="bold">${steps}</span> steps ${swatch(got.rgb)} against `
-      + `${REF_STEPS} steps ${swatch(ref.rgb)}: off by `
+      + `${fmt.n0(REF_STEPS)} steps ${swatch(ref.rgb)}: off by `
       + `<span class="bold">${(err * 255).toFixed(1)}</span> of 255 on the worst channel`
       + (q ? `, and over the whole frame that step count scores <span class="bold">${fmt.db(q.psnr)}</span> `
         + `against the same reference.` : '.');

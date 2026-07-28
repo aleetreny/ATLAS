@@ -119,7 +119,12 @@ export function initProse(data) {
     + (crossing
       ? `The sum passes ${target} dB at <span class="bold">${crossing.steps}</span> steps. `
       : `The sum never reaches ${target} dB in this sweep. `)
-    + `The rate is about <span class="bold">${f1(perDouble)} dB per doubling</span>, `
+    /* The rate is fitted across the whole sweep, and the sweep is not a
+       straight line, so it has to say so: between the two step counts named in
+       the sentence above it the local rate is a different number, and a reader
+       who does the division on those two gets it. */
+    + `Across the whole sweep, ${rows[0].steps} steps to ${n0(rows[rows.length - 1].steps)}, the rate is `
+    + `about <span class="bold">${f1(perDouble)} dB per doubling</span>, `
     + (perDouble < 8
       ? `which is first-order quadrature of an integrand with a wall in it. `
       : perDouble < 11
@@ -164,23 +169,30 @@ export function initProse(data) {
   const gain = usedL.inside - zero.inside;
   const gainWide = usedL.inside - wide.inside;
   const floor = Math.max(0.2, N.seed_spread || 0);
-  const saturates = lad.filter((r) => r.inside >= best.inside - floor)[0];
   /* Where the trained ladder makes its biggest step, and what the closed-form
      panel says the encoding's resolution is on either side of it. The two
      panels are the same story told twice and the prose should join them. */
   const halfX = (M.aabb.hi[0] - M.aabb.lo[0]) / 2;
   const pixelU = (2 * M.cam_radius * Math.tan((M.fov_deg * Math.PI) / 360)) / M.res;
+  const pxOf = (L) => (halfSeparation(L) * halfX) / pixelU;
+  const pxWord = (v) => (v >= 1.05 ? `${f1(v)} pixels` : `${f2(v)} of a pixel`);
   let jump = null;
   for (let i = 1; i < lad.length; i++) {
     const step = lad[i].inside - lad[i - 1].inside;
     if (!jump || step > jump.step) {
-      jump = {
-        step, lo: lad[i - 1], hi: lad[i],
-        loPx: (halfSeparation(lad[i - 1].L) * halfX) / pixelU,
-        hiPx: (halfSeparation(lad[i].L) * halfX) / pixelU,
-      };
+      jump = { step, lo: lad[i - 1], hi: lad[i], loPx: pxOf(lad[i - 1].L), hiPx: pxOf(lad[i].L) };
     }
   }
+  /* "The ladder goes flat from here" is a claim about every row from there on,
+     so it cannot be the first row that happens to land within the floor of the
+     best one in array order: this ladder is not monotone (L = 6 sits below
+     L = 4), that filter returned the best row itself, and the sentence ended up
+     saying the best row is within 0.00 dB of itself. What is measured is how
+     much is left above the biggest step, and where the ladder goes backwards. */
+  const climbAfter = best.inside - jump.hi.inside;
+  const flat = climbAfter <= floor;
+  const dip = lad.reduce((w, r, i) => (i > 0 && lad[i - 1].inside - r.inside > (w ? w.d : 0)
+    ? { r, prev: lad[i - 1], d: lad[i - 1].inside - r.inside } : w), null);
   set('encoding-result',
     `Measured, and the measurement is smaller than the usual telling of it. Going from no bands to `
     + `${usedL.L} is worth <span class="bold">${f2(gain)} dB</span> on the held-out cameras, `
@@ -194,7 +206,10 @@ export function initProse(data) {
       ? `It more than survives the honest control. Give an encoding-free network the same `
         + `${n0(wide.params)} weights and let it spend them on width instead, at ${wide.W} units a `
         + `layer, and it does not close the gap: it reaches ${db(wide.inside)}, which is `
-        + `<span class="bold">${f2(gain - gainWide)} dB worse</span> than the narrow encoding-free `
+        /* the penalty, so it is written as a positive number: the branch has
+           already said which way round it came out and a minus sign in front of
+           the word "worse" says it twice and cancels itself */
+        + `<span class="bold">${f2(zero.inside - wide.inside)} dB worse</span> than the narrow encoding-free `
         + `network it was supposed to improve on. So none of the ${f2(gain)} dB is the parameter `
         + `count, and on this scene handing a coordinate network more width without giving it any `
         + `frequencies is not neutral, it is a liability. `
@@ -209,8 +224,16 @@ export function initProse(data) {
           : `Some of it is the budget rather than the bands: an encoding-free network given the same `
             + `${n0(wide.params)} weights to spend on width reaches ${db(wide.inside)}, which closes `
             + `${f2(gain - gainWide)} of the ${f2(gain)} dB and leaves ${f2(gainWide)}. `)
-    + `The ladder also stops climbing: ${best.L} bands is the best row at ${db(best.inside)} and `
-    + `${saturates.L} bands is already within ${f2(best.inside - saturates.inside)} dB of it. `
+    + `The ladder also stops climbing: the best row in it, L = ${best.L} at ${db(best.inside)}, is `
+    + (flat ? `only ` : ``)
+    + `${f2(climbAfter)} dB above L = ${jump.hi.L}, against the ${f2(jump.step)} dB of the step into `
+    + `that one`
+    + (dip
+      ? `, and it is not even monotone: L = ${dip.r.L} sits ${f2(dip.d)} dB below L = ${dip.prev.L}`
+        + (dip.d <= N.seed_spread
+          ? `, which is inside the ${f2(N.seed_spread)} dB this recipe moves between random seeds. `
+          : `, which is outside that. `)
+      : `. `)
     /* The page runs one particular row and it is not necessarily the winning
        one, which is worth saying out loud rather than letting the reader find
        the discrepancy between the bar chart and the model they are dragging. */
@@ -225,9 +248,10 @@ export function initProse(data) {
             + `is a real difference and the page is not showing the best fit. `))
     + `The reason is in the left panel and it is a length scale, and the two panels line up: the ladder's `
     + `biggest step is from L = ${jump.lo.L} to L = ${jump.hi.L}, `
-    + `<span class="bold">${f2(jump.hi.inside - jump.lo.inside)} dB</span>, and that is exactly where the `
-    + `encoding stops needing ${f1(jump.loPx)} pixels to tell two points apart and starts needing `
-    + `${f1(jump.hiPx)}. Every band after that halves a number that is already below a pixel, and this `
+    + `<span class="bold">${f2(jump.step)} dB</span>, and that is exactly where the `
+    + `encoding stops needing ${pxWord(jump.loPx)} to tell two points apart and starts needing `
+    + `${pxWord(jump.hiPx)}. Every band after that cuts it roughly in half again: at the ${usedL.L} `
+    + `bands this page runs it is ${pxWord(pxOf(usedL.L))}. And this `
     + `scene is made of large smooth solids with no texture anywhere in it: a network that can hold an `
     + `edge is all it needs, and past that the extra bands have nothing left to resolve.`);
 
@@ -274,9 +298,23 @@ export function initProse(data) {
     + `<span class="bold">${f2(N.inside - nBelow)} dB</span> between two questions that are usually `
     + `reported as one number, and it is not a defect of the fit. Nothing constrains the field where no `
     + `photograph looked, so what it says there is whatever happened to be cheapest for the photographs `
-    + `it did have. Above the band, at ${aboveEl}°, it scores ${db(nAbove)} instead, because that side is `
-    + `only ${aboveEl - bandHi}° past a ring while the other is ${bandLo - belowEl}° past one and looking `
-    + `at the underside of a floor that no camera ever saw.`);
+    + `it did have. Above the band, at ${aboveEl}°, it scores ${db(nAbove)} instead. `
+    /* The two outside groups sit almost the same distance outside the band, so
+       the distance is not what separates them and the sentence must not offer
+       it as the reason. Which of them is worse is a measurement too. */
+    + (Math.abs(nAbove - nBelow) <= Math.max(N.seed_spread, 0.2)
+      ? `The two sides fall by about the same amount, ${aboveEl - bandHi}° above the top ring against `
+        + `${bandLo - belowEl}° below the bottom one, so on this scene leaving the band costs the same `
+        + `in either direction.`
+      : `The two sides are nearly the same distance outside the band, ${aboveEl - bandHi}° above the top `
+        + `ring against the ${bandLo - belowEl}° below the bottom one, and they are `
+        + `<span class="bold">${f2(Math.abs(nAbove - nBelow))} dB</span> apart, so the angle is not what `
+        + `separates them. `
+        + (nAbove > nBelow
+          ? `What separates them is that the low cameras look at the underside of a floor no photograph `
+            + `ever saw, and nothing in the loss ever asked the field to put anything there.`
+          : `The high cameras are the worse of the two, which is the side looking down at the tops of `
+            + `solids the rings only ever saw obliquely.`)));
 
   const dInside = vN.inside - v0.inside;
   const belowOf = (r) => mean(pick(r.per_outside, belowIdx));
@@ -338,12 +376,24 @@ export function initProse(data) {
       : hotGain <= N.seed_spread
         /* The decomposition was supposed to find the effect inside the lobe. It
            found it everywhere else instead, and the honest reading is the one
-           the numbers force, not the one the section was written for. */
-        ? `That is the decomposition finding the opposite of what it was built to find. Inside the lobe, `
-          + `where the radiance genuinely depends on where you stand, the direction input is worth `
-          + `${f2(hotGain)} dB, which is inside the ${f2(N.seed_spread)} dB this recipe moves between `
-          + `random seeds: the two are not distinguishable there. All of the gain is outside the lobe, `
-          + `where nothing depends on direction at all. `
+           the numbers force, not the one the section was written for.
+           The size of what it found there is a second question, and the answer
+           is not "inside the seed floor": that floor was measured on whole
+           frames, and this figure is pooled over a few per cent of the pixels,
+           so its own floor is wider than that one and nothing on this page
+           measures how much wider. Testing the signed gain against a positive
+           floor let any negative number through as "indistinguishable". */
+        ? `That is the decomposition finding the opposite of what it was built to find: all of the gain `
+          + `is outside the lobe, where nothing depends on direction at all, and inside it, where the `
+          + `radiance genuinely does, the direction input does not help. `
+          + (Math.abs(hotGain) <= N.seed_spread
+            ? `The ${f2(Math.abs(hotGain))} dB it moves there is inside the ${f2(N.seed_spread)} dB this `
+              + `recipe moves between random seeds, so the two are not distinguishable. `
+            : `The ${f2(Math.abs(hotGain))} dB it moves there is the same order as the `
+              + `${f2(N.seed_spread)} dB this recipe moves between random seeds, and that floor was `
+              + `measured on whole frames while this figure is pooled over ${pc(V.frac, 2)} of the `
+              + `pixels, so the floor under it is wider than ${f2(N.seed_spread)} dB rather than `
+              + `narrower: nothing here licenses reading a difference that size as real. `)
           + `Two things could do that and this page cannot separate them. The lobe is the hardest part `
           + `of the frame for both models, ${db(V.on_hot)} against ${db(V.on_cold)} elsewhere, so there `
           + `may simply be no room to win there at this scale; and the direction is also `
@@ -384,15 +434,23 @@ export function initProse(data) {
     + `that. That single fact is the whole performance argument, and the section after next puts a `
     + `number on it.`);
 
+  const A = Object.fromEntries(S.ablations.map((a) => [a.key, a]));
+  /* How many of the numbers per blob each of the two arguable groups is, read
+     off the ablations rather than typed: a sphere keeps one number where the
+     ellipsoid keeps the covariance, and the direction-free cloud drops the
+     whole view-dependent term. */
+  const covNumbers = (A.aniso.dof - A.iso.dof) / S.n + 1;
+  const dirNumbers = (A.aniso.dof - A.no_viewdep.dof) / S.n;
   set('aniso-intro',
-    `Two groups inside those ${S.dof_each} numbers per blob are worth arguing about. Six of them are the `
-    + `covariance, where a sphere would need one, and nine are the term that makes the colour depend on the viewing `
+    `Two groups inside those ${S.dof_each} numbers per blob are worth arguing about. `
+    + `${word(covNumbers).replace(/^./, (ch) => ch.toUpperCase())} of them are the `
+    + `covariance, where a sphere would need one, and ${word(dirNumbers)} are the term that makes the `
+    + `colour depend on the viewing `
     + `direction. The comparison that gets published is ellipsoids against spheres at the same blob `
     + `count, which is not a fair fight, because the ellipsoids are also carrying `
-    + `${n0(S.ablations.find((a) => a.key === 'aniso').dof - S.ablations.find((a) => a.key === 'iso').dof)} `
+    + `${n0(A.aniso.dof - A.iso.dof)} `
     + `more numbers. So both comparisons are here: at equal count, and at equal storage.`);
 
-  const A = Object.fromEntries(S.ablations.map((a) => [a.key, a]));
   const shapeWorth = A.aniso.inside - A.iso_matched.inside;
   set('aniso-result',
     (shapeWorth > 0.25
@@ -423,12 +481,23 @@ export function initProse(data) {
       if (!lo2 || !hi2 || lo2.n === hi2.n) return '';
       const t = (nv.dof - lo2.dof) / (hi2.dof - lo2.dof);
       const ladderHere = lo2.inside + t * (hi2.inside - lo2.inside);
-      return ` The direction term is the other thing that costs storage, and at its own budget of `
-        + `${n0(nv.dof)} numbers the ellipsoid ladder is worth about ${db(ladderHere)}, against the `
-        + `${db(nv.inside)} the direction-free cloud actually reaches: dropping it `
-        + (nv.inside > ladderHere
-          ? `and spending the numbers on blobs instead would have been the worse trade here.`
-          : `and spending the numbers on blobs instead would have been the better trade here.`);
+      return ` The direction term is the other thing that costs storage, and it reads the same way. At `
+        + `its own budget of ${n0(nv.dof)} numbers the ellipsoid ladder, direction term and all, is `
+        + `worth about ${db(ladderHere)}, against the ${db(nv.inside)} the direction-free cloud `
+        + `actually reaches, so `
+        /* Which arm is which: the direction-free cloud reaching MORE at the
+           same storage means the direction term did not earn what it cost. */
+        + (nv.inside > ladderHere + S.seed_spread
+          ? `the ${word(dirNumbers)} numbers a blob spends on direction do not earn their storage here. `
+            + `Dropping them and keeping the blob count beat keeping them and paying for them in blob `
+            + `count by <span class="bold">${f2(nv.inside - ladderHere)} dB</span>.`
+          : ladderHere > nv.inside + S.seed_spread
+            ? `the ${word(dirNumbers)} numbers a blob spends on direction do earn their storage here, `
+              + `by <span class="bold">${f2(ladderHere - nv.inside)} dB</span> against spending the same `
+              + `numbers on more blobs.`
+            : `at this budget the direction term neither earns its storage nor wastes it: the two are `
+              + `${f2(Math.abs(nv.inside - ladderHere))} dB apart, under the ${f2(S.seed_spread)} dB `
+              + `this cloud moves between seeds.`);
     })()
     /* The count ladder flattening is the answer to the obvious objection about
        the gap to the field, so it gets said here rather than left to the eye. */
@@ -456,6 +525,8 @@ export function initProse(data) {
   /* Neither loss ever mentioned geometry, so whether either of them got it is
      a separate question with a separate answer, in scene units rather than in
      decibels, and it is the one the colour frames cannot be asked. */
+  const fGrow = G.field_outside.depth_error / G.field_inside.depth_error;
+  const sGrow = G.splat_outside.depth_error / G.splat_inside.depth_error;
   set('geometry-note',
     `Neither of these models was ever told where anything is. Both were shown photographs, and a wrong `
     + `shape that happened to produce the right photographs from the ${M.n_train} places somebody stood `
@@ -470,13 +541,22 @@ export function initProse(data) {
     + `between two models the photographs put ${f2(Math.abs(gap))} dB apart. They disagree with the `
     + `scene about whether there is anything there at all on ${pc(G.field_inside.silhouette, 2)} and `
     + `${pc(G.splat_inside.silhouette, 2)} of the frame. `
-    + `Below the photographed band both get worse, to ${G.field_outside.depth_error} and `
-    + `${G.splat_outside.depth_error}, `
-    + (G.field_outside.depth_error > G.field_inside.depth_error * 1.5
+    /* Two models, so the branch has to look at both of them before it speaks
+       for both: here only one of the two loses anything on leaving the band,
+       and the sentence that says "both get worse" is false for the other. */
+    + `Below the photographed band the field's goes to ${G.field_outside.depth_error} and the blobs' to `
+    + `${G.splat_outside.depth_error}, a factor of ${f1(fGrow)} and ${f1(sGrow)}, `
+    + (fGrow > 1.5 && sGrow > 1.5
       ? `which is the same lesson the pictures told, arriving through a different door: what a fit knows `
         + `about a direction is what a camera told it.`
-      : `which is a smaller penalty than the pictures suggested, so the shape survives leaving the band `
-        + `better than the colour does.`));
+      : fGrow > 1.5 || sGrow > 1.5
+        ? `and only one of the two lost anything. The ${fGrow > sGrow ? 'field' : 'blob cloud'} is `
+          + `further out where no camera looked, which is the lesson the pictures told arriving through `
+          + `a different door; the ${fGrow > sGrow ? 'blob cloud' : 'field'} barely moves, and it had `
+          + `less to lose, having been ${f1(G.splat_inside.depth_error / G.field_inside.depth_error)} `
+          + `times further out than the other one inside the band already.`
+        : `which is a smaller penalty than the pictures suggested, so the shape survives leaving the band `
+          + `better than the colour does.`));
 
   const compact = N.params < S.dof;
   /* The two do not hold the same number of numbers, so the blob ladder is read
@@ -491,17 +571,29 @@ export function initProse(data) {
     : '';
   set('cost-result',
     bracket
-    + `So: the field is the more compact of the two, ${n0(N.params)} numbers against ${n0(S.dof)}, `
+    /* which of the two is the compact one is a number, so it is read off the
+       numbers rather than typed next to them */
+    + `So: the ${compact ? 'field' : 'blob cloud'} is the more compact of the two, `
+    + `${n0(compact ? N.params : S.dof)} numbers against ${n0(compact ? S.dof : N.params)}, `
     + `a factor of ${f1(compact ? S.dof / N.params : N.params / S.dof)}, and the blobs are the cheaper `
     + `to draw, by ${f1(C.ratio)} times in arithmetic. Neither of those is an accident of this scene: `
     + `a field pays per pixel because every pixel is an integral and every sample on it is a network `
     + `evaluation, and blobs pay per primitive because a primitive is looked at only where it lands. `
+    /* The threshold here has to be the page's own seed floor and not a rounder
+       number chosen next to it: 0.4 dB was three times the floor the sentence
+       after it quotes, so it was calling a difference the page counts as real
+       "the same answer". */
     + `Below the band the two also fail differently: the field holds ${db(nBelow)} and the blobs `
     + `${db(sBelow)}`
-    + (Math.abs(nBelow - sBelow) < 0.4
-      ? `, which is the same answer to within ${f2(Math.abs(nBelow - sBelow))} dB. `
+    + (Math.abs(nBelow - sBelow) < Math.max(N.seed_spread, S.seed_spread)
+      ? `, which is the same answer to within ${f2(Math.abs(nBelow - sBelow))} dB: the `
+        + `${f2(Math.abs(gap))} dB between them inside the band is simply gone. `
       : `, ${f2(Math.abs(nBelow - sBelow))} dB apart in favour of the `
-        + `${nBelow > sBelow ? 'field' : 'blobs'}. `)
+        + `${nBelow > sBelow ? 'field' : 'blobs'}`
+      + ((gap > 0) === (nBelow > sBelow)
+        ? `, so the order inside the band survives leaving it. `
+        : `, so the ${f2(Math.abs(gap))} dB the ${gap > 0 ? 'field' : 'blob cloud'} leads by inside the `
+          + `band does not merely shrink outside it, it changes sign. `))
     + `The seed spread for the field is ${f2(N.seed_spread)} dB over ${N.seed_psnr.length} `
     + `run${N.seed_psnr.length === 1 ? '' : 's'} and for `
     + `the blobs ${f2(S.seed_spread)} dB, so a difference smaller than about `
@@ -510,12 +602,15 @@ export function initProse(data) {
   /* ------------------------------------------------------------ the verdict */
   set('verdict-quad',
     `${eight.steps} steps score ${db(eight.psnr)} against the converged integral and `
-    + `${sixtyfour.steps} score ${db(sixtyfour.psnr)}, about ${f1(perDouble)} dB per doubling.`);
+    + `${sixtyfour.steps} score ${db(sixtyfour.psnr)}; about ${f1(perDouble)} dB per doubling across the `
+    + `whole sweep, ${rows[0].steps} steps to ${n0(rows[rows.length - 1].steps)}.`);
   set('verdict-encoding',
     `${f2(gain)} dB on held-out cameras against no bands, and ${f2(gainWide)} dB against the same weight `
     + `budget spent on width instead`
     + (gainWide > gain ? `, which is to say the width made it worse. ` : `. `)
-    + `The ladder is flat from L = ${saturates.L} onwards.`);
+    + `Everything above L = ${jump.hi.L} is worth ${f2(climbAfter)} dB more, against ${f2(jump.step)} `
+    + `for the step into it`
+    + (flat ? `, so the ladder is flat from there. ` : `. `));
   set('verdict-field',
     `${n0(N.params)} numbers hold ${db(N.inside)} on held-out cameras, ${db(nBelow)} below the `
     + `photographed band, and put the surface ${G.field_inside.depth_error} scene units off. One frame `
@@ -534,7 +629,7 @@ export function initProse(data) {
     + `the ones in the papers, and trained for ${n0(M.iters)} and ${n0(M.splat_iters)} steps rather than `
     + `the hundreds of thousands those use. `
     + `The comparison between them is fair because they share the photographs, the loss and the `
-    + `rendering equation; it is not a statement about which idea wins at scale, and the ${f2(C.ratio)}x `
+    + `rendering equation; it is not a statement about which idea wins at scale, and the ${f1(C.ratio)}x `
     + `arithmetic gap in particular would be a different number with a hash grid or a tiled rasteriser `
     + `in the loop.`);
 
@@ -549,8 +644,11 @@ export function initProse(data) {
     `The through line of this module was that a picture is a grid of numbers and everything else is `
     + `arithmetic on it. This article breaks that: the pictures were never the object, they were `
     + `${M.n_train} measurements of something else, and both methods here are estimators of the `
-    + `something else. That is why the ${db(nBelow)} below the band matters more than the `
-    + `${db(N.inside)} above it. A model that reproduces the photographs it was given has done `
+    /* N.inside is the cameras held out between the rings, which is inside the
+       band: "above it" named a different group with a different number on this
+       same page. */
+    + `something else. That is why the ${db(nBelow)} from below the band matters more than the `
+    + `${db(N.inside)} from inside it. A model that reproduces the photographs it was given has done `
     + `nothing; the only interesting number is the one from where nobody stood.`);
 
   set('resources-note',
