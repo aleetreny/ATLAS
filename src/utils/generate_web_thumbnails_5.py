@@ -243,12 +243,47 @@ def thumb_thompson_ucb():
     write("thompson-ucb", body)
 
 
+# ---------------------------------------------------------------------------
+def thumb_q_learning():
+    """El acantilado con los dos caminos aprendidos."""
+    accent = "#392270"
+    d = load("q-learning", "qlearn")
+    T = d["truth"]
+    rows, cols = T["rows"], T["cols"]
+    pad = 24
+    cw = (W - 2 * pad) / cols
+    ch = (H - 2 * pad - 40) / rows
+    top = pad + 20
+    cx = lambda rc: round(pad + rc[1] * cw + cw / 2)
+    cy = lambda rc: round(top + rc[0] * ch + ch / 2)
+    cells = "".join(
+        f'<rect x="{round(pad + c * cw)}" y="{round(top + r * ch)}" '
+        f'width="{round(cw) - 2}" height="{round(ch) - 2}" />'
+        for r in range(rows) for c in range(cols))
+    cliff = "".join(
+        f'<rect x="{round(pad + c * cw)}" y="{round(top + r * ch)}" '
+        f'width="{round(cw) - 2}" height="{round(ch) - 2}" />' for r, c in T["cliff"])
+    q = d["learners"]["qlearning"]["path"]
+    s = d["learners"]["sarsa"]["path"]
+    # La miniatura existe para ensenar que los dos caminos son distintos.
+    assert len(s) > len(q), "los dos caminos salieron iguales"
+    line = lambda path: " ".join(f"{cx(p)},{cy(p)}" for p in path)
+    body = (f'  <g fill="#ffffff" stroke="#d4dada" stroke-width="1.5">{cells}</g>\n'
+            f'  <g fill="#df2a5d" fill-opacity="0.5">{cliff}</g>\n'
+            f'  <polyline points="{line(s)}" fill="none" stroke="#003181" '
+            f'stroke-width="5" stroke-linejoin="round" opacity="0.85" />\n'
+            f'  <polyline points="{line(q)}" fill="none" stroke="{accent}" '
+            f'stroke-width="5" stroke-linejoin="round" />\n')
+    write("q-learning", body)
+
+
 THUMBS = {
     "linear-programming": thumb_linear_programming,
     "genetic-algorithms": thumb_genetic_algorithms,
     "annealing-swarm": thumb_annealing_swarm,
     "bandits": thumb_bandits,
     "thompson-ucb": thumb_thompson_ucb,
+    "q-learning": thumb_q_learning,
 }
 
 
