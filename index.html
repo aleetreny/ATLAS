@@ -1093,6 +1093,26 @@
             </button>
           </div>
         </div>
+
+        <!-- card: consistency -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./consistency/';" style="cursor: pointer">
+            <img src="assets/thumbnails/consistency.svg"
+                 alt="Straight to the Point article image: distance from real digits against the number of network evaluations, with the plain rectified flow starting far above and falling for a hundred evaluations while the reflowed one is flat from the first." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Straight to the Point</h2>
+            <p class="article-description">
+              Sampling needs a chain because the path from noise to data is
+              curved. Measure how curved, straighten it by retraining on the
+              model's own output, and the chain collapses to one evaluation
+              for a change the measurement cannot see.
+            </p>
+            <button class="content-button">
+              <a href="./consistency/">Dive In</a>
+            </button>
+          </div>
+        </div>
       </div>
 
       <details class="roadmap">
@@ -1121,7 +1141,7 @@
             <span class="chip live"><a href="./ddpm/">DDPM</a></span>
             <span class="chip live"><a href="./latent-diffusion/">Latent Diffusion</a></span>
             <span class="chip live"><a href="./controlnet/">ControlNet</a></span>
-            <span class="chip">Consistency Models · Rectified Flow</span>
+            <span class="chip live"><a href="./consistency/">Consistency Models · Rectified Flow</a></span>
           </div>
         </div>
       </details>
@@ -1442,20 +1462,193 @@
           "what is this?" but "what should I do next?".
         </p>
       </div>
+      <div class="articles-container">
+        <!-- card: linear-programming -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./linear-programming/';" style="cursor: pointer">
+            <img src="assets/thumbnails/linear-programming.svg"
+                 alt="Where the Answer Has to Be article image: a six sided feasible region in purple with a hollow circle at each corner, one corner filled in, and a dashed line of equal profit resting on it." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Where the Answer Has to Be</h2>
+            <p class="article-description">
+              A straight objective over a flat sided region has its best point at
+              a corner, never in the middle. Enumerate every corner by brute
+              force, turn a dial and watch the answer jump between them, then
+              find the cube where the textbook rule visits all of them.
+            </p>
+            <button class="content-button">
+              <a href="./linear-programming/">Dive In</a>
+            </button>
+          </div>
+        </div>
+        <!-- card: genetic-algorithms -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./genetic-algorithms/';" style="cursor: pointer">
+            <img src="assets/thumbnails/genetic-algorithms.svg"
+                 alt="Breeding an Answer article image: ten chromosomes drawn as rows of cells, most of them dark where a bit is set, with pale rules marking the four bit blocks the trap is built from." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Breeding an Answer</h2>
+            <p class="article-description">
+              Keep the best guesses, mix them, damage them slightly, repeat. Five
+              searchers on four landscapes with known answers, and one experiment
+              that decides whether the mixing is worth anything: shuffle the bit
+              positions and watch the advantage disappear.
+            </p>
+            <button class="content-button">
+              <a href="./genetic-algorithms/">Dive In</a>
+            </button>
+          </div>
+        </div>
+        <!-- card: annealing-swarm -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./annealing-swarm/';" style="cursor: pointer">
+            <img src="assets/thumbnails/annealing-swarm.svg"
+                 alt="The Right Way to Go Downhill article image: a ring of energies drawn as a wavy line, with the time a cooling chain spent on each state as pale bars underneath, piled up in the two valleys." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">The Right Way to Go Downhill</h2>
+            <p class="article-description">
+              A search that accepts a worse answer on purpose, with the
+              probability written down, and a cloud of points that only knows
+              where it has been. Both metaphors have one exact claim underneath,
+              and both claims are checked here rather than admired.
+            </p>
+            <button class="content-button">
+              <a href="./annealing-swarm/">Dive In</a>
+            </button>
+          </div>
+        </div>
+        <!-- card: bandits -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./bandits/';" style="cursor: pointer">
+            <img src="assets/thumbnails/bandits.svg"
+                 alt="What It Costs to Find Out article image: five regret curves rising from the origin, the best and the worst drawn thick and the three in between faint." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">What It Costs to Find Out</h2>
+            <p class="article-description">
+              Every search so far tried answers for free and was told their exact
+              score. Take both away and the question becomes how much you will
+              pay to learn something, with five policies measured over four
+              thousand runs and three dials swept to where they actually belong.
+            </p>
+            <button class="content-button">
+              <a href="./bandits/">Dive In</a>
+            </button>
+          </div>
+        </div>
+        <!-- card: thompson-ucb -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./thompson-ucb/';" style="cursor: pointer">
+            <img src="assets/thumbnails/thompson-ucb.svg"
+                 alt="Knowing What You Do Not Know article image: five Beta posteriors after a thousand pulls, one of them tall and narrow and the rest low and wide." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Knowing What You Do Not Know</h2>
+            <p class="article-description">
+              A confidence bound and a posterior, both caught in the act: how
+              often the bound is actually wrong, how often the truth really is
+              inside the interval, and what a constant that has to work
+              everywhere costs on the problem in front of you.
+            </p>
+            <button class="content-button">
+              <a href="./thompson-ucb/">Dive In</a>
+            </button>
+          </div>
+        </div>
+        <!-- card: q-learning -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./q-learning/';" style="cursor: pointer">
+            <img src="assets/thumbnails/q-learning.svg"
+                 alt="A World That Remembers article image: the cliff walk grid with the drop in red, one route running along the edge of it and a longer one keeping a row further away." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">A World That Remembers</h2>
+            <p class="article-description">
+              Let an action move you somewhere and the value of a choice stops
+              being what it pays. Two updates one character apart learn two
+              different routes past a cliff, and a world small enough to solve
+              exactly says which of them is right about what.
+            </p>
+            <button class="content-button">
+              <a href="./q-learning/">Dive In</a>
+            </button>
+          </div>
+        </div>
+        <!-- card: dqn -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./dqn/';" style="cursor: pointer">
+            <img src="assets/thumbnails/dqn.svg"
+                 alt="When the Table Does Not Fit article image: the cliff grid shaded by what a network believes each square is worth, with the route it takes drawn over it." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">When the Table Does Not Fit</h2>
+            <p class="article-description">
+              Swap the table of values for a function of two numbers on a world
+              whose exact answer is still known, and measure what it costs: six
+              times the experience, both crutches ablated one at a time, and a
+              network's estimate checked against what it actually collects.
+            </p>
+            <button class="content-button">
+              <a href="./dqn/">Dive In</a>
+            </button>
+          </div>
+        </div>
+        <!-- card: policy-gradient -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./policy-gradient/';" style="cursor: pointer">
+            <img src="assets/thumbnails/policy-gradient.svg"
+                 alt="Pushing the Policy Itself article image: two falling curves of how far a sampled gradient lands from the exact one, the lower with a baseline subtracted." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Pushing the Policy Itself</h2>
+            <p class="article-description">
+              Move the policy instead of learning a value, on a world small
+              enough to write the exact gradient down. One episode points almost
+              at right angles to it, and a baseline, reuse and a clip each buy a
+              measured amount of that back.
+            </p>
+            <button class="content-button">
+              <a href="./policy-gradient/">Dive In</a>
+            </button>
+          </div>
+        </div>
+        <!-- card: mcts -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./mcts/';" style="cursor: pointer">
+            <img src="assets/thumbnails/mcts.svg"
+                 alt="Thinking Before Moving article image: a connect four position with a bar under each column showing how the search split its simulations, the drawing moves marked." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Thinking Before Moving</h2>
+            <p class="article-description">
+              Stop learning and start searching. A game small enough to solve
+              completely, so every move the search picks can be marked right or
+              wrong, and then the same question when the simulator is a model you
+              had to learn.
+            </p>
+            <button class="content-button">
+              <a href="./mcts/">Dive In</a>
+            </button>
+          </div>
+        </div>
+      </div>
       <details class="roadmap">
         <summary>Full branch map: 5. Agents &amp; Strategy</summary>
         <div class="branch">
           <h4>5.1 Optimization &nbsp;·&nbsp; 5.2 Bandits &nbsp;·&nbsp; 5.3 Reinforcement Learning</h4>
           <div class="chips">
-            <span class="chip">Linear Programming · MILP</span>
-            <span class="chip">Genetic Algorithms</span>
-            <span class="chip">Simulated Annealing · PSO</span>
-            <span class="chip">Multi-Armed Bandits</span>
-            <span class="chip">Thompson Sampling · UCB</span>
-            <span class="chip">Q-Learning · SARSA</span>
-            <span class="chip">DQN</span>
-            <span class="chip">REINFORCE · A2C · PPO · SAC</span>
-            <span class="chip">MCTS · Dreamer</span>
+            <span class="chip live"><a href="./linear-programming/">Linear Programming · MILP</a></span>
+            <span class="chip live"><a href="./genetic-algorithms/">Genetic Algorithms</a></span>
+            <span class="chip live"><a href="./annealing-swarm/">Simulated Annealing · PSO</a></span>
+            <span class="chip live"><a href="./bandits/">Multi-Armed Bandits</a></span>
+            <span class="chip live"><a href="./thompson-ucb/">Thompson Sampling · UCB</a></span>
+            <span class="chip live"><a href="./q-learning/">Q-Learning · SARSA</a></span>
+            <span class="chip live"><a href="./dqn/">DQN</a></span>
+            <span class="chip live"><a href="./policy-gradient/">REINFORCE · A2C · PPO · SAC</a></span>
+            <span class="chip live"><a href="./mcts/">MCTS · Dreamer</a></span>
           </div>
         </div>
       </details>

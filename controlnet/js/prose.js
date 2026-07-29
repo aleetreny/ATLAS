@@ -123,9 +123,9 @@ export function initProse(data) {
     + `since the first one. Sampling takes a chain, the chain takes steps, and each step is a `
     + `pass through a network. <a href="../ddpm/">The pixel article</a> measured how many of those `
     + `steps its samples actually needed, and this one doubles the cost of every single one of `
-    + `them, because guidance runs the network twice. The last article of this module asks `
-    + `whether that chain can be collapsed to a handful of steps, or to one, and what is lost `
-    + `when it is.`
+    + `them, because guidance runs the network twice. `
+    + `<a href="../consistency/">The last article of this module</a> asks whether that chain can `
+    + `be collapsed to a handful of steps, or to one, and what is lost when it is.`
     + `<br /><br />`
     + `The article after this one in the atlas changes the object rather than the method. `
     + `Everything so far has started from a row of numbers or a picture, and both arrive already `

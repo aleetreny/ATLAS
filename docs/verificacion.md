@@ -262,7 +262,8 @@ mismo trabajo. Antes de relanzar algo largo:
 ps -eo pid,etime,cmd | grep "[g]enerate_<tema>_data"
 ```
 
-Y si hay que matar, **por PID**, nunca `pkill -f` (trampa 30): `pkill -f` se
+Y si hay que matar, **por PID**, nunca `pkill -f` (punto 30 de la lista de
+arriba): `pkill -f` se
 llevó por delante el shell padre y con él dos cadenas de generación que no
 tenían nada que ver con el patrón buscado.
 
@@ -306,7 +307,99 @@ casos el arreglo era el enunciado y no el número:
 Antes de tocar el dato, comprobar que el guardia pide algo que el experimento
 puede dar.
 
-## Trampa 27: qué datos llegan a la nube y cuáles no
+## Lo que enseñó el módulo 5 (artículos 69 a 77)
+
+- **Un error de sintaxis en un widget se manifiesta como prosa sin componer.**
+  Una comilla mal escapada en un módulo dejó 52 hallazgos en el arnés: cincuenta
+  eran ids de prosa vacíos y KaTeX sin renderizar, y el único que importaba era
+  `pageerror: Unexpected identifier`. Los módulos ES fallan en bloque, así que
+  ante una lista larga de `prose-stale` se mira primero la consola, y `node
+  --check` sobre cada fichero cuesta un segundo.
+- **El escape a mano de un scrolly se pisa con el observador.** Disparar
+  `atlas:activate` sobre el paso 3 y hacer la captura enseñaba el paso 0,
+  porque el `IntersectionObserver` se despierta después de cargar y reclama el
+  paso que cubre la banda. Para mirar un paso de verdad hay que hacer
+  `scrollIntoView({block: 'center'})` y dejar que dispare el observador.
+- **Un servidor de pruebas se muere y el arnés miente distinto.** Un
+  `ERR_CONNECTION_REFUSED` a mitad de una tanda de capturas no es un fallo de
+  la página. Antes de creerse un resultado raro, comprobar que el puerto sigue
+  vivo.
+- **Una comprobación cara cabe en el navegador si se pone solo en la pasada
+  profunda.** Resolver el conecta cuatro del 77 desde la posición dibujada son
+  258.989 nodos y unos 900 ms en JavaScript: demasiado para la carga, perfecto
+  para `__atlasCheck(true)`. Es la comprobación más fuerte de toda la tanda,
+  porque reconstruye en otro lenguaje el patrón contra el que se puntúa la
+  página entera.
+- **Dos implementaciones del mismo estimador son un guardia mejor que una
+  tolerancia.** El navegador del 76 promedia 4.000 estimaciones con su propio
+  generador de números aleatorios y saca coseno 0,99246 contra el 0,99111 que
+  midió numpy: dos lenguajes, dos generadores, el mismo resultado. Y un solo
+  episodio da coseno -0,168, así que el umbral de 0,95 dispararía de verdad si
+  el estimador estuviera mal.
+
+## Trampa 27: un control desactivado a propósito sale como DEAD CONTROL
+
+El barrido pone cada slider en cada posición y avisa si el estado no se mueve.
+El artículo 78 tiene un brazo (el estudiante destilado) que por construcción se
+evalúa una sola vez, así que su slider se apaga y el arnés lo reporta, aunque
+esté bien. Dos cosas que aprender de ahí:
+
+- **El hallazgo hay que resolverlo, no silenciarlo.** Al lector le pasa lo
+  mismo que al arnés: ve un mando que no responde. Lo que lo arregla es que el
+  número de al lado deje de repetir un valor y diga por qué está apagado
+  (`one, by construction`).
+- **Y hay que comprobar a mano que el control SÍ funciona donde debe.** El
+  barrido deja el widget en el último botón que pulsó, que era justo el que
+  apaga el mando, así que su veredicto sobre ese slider no vale para los otros
+  dos brazos. Un script corto que selecciona el brazo con presupuesto y recorre
+  las siete posiciones comprobando que salen siete lienzos distintos: eso es lo
+  que cierra el hallazgo.
+
+Regla general: cuando el arnés reporta algo en un estado que él mismo eligió,
+antes de creerle o descartarlo hay que reproducir el estado que importa.
+
+## Trampa 28: un `probe` de una pasada no valida un bucle
+
+Las páginas de este sitio comprueban sus pesos contra un probe del generador
+antes de dibujar nada, y hasta el 78 ese probe era siempre "esta entrada da
+esta salida". Un muestreador que **camina** tiene tres decisiones más que viven
+fuera de las capas: el tamaño de paso, los tiempos a los que se le pregunta al
+campo y el sentido de la marcha. Se pueden equivocar las tres con los pesos
+leídos perfectamente, y el resultado sigue pareciendo dígitos.
+
+El probe lleva ahora los extremos de un paseo corto (8 pasos) además de la
+pasada suelta, y el navegador tiene que reproducirlos **caminando**. Lo mismo
+vale para cualquier cosa derivada que la página vuelva a calcular: la matriz de
+proyección con la que se dibujan las trayectorias también va en el probe,
+porque una sombra viva y una sombra guardada en marcos distintos parecen un
+resultado y son un artefacto.
+
+## Trampa 29: la red de salida puede estar cerrada y la web desplegada no se ve
+
+La política de red de una sesión en la nube puede prohibir HTTPS hacia
+`aleetreny.github.io`: `curl` devuelve `000` y el proxy responde `403` al
+CONNECT (se comprueba con `curl -sS "$HTTPS_PROXY/__agentproxy/status"`, que
+lista los rechazos recientes). Eso no es un fallo del despliegue y no se
+arregla desactivando la verificación TLS ni quitando el proxy.
+
+Lo que sí se puede comprobar desde dentro, y basta:
+
+- **Que lo empujado es lo que se cree.** `git ls-remote origin main` para el
+  sha, y `git ls-tree -r origin/main --name-only` para que estén el `index.html`
+  del artículo, su `data/*.json`, cada `js/*.js`, la miniatura y el `.nojekyll`.
+  `git cat-file -s origin/main:<ruta>` da el tamaño de un fichero remoto sin
+  bajarlo.
+- **Que Pages construyó.** Las herramientas de GitHub sí pasan por su propio
+  canal: el run `pages build and deployment` sobre el sha empujado tiene que
+  salir `completed / success`, igual que el workflow `publicacion` del propio
+  repositorio.
+
+Y el barrido de navegador de verdad ya se hizo antes de empujar, contra el
+puerto frío local, que es la comprobación que de verdad mira la página. Lo que
+falta cuando la red está cerrada es solo la última confirmación de que el CDN
+sirve lo mismo que el repositorio.
+
+## Trampa 30: qué datos llegan a la nube y cuáles no
 
 El módulo 6 necesitaba datos que este atlas no tenía: una tabla de personas por
 cosas, un grafo con etiquetas y un grafo de conocimiento. Lo que se aprendió
@@ -324,9 +417,10 @@ sobre de dónde sacarlos, con el proxy de esta sesión:
   dataset (aquí, la homofilia de Cora), que es lo único que caza una carga que
   funciona y está mal.
 
-## Trampa 28: matar un proceso por un patrón que está en tu propia línea de comandos
+## Trampa 31: matar un proceso por un patrón que está en tu propia línea de comandos
 
-Es la trampa 30 otra vez, por un camino que parecía a salvo. `PID=$(ps -eo
+Es el punto 30 de la lista de arriba otra vez, por un camino que parecía a
+salvo. `PID=$(ps -eo
 pid,cmd | grep "[g]enerate_mf_data" ...)` evita que el `grep` se encuentre a sí
 mismo, pero **no evita que encuentre al shell que lo ejecuta**, cuya línea de
 comandos contiene el patrón entero: la llamada vuelve con código 144 y la sesión
@@ -340,7 +434,7 @@ PID=$(ps -eo pid,cmd | awk -v p="$PAT" '$0 ~ p && /python/ {print $1}' | head -1
 kill "$PID"
 ```
 
-## Trampa 29: esperar sin `sleep` en primer plano
+## Trampa 32: esperar sin `sleep` en primer plano
 
 El arnés de esta sesión bloquea un `sleep` en primer plano. Para esperar a un
 generador largo, un bucle en segundo plano sobre el **fichero de salida** (no
@@ -354,7 +448,7 @@ lanzado con `run_in_background`, que además avisa al terminar. Y encadenar los
 generadores con un script `sh` suelto en `/tmp` es lo que evita tenerlos dos a
 la vez sobre cuatro núcleos, que es la trampa 63.
 
-## Trampa 30: el arnés de barrido del módulo 6
+## Trampa 33: el arnés de barrido del módulo 6
 
 `audit.mjs`, un fichero, cinco artículos, dos anchuras. Para cada uno: carga en
 el puerto frío, recoge errores y avisos de consola, recorre la página entera

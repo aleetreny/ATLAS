@@ -1,0 +1,4235 @@
+{
+ "meta": {
+  "seed": 59,
+  "seeds": 30,
+  "budget": 60000,
+  "bits": 40,
+  "block": 4,
+  "blocks": 10,
+  "pop": 400,
+  "note": "counts of evaluations, not seconds: the same numbers on any machine"
+ },
+ "probe": {
+  "bits": 40,
+  "block": 4,
+  "blocks": 10,
+  "shuffle": [
+   6,
+   36,
+   13,
+   0,
+   23,
+   20,
+   22,
+   4,
+   27,
+   31,
+   34,
+   35,
+   29,
+   24,
+   9,
+   32,
+   30,
+   18,
+   19,
+   21,
+   14,
+   26,
+   28,
+   5,
+   37,
+   10,
+   2,
+   12,
+   38,
+   11,
+   25,
+   1,
+   16,
+   7,
+   17,
+   33,
+   15,
+   3,
+   39,
+   8
+  ],
+  "genomes": [
+   [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    1,
+    1,
+    1,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    1,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    0,
+    0,
+    1,
+    1,
+    0,
+    1,
+    0,
+    1,
+    1,
+    0,
+    0,
+    1,
+    1,
+    0,
+    0,
+    1,
+    1,
+    1,
+    0,
+    1,
+    0
+   ],
+   [
+    0,
+    1,
+    1,
+    1,
+    0,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    0,
+    1,
+    0,
+    1,
+    1,
+    1,
+    0,
+    0
+   ],
+   [
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    0,
+    1,
+    0,
+    1,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    1,
+    1,
+    1,
+    1,
+    0,
+    1,
+    1,
+    1,
+    0,
+    1,
+    1,
+    1,
+    0,
+    0,
+    1,
+    1,
+    0,
+    1,
+    1
+   ],
+   [
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    0,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    0,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    0,
+    1,
+    1,
+    1,
+    0,
+    0,
+    1
+   ],
+   [
+    0,
+    1,
+    1,
+    1,
+    1,
+    0,
+    0,
+    1,
+    0,
+    1,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    1,
+    1,
+    1,
+    0,
+    1,
+    0,
+    1,
+    1,
+    0,
+    1,
+    1,
+    0,
+    0,
+    1
+   ],
+   [
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    1,
+    0,
+    1,
+    1,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    1,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   [
+    1,
+    0,
+    0,
+    1,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    0,
+    1,
+    0,
+    1,
+    1,
+    1,
+    1,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    0,
+    0,
+    1,
+    0,
+    1,
+    0,
+    0,
+    1
+   ],
+   [
+    1,
+    0,
+    1,
+    0,
+    1,
+    1,
+    0,
+    1,
+    1,
+    0,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    0,
+    0,
+    1,
+    0,
+    1
+   ],
+   [
+    1,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    1,
+    0,
+    0,
+    1,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    0,
+    1
+   ],
+   [
+    0,
+    1,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    0,
+    0,
+    1,
+    1,
+    0,
+    1,
+    1,
+    0,
+    1,
+    0,
+    0,
+    1,
+    0,
+    1,
+    0
+   ],
+   [
+    1,
+    1,
+    0,
+    1,
+    0,
+    0,
+    0,
+    1,
+    0,
+    1,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    1,
+    0,
+    1,
+    1,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    0,
+    1
+   ],
+   [
+    0,
+    0,
+    1,
+    1,
+    1,
+    0,
+    0,
+    1,
+    0,
+    0,
+    1,
+    1,
+    1,
+    0,
+    1,
+    1,
+    0,
+    0,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    1,
+    0,
+    1,
+    1,
+    1,
+    0,
+    1,
+    1,
+    0,
+    0,
+    0,
+    1
+   ],
+   [
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    1,
+    1,
+    0,
+    0,
+    1,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    1,
+    0,
+    1,
+    1,
+    0,
+    1,
+    1,
+    1,
+    1
+   ],
+   [
+    0,
+    1,
+    1,
+    0,
+    0,
+    1,
+    1,
+    1,
+    0,
+    1,
+    0,
+    0,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    0,
+    0,
+    1,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    1,
+    0,
+    0,
+    1,
+    1,
+    1,
+    0,
+    0
+   ],
+   [
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    0,
+    1,
+    0,
+    0,
+    1,
+    1,
+    1,
+    0,
+    0,
+    1,
+    0,
+    0,
+    1,
+    1,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0
+   ],
+   [
+    1,
+    1,
+    1,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    0,
+    1,
+    1,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    1,
+    0,
+    1,
+    1,
+    0,
+    1,
+    1,
+    0
+   ],
+   [
+    1,
+    1,
+    0,
+    1,
+    0,
+    1,
+    1,
+    1,
+    0,
+    0,
+    1,
+    0,
+    0,
+    1,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    0,
+    1,
+    1,
+    0,
+    1,
+    1,
+    0,
+    1,
+    1,
+    1,
+    1,
+    1,
+    0,
+    1,
+    0,
+    1,
+    1,
+    1,
+    1,
+    0
+   ],
+   [
+    1,
+    1,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    1,
+    1,
+    1,
+    0,
+    0,
+    1,
+    1,
+    0,
+    0
+   ],
+   [
+    0,
+    1,
+    1,
+    1,
+    0,
+    1,
+    1,
+    0,
+    0,
+    1,
+    0,
+    1,
+    1,
+    1,
+    0,
+    1,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    1,
+    0,
+    1,
+    1,
+    0,
+    1,
+    0,
+    1,
+    1,
+    1,
+    0,
+    1,
+    0
+   ],
+   [
+    1,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    1,
+    1,
+    0
+   ],
+   [
+    1,
+    0,
+    1,
+    0,
+    1,
+    1,
+    0,
+    0,
+    1,
+    0,
+    1,
+    0,
+    0,
+    1,
+    1,
+    0,
+    1,
+    0,
+    0,
+    1,
+    1,
+    0,
+    1,
+    1,
+    0,
+    0,
+    1,
+    0,
+    0,
+    1,
+    1,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    1,
+    1,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    1,
+    1,
+    0
+   ]
+  ],
+  "values": {
+   "onemax": [
+    40,
+    0,
+    22,
+    16,
+    23,
+    22,
+    22,
+    24,
+    18,
+    21,
+    15,
+    18,
+    18,
+    19,
+    18,
+    16,
+    16,
+    21,
+    25,
+    13,
+    25,
+    16,
+    18,
+    15
+   ],
+   "royal": [
+    40,
+    0,
+    0,
+    0,
+    4,
+    4,
+    0,
+    8,
+    4,
+    0,
+    0,
+    4,
+    4,
+    0,
+    4,
+    0,
+    0,
+    0,
+    4,
+    0,
+    4,
+    0,
+    0,
+    0
+   ],
+   "trap_tight": [
+    40,
+    30,
+    8,
+    14,
+    12,
+    13,
+    8,
+    16,
+    17,
+    9,
+    15,
+    17,
+    17,
+    11,
+    17,
+    14,
+    14,
+    9,
+    10,
+    17,
+    10,
+    14,
+    12,
+    15
+   ],
+   "trap_loose": [
+    40,
+    30,
+    13,
+    14,
+    7,
+    8,
+    8,
+    11,
+    17,
+    14,
+    15,
+    12,
+    12,
+    11,
+    17,
+    14,
+    14,
+    14,
+    10,
+    17,
+    15,
+    14,
+    17,
+    20
+   ]
+  },
+  "optima": {
+   "onemax": 40,
+   "royal": 40,
+   "trap_tight": 40,
+   "trap_loose": 40
+  },
+  "deceptive_attractor": 30
+ },
+ "arms": {
+  "onemax": {
+   "label": "count the ones",
+   "optimum": 40,
+   "rows": [
+    {
+     "arm": "one_point",
+     "label": "one point crossover",
+     "success": 30,
+     "of": 30,
+     "per_seed": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+     ],
+     "median_evals": 4800,
+     "mean_best": 40.0,
+     "best_possible": 40
+    },
+    {
+     "arm": "uniform",
+     "label": "uniform crossover",
+     "success": 30,
+     "of": 30,
+     "per_seed": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+     ],
+     "median_evals": 4000,
+     "mean_best": 40.0,
+     "best_possible": 40
+    },
+    {
+     "arm": "mutation_only",
+     "label": "mutation only",
+     "success": 30,
+     "of": 30,
+     "per_seed": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+     ],
+     "median_evals": 9600,
+     "mean_best": 40.0,
+     "best_possible": 40
+    },
+    {
+     "arm": "hill_climber",
+     "label": "hill climber, restarts",
+     "success": 30,
+     "of": 30,
+     "per_seed": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+     ],
+     "median_evals": 40,
+     "mean_best": 40.0,
+     "best_possible": 40
+    },
+    {
+     "arm": "random",
+     "label": "random guessing",
+     "success": 0,
+     "of": 30,
+     "per_seed": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+     ],
+     "median_evals": null,
+     "mean_best": 32.9,
+     "best_possible": 40
+    }
+   ]
+  },
+  "royal": {
+   "label": "blocks, all or nothing",
+   "optimum": 40,
+   "rows": [
+    {
+     "arm": "one_point",
+     "label": "one point crossover",
+     "success": 30,
+     "of": 30,
+     "per_seed": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+     ],
+     "median_evals": 4800,
+     "mean_best": 40.0,
+     "best_possible": 40
+    },
+    {
+     "arm": "uniform",
+     "label": "uniform crossover",
+     "success": 30,
+     "of": 30,
+     "per_seed": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+     ],
+     "median_evals": 5600,
+     "mean_best": 40.0,
+     "best_possible": 40
+    },
+    {
+     "arm": "mutation_only",
+     "label": "mutation only",
+     "success": 30,
+     "of": 30,
+     "per_seed": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+     ],
+     "median_evals": 14200,
+     "mean_best": 40.0,
+     "best_possible": 40
+    },
+    {
+     "arm": "hill_climber",
+     "label": "hill climber, restarts",
+     "success": 0,
+     "of": 30,
+     "per_seed": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+     ],
+     "median_evals": null,
+     "mean_best": 31.333,
+     "best_possible": 40
+    },
+    {
+     "arm": "random",
+     "label": "random guessing",
+     "success": 0,
+     "of": 30,
+     "per_seed": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+     ],
+     "median_evals": null,
+     "mean_best": 21.867,
+     "best_possible": 40
+    }
+   ]
+  },
+  "trap_tight": {
+   "label": "traps, blocks side by side",
+   "optimum": 40,
+   "rows": [
+    {
+     "arm": "one_point",
+     "label": "one point crossover",
+     "success": 29,
+     "of": 30,
+     "per_seed": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+     ],
+     "median_evals": 8400,
+     "mean_best": 39.967,
+     "best_possible": 40
+    },
+    {
+     "arm": "uniform",
+     "label": "uniform crossover",
+     "success": 0,
+     "of": 30,
+     "per_seed": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+     ],
+     "median_evals": null,
+     "mean_best": 31.167,
+     "best_possible": 40
+    },
+    {
+     "arm": "mutation_only",
+     "label": "mutation only",
+     "success": 9,
+     "of": 30,
+     "per_seed": [
+      false,
+      false,
+      true,
+      true,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      false,
+      false,
+      false,
+      true,
+      false,
+      false,
+      false,
+      true
+     ],
+     "median_evals": 41600,
+     "mean_best": 37.567,
+     "best_possible": 40
+    },
+    {
+     "arm": "hill_climber",
+     "label": "hill climber, restarts",
+     "success": 0,
+     "of": 30,
+     "per_seed": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+     ],
+     "median_evals": null,
+     "mean_best": 35.2,
+     "best_possible": 40
+    },
+    {
+     "arm": "random",
+     "label": "random guessing",
+     "success": 0,
+     "of": 30,
+     "per_seed": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+     ],
+     "median_evals": null,
+     "mean_best": 29.5,
+     "best_possible": 40
+    }
+   ]
+  },
+  "trap_loose": {
+   "label": "traps, bits shuffled",
+   "optimum": 40,
+   "rows": [
+    {
+     "arm": "one_point",
+     "label": "one point crossover",
+     "success": 0,
+     "of": 30,
+     "per_seed": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+     ],
+     "median_evals": null,
+     "mean_best": 34.9,
+     "best_possible": 40
+    },
+    {
+     "arm": "uniform",
+     "label": "uniform crossover",
+     "success": 0,
+     "of": 30,
+     "per_seed": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+     ],
+     "median_evals": null,
+     "mean_best": 31.167,
+     "best_possible": 40
+    },
+    {
+     "arm": "mutation_only",
+     "label": "mutation only",
+     "success": 9,
+     "of": 30,
+     "per_seed": [
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      true,
+      true,
+      false,
+      false,
+      true,
+      false,
+      true,
+      false,
+      true
+     ],
+     "median_evals": 37600,
+     "mean_best": 37.967,
+     "best_possible": 40
+    },
+    {
+     "arm": "hill_climber",
+     "label": "hill climber, restarts",
+     "success": 0,
+     "of": 30,
+     "per_seed": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+     ],
+     "median_evals": null,
+     "mean_best": 35.167,
+     "best_possible": 40
+    },
+    {
+     "arm": "random",
+     "label": "random guessing",
+     "success": 0,
+     "of": 30,
+     "per_seed": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+     ],
+     "median_evals": null,
+     "mean_best": 29.4,
+     "best_possible": 40
+    }
+   ]
+  }
+ },
+ "takeover": {
+  "rows": [
+   {
+    "tournament": 1,
+    "took_over": 0,
+    "of": 20,
+    "median": null,
+    "spread": null,
+    "best_lost": 20,
+    "ran_out": 0,
+    "curve": [
+     0.01,
+     0.0
+    ],
+    "predicted": null
+   },
+   {
+    "tournament": 2,
+    "took_over": 16,
+    "of": 20,
+    "median": 9,
+    "spread": 0.78,
+    "best_lost": 4,
+    "ran_out": 0,
+    "curve": [
+     0.01,
+     0.0
+    ],
+    "predicted": 6.64
+   },
+   {
+    "tournament": 3,
+    "took_over": 18,
+    "of": 20,
+    "median": 6,
+    "spread": 0.87,
+    "best_lost": 2,
+    "ran_out": 0,
+    "curve": [
+     0.01,
+     0.0
+    ],
+    "predicted": 4.19
+   },
+   {
+    "tournament": 4,
+    "took_over": 19,
+    "of": 20,
+    "median": 5,
+    "spread": 0.6,
+    "best_lost": 1,
+    "ran_out": 0,
+    "curve": [
+     0.01,
+     0.0
+    ],
+    "predicted": 3.32
+   },
+   {
+    "tournament": 6,
+    "took_over": 19,
+    "of": 20,
+    "median": 4,
+    "spread": 0.39,
+    "best_lost": 1,
+    "ran_out": 0,
+    "curve": [
+     0.01,
+     0.0
+    ],
+    "predicted": 2.57
+   },
+   {
+    "tournament": 8,
+    "took_over": 20,
+    "of": 20,
+    "median": 3,
+    "spread": 0.49,
+    "best_lost": 0,
+    "ran_out": 0,
+    "curve": [
+     0.01,
+     0.01,
+     0.1,
+     0.58,
+     1.0
+    ],
+    "predicted": 2.21
+   }
+  ],
+  "pop": 100,
+  "cap": 300,
+  "runs": 20,
+  "note": "no mutation and no crossover, so selection is the only force"
+ },
+ "population": {
+  "rows": [
+   {
+    "pop": 25,
+    "success": 1,
+    "of": 30,
+    "median_evals": 51325
+   },
+   {
+    "pop": 50,
+    "success": 3,
+    "of": 30,
+    "median_evals": 19450
+   },
+   {
+    "pop": 100,
+    "success": 9,
+    "of": 30,
+    "median_evals": 50500
+   },
+   {
+    "pop": 200,
+    "success": 25,
+    "of": 30,
+    "median_evals": 7000
+   },
+   {
+    "pop": 400,
+    "success": 26,
+    "of": 30,
+    "median_evals": 9400
+   },
+   {
+    "pop": 800,
+    "success": 30,
+    "of": 30,
+    "median_evals": 15200
+   },
+   {
+    "pop": 1600,
+    "success": 30,
+    "of": 30,
+    "median_evals": 25600
+   }
+  ],
+  "best_pop": 800,
+  "budget": 60000,
+  "landscape": "trap_tight"
+ },
+ "tsp": {
+  "n": 40,
+  "points": [
+   [
+    0.4844,
+    0.8483
+   ],
+   [
+    0.6735,
+    0.6262
+   ],
+   [
+    0.9758,
+    0.6928
+   ],
+   [
+    0.1302,
+    0.526
+   ],
+   [
+    0.6122,
+    0.1777
+   ],
+   [
+    0.1637,
+    0.7491
+   ],
+   [
+    0.9461,
+    0.5442
+   ],
+   [
+    0.3108,
+    0.0027
+   ],
+   [
+    0.4214,
+    0.5719
+   ],
+   [
+    0.6451,
+    0.9197
+   ],
+   [
+    0.2558,
+    0.0995
+   ],
+   [
+    0.3953,
+    0.2141
+   ],
+   [
+    0.5399,
+    0.0814
+   ],
+   [
+    0.2084,
+    0.0883
+   ],
+   [
+    0.1387,
+    0.1468
+   ],
+   [
+    0.6407,
+    0.5619
+   ],
+   [
+    0.8559,
+    0.7963
+   ],
+   [
+    0.7554,
+    0.2047
+   ],
+   [
+    0.5092,
+    0.5196
+   ],
+   [
+    0.4766,
+    0.9787
+   ],
+   [
+    0.26,
+    0.4721
+   ],
+   [
+    0.631,
+    0.5417
+   ],
+   [
+    0.4279,
+    0.1681
+   ],
+   [
+    0.369,
+    0.1036
+   ],
+   [
+    0.3931,
+    0.8782
+   ],
+   [
+    0.5631,
+    0.9971
+   ],
+   [
+    0.3058,
+    0.861
+   ],
+   [
+    0.1826,
+    0.3352
+   ],
+   [
+    0.7108,
+    0.6063
+   ],
+   [
+    0.7659,
+    0.7402
+   ],
+   [
+    0.2156,
+    0.0714
+   ],
+   [
+    0.4611,
+    0.4667
+   ],
+   [
+    0.6555,
+    0.5331
+   ],
+   [
+    0.4598,
+    0.515
+   ],
+   [
+    0.6421,
+    0.6611
+   ],
+   [
+    0.1868,
+    0.878
+   ],
+   [
+    0.905,
+    0.5731
+   ],
+   [
+    0.3081,
+    0.7957
+   ],
+   [
+    0.7716,
+    0.112
+   ],
+   [
+    0.2655,
+    0.0035
+   ]
+  ],
+  "budget": 200000,
+  "seeds": 12,
+  "ga": {
+   "mean": 4.706,
+   "best": 4.5736,
+   "spread": 0.1038,
+   "tour": [
+    17,
+    38,
+    12,
+    22,
+    11,
+    23,
+    7,
+    39,
+    10,
+    30,
+    13,
+    14,
+    27,
+    20,
+    3,
+    5,
+    35,
+    37,
+    26,
+    24,
+    0,
+    19,
+    25,
+    9,
+    29,
+    16,
+    2,
+    6,
+    36,
+    28,
+    1,
+    34,
+    15,
+    32,
+    21,
+    18,
+    8,
+    33,
+    31,
+    4
+   ]
+  },
+  "two_opt": {
+   "mean": 4.5624,
+   "best": 4.555,
+   "spread": 0.0111,
+   "tour": [
+    14,
+    27,
+    20,
+    3,
+    5,
+    35,
+    37,
+    26,
+    24,
+    0,
+    19,
+    25,
+    9,
+    29,
+    16,
+    2,
+    6,
+    36,
+    28,
+    1,
+    34,
+    15,
+    32,
+    21,
+    18,
+    8,
+    33,
+    31,
+    17,
+    38,
+    4,
+    12,
+    22,
+    11,
+    23,
+    7,
+    39,
+    10,
+    30,
+    13
+   ]
+  },
+  "random": {
+   "mean": 14.9957,
+   "best": 14.2092
+  },
+  "trace": [
+   [
+    60,
+    16.2757
+   ],
+   [
+    1260,
+    11.4445
+   ],
+   [
+    2460,
+    8.909
+   ],
+   [
+    3660,
+    6.6438
+   ],
+   [
+    4860,
+    5.8199
+   ],
+   [
+    6060,
+    4.8987
+   ],
+   [
+    7260,
+    4.7901
+   ],
+   [
+    8460,
+    4.717
+   ],
+   [
+    9660,
+    4.717
+   ],
+   [
+    10860,
+    4.6616
+   ],
+   [
+    12060,
+    4.6204
+   ],
+   [
+    13260,
+    4.6204
+   ],
+   [
+    14460,
+    4.6204
+   ],
+   [
+    15660,
+    4.6204
+   ],
+   [
+    16860,
+    4.6204
+   ],
+   [
+    18060,
+    4.6204
+   ],
+   [
+    19260,
+    4.6204
+   ],
+   [
+    20460,
+    4.6204
+   ],
+   [
+    21660,
+    4.6204
+   ],
+   [
+    22860,
+    4.5736
+   ],
+   [
+    24060,
+    4.5736
+   ],
+   [
+    25260,
+    4.5736
+   ],
+   [
+    26460,
+    4.5736
+   ],
+   [
+    27660,
+    4.5736
+   ],
+   [
+    28860,
+    4.5736
+   ],
+   [
+    30060,
+    4.5736
+   ],
+   [
+    31260,
+    4.5736
+   ],
+   [
+    32460,
+    4.5736
+   ],
+   [
+    33660,
+    4.5736
+   ],
+   [
+    34860,
+    4.5736
+   ],
+   [
+    36060,
+    4.5736
+   ],
+   [
+    37260,
+    4.5736
+   ],
+   [
+    38460,
+    4.5736
+   ],
+   [
+    39660,
+    4.5736
+   ],
+   [
+    40860,
+    4.5736
+   ],
+   [
+    42060,
+    4.5736
+   ],
+   [
+    43260,
+    4.5736
+   ],
+   [
+    44460,
+    4.5736
+   ],
+   [
+    45660,
+    4.5736
+   ],
+   [
+    46860,
+    4.5736
+   ],
+   [
+    48060,
+    4.5736
+   ],
+   [
+    49260,
+    4.5736
+   ],
+   [
+    50460,
+    4.5736
+   ],
+   [
+    51660,
+    4.5736
+   ],
+   [
+    52860,
+    4.5736
+   ],
+   [
+    54060,
+    4.5736
+   ],
+   [
+    55260,
+    4.5736
+   ],
+   [
+    56460,
+    4.5736
+   ],
+   [
+    57660,
+    4.5736
+   ],
+   [
+    58860,
+    4.5736
+   ],
+   [
+    60060,
+    4.5736
+   ],
+   [
+    61260,
+    4.5736
+   ],
+   [
+    62460,
+    4.5736
+   ],
+   [
+    63660,
+    4.5736
+   ],
+   [
+    64860,
+    4.5736
+   ],
+   [
+    66060,
+    4.5736
+   ],
+   [
+    67260,
+    4.5736
+   ],
+   [
+    68460,
+    4.5736
+   ],
+   [
+    69660,
+    4.5736
+   ],
+   [
+    70860,
+    4.5736
+   ],
+   [
+    72060,
+    4.5736
+   ],
+   [
+    73260,
+    4.5736
+   ],
+   [
+    74460,
+    4.5736
+   ],
+   [
+    75660,
+    4.5736
+   ],
+   [
+    76860,
+    4.5736
+   ],
+   [
+    78060,
+    4.5736
+   ],
+   [
+    79260,
+    4.5736
+   ],
+   [
+    80460,
+    4.5736
+   ],
+   [
+    81660,
+    4.5736
+   ],
+   [
+    82860,
+    4.5736
+   ],
+   [
+    84060,
+    4.5736
+   ],
+   [
+    85260,
+    4.5736
+   ],
+   [
+    86460,
+    4.5736
+   ],
+   [
+    87660,
+    4.5736
+   ],
+   [
+    88860,
+    4.5736
+   ],
+   [
+    90060,
+    4.5736
+   ],
+   [
+    91260,
+    4.5736
+   ],
+   [
+    92460,
+    4.5736
+   ],
+   [
+    93660,
+    4.5736
+   ],
+   [
+    94860,
+    4.5736
+   ],
+   [
+    96060,
+    4.5736
+   ],
+   [
+    97260,
+    4.5736
+   ],
+   [
+    98460,
+    4.5736
+   ],
+   [
+    99660,
+    4.5736
+   ],
+   [
+    100860,
+    4.5736
+   ],
+   [
+    102060,
+    4.5736
+   ],
+   [
+    103260,
+    4.5736
+   ],
+   [
+    104460,
+    4.5736
+   ],
+   [
+    105660,
+    4.5736
+   ],
+   [
+    106860,
+    4.5736
+   ],
+   [
+    108060,
+    4.5736
+   ],
+   [
+    109260,
+    4.5736
+   ],
+   [
+    110460,
+    4.5736
+   ],
+   [
+    111660,
+    4.5736
+   ],
+   [
+    112860,
+    4.5736
+   ],
+   [
+    114060,
+    4.5736
+   ],
+   [
+    115260,
+    4.5736
+   ],
+   [
+    116460,
+    4.5736
+   ],
+   [
+    117660,
+    4.5736
+   ],
+   [
+    118860,
+    4.5736
+   ],
+   [
+    120060,
+    4.5736
+   ],
+   [
+    121260,
+    4.5736
+   ],
+   [
+    122460,
+    4.5736
+   ],
+   [
+    123660,
+    4.5736
+   ],
+   [
+    124860,
+    4.5736
+   ],
+   [
+    126060,
+    4.5736
+   ],
+   [
+    127260,
+    4.5736
+   ],
+   [
+    128460,
+    4.5736
+   ],
+   [
+    129660,
+    4.5736
+   ],
+   [
+    130860,
+    4.5736
+   ],
+   [
+    132060,
+    4.5736
+   ],
+   [
+    133260,
+    4.5736
+   ],
+   [
+    134460,
+    4.5736
+   ],
+   [
+    135660,
+    4.5736
+   ],
+   [
+    136860,
+    4.5736
+   ],
+   [
+    138060,
+    4.5736
+   ],
+   [
+    139260,
+    4.5736
+   ],
+   [
+    140460,
+    4.5736
+   ],
+   [
+    141660,
+    4.5736
+   ],
+   [
+    142860,
+    4.5736
+   ],
+   [
+    144060,
+    4.5736
+   ],
+   [
+    145260,
+    4.5736
+   ],
+   [
+    146460,
+    4.5736
+   ],
+   [
+    147660,
+    4.5736
+   ],
+   [
+    148860,
+    4.5736
+   ],
+   [
+    150060,
+    4.5736
+   ],
+   [
+    151260,
+    4.5736
+   ],
+   [
+    152460,
+    4.5736
+   ],
+   [
+    153660,
+    4.5736
+   ],
+   [
+    154860,
+    4.5736
+   ],
+   [
+    156060,
+    4.5736
+   ],
+   [
+    157260,
+    4.5736
+   ],
+   [
+    158460,
+    4.5736
+   ],
+   [
+    159660,
+    4.5736
+   ],
+   [
+    160860,
+    4.5736
+   ],
+   [
+    162060,
+    4.5736
+   ],
+   [
+    163260,
+    4.5736
+   ],
+   [
+    164460,
+    4.5736
+   ],
+   [
+    165660,
+    4.5736
+   ],
+   [
+    166860,
+    4.5736
+   ],
+   [
+    168060,
+    4.5736
+   ],
+   [
+    169260,
+    4.5736
+   ],
+   [
+    170460,
+    4.5736
+   ],
+   [
+    171660,
+    4.5736
+   ],
+   [
+    172860,
+    4.5736
+   ],
+   [
+    174060,
+    4.5736
+   ],
+   [
+    175260,
+    4.5736
+   ],
+   [
+    176460,
+    4.5736
+   ],
+   [
+    177660,
+    4.5736
+   ],
+   [
+    178860,
+    4.5736
+   ],
+   [
+    180060,
+    4.5736
+   ],
+   [
+    181260,
+    4.5736
+   ],
+   [
+    182460,
+    4.5736
+   ],
+   [
+    183660,
+    4.5736
+   ],
+   [
+    184860,
+    4.5736
+   ],
+   [
+    186060,
+    4.5736
+   ],
+   [
+    187260,
+    4.5736
+   ],
+   [
+    188460,
+    4.5736
+   ],
+   [
+    189660,
+    4.5736
+   ],
+   [
+    190860,
+    4.5736
+   ],
+   [
+    192060,
+    4.5736
+   ],
+   [
+    193260,
+    4.5736
+   ],
+   [
+    194460,
+    4.5736
+   ],
+   [
+    195660,
+    4.5736
+   ],
+   [
+    196860,
+    4.5736
+   ],
+   [
+    198060,
+    4.5736
+   ],
+   [
+    199260,
+    4.5736
+   ]
+  ],
+  "gap": 0.0315
+ },
+ "reference": {
+  "config": {
+   "pop": 100,
+   "bits": 40,
+   "tour": 3,
+   "pmut": 0.025,
+   "gens": 100,
+   "cross": "one_point",
+   "seed": 12345
+  },
+  "history": [
+   {
+    "gen": 0,
+    "best": 10,
+    "mean": 10.0,
+    "unique": 1
+   },
+   {
+    "gen": 1,
+    "best": 13,
+    "mean": 10.02,
+    "unique": 50
+   },
+   {
+    "gen": 2,
+    "best": 14,
+    "mean": 10.83,
+    "unique": 79
+   },
+   {
+    "gen": 3,
+    "best": 15,
+    "mean": 11.77,
+    "unique": 92
+   },
+   {
+    "gen": 4,
+    "best": 17,
+    "mean": 12.93,
+    "unique": 99
+   },
+   {
+    "gen": 5,
+    "best": 20,
+    "mean": 14.17,
+    "unique": 100
+   },
+   {
+    "gen": 6,
+    "best": 21,
+    "mean": 15.72,
+    "unique": 99
+   },
+   {
+    "gen": 7,
+    "best": 21,
+    "mean": 16.81,
+    "unique": 100
+   },
+   {
+    "gen": 8,
+    "best": 22,
+    "mean": 18.25,
+    "unique": 97
+   },
+   {
+    "gen": 9,
+    "best": 23,
+    "mean": 19.32,
+    "unique": 100
+   },
+   {
+    "gen": 10,
+    "best": 24,
+    "mean": 20.29,
+    "unique": 96
+   },
+   {
+    "gen": 11,
+    "best": 25,
+    "mean": 21.0,
+    "unique": 98
+   },
+   {
+    "gen": 12,
+    "best": 25,
+    "mean": 21.92,
+    "unique": 98
+   },
+   {
+    "gen": 13,
+    "best": 26,
+    "mean": 22.8,
+    "unique": 96
+   },
+   {
+    "gen": 14,
+    "best": 28,
+    "mean": 23.22,
+    "unique": 97
+   },
+   {
+    "gen": 15,
+    "best": 28,
+    "mean": 23.89,
+    "unique": 93
+   },
+   {
+    "gen": 16,
+    "best": 29,
+    "mean": 24.46,
+    "unique": 97
+   },
+   {
+    "gen": 17,
+    "best": 29,
+    "mean": 25.0,
+    "unique": 98
+   },
+   {
+    "gen": 18,
+    "best": 29,
+    "mean": 25.77,
+    "unique": 97
+   },
+   {
+    "gen": 19,
+    "best": 30,
+    "mean": 26.03,
+    "unique": 97
+   },
+   {
+    "gen": 20,
+    "best": 30,
+    "mean": 26.77,
+    "unique": 94
+   },
+   {
+    "gen": 21,
+    "best": 31,
+    "mean": 26.99,
+    "unique": 97
+   },
+   {
+    "gen": 22,
+    "best": 32,
+    "mean": 27.37,
+    "unique": 96
+   },
+   {
+    "gen": 23,
+    "best": 32,
+    "mean": 27.72,
+    "unique": 94
+   },
+   {
+    "gen": 24,
+    "best": 32,
+    "mean": 28.21,
+    "unique": 90
+   },
+   {
+    "gen": 25,
+    "best": 32,
+    "mean": 28.84,
+    "unique": 85
+   },
+   {
+    "gen": 26,
+    "best": 32,
+    "mean": 29.28,
+    "unique": 82
+   },
+   {
+    "gen": 27,
+    "best": 32,
+    "mean": 29.27,
+    "unique": 69
+   },
+   {
+    "gen": 28,
+    "best": 32,
+    "mean": 29.96,
+    "unique": 67
+   },
+   {
+    "gen": 29,
+    "best": 32,
+    "mean": 29.88,
+    "unique": 74
+   },
+   {
+    "gen": 30,
+    "best": 32,
+    "mean": 29.68,
+    "unique": 74
+   },
+   {
+    "gen": 31,
+    "best": 32,
+    "mean": 29.7,
+    "unique": 70
+   },
+   {
+    "gen": 32,
+    "best": 32,
+    "mean": 30.02,
+    "unique": 68
+   },
+   {
+    "gen": 33,
+    "best": 32,
+    "mean": 29.87,
+    "unique": 69
+   },
+   {
+    "gen": 34,
+    "best": 32,
+    "mean": 30.12,
+    "unique": 70
+   },
+   {
+    "gen": 35,
+    "best": 32,
+    "mean": 30.08,
+    "unique": 66
+   },
+   {
+    "gen": 36,
+    "best": 32,
+    "mean": 30.21,
+    "unique": 62
+   },
+   {
+    "gen": 37,
+    "best": 32,
+    "mean": 29.82,
+    "unique": 76
+   },
+   {
+    "gen": 38,
+    "best": 32,
+    "mean": 29.64,
+    "unique": 70
+   },
+   {
+    "gen": 39,
+    "best": 32,
+    "mean": 29.68,
+    "unique": 77
+   },
+   {
+    "gen": 40,
+    "best": 32,
+    "mean": 29.37,
+    "unique": 79
+   },
+   {
+    "gen": 41,
+    "best": 32,
+    "mean": 29.35,
+    "unique": 74
+   },
+   {
+    "gen": 42,
+    "best": 32,
+    "mean": 29.8,
+    "unique": 70
+   },
+   {
+    "gen": 43,
+    "best": 32,
+    "mean": 30.03,
+    "unique": 65
+   },
+   {
+    "gen": 44,
+    "best": 32,
+    "mean": 29.9,
+    "unique": 72
+   },
+   {
+    "gen": 45,
+    "best": 32,
+    "mean": 29.33,
+    "unique": 77
+   },
+   {
+    "gen": 46,
+    "best": 32,
+    "mean": 29.77,
+    "unique": 72
+   },
+   {
+    "gen": 47,
+    "best": 32,
+    "mean": 30.18,
+    "unique": 61
+   },
+   {
+    "gen": 48,
+    "best": 32,
+    "mean": 30.01,
+    "unique": 65
+   },
+   {
+    "gen": 49,
+    "best": 32,
+    "mean": 30.02,
+    "unique": 65
+   },
+   {
+    "gen": 50,
+    "best": 32,
+    "mean": 30.24,
+    "unique": 62
+   },
+   {
+    "gen": 51,
+    "best": 32,
+    "mean": 29.78,
+    "unique": 65
+   },
+   {
+    "gen": 52,
+    "best": 32,
+    "mean": 30.04,
+    "unique": 64
+   },
+   {
+    "gen": 53,
+    "best": 32,
+    "mean": 29.72,
+    "unique": 77
+   },
+   {
+    "gen": 54,
+    "best": 32,
+    "mean": 29.91,
+    "unique": 70
+   },
+   {
+    "gen": 55,
+    "best": 32,
+    "mean": 30.11,
+    "unique": 69
+   },
+   {
+    "gen": 56,
+    "best": 32,
+    "mean": 29.96,
+    "unique": 63
+   },
+   {
+    "gen": 57,
+    "best": 32,
+    "mean": 30.16,
+    "unique": 64
+   },
+   {
+    "gen": 58,
+    "best": 32,
+    "mean": 29.28,
+    "unique": 71
+   },
+   {
+    "gen": 59,
+    "best": 32,
+    "mean": 29.66,
+    "unique": 66
+   },
+   {
+    "gen": 60,
+    "best": 32,
+    "mean": 29.72,
+    "unique": 69
+   },
+   {
+    "gen": 61,
+    "best": 32,
+    "mean": 29.89,
+    "unique": 72
+   },
+   {
+    "gen": 62,
+    "best": 32,
+    "mean": 30.06,
+    "unique": 68
+   },
+   {
+    "gen": 63,
+    "best": 32,
+    "mean": 30.03,
+    "unique": 67
+   },
+   {
+    "gen": 64,
+    "best": 32,
+    "mean": 29.95,
+    "unique": 68
+   },
+   {
+    "gen": 65,
+    "best": 32,
+    "mean": 29.65,
+    "unique": 69
+   },
+   {
+    "gen": 66,
+    "best": 32,
+    "mean": 29.85,
+    "unique": 67
+   },
+   {
+    "gen": 67,
+    "best": 32,
+    "mean": 30.01,
+    "unique": 68
+   },
+   {
+    "gen": 68,
+    "best": 32,
+    "mean": 30.07,
+    "unique": 62
+   },
+   {
+    "gen": 69,
+    "best": 32,
+    "mean": 29.98,
+    "unique": 62
+   },
+   {
+    "gen": 70,
+    "best": 32,
+    "mean": 30.0,
+    "unique": 67
+   },
+   {
+    "gen": 71,
+    "best": 32,
+    "mean": 30.2,
+    "unique": 61
+   },
+   {
+    "gen": 72,
+    "best": 32,
+    "mean": 30.34,
+    "unique": 59
+   },
+   {
+    "gen": 73,
+    "best": 32,
+    "mean": 29.8,
+    "unique": 69
+   },
+   {
+    "gen": 74,
+    "best": 32,
+    "mean": 29.88,
+    "unique": 64
+   },
+   {
+    "gen": 75,
+    "best": 32,
+    "mean": 30.1,
+    "unique": 59
+   },
+   {
+    "gen": 76,
+    "best": 32,
+    "mean": 30.13,
+    "unique": 63
+   },
+   {
+    "gen": 77,
+    "best": 32,
+    "mean": 30.2,
+    "unique": 63
+   },
+   {
+    "gen": 78,
+    "best": 32,
+    "mean": 30.0,
+    "unique": 68
+   },
+   {
+    "gen": 79,
+    "best": 32,
+    "mean": 30.39,
+    "unique": 63
+   },
+   {
+    "gen": 80,
+    "best": 32,
+    "mean": 29.88,
+    "unique": 67
+   },
+   {
+    "gen": 81,
+    "best": 32,
+    "mean": 30.21,
+    "unique": 64
+   },
+   {
+    "gen": 82,
+    "best": 32,
+    "mean": 30.22,
+    "unique": 69
+   },
+   {
+    "gen": 83,
+    "best": 32,
+    "mean": 30.24,
+    "unique": 67
+   },
+   {
+    "gen": 84,
+    "best": 32,
+    "mean": 30.17,
+    "unique": 70
+   },
+   {
+    "gen": 85,
+    "best": 32,
+    "mean": 30.11,
+    "unique": 64
+   },
+   {
+    "gen": 86,
+    "best": 32,
+    "mean": 29.76,
+    "unique": 71
+   },
+   {
+    "gen": 87,
+    "best": 32,
+    "mean": 29.52,
+    "unique": 76
+   },
+   {
+    "gen": 88,
+    "best": 32,
+    "mean": 29.45,
+    "unique": 82
+   },
+   {
+    "gen": 89,
+    "best": 32,
+    "mean": 29.58,
+    "unique": 79
+   },
+   {
+    "gen": 90,
+    "best": 32,
+    "mean": 30.01,
+    "unique": 65
+   },
+   {
+    "gen": 91,
+    "best": 32,
+    "mean": 30.2,
+    "unique": 64
+   },
+   {
+    "gen": 92,
+    "best": 32,
+    "mean": 29.99,
+    "unique": 61
+   },
+   {
+    "gen": 93,
+    "best": 32,
+    "mean": 30.14,
+    "unique": 64
+   },
+   {
+    "gen": 94,
+    "best": 32,
+    "mean": 29.87,
+    "unique": 66
+   },
+   {
+    "gen": 95,
+    "best": 32,
+    "mean": 30.35,
+    "unique": 60
+   },
+   {
+    "gen": 96,
+    "best": 32,
+    "mean": 30.01,
+    "unique": 69
+   },
+   {
+    "gen": 97,
+    "best": 32,
+    "mean": 29.98,
+    "unique": 68
+   },
+   {
+    "gen": 98,
+    "best": 32,
+    "mean": 29.94,
+    "unique": 66
+   },
+   {
+    "gen": 99,
+    "best": 32,
+    "mean": 30.13,
+    "unique": 61
+   },
+   {
+    "gen": 100,
+    "best": 32,
+    "mean": 30.02,
+    "unique": 68
+   }
+  ],
+  "final_best": 32,
+  "final_population": [
+   [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    1,
+    1,
+    1,
+    1,
+    0,
+    1,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    0,
+    0,
+    1,
+    0,
+    1,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ]
+  ],
+  "optimum": 40
+ }
+}

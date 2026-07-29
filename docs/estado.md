@@ -92,15 +92,25 @@ Este repositorio empezó como notebooks de ML y se está convirtiendo en una web
 | 66 | Credit, Exactly (los 1.024 conjuntos enumerados contra la forma cerrada de un modelo aditivo, KernelSHAP muestreado, las dos funciones de valor, y LIME con el ancho como mando) | `attribution/` | `#473a04` |
 | 67 | Where It Looked (seis mapas y dos controles puntuados contra la máscara exacta, Grad-CAM por profundidad, el test de aleatorización de Adebayo, y la atención contra la importancia medida) | `saliency/` | `#853c6f` |
 | 68 | Do As You Are Told (los diez dígitos pedidos a cuatro ajustes del dial, obediencia contra realismo sobre los mismos ejes, dos etiquetas quitadas del entrenamiento) | `controlnet/` | `#994573` |
-| 69 | Nobody Told It What A Book Is (cuatro similitudes calculadas en la página, el control de popularidad corrido antes que nada, el error partido por decil) | `collaborative-filtering/` | `#994595` |
-| 70 | A Few Numbers Per Reader (la identidad con el 25 sobre los mismos dígitos, el agujero medido, la rotación que no mueve nada) | `matrix-factorization/` | `#647032` |
-| 71 | Both Sides Of The Dot Product (300 libros con las valoraciones borradas, el techo exacto de un producto escalar, la torre corriendo en la página) | `two-tower/` | `#856314` |
-| 72 | The Average Of Your Neighbours (los dos controles, el mando de homofilia, el paso de mensajes en vivo, la atención contra 1/grado) | `gnn/` | `#591c5c` |
-| 73 | A Relation Is A Movement (la predicción cerrada de TransE contra sus normas aprendidas, los cuatro patrones escritos, el giro en vivo) | `kg-embeddings/` | `#456b99` |
-**El módulo 6 entero (artículos 69 a 73), publicado de una vez.** Las dos
-secciones cerradas y los cinco chips encendidos: 6.1 recomendadores (69, 70 y
-71) y 6.2 grafos (72 y 73), encadenados en ese orden y enganchados desde el
-cierre del 57 (`wavenet/`), que es la tarjeta anterior en la portada. Es la
+| 69 | Where the Answer Has to Be (todas las esquinas enumeradas, dial del objetivo, el cubo de Klee y Minty a 2^n - 1 pivotes, precios sombra con su rango, ramificacion y acotacion contada en nodos) | `linear-programming/` | `#591c5c` |
+| 70 | Breeding an Answer (cinco buscadores en cuatro paisajes con optimo conocido, la hipotesis de los bloques falsada barajando posiciones, presion de seleccion medida, viajante contra 2-opt) | `genetic-algorithms/` | `#456b99` |
+| 71 | The Right Way to Go Downhill (Metropolis contra la Boltzmann exacta con la pendiente del muestreo medida, seis horarios sobre las mismas 40 ciudades del 59, enjambre contra dos controles, region de estabilidad barrida) | `annealing-swarm/` | `#142a85` |
+| 72 | What It Costs to Find Out (cinco politicas sobre 4.000 tiradas, epsilon barrido, la formula de explorar y comprometerse contra el barrido, la forma del arrepentimiento ajustada) | `bandits/` | `#0e2d5c` |
+| 73 | Knowing What You Do Not Know (cobertura de la cota contada, calibracion de la posterior medida, pendientes contra la constante exacta de Lai y Robbins, maquinas que cambian) | `thompson-ucb/` | `#994591` |
+| 74 | A World That Remembers (acantilado resuelto exacto por iteracion de valor, SARSA contra Q-learning en lo que cobran y en lo que dejan, epsilon a cero los iguala, sesgo del maximo con doble tabla) | `q-learning/` | `#856314` |
+| 75 | When the Table Does Not Fit (tabla contra recta contra red sobre el mismo acantilado exacto, las dos muletas ablacionadas con suelo de ruido, lo que la red se cree contra lo que cobra) | `dqn/` | `#5c540e` |
+| 76 | Pushing the Policy Itself (gradiente exacto por algebra lineal, error y coseno del estimador barriendo episodios, linea base contra nada, reuso y recorte medidos uno a uno, premio a la entropia barrido) | `policy-gradient/` | `#647032` |
+| 77 | Thinking Before Moving (conecta cuatro de 4x5 resuelto entero, acierto de la busqueda barriendo simulaciones, la constante barrida contra su suelo de ruido, tiradas listas que no compran nada, contra minimax a igual numero de nodos, y el error de un plan dentro de un modelo aprendido) | `mcts/` | `#99171d` |
+| 78 | Straight to the Point (las trayectorias dibujadas y su desviación medida, reflow sobre los pares del propio modelo, calidad contra presupuesto de pasos, y qué diferencias sobreviven a repetir el sorteo) | `consistency/` | `#5c293b` |
+| 79 | Nobody Told It What A Book Is (cuatro similitudes calculadas en la página, el control de popularidad corrido antes que nada, el error partido por decil) | `collaborative-filtering/` | `#74009e` |
+| 80 | A Few Numbers Per Reader (la identidad con el 25 sobre los mismos dígitos, el agujero medido, la rotación que no mueve nada) | `matrix-factorization/` | `#4a5734` |
+| 81 | Both Sides Of The Dot Product (300 libros con las valoraciones borradas, el techo exacto de un producto escalar, la torre corriendo en la página) | `two-tower/` | `#8a5369` |
+| 82 | The Average Of Your Neighbours (los dos controles, el mando de homofilia, el paso de mensajes en vivo, la atención contra 1/grado) | `gnn/` | `#0b009e` |
+| 83 | A Relation Is A Movement (la predicción cerrada de TransE contra sus normas aprendidas, los cuatro patrones escritos, el giro en vivo) | `kg-embeddings/` | `#725f9e` |
+**El módulo 6 entero (artículos 79 a 83), publicado de una vez.** Las dos
+secciones cerradas y los cinco chips encendidos: 6.1 recomendadores (79, 80 y
+81) y 6.2 grafos (82 y 83), encadenados en ese orden y enganchados desde el
+cierre del 77 (`mcts/`), que es la tarjeta anterior en la portada. Es la
 primera rama del atlas cuyo objeto **no se describe**: un libro no tiene
 rasgos, tiene lectores; un nodo no tiene rasgos que basten, tiene vecinos; una
 entidad es donde sus relaciones la ponen.
@@ -112,7 +122,7 @@ lector y la huella `6111a2884e877844` del conjunto retenido comprobada por los
 generadores del 70 y del 71 antes de correr. Así las tres tablas se leen juntas.
 Lo que hay que saber de cada uno:
 
-- **69** corre el control que casi nadie publica antes que ningún modelo: darle
+- **79** corre el control que casi nadie publica antes que ningún modelo: darle
   a todo el mundo los diez libros más valorados acierta el **5,75%** en una
   lista de diez, contra el 22,38% de los vecinos por libro, un factor de 3,89 y
   no el que sugiere la palabra "personalizado". Y el resultado que reescribió la
@@ -122,7 +132,7 @@ Lo que hay que saber de cada uno:
   sesgo de popularidad se puede, y cuesta evidencia. El barrido de k no tiene
   vuelta dentro del dominio: mejora hasta k = 4.000 de 10.000 libros, o sea que
   el mejor "vecindario" es casi el catálogo entero.
-- **70** empieza afirmando la identidad con el **artículo 25**: el SVD truncado
+- **80** empieza afirmando la identidad con el **artículo 25**: el SVD truncado
   de los mismos 2.000 dígitos reproduce el error de PCA que aquella página
   publicó (0,05573261 contra 0,05573261 en rango 2, peor caso 1,8e-7, que es su
   redondeo). Con eso, la cuarta restricción se mide en vez de contarse: los
@@ -130,18 +140,18 @@ Lo que hay que saber de cada uno:
   media, o ajustando solo sobre lo observado. Y la invariancia por rotación es
   un guardia exacto: la predicción se mueve **3,2e-14** bajo una transformación
   invertible cualquiera, así que un factor no es un género.
-- **71** hace el experimento que los dos anteriores no pueden: **300 libros con
+- **81** hace el experimento que los dos anteriores no pueden: **300 libros con
   todas sus valoraciones borradas** del entrenamiento. La torre de solo
   identificadores cae al azar, la de contenido no. Y el techo de un producto
   escalar se **calcula** en vez de entrenarse, porque es la cola de los valores
   singulares de la matriz que intenta escribir.
-- **72** corre los dos controles juntos sobre Cora: los rasgos sin el grafo
+- **82** corre los dos controles juntos sobre Cora: los rasgos sin el grafo
   (55,7%) y el grafo sin los rasgos (69,9%), o sea que **el grafo solo vale más
   que los rasgos solos** y una mejora atribuida a la arquitectura es medio
   malentendido. El GCN saca 81,3%. El mando de homofilia dice cuándo esta
   familia entera es la idea equivocada, y la atención de GAT resulta ser, en
   este grafo, el 1/grado que ya estaba ahí gratis.
-- **73** convierte dos teoremas en predicciones sobre parámetros entrenados: una
+- **83** convierte dos teoremas en predicciones sobre parámetros entrenados: una
   relación simétrica obliga a TransE a poner su vector a cero y a RotatE a un
   giro de media vuelta, y las dos cosas se miden contra lo simétrica que es cada
   relación de WN18RR en los datos.
@@ -149,7 +159,10 @@ Lo que hay que saber de cada uno:
 **El módulo 7 entero (artículos 60 a 67), publicado de una vez.** Las tres
 secciones cerradas y los ocho chips encendidos: 7.1 causalidad (60 a 63), 7.2
 incertidumbre (64 y 65), 7.3 explicabilidad (66 y 67), encadenados en ese orden
-y enganchados desde el cierre del 57 (wavenet). Lo que hay que saber de cada uno:
+y encadenados en ese orden. La cadena de lectura del 57 (wavenet) ya no entra
+aquí directamente: entre medias van el módulo 5 entero (69 a 77) y el 6 entero
+(79 a 83), que son las tarjetas siguientes en la portada, y es el 83
+(kg-embeddings) el que enlaza al 60. Lo que hay que saber de cada uno:
 
 - **60** mide el sesgo de confusión en forma cerrada (razón de Mills) y lo
   compara con el simulado; el mundo de colisión y dos mundos Markov
@@ -209,6 +222,83 @@ Los artículos 1 a 6 pasaron una **revisión completa** (commit `5e4852b`, 2026-
 Dos de esos hallazgos eran errores numéricos publicados: `polyFit` del artículo 1 formaba `X'X` (grado 9 daba r² test 0.681 en vez de 0.649, invirtiendo la moraleja) y el lasso del artículo 2 no convergía por debajo de λ=1e-3. Ver [la receta de un artículo](receta-de-articulo.md).
 
 **Los módulos 1 y 2 están cerrados enteros: siete ramas, ni un chip apagado en ninguna. La sección 1 completa (21 artículos: 1.1, 1.2 y 1.3, esta última con el 32) y la sección 2 completa (14 artículos: 2.1 con seis y ocho chips cerrado por el 31, 2.2 con cinco artículos y cinco chips cerrado por el 30, 2.3 con dos artículos y tres chips cerrado por el 34, y 2.4 con uno y un chip, el 35). El módulo 3 ya tiene dos secciones: la 3.2 (artículos 36 a 40, el camino de la verosimilitud) y la 3.1 (artículos 41 a 43, el adversarial), encadenada y en ese orden (gans -> stylegan -> translation) y enlazada desde el cierre del 35 (baskets), que es el último de la sección 2 en orden de lectura. Lo que queda del módulo 3 es la 3.3, la difusión, adonde apunta el cierre del 40 (glow), que es el último del módulo en orden de lectura; el cierre del 43 (translation) enlaza al 36 (vae), que es el puente de 3.1 a 3.2. Cuidado con dos recuentos que es fácil equivocar: el módulo 2.2 son cinco artículos (25, 27, 28, 29, 30), no seis, porque el 26 y el 31 son de 2.1; y el 26 aparece entre medias por cronología, no por taxonomía. El 21 cumplió la promesa del 20 (ReLU gana a tanh con profundidad: 89,37/83,77 a 20 capas) y desmintió midiendo el tópico del gradiente que se desvanece (crece 1.271×). El 23 cerró el arco que abrió el 19: un clasificador de ventanas sobre un recorte y el mismo en una pasada convolucional dan el mismo número exacto. El 24 corre sobre los lienzos del 23. El 32 cierra el 1.3 dejando la imagen plana: la escena está escrita en forma cerrada, así que la verdad de referencia no es una anotación sino la función, y la cadena de cierres 23 -> 24 -> 32 está enganchada. El 2.2 va encadenado directions -> distances -> manifolds -> neighbours -> autoencoders, y el 2.1 kmeans -> gmm -> dbscan -> hierarchical -> assumptions -> affinities. La cadena de la sección 2 termina ahora en autoencoders -> outliers -> isolation -> baskets, que es la que exige la regla 7 del guardia, y el 2.3 se lee como un solo argumento: el 33 mide el defecto (el patrón se estima de la muestra que contiene al sospechoso) y el 34 mide las cuatro salidas, cerrando el bucle sobre las mismas ocho botellas plantadas.**
+
+**El módulo 5 entero (artículos 69 a 77), publicado de una vez.** Las tres
+secciones cerradas y los nueve chips encendidos: 5.1 optimización (69 a 71),
+5.2 bandidos (72 y 73), 5.3 aprendizaje por refuerzo (74 a 77), encadenados en
+ese orden, enganchados desde el cierre del 57 (wavenet) y saliendo al 79
+(collaborative-filtering), que es la tarjeta siguiente desde que el módulo 6
+se publicó. Es la rama donde el dato deja de venir dado y **lo genera la
+propia decisión**, así que casi todos los artículos traen su verdad de
+referencia calculada y no anotada: un politopo enumerado, un paisaje con óptimo
+conocido, una cadena con su distribución exacta, un acantilado resuelto por
+iteración de valor, un gradiente resuelto por álgebra lineal y un juego
+resuelto entero. Lo que hay que saber de cada uno:
+
+- **69** (`linear-programming/`) enumera **todas** las esquinas del politopo y
+  las puntúa, así que el símplex se compara contra la respuesta y no contra otro
+  solver. El cubo de Klee y Minty sale exacto: la regla de Dantzig gasta
+  2^n - 1 pivotes en n = 2..8, y HiGHS reportaba **0 iteraciones** hasta que se
+  midió con `presolve: False`, que es lo que hay que hacer para medir un
+  algoritmo y no un preprocesador. Los precios sombra cuadran con el reajuste
+  real a 2e-09 y van con su rango de validez. Ramificación y acotación: 425
+  nodos con cota contra 3.977 sin ella contra 4.096 subconjuntos.
+- **70** (`genetic-algorithms/`) **falsa la hipótesis de los bloques** en vez de
+  citarla: el cruce de un punto resuelve 29 de 30 trampas contiguas y **0 de 30**
+  con las mismas trampas y los bits barajados, mientras el brazo de solo mutación
+  no se mueve (9 de 30 en los dos). Y el control que evita el artículo triunfal:
+  en onemax un escalador simple gana con 40 evaluaciones contra 4.800.
+- **71** (`annealing-swarm/`) mide el muestreo, no la anécdota: la distancia a la
+  Boltzmann exacta baja con pendiente -0,5793 contra el -0,5 de la teoría, y la
+  aceptación medida (0,4678) solo cuadra con la predicha (0,4675) **pesando cada
+  arista por la probabilidad estacionaria de su origen**; el promedio sin pesar
+  da 0,383 y es la cantidad equivocada. Los seis horarios corren sobre las
+  **mismas 40 ciudades** del 70, leídas de su JSON. La frontera de estabilidad
+  del enjambre, 24(1-w²)/(7-5w), acierta 30 de 35 celdas y las 5 que fallan caen
+  justo al otro lado de la curva.
+- **72** (`bandits/`) es el arrepentimiento contado sobre 4.000 tiradas por
+  política. La codicia pura acaba creyendo la máquina equivocada en 2.382 de
+  4.000, y ahí ya no hay nada que la saque. La fórmula de explorar y
+  comprometerse elige un m de 2,2 a 8 veces más largo que el mejor del barrido,
+  y cuesta de 1,3 a 6,7 veces el arrepentimiento.
+- **73** (`thompson-ucb/`) usa **las mismas cinco máquinas** del 72. Thompson
+  74,25 contra 292,33 de UCB; la cota de UCB no se equivoca ni una vez (0,0000%
+  contra el 0,62% que se permite), que es exactamente por qué es cara. La
+  constante 2,0 que se demuestra contra la 0,25 que basta. Y la vuelta: con las
+  máquinas cambiando a mitad, Thompson gasta 290,56 en la segunda mitad contra
+  110,30 de UCB, y una ventana lo arregla. El caso dibujado se eligió **entre 40
+  semillas por ser el más cercano a la mediana**, porque la primera que salió no
+  representaba nada.
+- **74** (`q-learning/`) resuelve el acantilado exacto (16 barridos, delta 0) y
+  con eso separa lo que las dos reglas cobran de lo que las dos aprenden: SARSA
+  -26,09 contra -51,93 mientras juegan, y -17,15 contra -13,0 en lo que dejan
+  aprendido, con epsilon a cero igualándolas en 20 de 20. El sesgo del máximo:
+  11,83% contra 6,75% con doble tabla, sobre un suelo del 5%.
+- **75** (`dqn/`) cambia la tabla por una función sobre el **mismo** acantilado:
+  la tabla llega en 400 episodios, la recta no llega nunca, la red llega en 2.500
+  y solo en 2 de 5 semillas. La ablación 2x2 con suelo de ruido dice cuál de las
+  dos muletas importa. Y el sesgo de sobreestimación **solo significa algo con
+  los dos protocolos igualados**: medir lo que la red se cree descontado contra
+  lo que cobra sin descontar inventaba un sesgo de 3,27 que no existía.
+- **76** (`policy-gradient/`) es el gradiente **exacto** por álgebra lineal, y
+  todo lo demás medido contra él: un episodio deja el estimador a 1,27493 de un
+  vector cuya longitud entera es 0,12559, con coseno 0,03827. La línea base
+  alcanza en 64 episodios la precisión que sin ella no llega ni con 256. De los
+  cuatro entrenamientos el único salto es reusar el lote (de -0,48272 a 0,16017
+  contra un techo de 0,19353); el recorte cuesta 0,00795 y corta el peor
+  movimiento de 0,031318 a 0,008943 tocando el 2,4% de las muestras. El premio a
+  la entropía **solo resta** en este mundo, y la página explica por qué en vez de
+  generalizarlo.
+- **77** (`mcts/`) resuelve conecta cuatro de 4x5 entero (3.945.711 pares de
+  posición y turno, tablas con tres columnas de apertura que la aguantan) y
+  puntúa la búsqueda contra eso: de 51,3% con 8 simulaciones a 76,0% con 2.048.
+  El resultado en contra del guion: la tirada con conocimiento **no compra
+  nada** (1,5 puntos contra un suelo de 2,2 medido con seis semillas), y el
+  barrido de una sola semilla la enseña perdiendo por 8,7 puntos y ganando por
+  2,0 según dónde se mire. La constante 1,4 del libro saca lo mismo que apagar
+  la exploración. Contra minimax al mismo número de nodos, 75% contra 54%. Y el
+  modelo aprendido: el error a un paso no se mueve porque ya está en el ruido del
+  mundo, mientras el de imaginar 40 pasos cae 61 veces.
 
 **Artículo 43** (`translation/`) cierra el módulo 3.1 y es el primero del sitio
 que **muestrea la condicional entera** en vez de razonar sobre ella: 128 renders
@@ -356,14 +446,15 @@ inicialización, mismo Adam): las trayectorias de 200 pasos coinciden a 4,9e-9.
 **Y con los artículos 36 a 40, el módulo 3.2 entero.** Los cinco están encadenados entre ellos (vae -> vq-vae -> ebm -> flows -> glow), el primero recoge la promesa que dejó abierta el cierre del 30 (abre tomando la red de ese artículo, peso a peso de su propio fichero de datos, y muestreándola) y el último desemboca en el 3.3 por la difusión. De la sección 3 quedan 3.1 y 3.3.
 
 **Dónde está el mapa ahora mismo**: secciones 1 y 2 cerradas enteras, de la 3 el 3.1 y el 3.2, la
-**sección 4 entera** (4.1, 4.2 y 4.3, artículos 44 a 57), el **módulo 7 entero** (60 a 67) y el
-**módulo 6 entero** (69 a 73), que es lo último publicado. Los huecos abiertos son, por tamaño: el
-**3.3** (difusión, al que apunta el cierre del 40, y del que ya existe el 68), la **sección 5**
-(agentes y estrategia) sin empezar, y la 8. En la portada, el módulo 6 se lee justo después del 4,
-así que el cierre del 57 (`wavenet/`) enlaza ahora al 69 (`collaborative-filtering/`) y el del 73
+**sección 4 entera** (4.1, 4.2 y 4.3, artículos 44 a 57), el **módulo 7 entero** (60 a 67), la
+**sección 5 entera** (69 a 77) y el **módulo 6 entero** (79 a 83), que es lo último publicado. Los
+huecos abiertos son, por tamaño: el **3.3** (difusión, al que apunta el cierre del 40, y del que ya
+existen el 68 y el 78) y la sección 8. En la portada el módulo 6 se lee entre el 5 y el 7, así que
+el cierre del 77 (`mcts/`) enlaza al 79 (`collaborative-filtering/`) y el del 83
 (`kg-embeddings/`) al 60 (`confounding/`), que es la primera tarjeta del módulo 7: esos dos
 enganches son lo que la regla 7 del guardia comprueba y lo que hay que rehacer en cuanto alguien
-inserte una sección por delante.
+inserte una sección por delante. El enganche de `wavenet/` lo tiene ahora la sección 5, que es la
+que va justo detrás del 4.
 La cadena de lectura de la sección 4 va `glow/` -> `tf-idf/` -> ... -> `state-space/` ->
 `arima/` -> ... -> `wavenet/`, y termina hoy en `wavenet/`, que devuelve a la portada. El enganche
 entre los dos bloques lo puso esta sesión al mergear: el cierre del 50 (`state-space/`) ya
@@ -466,6 +557,16 @@ Cifras del 68 (`controlnet/`): guiado sin clasificador sobre el mismo autoencode
 El experimento que separa obedecer de saber: un segundo modelo entrenado sobre 1.116 dígitos con **todos los 3 y todos los 8 fuera**. Pedírselos da 1,4% contra 96,3% en las etiquetas que sí vio, y a escala 5 baja a 0,0%: por debajo del azar, porque la dirección del guiado es "lejos del dígito medio y hacia este token", y para un token sin significado eso empuja a ninguna parte. El dial amplifica una correspondencia que el modelo fue entrenado a tener; no la crea.
 
 Nota de método que el artículo dice en voz alta: la obediencia se puntúa con la etiqueta del juez, nunca con su confianza, porque la confianza es la medida que el 38 demostró que mide tinta. El guardia lo vuelve a confirmar aquí (correlación 0,7185).
+
+Cifras del 78 (`consistency/`): cierra el módulo 3.3 sobre el mismo autoencoder del 59 y del 68, probado otra vez con su viaje de ida y vuelta (3,377185e-03 contra 3,377e-03 publicado). Tres brazos con **la misma arquitectura y el mismo presupuesto de cómputo**, 44.000 pasos de gradiente cada uno, que no es lo mismo que las mismas épocas: reflow y destilación ven 20.000 pares inventados contra los 1.400 códigos reales del primero, así que a igualdad de épocas habrían tenido 14 veces más pasos y la mejora habría sido del cómputo. Las épocas se derivan (4.000, 280 y 1.100), no se eligen.
+
+**El resultado que va contra el guion, primero.** El flujo rectificado entrenado como toca **no tiene trayectorias rectas**: se desvían 0,39017 de su propia longitud respecto de la cuerda que une sus extremos, y un solo paso aterriza al **213,7% del viaje** de donde aterrizan cien. O sea, más lejos de la respuesta correcta que el punto de partida. El objetivo de entrenamiento son líneas rectas y el campo que sale de entrenar con ellas no lo es, porque con pares independientes muchas rectas pasan por el mismo punto en direcciones distintas y la red aprende su promedio.
+
+Reflow lo arregla, y a igualdad de cómputo: la desviación cae a 0,03155, **un factor de 12,37**, y un paso pasa a aterrizar al 18,4%. En calidad: a una evaluación, 1,427e-01 antes y 4,525e-03 después, treinta y dos veces más cerca.
+
+**Y la parte que decide lo que el artículo puede afirmar.** El suelo real contra real (9,237e-04) dice qué se distingue de los datos reales, no cuál de dos está más cerca, y después de reflow los brazos rápidos caen dentro del uno por ciento unos de otros. Así que cada celda se midió **6 veces cambiando solo el ruido**, y una pareja se considera ordenable solo si los 6 sorteos de una nunca alcanzan a los 6 de la otra, con la banda de las dos celdas comparadas y nunca del gráfico entero (la celda colapsada vale treinta veces las demás y una banda global se las habría tragado). Resultado: **4 de 10 parejas sobreviven, y las cuatro son el brazo colapsado contra algo**. Una evaluación después de reflow contra cien: 0,11 desviaciones típicas combinadas, es decir la misma medida. Una evaluación después de reflow contra **cien del modelo anterior**: 0,26. Cien veces menos pasadas por la red por un cambio que esta medida no ve. Y el estudiante destilado contra su propio maestro a una evaluación: 0,01, o sea que la destilación no compra nada aquí, porque cuando la respuesta de un paso del maestro ya es su respuesta de cien no queda nada que recuperar.
+
+Nota de las dos estadísticas: por el test del clasificador (suelo 0,544) todo salvo el brazo colapsado ya está en el suelo o por debajo, mientras el núcleo aún los separa. Se publican las dos y no se elige la que conviene. El guardia de tinta sale con correlación 0,9989 pero `confounded` falso, porque las tintas caen a los dos lados de la real; aun así el juez no puntúa nada en esta página. La página lleva 131.228 números en float16 con los tres muestreadores y el decodificador, y el probe del navegador comprueba **un paseo de 8 pasos** además de una pasada suelta, porque el tamaño de paso y los tiempos a los que se pregunta al campo viven fuera de las capas.
 
 **Artículo 32** (`nerf/`) cierra el módulo 1.3 y con él la sección 1 entera, y es el primero cuyo dataset no es un dataset: la escena está escrita en forma cerrada (cuatro sólidos como funciones de distancia con una cáscara de soporte compacto de 0,045 y radiancia Blinn-Phong con lóbulo especular), así que una fotografía es esa forma cerrada integrada a lo largo de 4.096 rayos y la verdad de referencia no es una anotación, es la función. 24 fotos de 64x64 en tres anillos (10°, 28°, 46°), 8 retenidas entre los anillos y 6 fuera de la banda (-14° y 68°), todas a 512 pasos de cuadratura y **redondeadas a bytes**, porque eso es lo que el navegador lee del PNG.
 

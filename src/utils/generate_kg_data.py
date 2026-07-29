@@ -431,15 +431,20 @@ def stage_widget(pat):
     if m is None or tm is None:
         return None
     names = meta["names"]
-    rng = np.random.default_rng(SEED + 5)
-    # el par de dimensiones complejas donde más se mueve cada relación
     k = m.k
+    # Si una relación es simétrica se MIDE en el grafo, no se deduce del ángulo
+    # que aprendió: el ángulo es justo lo que la página está comprobando, así
+    # que leerlo para decidir la respuesta cierra el círculo y el texto acierta
+    # siempre por construcción.
+    S = set(map(tuple, train.tolist()))
     ex = []
     for name, i in names.items():
         rows = train[train[:, 1] == i][:6]
+        m_all = train[train[:, 1] == i]
+        sym = float(np.mean([(int(t), i, int(h)) in S for h, _, t in m_all])) if len(m_all) else 0.0
         ex.append({"relation": name, "angle": float(m.R[i][0]),
                    "angles": [float(a) for a in m.R[i][:8]],
-                   "shift": [float(v) for v in tm.R[i][:2]],
+                   "shift": [float(v) for v in tm.R[i][:2]], "symmetry": sym,
                    "pairs": [[int(h), int(t)] for h, _, t in rows]})
     ents = sorted({int(v) for row in ex for pair in row["pairs"] for v in pair})
     coords = {int(e): [float(m.E[e][0]), float(m.E[e][k])] for e in ents}

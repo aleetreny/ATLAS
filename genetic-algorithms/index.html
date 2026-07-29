@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Breeding an Answer | ATLAS</title>
+  <meta name="description" content="A visual, interactive introduction to genetic algorithms: four landscapes with known optima, five searchers on the same budget, the building block hypothesis tested by shuffling bit positions, selection pressure measured as takeover time, and a travelling salesman where the metaphor loses to a local search." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/genetic-algorithms/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="Breeding an Answer | ATLAS" />
+  <meta property="og:description" content="A visual, interactive introduction to genetic algorithms: four landscapes with known optima, five searchers on the same budget, the building block hypothesis tested by shuffling bit positions, and a travelling salesman where the metaphor loses to a local search." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/genetic-algorithms/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Breeding an Answer | ATLAS" />
+  <meta name="twitter:description" content="A visual, interactive introduction to genetic algorithms: four landscapes with known optima, five searchers on the same budget, the building block hypothesis tested by shuffling bit positions, and a travelling salesman where the metaphor loses to a local search." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    :root {
+      --primary: #456b99;
+      --secondary: #37567a;
+    }
+    .narrow-widget {
+      max-width: 880px;
+    }
+    .gen-table {
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      margin-top: 0.4rem;
+      width: 100%;
+    }
+    .gen-table th,
+    .gen-table td {
+      padding: 4px 10px 4px 0;
+      text-align: left;
+      font-weight: 400;
+      white-space: nowrap;
+    }
+    .gen-table th {
+      font-family: var(--font-heavy);
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .gen-table td:first-child,
+    .gen-table th:first-child {
+      opacity: 0.75;
+    }
+    .gen-table td:last-child,
+    .gen-table th:last-child {
+      white-space: normal;
+    }
+    .gen-note {
+      margin-top: 0.6rem;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+    .slider-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+      margin: 0.2rem 0 0.6rem;
+      font-family: var(--font-mono);
+      font-size: 13px;
+    }
+    .slider-row input[type="range"] {
+      width: 200px;
+      accent-color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <section id="intro">
+    <h1 id="intro-hed">Breeding an Answer</h1>
+    <h1 id="intro-sub">Keep the best guesses, mix them, damage them slightly, repeat. The metaphor is so appealing that almost nobody measures the one part that makes it different from a random walk, which is whether mixing two answers is worth anything at all</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 5.1 · Optimization · Genetic Algorithms</span>
+  </section>
+
+  <br />
+
+  <section>
+    <p class="body-text">
+      <a href="../linear-programming/">The previous article</a> ended with a
+      certificate: this plan is the best one, and here is the proof. Everything
+      from here on gives that up. The problems in this half of the branch have
+      no straight lines to exploit and no structure a solver can read, so a
+      search can only try things, keep what worked, and never know how close it
+      got.
+    </p>
+    <br />
+    <p class="body-text" id="opening-note"></p>
+  </section>
+
+  <section>
+    <h1 class="body-header">Four Landscapes With Known Answers</h1>
+    <p class="body-text" id="landscape-intro"></p>
+    <p class="body-text">
+      $$ \text{trap}_k(u) = \begin{cases} k & u = k \\ k - 1 - u & u &lt; k \end{cases}
+         \qquad u = \text{ones in the block} $$
+    </p>
+    <p class="body-text" id="landscape-note"></p>
+  </section>
+
+  <section>
+    <h1 class="body-header">One Generation, Slowly</h1>
+    <p class="body-text" id="scrolly-intro"></p>
+  </section>
+
+  <section id="generation-scrolly" class="scrolly">
+    <div class="scrolly-container">
+      <div class="steps-container">
+        <div class="step" data-index="0">
+          <div class="step-content">
+            <h3>A Population of Guesses</h3>
+            <p id="scrolly-step-0"></p>
+          </div>
+        </div>
+        <div class="step" data-index="1">
+          <div class="step-content">
+            <h3>Pick Parents by Small Contests</h3>
+            <p id="scrolly-step-1"></p>
+          </div>
+        </div>
+        <div class="step" data-index="2">
+          <div class="step-content">
+            <h3>Cut and Swap</h3>
+            <p id="scrolly-step-2"></p>
+          </div>
+        </div>
+        <div class="step" data-index="3">
+          <div class="step-content">
+            <h3>Break Something on Purpose</h3>
+            <p id="scrolly-step-3"></p>
+          </div>
+        </div>
+        <div class="step-spacer"></div>
+      </div>
+      <div class="charts-container">
+        <div class="chart-wrap" id="generation-chart"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="body-text" id="scrolly-note"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="ga-widget">
+    <div class="controls-row" id="ga-cross" role="group" aria-label="what to do with two parents"></div>
+    <div class="controls-row" id="ga-land" role="group" aria-label="which landscape"></div>
+    <div class="slider-row">
+      <label for="ga-pop">population</label>
+      <input type="range" id="ga-pop" min="0" max="4" step="1" value="2"
+             aria-label="how many guesses in the population" />
+      <span class="slider-label"><span class="value" id="ga-pop-label"></span></span>
+      <label for="ga-mut">mutation</label>
+      <input type="range" id="ga-mut" min="0" max="8" step="1" value="3"
+             aria-label="how often a bit is flipped" />
+      <span class="slider-label"><span class="value" id="ga-mut-label"></span></span>
+    </div>
+    <div id="ga-chart"></div>
+    <div class="widget-readout" id="ga-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="ga-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">Does the Mixing Buy Anything</h1>
+    <p class="body-text" id="arms-intro"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="arms-widget">
+    <div class="controls-row" id="arms-controls" role="group" aria-label="which landscape"></div>
+    <div id="arms-chart"></div>
+    <div class="widget-readout" id="arms-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="arms-note"></p>
+    <br />
+    <p class="body-text" id="linkage-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">The Two Dials That Matter</h1>
+    <p class="body-text" id="dials-intro"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="dials-widget">
+    <div class="controls-row" id="dials-controls" role="group" aria-label="which dial"></div>
+    <div id="dials-chart"></div>
+    <div class="widget-readout" id="dials-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="dials-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">Against Something That Is Not a Metaphor</h1>
+    <p class="body-text" id="tsp-intro"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="tsp-widget">
+    <div class="controls-row" id="tsp-controls" role="group" aria-label="which searcher"></div>
+    <div id="tsp-chart"></div>
+    <div class="widget-readout" id="tsp-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="tsp-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text" id="verdict-intro"></p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>What you have</th>
+          <th>Reach for</th>
+          <th>Why</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">A smooth landscape</span></td>
+          <td>A hill climber with restarts</td>
+          <td id="verdict-smooth"></td>
+          <td id="verdict-smooth-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">Parts that must be right together</span></td>
+          <td>Crossover, and a representation that keeps them together</td>
+          <td id="verdict-blocks"></td>
+          <td id="verdict-blocks-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">A problem with a known local move</span></td>
+          <td>The local move</td>
+          <td id="verdict-local"></td>
+          <td id="verdict-local-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">No idea what the landscape looks like</span></td>
+          <td>A population, and patience</td>
+          <td id="verdict-blind"></td>
+          <td id="verdict-blind-warn"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="closing-note"></p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! The four landscapes, the search and its random number
+      generator all exist twice, once in
+      <code>src/utils/generate_ga_data.py</code> and once in
+      <code>js/gakit.js</code>, and the page checks the hundred generation
+      reference run against the file on load. Genomes are bits and fitnesses are
+      whole numbers, so that check has no tolerance in it.
+    </p>
+  </section>
+
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text" id="resources-note"></p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://doi.org/10.7551/mitpress/1090.001.0001">[1] Adaptation in Natural and Artificial Systems</a><br />
+      (Holland, J. H., 1975; schemata and the building block idea this page tries to falsify by shuffling bit positions)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://doi.org/10.1007/BF00175354">[2] Deceptive Functions and the Building Block Hypothesis</a><br />
+      (Goldberg, D. E., Deb, K. and Korb, B., 1992; the concatenated trap, and why tight linkage is the whole experiment)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://doi.org/10.1162/evco.1993.1.1.1">[3] Optimal Mutation Rates in Genetic Search</a><br />
+      (Muhlenbein, H., 1992; where the one over length mutation rate this page uses comes from)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://doi.org/10.1016/B978-0-08-050684-5.50008-2">[4] A Comparative Analysis of Selection Schemes</a><br />
+      (Goldberg, D. E. and Deb, K., 1991; takeover time, measured here against the logarithmic prediction)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://doi.org/10.1287/opre.21.2.498">[5] An Effective Heuristic Algorithm for the Travelling Salesman Problem</a><br />
+      (Lin, S. and Kernighan, B. W., 1973; the family the local search in the last section belongs to)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://doi.org/10.1109/4235.585893">[6] No Free Lunch Theorems for Optimization</a><br />
+      (Wolpert, D. H. and Macready, W. G., 1997; why "which optimiser is best" is not a question with an answer)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>

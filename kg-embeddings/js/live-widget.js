@@ -99,6 +99,10 @@ export function initLiveWidget(data) {
     });
 
     const fitted = (rel.angle * 180 / Math.PI).toFixed(0);
+    const symmetric = (rel.symmetry ?? 0) > 0.5;
+    const pcSym = (100 * (rel.symmetry ?? 0)).toFixed(0);
+    const selfInverse = Math.abs(rel.angle) < 0.35
+      || Math.abs(Math.abs(rel.angle) - Math.PI) < 0.35;
     readout.innerHTML =
       `Turning by <span class="value">${(theta * 180 / Math.PI).toFixed(0)}°</span> leaves the `
       + `heads <span class="value">${(dist / Math.max(rows.length, 1)).toFixed(3)}</span> from `
@@ -106,11 +110,23 @@ export function initLiveWidget(data) {
       + `<span class="value">${rel.relation.replace(/_/g, ' ')}</span> is `
       + `<span class="value">${fitted}°</span>, which leaves them at `
       + `<span class="value">${(bestDist / Math.max(rows.length, 1)).toFixed(3)}</span>. `
-      + `${Math.abs(Math.abs(rel.angle) - Math.PI) < 0.35 || Math.abs(rel.angle) < 0.35
-        ? 'This relation is symmetric in the data, and the angle it settled on is close to a half '
-          + 'turn or to none at all, which is the only kind of rotation that undoes itself.'
-        : 'This relation is not symmetric, and the angle it settled on is nowhere near zero or a '
-          + 'half turn, because applying it twice must not bring you home.'}`;
+      /* whether the relation is symmetric is measured in the graph and travels
+         in the file; whether the angle came out self inverse is read off the
+         fit. They are two separate facts and the sentence used to infer the
+         first from the second, which made it right by construction. */
+      + `${symmetric
+        ? `This relation is symmetric in the data (${pcSym}% of its triples come with their `
+          + `mirror), and a rotation that undoes itself has to be a half turn or none at all. `
+          + `${selfInverse
+            ? 'The angle it settled on is one of those.'
+            : 'The angle it settled on is not, in this dimension: the prediction is about the '
+              + 'whole rotation and there are more planes than the one on screen.'}`
+        : `This relation is not symmetric (${pcSym}% of its triples come with their mirror), so `
+          + `applying it twice must not bring you home. `
+          + `${selfInverse
+            ? 'The angle here is nonetheless close to zero or a half turn, which one plane out of '
+              + 'sixteen is entitled to be.'
+            : 'The angle it settled on is nowhere near zero or a half turn.'}`}`;
 
     note.textContent = 'The model has ' + (data.meta.dim / 2) + ' of these planes and turns each one '
       + 'by its own angle; this is the first. A score is the total distance over all of them, so a '

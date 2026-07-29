@@ -94,10 +94,17 @@ def acentos_libres(usados, n):
     else:
         ls = sorted(lab(c)[0] for c in usados)
         lo_l, hi_l = ls[0], ls[len(ls) // 2] + 10   # de lo más oscuro a la mediana
+    # La rejilla de candidatos se densificó al llegar a 79 acentos publicados:
+    # con tres saturaciones y cuatro valores solo salían 2 colores por encima de
+    # dE 12 y hacían falta 5, y la conclusión fácil (bajar DE_MINIMO o ensanchar
+    # la banda de luminosidad) habría publicado colores más parecidos entre sí.
+    # Lo que estaba agotado no era el volumen, era la rejilla: los puntos que
+    # mejor se empaquetan caen entre los antiguos. Con esta, los cinco salen a
+    # dE 15,5 o más, o sea MEJOR separados que los que daba la rejilla vieja.
     cands = []
-    for h in range(0, 360, 3):
-        for s in (0.55, 0.70, 0.85):
-            for v in (0.36, 0.44, 0.52, 0.60):
+    for h in range(0, 360, 2):
+        for s in (0.40, 0.50, 0.60, 0.70, 0.80, 0.90, 1.0):
+            for v in (0.34, 0.38, 0.42, 0.46, 0.50, 0.54, 0.58, 0.62):
                 r, g, b = colorsys.hsv_to_rgb(h / 360, s, v)
                 c = "#%02x%02x%02x" % tuple(round(x * 255) for x in (r, g, b))
                 if lo_l <= lab(c)[0] <= hi_l:

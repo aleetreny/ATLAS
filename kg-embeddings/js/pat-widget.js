@@ -67,20 +67,35 @@ export function initPatWidget(data) {
     d: P.distmult.per_pattern.parent.mrr };
   const comp = { t: P.transe.per_pattern.grandparent.mrr, r: P.rotate.per_pattern.grandparent.mrr,
     d: P.distmult.per_pattern.grandparent.mrr };
+  /* Every sentence here is a comparison, so every sentence branches on its own
+     comparison. The three claims are independent and the graph is written by
+     hand, but "written by hand" is not a measurement. */
+  const dSym = sym.d >= Math.min(sym.t, sym.r);
+  const dDrops = hier.d < sym.d;
+  const compFree = Math.min(comp.t, comp.r) > comp.d;
   readout.innerHTML =
     `Read it column by column, because each column is a different claim. On the symmetric relation `
     + `TransE scores <span class="value">${sym.t.toFixed(3)}</span>, RotatE `
     + `<span class="value">${sym.r.toFixed(3)}</span> and DistMult `
-    + `<span class="value">${sym.d.toFixed(3)}</span>: DistMult is symmetric by construction, so `
-    + `this is the one column where being unable to tell a direction apart costs nothing. On the `
-    + `hierarchy, which has a direction, DistMult drops to `
-    + `<span class="value">${hier.d.toFixed(3)}</span> against `
+    + `<span class="value">${sym.d.toFixed(3)}</span>`
+    + `${dSym
+      ? ': DistMult is symmetric by construction, so this is the one column where being unable to '
+        + 'tell a direction apart costs nothing, and it does not.'
+      : ': DistMult is symmetric by construction, so this is the column where that should cost it '
+        + 'nothing, and here it still trails the other two, which is a fact about this fit and not '
+        + 'about the scoring function.'} `
+    + `On the hierarchy, which has a direction, DistMult `
+    + `${dDrops ? 'drops to' : 'scores'} <span class="value">${hier.d.toFixed(3)}</span> against `
     + `<span class="value">${hier.t.toFixed(3)}</span> and `
     + `<span class="value">${hier.r.toFixed(3)}</span>, because \\(\\langle h, r, t\\rangle\\) is `
     + `the same number with the ends swapped and it cannot prefer one order. And on the composition `
     + `the two movement models do <span class="value">${comp.t.toFixed(3)}</span> and `
-    + `<span class="value">${comp.r.toFixed(3)}</span>: composing two relations is adding two `
-    + `vectors or multiplying two rotations, which is something the algebra hands them for free.`;
+    + `<span class="value">${comp.r.toFixed(3)}</span>`
+    + `${compFree
+      ? `, against ${comp.d.toFixed(3)}: composing two relations is adding two vectors or `
+        + 'multiplying two rotations, which is something the algebra hands them for free.'
+      : `, against ${comp.d.toFixed(3)} for DistMult, so composition did not separate them here `
+        + 'the way adding two vectors says it should.'}`;
 
   return { patterns };
 }

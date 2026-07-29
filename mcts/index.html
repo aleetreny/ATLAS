@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Thinking Before Moving | ATLAS</title>
+  <meta name="description" content="A visual, interactive introduction to Monte Carlo tree search and learned world models: a game solved exactly so the search can be scored against the answer, the exploration constant swept, random rollouts against a hint, and how fast a plan made inside a learned model stops describing anything." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/mcts/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="Thinking Before Moving | ATLAS" />
+  <meta property="og:description" content="A visual, interactive introduction to Monte Carlo tree search and learned world models: a game solved exactly so the search can be scored against the answer, the exploration constant swept, random rollouts against a hint, and how fast a plan made inside a learned model stops describing anything." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/mcts/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Thinking Before Moving | ATLAS" />
+  <meta name="twitter:description" content="A visual, interactive introduction to Monte Carlo tree search and learned world models: a game solved exactly so the search can be scored against the answer, the exploration constant swept, random rollouts against a hint, and how fast a plan made inside a learned model stops describing anything." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    :root {
+      --primary: #99171d;
+      --secondary: #7a1217;
+    }
+    .narrow-widget {
+      max-width: 880px;
+    }
+    .gen-table {
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      margin-top: 0.4rem;
+      width: 100%;
+    }
+    .gen-table th,
+    .gen-table td {
+      padding: 4px 10px 4px 0;
+      text-align: left;
+      font-weight: 400;
+      white-space: nowrap;
+    }
+    .gen-table th {
+      font-family: var(--font-heavy);
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .gen-table td:first-child,
+    .gen-table th:first-child {
+      opacity: 0.75;
+    }
+    .gen-table td:last-child,
+    .gen-table th:last-child {
+      white-space: normal;
+    }
+    .gen-note {
+      margin-top: 0.6rem;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+    .slider-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+      margin: 0.2rem 0 0.6rem;
+      font-family: var(--font-mono);
+      font-size: 13px;
+    }
+    .slider-row input[type="range"] {
+      width: 200px;
+      accent-color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+  <div class="logo">
+    <a href="../index.html">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <section id="intro">
+    <h1 id="intro-hed">Thinking Before Moving</h1>
+    <h1 id="intro-sub">Everything so far learnt something and then acted on it. This one stops before acting and thinks, by playing the rest of the game out at random thousands of times, and on a board small enough to solve completely you can score every single one of its answers</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 5.3 · Reinforcement Learning · MCTS and Dreamer</span>
+  </section>
+
+  <br />
+
+  <section>
+    <p class="body-text">
+      <a href="../policy-gradient/">The previous article</a> pushed a policy
+      around until it was good, and then acted on it without a second thought.
+      Search does the opposite: it spends its time at the moment of the decision,
+      and it needs no training at all.
+    </p>
+    <br />
+    <p class="body-text" id="opening-note"></p>
+  </section>
+
+  <section>
+    <h1 class="body-header">A Game With No Secrets Left</h1>
+    <p class="body-text" id="solve-intro"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="board-widget">
+    <div class="controls-row" id="board-controls" role="group" aria-label="how many simulations"></div>
+    <div id="board-chart"></div>
+    <div class="widget-readout" id="board-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="board-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">Four Steps, Repeated</h1>
+    <p class="body-text" id="steps-intro"></p>
+    <p class="body-text">
+      $$ \text{pick the child that maximises}\quad
+         \underbrace{\frac{W_c}{N_c}}_{\text{what it has been worth}}
+         + \; c\,\underbrace{\sqrt{\frac{\ln N}{N_c}}}_{\text{how little it has been tried}} $$
+    </p>
+    <p class="body-text" id="steps-note"></p>
+  </section>
+
+  <section id="tree-scrolly" class="scrolly">
+    <div class="scrolly-container">
+      <div class="steps-container">
+        <div class="step" data-index="0">
+          <div class="step-content">
+            <h3>Select</h3>
+            <p id="scrolly-step-0"></p>
+          </div>
+        </div>
+        <div class="step" data-index="1">
+          <div class="step-content">
+            <h3>Expand</h3>
+            <p id="scrolly-step-1"></p>
+          </div>
+        </div>
+        <div class="step" data-index="2">
+          <div class="step-content">
+            <h3>Play It Out</h3>
+            <p id="scrolly-step-2"></p>
+          </div>
+        </div>
+        <div class="step" data-index="3">
+          <div class="step-content">
+            <h3>Back Up</h3>
+            <p id="scrolly-step-3"></p>
+          </div>
+        </div>
+        <div class="step-spacer"></div>
+      </div>
+      <div class="charts-container">
+        <div class="chart-wrap" id="tree-chart"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="body-text" id="scrolly-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">The Three Dials That Matter</h1>
+    <p class="body-text" id="dials-intro"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="dials-widget">
+    <div class="controls-row" id="dials-controls" role="group" aria-label="which comparison"></div>
+    <div id="dials-chart"></div>
+    <div class="widget-readout" id="dials-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="dials-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">Searching Inside a Model You Learnt</h1>
+    <p class="body-text" id="model-intro"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="model-widget">
+    <div class="slider-row">
+      <label class="slider-label" for="model-slider">steps of experience the model was fitted on: <span class="value" id="model-value"></span></label>
+      <input type="range" id="model-slider" min="0" max="3" step="1" value="1" />
+    </div>
+    <div id="model-chart"></div>
+    <div class="widget-readout" id="model-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="model-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text" id="verdict-intro"></p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>What you have</th>
+          <th>Reach for</th>
+          <th>Why</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">A simulator and time at the decision</span></td>
+          <td>Tree search</td>
+          <td id="verdict-mcts"></td>
+          <td id="verdict-mcts-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">A shallow game and a good evaluation</span></td>
+          <td>Minimax to a depth</td>
+          <td id="verdict-minimax"></td>
+          <td id="verdict-minimax-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">Cheap domain knowledge</span></td>
+          <td>A better rollout</td>
+          <td id="verdict-rollout"></td>
+          <td id="verdict-rollout-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">Expensive experience and no simulator</span></td>
+          <td>Learn the model, plan short</td>
+          <td id="verdict-model"></td>
+          <td id="verdict-model-warn"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="closing-note"></p>
+    <br />
+    <p class="body-text">
+      Thanks for reading, and thanks for reaching the end of the branch. Every
+      number on this page was scored against a game that has no secrets left in
+      it: four by five connect four is solved here in full, so when the search
+      picks a column the page knows whether that column was right.
+    </p>
+  </section>
+
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text" id="resources-note"></p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://doi.org/10.1007/11871842_29">[1] Efficient Selectivity and Backup Operators in Monte-Carlo Tree Search</a><br />
+      (Coulom, R., 2006; the four steps this page runs)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://doi.org/10.1007/11871842_23">[2] Bandit Based Monte-Carlo Planning</a><br />
+      (Kocsis, L. and Szepesvari, C., 2006; UCT, the formula whose constant is swept here)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://doi.org/10.1038/nature24270">[3] Mastering the Game of Go Without Human Knowledge</a><br />
+      (Silver, D. et al., 2017; what happens when the rollout is replaced by a learnt evaluation)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1912.01603">[4] Dream to Control: Learning Behaviors by Latent Imagination</a><br />
+      (Hafner, D. et al., 2020; planning inside a learnt model, whose horizon problem is measured in the last panel)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1911.08265">[5] Mastering Atari, Go, Chess and Shogi by Planning with a Learned Model</a><br />
+      (Schrittwieser, J. et al., 2020; search and a learnt model in the same system)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>

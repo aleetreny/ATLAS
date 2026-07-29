@@ -88,9 +88,15 @@ export function initSymWidget(data) {
         + `<span class="value">${meanSym.toFixed(3)}</span>, and the ${anti.length} that are not `
         + `symmetric average <span class="value">${meanAnti.toFixed(3)}</span>, a factor of `
         + `<span class="value">${(meanAnti / Math.max(meanSym, 1e-9)).toFixed(1)}</span>. `
-        + `That is the algebra showing up in the parameters: if h + r has to be near t and t + r `
-        + `near h, then r has nowhere to go but zero, and a relation vector of zero says that every `
-        + `pair it connects should be at the same point.`
+        /* the sentence after the ratio has to be decided by the ratio, not by
+           the argument the section was written to make */
+        + `${meanSym < meanAnti
+          ? 'That is the algebra showing up in the parameters: if h + r has to be near t and t + r '
+            + 'near h, then r has nowhere to go but zero, and a relation vector of zero says that '
+            + 'every pair it connects should be at the same point.'
+          : 'Which is the wrong way round for the algebra: if h + r has to be near t and t + r '
+            + 'near h then r has nowhere to go but zero, and this optimum did not go there. The '
+            + 'proof is about where the minimum is, not about where a finite budget stops.'}`
       : `The same relations under RotatE, measured by how far each rotation is from being its own `
         + `inverse, which is what symmetry demands. The ${symmetric.length} symmetric relations `
         + `average <span class="value">${meanSym.toFixed(3)}</span> and the ${anti.length} others `
