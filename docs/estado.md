@@ -81,69 +81,16 @@ Este repositorio empezó como notebooks de ML y se está convirtiendo en una web
 | 55 | A Model That Never Saw Your Data (números a letras, el suelo del alfabeto, cien continuaciones muestreadas de una serie nunca vista, una familia entera quitada del corpus) | `zero-shot/` | `#3e295c` |
 | 56 | What a Sound Looks Like (espectrograma vivo con la ventana como mando, resolución contra la verdad conocida, invertir con y sin fase para escuchar, MFCC contra el tono) | `spectrograms/` | `#5c0e1d` |
 | 57 | One Sample at a Time (campo receptivo exacto contra el periodo del tono, la ley mu escuchable, el modelo alimentado con su propia salida, CTC contra un decodificador que no para) | `wavenet/` | `#5c3e29` |
-| 58 | The Arrow You Cannot See (la reversión de Simpson apareciendo al encender el confusor, el sesgo en forma cerrada contra el medido, un proxy ruidoso barrido, dos mundos indistinguibles) | `confounding/` | `#202c47` |
-| 59 | One Number Instead of Twelve (siete estimadores contra una verdad conocida, el balance de una puntuación deliberadamente equivocada, la doble robustez en dos por dos, el recorte de un solo lado) | `propensity/` | `#5c2938` |
-| 60 | A Lever With No Other Reach (el sesgo de MCO en forma cerrada, el barrido de fuerza del instrumento, la exclusión violada en rejilla, el intervalo entero de betas factibles, LATE contra ATE) | `instruments/` | `#056605` |
-| 61 | Which Boxes to Tick (el criterio de puerta trasera sobre un grafo exacto, 3.000 grafos aleatorios, la fórmula de puerta delantera, y un bosque causal que pasa de 2,2179 a 0,0373 al centrar) | `do-calculus/` | `#643c85` |
-| 62 | Ninety Per Cent, Guaranteed (la cobertura exacta contra su Beta, cuatro modelos con el mismo envoltorio, Mondrian y CQR, LAC contra APS con y sin aleatorizar) | `conformal/` | `#945b43` |
-| 63 | The Posterior You Can Actually Draw (la posterior exacta por cuadratura sobre 14 millones de pesos, cuatro cadenas que solo discrepan en el hueco, seis aproximaciones puntuadas, y el prior barrido) | `bayesian-nets/` | `#381a66` |
-| 64 | Credit, Exactly (los 1.024 conjuntos enumerados contra la forma cerrada de un modelo aditivo, KernelSHAP muestreado, las dos funciones de valor, y LIME con el ancho como mando) | `attribution/` | `#473a04` |
-| 65 | Where It Looked (seis mapas y dos controles puntuados contra la máscara exacta, Grad-CAM por profundidad, el test de aleatorización de Adebayo, y la atención contra la importancia medida) | `saliency/` | `#853c6f` |
-
-**El módulo 7 entero (artículos 58 a 65), publicado de una vez.** Las tres
-secciones cerradas y los ocho chips encendidos: 7.1 causalidad (58 a 61), 7.2
-incertidumbre (62 y 63), 7.3 explicabilidad (64 y 65), encadenados en ese orden
-y enganchados desde el cierre del 57 (wavenet). Lo que hay que saber de cada uno:
-
-- **58** mide el sesgo de confusión en forma cerrada (razón de Mills) y lo
-  compara con el simulado; el mundo de colisión y dos mundos Markov
-  equivalentes se resuelven algebraicamente. La reversión de Simpson sobre el
-  vino se encontró buscando, con un control por permutación.
-- **59** enfrenta siete estimadores a una verdad conocida sobre 240 repeticiones.
-  El resultado que reescribió la sección: **recortar por los dos lados no mueve
-  un estimando simétrico** (1,9978 a 1,9991), así que hay además un recorte de un
-  solo lado, donde sí se mueve (1,6477 al 20%).
-- **60** publica el **intervalo entero de betas compatibles** con los momentos
-  observados, [1,2755, 3,7245], barriendo hasta donde la varianza del ruido deja
-  de ser positiva. La primera versión llevaba un `max(...,0)` que dejaba pasar un
-  mundo imposible.
-- **61** tiene el mejor número del módulo: el bosque causal sin centrar da 2,2179
-  de error contra 0,4548 de responder la media, y **con centrado local y
-  validación cruzada baja a 0,0373**, un factor 59. No era ajuste de
-  hiperparámetros: una diferencia de medias dentro de una hoja sigue confundida.
-- **62** comprueba la cobertura contra su distribución exacta Beta(k, n+1-k), sin
-  ruido de muestreo, y reutiliza el CO2 del artículo de series con un digest que
-  lo asegura.
-- **63** calcula la posterior **exacta** de una red de tres pesos por cuadratura
-  sobre 13.997.521 puntos, y con eso puntúa seis aproximaciones. Dos resultados
-  contra el guion: la incertidumbre **no** crece al alejarse de los datos (1,01
-  veces; una tanh satura), crece en el hueco (9,11 veces); y un conjunto de ocho
-  redes sobre los mismos datos da **exactamente la misma función** que un solo
-  ajuste, así que su dispersión es 0,000. El prior es invisible donde hay datos
-  y multiplica por 4,9 la dispersión en el hueco.
-- **64** enumera los 1.024 conjuntos de diez columnas y los contrasta con la
-  forma cerrada de un modelo aditivo ajustado por backfitting, que es la
-  comprobación que la eficiencia no da: una atribución equivocada cuyos errores
-  se cancelen pasa la cascada y falla aquí.
-- **65** no entrena nada: reconstruye en numpy el detector del 23 (cajas
-  idénticas a 0,0000 px) y el codificador del 48, y los explica. Seis mapas y
-  **dos controles**, uno de los cuales (la imagen de entrada, sin modelo) puntúa
-  0,390 y adelanta al gradiente en solape. Y la atención: contra la ablación que
-  el 48 publicó sobre sus 5.734 frases de test, lo picudo del mapa correlaciona
-  **exactamente 0,000** con la importancia; medido sobre las ocho frases de
-  ejemplo del fichero, +0,715. La página publica las dos y explica por qué.
-
-Tres arreglos de este módulo tocan páginas ya publicadas y conviene saberlo:
-`assets/styles/global.css` ya no fija `fill` ni `stroke` en `.chart-note` y
-`.chart-annotation` con una regla de clase, sino con `svg text.chart-note:not([fill])`,
-porque un atributo de presentación pierde contra cualquier regla CSS y **todas las
-leyendas de color del sitio se estaban dibujando en gris tinta**; `makeChart`
-devuelve ahora un `clear()` que vacía el lienzo sin desconectar el grupo
-recortado; y se subieron a 0,72rem los textos de `deep-learning-tables/` que a
-375px caían por debajo del suelo de 5px. Queda pendiente, y no es de este
-módulo: `detection/` y `deep-learning-tables/` no exportan `__atlasCheck` ni
-`__atlasProseIds`, que son convenciones posteriores a ellos.
-
+| 58 | A Thousand Easy Problems (el campo del score verdadero contra el aprendido, la cadena inversa corriendo en vivo con el presupuesto de pasos, el término del prior que se asume cero) | `ddpm/` | `#674599` |
+| 59 | The Ceiling You Cannot See (viajes de ida y vuelta calculados en la página, las dos escaleras sobre los mismos ejes, el techo contra lo que la difusión alcanza) | `latent-diffusion/` | `#995e45` |
+| 60 | The Arrow You Cannot See (la reversión de Simpson apareciendo al encender el confusor, el sesgo en forma cerrada contra el medido, un proxy ruidoso barrido, dos mundos indistinguibles) | `confounding/` | `#202c47` |
+| 61 | One Number Instead of Twelve (siete estimadores contra una verdad conocida, el balance de una puntuación deliberadamente equivocada, la doble robustez en dos por dos, el recorte de un solo lado) | `propensity/` | `#5c2938` |
+| 62 | A Lever With No Other Reach (el sesgo de MCO en forma cerrada, el barrido de fuerza del instrumento, la exclusión violada en rejilla, el intervalo entero de betas factibles, LATE contra ATE) | `instruments/` | `#056605` |
+| 63 | Which Boxes to Tick (el criterio de puerta trasera sobre un grafo exacto, 3.000 grafos aleatorios, la fórmula de puerta delantera, y un bosque causal que pasa de 2,2179 a 0,0373 al centrar) | `do-calculus/` | `#643c85` |
+| 64 | Ninety Per Cent, Guaranteed (la cobertura exacta contra su Beta, cuatro modelos con el mismo envoltorio, Mondrian y CQR, LAC contra APS con y sin aleatorizar) | `conformal/` | `#945b43` |
+| 65 | The Posterior You Can Actually Draw (la posterior exacta por cuadratura sobre 14 millones de pesos, cuatro cadenas que solo discrepan en el hueco, seis aproximaciones puntuadas, y el prior barrido) | `bayesian-nets/` | `#381a66` |
+| 66 | Credit, Exactly (los 1.024 conjuntos enumerados contra la forma cerrada de un modelo aditivo, KernelSHAP muestreado, las dos funciones de valor, y LIME con el ancho como mando) | `attribution/` | `#473a04` |
+| 67 | Where It Looked (seis mapas y dos controles puntuados contra la máscara exacta, Grad-CAM por profundidad, el test de aleatorización de Adebayo, y la atención contra la importancia medida) | `saliency/` | `#853c6f` |
 Los artículos 1 a 6 pasaron una **revisión completa** (commit `5e4852b`, 2026-07-25): auditoría estática en paralelo más un barrido en navegador de cada control, cada paso de scrolly y cada etiqueta a 1425px y 375px. 73 hallazgos aplicados. Todas las páginas tienen ahora `canonical` + Open Graph, los 20 sliders tienen `aria-label`, y cada cierre enlaza al siguiente artículo.
 
 Dos de esos hallazgos eran errores numéricos publicados: `polyFit` del artículo 1 formaba `X'X` (grado 9 daba r² test 0.681 en vez de 0.649, invirtiendo la moraleja) y el lasso del artículo 2 no convergía por debajo de λ=1e-3. Ver [la receta de un artículo](receta-de-articulo.md).
@@ -356,8 +303,11 @@ CTC no tiene ningún término que empuje un pico hacia el centro de nada.
 
 **Sobre los acentos de estos siete, y lo que costó el merge**: el encargo repartió `#713f12` a la
 sesión, que es el reparto normal de un artículo por sesión. Como aquí van siete, los seis
-restantes salieron de la `RESERVA` de `check_publication.py` en su orden, que es lo que dice la
-propia herramienta cuando se le pide un reparto (`--reparte`). Y entonces pasó justo lo que el
+restantes salieron de la lista de acentos libres de `check_publication.py` en su orden, que es lo
+que decía la propia herramienta cuando se le pedía un reparto (`--reparte`). Esa lista era
+entonces una constante escrita a mano y **ya no existe**: los acentos se calculan ahora contra lo
+que hay usado en el momento de preguntar, precisamente porque una lista fija ordenada invita a
+que dos sesiones la recorran igual. Y entonces pasó justo lo que el
 reparto existe para evitar, porque el reparto se hizo una vez y las dos sesiones siguieron
 escribiendo: al traer `main` había otra sesión con el módulo 4.1 entero publicado, **tres de mis
 siete acentos ya usados por sus artículos** (`#713f12` en `embeddings/`, `#3c4e85` en
@@ -383,9 +333,15 @@ Cifras del 37 (`vq-vae/`): el gradiente que el encoder necesita es **exactamente
 
 Cifras del 38 (`ebm/`): el brazo con gradiente exacto (por cuadratura, que es lo que nadie tiene) queda a 0,63981 nats de la verdad; CD-1 cuesta 0,68733 más y CD-100 solo 0,03818, **pero la dispersión mediana entre semillas es 0,67028**, así que la página publica el orden (que se cumple en todas las semillas) y dice que el tamaño de la mayoría de esas diferencias no resuelve. PCD-1 cuesta 25,2 nats con semillas en 61,1, 6,1 y 10,4: no es un sesgo, es un fallo, y la razón está medida (como mucho el 12% de los caminantes cambia de componente). El sesgo del muestreador sin corregir cae como el paso a la potencia 3,039 (R² 0,990, tres puntos por encima del suelo); con corrección de Metropolis el error se hunde a 2e-05 aceptando el 62,6%. Sin ruido, los caminantes no colapsan a un punto (el mínimo del anillo es un círculo: 4.515 finales distintos de 5.000) sino en la dirección que importa: anchura 1,4e-04 contra 0,16628. Y el clasificador compartido leído como energía **prefiere el ruido uniforme a los dígitos** (AUC 0,1396), porque su energía correlaciona -0,68 con la tinta: el mismo ruido reescalado a la tinta de un dígito sube a 0,9153.
 
-Cifras del 39 (`flows/`): un flujo es invertible por construcción, y aquí se comprueba en vez de creerse: la masa de la densidad ajustada integrada sobre la rejilla da 0,9999906, el jacobiano analítico coincide con diferencias centradas en float64 a 1,06e-04, y el viaje de ida y vuelta sobre 200 puntos de sonda vuelve a 4,17e-06. La escalera de profundidad, puntuada con la **KL exacta** y no con una media sobre muestras, cae 1,92749 -> 0,42681 -> 0,25326 -> 0,17264 y se aplana desde 6 capas (suelo de semillas 0,04024), con el mejor a 16 capas en 0,11430. La máscara que no alterna es el fallo limpio del artículo: 1,94594 contra 0,18010 a la misma profundidad, y la razón está medida (su marginal está a 1,2531 de la normal y a 1,2479 del modelo, un hueco de 0,00047: las dos coordenadas que nunca se transforman siguen siendo exactamente la gaussiana de partida). El acoplamiento aditivo preserva el volumen de verdad (log determinante máximo **0,0** sobre las sondas) y cuesta entre 0,13992 y 0,57956 nats. Y el muro topológico: la verdad pone 1,417e-07 de masa dentro del radio 1,2 y el flujo más profundo pone 0,001004, **7.085 veces más**; la columna cae una vez por un factor de 113,6 entre 1 y 2 capas y luego se queda sin tendencia entre 0,0005737 y 0,004164, así que no es falta de ajuste. Lo que la profundidad compra es estiramiento: el peor número de condición del mapa sobre los datos va de 434,7 con 1 capa a 41.207 con 16.
+Cifras del 39 (`flows/`): un flujo es invertible por construcción, y aquí se comprueba en vez de creerse: la masa de la densidad ajustada integrada sobre la rejilla da 0,9999906, el jacobiano analítico coincide con diferencias centradas en float64 a 1,06e-04, y el viaje de ida y vuelta sobre 200 puntos de sonda vuelve a 4,17e-06. La escalera de profundidad, puntuada con la **KL exacta** y no con una media sobre muestras, cae 1,92749 -> 0,42681 -> 0,25326 -> 0,17264 y se aplana desde 6 capas (suelo de semillas 0,04024), con el mejor a 16 capas en 0,11430. La máscara que no alterna es el fallo limpio del artículo: 1,94594 contra 0,18010 a la misma profundidad, y la razón está medida (su marginal está a 1,2531 de la normal y a 1,2479 del modelo, un hueco de 0,00047: las dos coordenadas que nunca se transforman siguen siendo exactamente la gaussiana de partida). El acoplamiento aditivo preserva el volumen de verdad (log determinante máximo **0,0** sobre las sondas) y cuesta entre 0,13992 y 0,57956 nats. Y el muro topológico: la verdad pone 1,433e-07 de masa dentro del radio 1,2 y el flujo más profundo pone 0,001006, **7.020 veces más**; la columna cae una vez por un factor de 113,3 entre 1 y 2 capas y luego se queda sin tendencia entre 0,0005749 y 0,004168, así que no es falta de ajuste. (Ese 1,433e-07 es una corrección: el artículo salió con 1,417e-07, que es lo que da la rejilla, y la rejilla no puede con esa integral. La masa dentro del agujero la lleva entera la cola lejana del anillo, y contar una celda del borde entera o nada es dibujar una escalera sobre un círculo: el número oscilaba entre 1,378e-07 y 1,434e-07 según la caja y la resolución. En forma cerrada no hace falta cuadratura ninguna, porque integrar el anillo sobre el ángulo cancela el 1/r y deja una densidad normal en el radio, así que su masa en un disco es una diferencia de dos CDF normales.) Lo que la profundidad compra es estiramiento: el peor número de condición del mapa sobre los datos va de 434,7 con 1 capa a 41.207 con 16.
 
 Cifras del 40 (`glow/`): **el resultado en contra del guion** está en la tabla de compresores. El flujo cuesta 3,2257 bits por píxel, gzip 3,9337 y PNG 5,7795, pero un modelo independiente por píxel cuesta **2,5620** y le gana, y el histograma de grises solo, 2,8178: a este tamaño el flujo no ha ganado todavía el derecho a llamarse compresor. La trampa de la cuantización sí sale como dice el argumento: sin dequantización uniforme la misma arquitectura reporta -2,6658 bits a 2 épocas y -4,8388 a 30, que no es un número pequeño de bits sino un número negativo de bits, y sigue bajando cuando el entrenamiento para (la densidad media sube de +362,2 a +657,4 nats). De las cuatro ablaciones solo una resuelve, y cada veredicto se lee contra el suelo de **su propio par de filas**, no contra el peor de la tabla: el acoplamiento aditivo cuesta +3,3011 contra un suelo de 0,1177, o sea 28 veces; la permutación fija (+0,5599 contra 0,9549), invertir los canales (+0,0544 contra 0,2244) y quitar actnorm (-0,1080 contra 0,1177) están todas dentro del suyo. El peor suelo de la tabla, 0,9549, lo pone una sola rama ruidosa, y usarlo en todas partes medía la única diferencia real contra una vara casi diez veces la que le tocaba. La tabla dos por dos de fuera de distribución: el modelo de Fashion gasta 0,6310 bits **menos** en los dígitos que en sus propias imágenes retenidas (suelo de esa comparación 0,0134, así que resuelve), pero el modelo de dígitos gasta 3,0437 **más** en Fashion, de modo que las dos direcciones se contradicen; la explicación competidora está medida y no descartada (gzip necesita 3,9337 bits por píxel para un dígito y 6,5974 para una imagen de Fashion, y sobre las 1.600 retenidas los bits del modelo y los de gzip correlacionan +0,7600). Y la temperatura, que es el sitio donde este artículo casi publica una conclusión que sus propios datos no aguantan: el juez compartido prefiere **1,0** (0,6693, contra 0,9326 en dígitos reales), y leído a solas eso dice que el consejo de muestrear por debajo de uno no se reproduce. No dice eso. El artículo 38 ya midió que **este mismo juez puntúa tinta**, así que la comprobación se repite aquí con estos datos: a lo largo de las seis temperaturas la confianza correlaciona **+0,9938 con la tinta** de las muestras, y las seis son más pálidas que un dígito real (0,0117 a 0,0582 contra 0,1287, o sea que ni la más oscura llega a la mitad). El juez no ordena temperaturas, ordena tinta, y 1,0 gana por ser la menos pálida de seis opciones pálidas: la pregunta **no se puede contestar con este instrumento**, y la página lo dice en vez de quedarse con el ranking. El gráfico pasó a ser tinta contra confianza justamente para que eso se vea en vez de leerse. La red exportada son 14.280 números en 37 kB de float16, y codificar dieciséis dígitos retenidos e invertirlos devuelve los píxeles a 1,132e-06, que es lo que un flujo sabe hacer y ningún otro modelo del módulo puede.
+
+Cifras del 58 (`ddpm/`): el proceso directo es cerrado sobre la densidad de dos dimensiones del módulo anterior, así que **el score verdadero se puede escribir**, que es lo que ningún tratamiento sobre imágenes puede hacer. q(x_t) es la verdad escalada y convolucionada, y sale por forma cerrada (las manchas son gaussianas convolucionadas con una gaussiana; el anillo es radial, así que la integral angular es una Bessel y queda una cuadratura en el radio). Guardias: masa exacta a 0, interpolación del perfil 2,7e-10, y la ruta independiente por Fourier concuerda a 9,1e-06 en 6 de los 7 niveles (en el séptimo no se intenta, y el generador dice por qué: **una rejilla fija no puede seguir a una densidad que se encoge hacia una delta**, y a t=999 la verdad escalada mide tres celdas). Un guardia que regala el propio resultado: al final del horario q(x_t) es una normal estándar, cuyo score es -x, así que la longitud media del score verdadero tiene que ser sqrt(pi/2) = 1,2533; mide 1,2530.
+
+**Tres resultados del 58, y dos van contra el guion.** (1) El término del prior, que toda derivación tira como constante, vale 1,747e-08 nats a T=1000 con horario lineal: la suposición es correcta. Pero a **T=100 vale 2,725 nats, más que la entropía entera de la verdad** (2,4277), así que recortar el horario deja fuera más de lo que se estaba modelando. (2) El score aprendido tiene error relativo **5,8089 en t=0 y 0,0104 en t=850**: la red aprende casi perfectamente el extremo ruidoso, donde la respuesta es "apunta al origen", y falla donde vive la estructura fina. (3) **La difusión tampoco abre el agujero del anillo.** Esperaba que sí, porque la cadena inversa no es un difeomorfismo y el flujo del 39 no podía por topología. Medido sobre 200.000 muestras: el ancestral pone 6,100e-04 dentro del círculo y el determinista 2,475e-03, contra 0,001006 del flujo más profundo y 1,433e-07 de la verdad. O sea el mismo orden de magnitud que el flujo, y la razón está dos secciones más arriba en la propia página: tallar ese agujero es trabajo de los últimos pasos, y los últimos pasos son justo donde el score aprendido es peor.
+
+El muestreo entra en el suelo (medido partiendo muestras reales en dos: 9,282e-04) desde **25 pasos** con el muestreador determinista y **50** con el ancestral, de un horario de 1.000, y "desde ahí" se comprueba contra todos los presupuestos mayores, no contra el primero que cumple. Y la escalera de píxeles es el argumento del artículo siguiente: 118.852 pesos dan MMD² +0,2364, 459.076 dan +0,0296 y 743.108 dan +0,0128 con C2ST 0,7160, mientras el proceso de dos dimensiones de la misma página corre con **9.666 pesos**. Setenta y siete veces más red, 1.451 kB en float16, y aún fuera del suelo: por eso la página envía 48 imágenes (24 kB) en vez de pesos, y por eso el paso siguiente es hacer la difusión en un espacio más pequeño.
 
 **Artículo 32** (`nerf/`) cierra el módulo 1.3 y con él la sección 1 entera, y es el primero cuyo dataset no es un dataset: la escena está escrita en forma cerrada (cuatro sólidos como funciones de distancia con una cáscara de soporte compacto de 0,045 y radiancia Blinn-Phong con lóbulo especular), así que una fotografía es esa forma cerrada integrada a lo largo de 4.096 rayos y la verdad de referencia no es una anotación, es la función. 24 fotos de 64x64 en tres anillos (10°, 28°, 46°), 8 retenidas entre los anillos y 6 fuera de la banda (-14° y 68°), todas a 512 pasos de cuadratura y **redondeadas a bytes**, porque eso es lo que el navegador lee del PNG.
 

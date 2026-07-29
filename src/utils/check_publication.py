@@ -49,29 +49,74 @@ ESTADO = ROOT / "docs" / "estado.md"
 PORTADA = ROOT / "index.html"
 
 # Los acentos del sitio son oscuros a propósito: el texto va en blanco encima.
-# Esta reserva es de dónde tirar cuando toque uno nuevo, no una regla.
 #
-# La segunda tanda no se eligió a ojo. Con 43 colores ya comprometidos, elegir
-# "uno que se vea distinto" deja de ser fiable: se barrió el espacio HSV a la
-# banda de luminosidad donde vive el resto (L* de 18 a 48) y se fueron cogiendo,
-# uno a uno, los que más lejos quedaban de todo lo aceptado hasta entonces, en
-# distancia CIELAB. El peor de los catorce está a dE 15,5 del vecino más
-# cercano, que sigue siendo una diferencia que cualquiera ve. Cuando estos se
-# acaben, se repite ese barrido en vez de improvisar.
-# La tercera tanda (los cinco ultimos) sale de repetir ese barrido con los 57
-# acentos publicados Y la reserva entera como conjunto de partida, que es lo
-# que el parrafo de arriba manda hacer cuando se acaben. El peor de los cinco
-# esta a dE 15,9 de su vecino mas cercano, del mismo orden que el peor de la
-# tanda anterior (15,5). Hicieron falta porque una sesion escribio ocho
-# articulos de una vez y quedaban tres colores sin pedir.
-RESERVA = [
-    "#1d4ed8", "#3f6212", "#7c2d12", "#134e4a", "#581c87", "#831843",
-    "#164e63", "#713f12", "#3730a3", "#065f46", "#701a75", "#7f1d1d",
-    "#3e295c", "#705e32", "#5c2938", "#853c6f", "#706b11", "#143b85",
-    "#5c0e40", "#643c85", "#5c3e29", "#5c0e1d", "#0e5c29", "#3c4e85",
-    "#853c43", "#851463",
-    "#945b43", "#473a04", "#056605", "#202c47", "#381a66",
-]
+# Esto fue una lista escrita a mano, y la lista se quedaba corta cada dos
+# tandas: con doce colores duró dos repartos, con veintiséis duró tres, y cada
+# vez había que volver a escribirla justo cuando hacía falta usarla. Ahora se
+# calculan. La rutina barre HSV dentro de la banda de luminosidad que tienen los
+# acentos **ya publicados** (así se adapta sola al sitio en vez de a un número
+# que alguien puso una vez) y va cogiendo, uno a uno, el candidato que más lejos
+# queda en distancia CIELAB de todo lo aceptado hasta ese momento, contando como
+# ocupado tanto lo publicado como lo que pintan las ramas sin mergear.
+DE_MINIMO = 12.0            # por debajo de esto dos acentos empiezan a parecerse
+
+
+def _srgb_lin(c):
+    c /= 255
+    return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
+
+
+def lab(hexs):
+    """CIELAB, para poder decir "se parecen" con un número y no con un adjetivo."""
+    r, g, b = (_srgb_lin(int(hexs[i:i + 2], 16)) for i in (1, 3, 5))
+    X = (r * 0.4124 + g * 0.3576 + b * 0.1805) / 0.95047
+    Y = r * 0.2126 + g * 0.7152 + b * 0.0722
+    Z = (r * 0.0193 + g * 0.1192 + b * 0.9505) / 1.08883
+    f = lambda t: t ** (1 / 3) if t > 216 / 24389 else (841 / 108) * t + 4 / 29
+    fx, fy, fz = f(X), f(Y), f(Z)
+    return (116 * fy - 16, 500 * (fx - fy), 200 * (fy - fz))
+
+
+def delta_e(a, b):
+    return sum((x - y) ** 2 for x, y in zip(lab(a), lab(b))) ** 0.5
+
+
+def acentos_libres(usados, n):
+    """n acentos nuevos, cada uno lo más lejos posible de todo lo demás.
+
+    Devuelve [(color, dE al vecino más cercano), ...], más corta que n si el
+    espacio se agota por encima de DE_MINIMO, que es la señal honesta de que
+    toca ensanchar la banda en vez de publicar dos colores que se confunden.
+    """
+    import colorsys
+    if not usados:
+        lo_l, hi_l = 18.0, 48.0
+    else:
+        ls = sorted(lab(c)[0] for c in usados)
+        lo_l, hi_l = ls[0], ls[len(ls) // 2] + 10   # de lo más oscuro a la mediana
+    cands = []
+    for h in range(0, 360, 3):
+        for s in (0.55, 0.70, 0.85):
+            for v in (0.36, 0.44, 0.52, 0.60):
+                r, g, b = colorsys.hsv_to_rgb(h / 360, s, v)
+                c = "#%02x%02x%02x" % tuple(round(x * 255) for x in (r, g, b))
+                if lo_l <= lab(c)[0] <= hi_l:
+                    cands.append(c)
+    tomados = set(usados)
+    fuera = []
+    for _ in range(n):
+        mejor, mejor_d = None, -1.0
+        for c in cands:
+            if c in tomados:
+                continue
+            d = min(delta_e(c, u) for u in tomados) if tomados else 100.0
+            if d > mejor_d:
+                mejor, mejor_d = c, d
+        if mejor is None or mejor_d < DE_MINIMO:
+            break
+        fuera.append((mejor, mejor_d))
+        tomados.add(mejor)
+    return fuera
 
 # El secundario de los artículos publicados es el primario a un 80% por canal:
 # medido contra cuatro parejas ya en el sitio, el peor canal se desvía 6 de 255
@@ -343,13 +388,14 @@ def main():
     en_vuelo = (acentos_en_vuelo(set(carpetas))
                 if (quiere_reparto or "--next" in sys.argv) else {})
     ocupados = set(vistos) | set(en_vuelo)
-    libres = [c for c in RESERVA if c not in ocupados]
     siguiente = max(nums) + 1 if nums else 1
 
     if "--next" in sys.argv:
+        libres = acentos_libres(ocupados, 4)
         print(f"artículos publicados: {len(carpetas)}")
         print(f"siguiente número libre: {siguiente}")
-        print(f"acentos libres de la reserva: {', '.join(libres) if libres else '(ninguno, elige uno nuevo)'}")
+        print("acentos libres: "
+              + ", ".join(f"{c} (dE {d:.0f})" for c, d in libres))
         print(f"acentos en uso: {len(vistos)} publicados"
               + (f" y {len(en_vuelo)} en ramas sin mergear" if en_vuelo else ""))
         for col, quien in sorted(en_vuelo.items()):
@@ -361,17 +407,20 @@ def main():
         except (IndexError, ValueError):
             print("uso: --reparte N, con N el número de sesiones que vas a lanzar")
             return 1
-        if n > len(libres):
-            print(f"solo quedan {len(libres)} acentos sin pedir y necesitas {n}: "
-                  f"añade colores a RESERVA antes de repartir")
+        libres = acentos_libres(ocupados, n)
+        if len(libres) < n:
+            print(f"solo salen {len(libres)} acentos por encima de dE {DE_MINIMO} "
+                  f"y necesitas {n}: el espacio de colores oscuros se está "
+                  f"agotando con {len(ocupados)} ya comprometidos. Ensancha la "
+                  f"banda en acentos_libres antes de repartir, a sabiendas de que "
+                  f"a partir de ahí dos acentos empiezan a parecerse.")
             return 1
         print(f"\nreparto para {n} sesiones simultáneas, sobre {len(carpetas)} "
               f"artículos publicados"
               + (f" y {len(en_vuelo)} acento(s) ya pedidos por ramas en vuelo" if en_vuelo else "")
               + ".")
         print("pega en el prompt de cada sesión la línea que le toca:\n")
-        for i in range(n):
-            col = libres[i]
+        for i, (col, d) in enumerate(libres):
             print(f"  sesión {i + 1}: el acento de tus artículos es "
                   f"--primary: {col} y --secondary: {secundario(col)}. No lo elijas "
                   f"tú ni lo deduzcas del repositorio: hay otras sesiones "
@@ -379,8 +428,8 @@ def main():
                   f"cada artículo no se reparte: lo coges al mergear, con "
                   f"--next, que es cuando ya no hay carrera.")
         print("\n  (si una sesión escribe varios artículos, el segundo y los "
-              "siguientes llevan\n   variantes del mismo acento o colores nuevos "
-              "que --next diga libres en ese momento)")
+              "siguientes los pide\n   con --next al mergear, que ya los calcula "
+              "contra lo que haya en ese momento)")
         print()
 
     for a in avisos:

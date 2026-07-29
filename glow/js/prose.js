@@ -329,10 +329,13 @@ export function initProse(data) {
     + `<br /><br />`
     + `What none of them do is start from a picture and destroy it slowly, learning only how to `
     + `undo one small step of the damage. That model has no bound, no constant, no invertibility `
-    + `requirement and no chain that has to mix, and it is what module 3.3 is about.`
+    + `requirement and no chain that has to mix, and it is `
+    + `<a href="../ddpm/">where module 3.3 opens</a>. It is also the one article in this atlas `
+    + `that can draw the field its network is trying to learn, because the process it inverts is `
+    + `closed form on the very density these five were fitted against.`
     + `<br /><br />`
-    + `Module 3.3 is not written yet, and the article that is written next changes the object `
-    + `rather than the method. Everything in this atlas so far has started from a row of numbers, `
+    + `After that the atlas changes the object rather than the method. Everything so far has `
+    + `started from a row of numbers, `
     + `a set, or a picture. A <span class="bold">document</span> is none of those: it is a `
     + `sequence of words, of no fixed length, drawn from a vocabulary nobody wrote down, and `
     + `before any of this machinery can touch it somebody has to decide what its numbers are. `

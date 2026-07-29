@@ -46,7 +46,8 @@ sys.path.insert(0, str(ROOT))
 from src.utils.generative_common import (          # noqa: E402
     ROOT as REPO, SEED, TOY, arr, banner, cached, decode_half, dense,
     export_flat, export_half, mat, rnd, sci, threads, toy_entropy, toy_grid,
-    toy_kl, toy_logpdf, toy_pdf, toy_quadrature_report, toy_sample, write_json)
+    toy_kl, toy_logpdf, toy_pdf, toy_quadrature_report, toy_sample, write_json,
+    disc_weights, toy_hole_exact)
 
 OUT = REPO / "flows" / "data"
 THREADS = threads()
@@ -360,9 +361,17 @@ for d in DEPTHS:
     q = np.exp(lq)
     row = {"depth": d}
     for rr in HOLES:
-        inside = r_grid < rr
-        row[f"model_{rr}"] = sci(float(q[inside].sum() * CELL))
-        row[f"truth_{rr}"] = sci(float(truth_p[inside].sum() * CELL))
+        # Not `r < rr` on the cell centres. That counts a boundary cell all or
+        # nothing, which is a staircase drawn over a circle, and on a region
+        # whose mass is this small the boundary carries the answer: the truth's
+        # own number came out anywhere from 1.378e-07 to 1.434e-07 depending on
+        # the box and the resolution. The model's density in there is smooth, so
+        # weighting each cell by the fraction of it inside the circle fixes it;
+        # the truth's is the ring's far tail, which no grid can do, so that one
+        # comes from the closed form (the angular integral of the ring is a
+        # normal density in the radius, so its mass in a disc is a normal CDF).
+        row[f"model_{rr}"] = sci(float((q * disc_weights(Xg, np.sqrt(CELL), rr)).sum() * CELL))
+        row[f"truth_{rr}"] = sci(toy_hole_exact(rr))
     # where the error lives: the ring's own annulus against the two blobs
     ann = (r_grid > RING["r0"] - 4 * RING["sigma"]) & (r_grid < RING["r0"] + 4 * RING["sigma"])
     row["kl_ring"] = rnd(float((truth_p * (np.log(np.maximum(truth_p, 1e-300)) - lq)

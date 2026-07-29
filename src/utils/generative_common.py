@@ -403,6 +403,177 @@ def judge():
             "hidden": JUDGE["hidden"], "epochs": JUDGE["epochs"]}
 
 
+def disc_weights(X, h, radius, sub=16):
+    """Per cell, the fraction of it that lies inside a disc of `radius`.
+
+    Counting a cell all or nothing because its centre is inside is a staircase
+    approximation of a circle, and on a region whose mass is tiny it is the
+    dominant error: the truth's mass inside radius 1.2 comes out anywhere
+    between 1.378e-07 and 1.434e-07 depending on the box and the resolution,
+    against a closed form 1.4333e-07, because the answer is carried entirely by
+    cells the boundary crosses. Only those cells are supersampled here, so the
+    cost is proportional to the perimeter rather than to the area.
+
+    `X` is the (n, 2) array of cell centres and `h` the cell side.
+    """
+    X = np.asarray(X, dtype=float).reshape(-1, 2)
+    r = np.sqrt((X ** 2).sum(1))
+    half_diag = 0.5 * h * np.sqrt(2.0)
+    w = (r <= radius).astype(float)
+    edge = np.abs(r - radius) <= half_diag
+    if not edge.any():
+        return w
+    o = (np.arange(sub) + 0.5) / sub - 0.5
+    ox, oy = np.meshgrid(o * h, o * h, indexing="ij")
+    off = np.c_[ox.ravel(), oy.ravel()]
+    P = X[edge][:, None, :] + off[None, :, :]
+    w[edge] = (np.sqrt((P ** 2).sum(2)) <= radius).mean(1)
+    return w
+
+
+def toy_hole_exact(radius, npts=20001):
+    """The truth's mass inside a disc centred on the origin, in closed form.
+
+    Worth having as its own function because the grid cannot do it. The mass
+    inside the ring's hole is carried by the ring's far tail, where the density
+    changes by orders of magnitude across one cell, so midpoint quadrature is
+    still 1.6e-03 out at m=2048 even after the boundary is resolved exactly.
+
+    The ring part needs no quadrature at all. Integrating its 2-D density over
+    the angle cancels the 1/r, and what is left is a plain normal density in the
+    radius, so the mass inside a radius is a difference of two normal CDFs. Only
+    the two blobs need quadrature, and inside this disc they contribute about
+    4e-13, which is nothing.
+    """
+    from math import erf, sqrt
+    R = TOY["ring"]
+    cdf = lambda z: 0.5 * (1.0 + erf(z / sqrt(2.0)))
+    ring = cdf((radius - R["r0"]) / R["sigma"]) - cdf((0.0 - R["r0"]) / R["sigma"])
+    total = R["weight"] * ring
+    rr = np.linspace(0.0, radius, 1200)
+    aa = np.linspace(0.0, 2.0 * np.pi, 1200)
+    Rg, Ag = np.meshgrid(rr, aa, indexing="ij")
+    P = np.c_[(Rg * np.cos(Ag)).ravel(), (Rg * np.sin(Ag)).ravel()]
+    for name in ("blob_a", "blob_b"):
+        B = TOY[name]
+        Q = _rot(B["angle"])
+        sd = np.asarray(B["sd"], dtype=float)
+        C = Q @ np.diag(sd ** 2) @ Q.T
+        d = P - np.asarray(B["mean"], dtype=float)
+        q = (d @ np.linalg.inv(C) * d).sum(1)
+        val = np.exp(-0.5 * q) / (2.0 * np.pi * np.sqrt(np.linalg.det(C)))
+        total += B["weight"] * np.trapezoid(
+            np.trapezoid(val.reshape(len(rr), len(aa)) * Rg, aa, axis=1), rr)
+    return float(total)
+
+
+def toy_mass_disc(radius, m=1024, half=None):
+    """The truth's mass inside a disc, with the boundary resolved.
+
+    Kept beside `toy_mass` rather than replacing it: a region with a straight
+    boundary on the grid does not have this problem, and a region given as an
+    arbitrary predicate cannot be supersampled without knowing its shape.
+    """
+    X, cell, _ = toy_grid(m, half)
+    h = np.sqrt(cell)
+    return float((toy_pdf(X) * disc_weights(X, h, radius)).sum() * cell)
+
+
+# ================================================ scoring a pool of samples
+# These three lived in the variational autoencoder's generator until the fourth
+# article of the module needed them too. The third one is not a metric, it is a
+# guard on the first: the energy based article measured that the shared judge
+# scores INK rather than digits, and the Glow article then published a ranking
+# that turned out to be a ranking of ink. A confound that has been demonstrated
+# once has to be re-tested every time the metric is reused, so the test travels
+# with the metric instead of living in the prose of the article that found it.
+
+def rbf_mmd2(A, B, gamma):
+    """The unbiased two sample statistic: zero in expectation when the two
+    pools come from the same distribution, positive when they do not.
+
+    It has no absolute scale, so it is only readable against a floor measured
+    by splitting REAL data in two: see `real_vs_real_floor`.
+    """
+    A = np.asarray(A, dtype=float)
+    B = np.asarray(B, dtype=float)
+
+    def k(U, V):
+        d = ((U ** 2).sum(1)[:, None] + (V ** 2).sum(1)[None, :] - 2.0 * U @ V.T)
+        return np.exp(-gamma * np.maximum(d, 0.0))
+
+    Kaa, Kbb, Kab = k(A, A), k(B, B), k(A, B)
+    na, nb = len(A), len(B)
+    np.fill_diagonal(Kaa, 0.0)
+    np.fill_diagonal(Kbb, 0.0)
+    return float(Kaa.sum() / (na * (na - 1)) + Kbb.sum() / (nb * (nb - 1))
+                 - 2.0 * Kab.mean())
+
+
+def c2st(A, B, seed=0):
+    """Classifier two sample test: how well anything can tell the pools apart.
+    Half is indistinguishable, one is trivial."""
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.model_selection import cross_val_score
+
+    X = np.r_[np.asarray(A, dtype=float), np.asarray(B, dtype=float)]
+    yy = np.r_[np.zeros(len(A)), np.ones(len(B))]
+    clf = LogisticRegression(max_iter=2000, C=1.0, random_state=seed)
+    return float(cross_val_score(clf, X, yy, cv=5, scoring="accuracy").mean())
+
+
+def real_vs_real_floor(real, gamma, splits=5, n=400, seed=SEED):
+    """What the two statistics report when BOTH pools are real data.
+
+    Any number a generated pool scores is only a result if it is outside this.
+    """
+    rs = np.random.RandomState(seed)
+    mm, cc = [], []
+    for s in range(splits):
+        idx = rs.permutation(len(real))
+        A, B = real[idx[:n]], real[idx[n:2 * n]]
+        mm.append(rbf_mmd2(A, B, gamma))
+        cc.append(c2st(A, B, seed=s))
+    return {"splits": splits, "n": n,
+            "mmd2": sci(float(np.mean(mm))), "mmd2_max": sci(float(np.max(np.abs(mm)))),
+            "c2st": float(f"{np.mean(cc):.4f}"), "c2st_max": float(f"{np.max(cc):.4f}")}
+
+
+def judge_ink_check(pools, real, J):
+    """Whether the shared judge's ranking of these pools means anything.
+
+    `pools` is a list of (name, pixels) already clipped to [0, 1], ordered as
+    the article intends to present them. The judge is known to score ink: if its
+    confidence is monotone in the mean pixel value across the pools, and every
+    pool is fainter (or every pool darker) than real data, then it cannot
+    separate "looks like a digit" from "has more ink" anywhere in the range and
+    no ranking of these pools may be published as a result.
+
+    Returns the numbers and a `confounded` flag, both meant to go in the JSON so
+    the page can branch on them rather than assume either way.
+    """
+    names = [n for n, _ in pools]
+    inks = [float(np.clip(np.asarray(p, dtype=float), 0, 1).mean()) for _, p in pools]
+    confs = [float(J["proba"](np.clip(np.asarray(p, dtype=float), 0, 1)).max(1).mean())
+             for _, p in pools]
+    real_ink = float(np.asarray(real, dtype=float).mean())
+    corr = (float(np.corrcoef(inks, confs)[0, 1])
+            if len(pools) > 2 and np.std(inks) > 0 and np.std(confs) > 0 else 0.0)
+    all_fainter = max(inks) < real_ink
+    all_darker = min(inks) > real_ink
+    return {
+        "names": names,
+        "ink": [sci(v) for v in inks], "confidence": [float(f"{v:.4f}") for v in confs],
+        "real_ink": sci(real_ink), "corr": float(f"{corr:.4f}"),
+        "all_fainter_than_real": bool(all_fainter),
+        "all_darker_than_real": bool(all_darker),
+        "confounded": bool(abs(corr) > 0.9 and (all_fainter or all_darker)),
+        "note": "the judge is known to score ink (see the energy based article); this is that "
+                "test re-run on THESE pools, and a ranking may only be published when "
+                "`confounded` is false",
+    }
+
+
 # ============================================================ small utilities
 def write_json(path, payload):
     path = Path(path)
