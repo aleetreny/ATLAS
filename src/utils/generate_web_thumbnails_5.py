@@ -152,10 +152,45 @@ def thumb_annealing_swarm():
     write("annealing-swarm", body)
 
 
+# ---------------------------------------------------------------------------
+def thumb_bandits():
+    """Las curvas de arrepentimiento de las cinco politicas."""
+    accent = "#5c293b"
+    d = load("bandits", "bandits")
+    P = d["policies"]
+    stride = P["greedy"]["stride"]
+    T = d["meta"]["horizon"]
+    top = max(P[k]["final"] for k in P)
+    pad_l, pad_r, pad_t, pad_b = 34, 24, 30, 34
+    px = lambda t: round(pad_l + (W - pad_l - pad_r) * t / T)
+    py = lambda v: round(H - pad_b - (H - pad_t - pad_b) * v / (top * 1.05))
+    curves = []
+    for k, col in ((k, accent) for k in P):
+        pts = P[k]["regret"]
+        pts = " ".join(f"{px(i * stride)},{py(v)}" for i, v in enumerate(pts))
+        curves.append((k, pts))
+    worst = max(P, key=lambda k: P[k]["final"])
+    bestk = min(P, key=lambda k: P[k]["final"])
+    # La miniatura ensena que las politicas se separan: si dos curvas acabaran
+    # juntas no diria nada.
+    assert P[worst]["final"] / P[bestk]["final"] > 1.5, "las curvas no se separan"
+    faint = "".join(f'<polyline points="{pts}" />' for k, pts in curves
+                    if k not in (worst, bestk))
+    body = (f'  <g fill="none" stroke="{accent}" stroke-width="2.5" '
+            f'opacity="0.35">{faint}</g>\n'
+            + "".join(f'  <polyline points="{pts}" fill="none" stroke="{accent}" '
+                      f'stroke-width="4" />\n'
+                      for k, pts in curves if k in (worst, bestk))
+            + f'  <line x1="{pad_l}" y1="{H - pad_b}" x2="{W - pad_r}" '
+              f'y2="{H - pad_b}" stroke="{GREY}" stroke-width="1.5" />\n')
+    write("bandits", body)
+
+
 THUMBS = {
     "linear-programming": thumb_linear_programming,
     "genetic-algorithms": thumb_genetic_algorithms,
     "annealing-swarm": thumb_annealing_swarm,
+    "bandits": thumb_bandits,
 }
 
 
