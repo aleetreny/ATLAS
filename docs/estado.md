@@ -294,8 +294,11 @@ CTC no tiene ningún término que empuje un pico hacia el centro de nada.
 
 **Sobre los acentos de estos siete, y lo que costó el merge**: el encargo repartió `#713f12` a la
 sesión, que es el reparto normal de un artículo por sesión. Como aquí van siete, los seis
-restantes salieron de la `RESERVA` de `check_publication.py` en su orden, que es lo que dice la
-propia herramienta cuando se le pide un reparto (`--reparte`). Y entonces pasó justo lo que el
+restantes salieron de la lista de acentos libres de `check_publication.py` en su orden, que es lo
+que decía la propia herramienta cuando se le pedía un reparto (`--reparte`). Esa lista era
+entonces una constante escrita a mano y **ya no existe**: los acentos se calculan ahora contra lo
+que hay usado en el momento de preguntar, precisamente porque una lista fija ordenada invita a
+que dos sesiones la recorran igual. Y entonces pasó justo lo que el
 reparto existe para evitar, porque el reparto se hizo una vez y las dos sesiones siguieron
 escribiendo: al traer `main` había otra sesión con el módulo 4.1 entero publicado, **tres de mis
 siete acentos ya usados por sus artículos** (`#713f12` en `embeddings/`, `#3c4e85` en
