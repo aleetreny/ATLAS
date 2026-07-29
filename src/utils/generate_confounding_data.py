@@ -573,7 +573,7 @@ def main():
         cloud=cloud,
     )
     path = OUT / "confounding.json"
-    path.write_text(json.dumps(data), encoding="utf-8")
+    path.write_text(json.dumps(data, allow_nan=False), encoding="utf-8")
     print(f"  escrito {path} ({path.stat().st_size / 1024:.0f} kB)")
 
 

@@ -99,9 +99,24 @@ def cached(name, fn):
 
 
 def r(v, d=6):
+    """Redondeo para el JSON, con los no finitos convertidos en None.
+
+    `json.dumps` escribe `NaN` sin protestar y eso **no es JSON**: el navegador
+    lo rechaza al parsear, la promesa del fetch revienta y la página se queda
+    sin prosa y sin guardia, sin un solo error visible en el sitio donde está
+    el fallo. Pasó con la correlación del brazo constante, que no está definida
+    porque su predicción no varía. Aquí se convierte en None y la prosa tiene
+    su rama; y el volcado de abajo lleva `allow_nan=False` para que ningún otro
+    campo pueda colarse.
+    """
+    if v is None:
+        return None
     if isinstance(v, (list, tuple, np.ndarray)):
         return [r(x, d) for x in np.asarray(v).tolist()]
-    return round(float(v), d)
+    v = float(v)
+    if not np.isfinite(v):
+        return None
+    return round(v, d)
 
 
 # =====================================================================
@@ -824,7 +839,7 @@ def main():
             example=att["example"]),
     )
     path = OUT / "saliency.json"
-    path.write_text(json.dumps(data), encoding="utf-8")
+    path.write_text(json.dumps(data, allow_nan=False), encoding="utf-8")
     print(f"  escrito {path} ({path.stat().st_size / 1024:.0f} kB)")
 
 

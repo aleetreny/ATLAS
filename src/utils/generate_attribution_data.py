@@ -82,9 +82,24 @@ def cached(name, fn):
 
 
 def r(v, d=6):
+    """Redondeo para el JSON, con los no finitos convertidos en None.
+
+    `json.dumps` escribe `NaN` sin protestar y eso **no es JSON**: el navegador
+    lo rechaza al parsear, la promesa del fetch revienta y la página se queda
+    sin prosa y sin guardia, sin un solo error visible en el sitio donde está
+    el fallo. Pasó con la correlación del brazo constante, que no está definida
+    porque su predicción no varía. Aquí se convierte en None y la prosa tiene
+    su rama; y el volcado de abajo lleva `allow_nan=False` para que ningún otro
+    campo pueda colarse.
+    """
+    if v is None:
+        return None
     if isinstance(v, (list, tuple, np.ndarray)):
         return [r(x, d) for x in np.asarray(v).tolist()]
-    return round(float(v), d)
+    v = float(v)
+    if not np.isfinite(v):
+        return None
+    return round(v, d)
 
 
 # ------------------------------------------------------------------ datos
@@ -150,14 +165,18 @@ def interventional_value(model, x, background):
     modelo y no los datos.
     """
     def fn(subsets):
-        out = np.empty(len(subsets))
-        rows = np.repeat(background[None, :, :], 1, axis=0)[0]
+        # Las 1.024 coaliciones se apilan en UNA sola llamada al modelo. La
+        # version obvia llama a predict una vez por coalicion, y con un bosque
+        # el coste por llamada domina al coste por fila: 8.192 llamadas de 80
+        # filas tardan mas que una de 655.360. Es la misma cuenta que hizo el
+        # articulo 49 con el softmax del vocabulario.
+        nb = len(background)
+        Z = np.repeat(background[None, :, :], len(subsets), axis=0)
         for i, S in enumerate(subsets):
-            Z = rows.copy()
             if S:
-                Z[:, list(S)] = x[list(S)]
-            out[i] = model.predict(Z).mean()
-        return out
+                Z[i][:, list(S)] = x[list(S)]
+        preds = model.predict(Z.reshape(-1, background.shape[1]))
+        return preds.reshape(len(subsets), nb).mean(axis=1)
     return fn
 
 
@@ -172,7 +191,7 @@ def kernel_shap(model, x, background, m, rng):
     p = len(x)
     base = model.predict(background).mean()
     full = model.predict(x[None, :]).mean()
-    Zs, ws, ys = [], [], []
+    Zs, ws, blocks = [], [], []
     for _ in range(m):
         s = rng.integers(1, p)
         S = rng.choice(p, size=s, replace=False)
@@ -182,10 +201,13 @@ def kernel_shap(model, x, background, m, rng):
         Z[:, S] = x[S]
         Zs.append(z)
         ws.append((p - 1) / (comb(p, s) * s * (p - s)))
-        ys.append(model.predict(Z).mean())
+        blocks.append(Z)
+    # Igual que arriba: una llamada, no m.
+    stacked = np.concatenate(blocks, axis=0)
+    ys = model.predict(stacked).reshape(m, len(background)).mean(axis=1)
     Z = np.array(Zs)
     w = np.array(ws)
-    yv = np.array(ys) - base
+    yv = np.asarray(ys) - base
     # Restricción de eficiencia: se elimina la última variable sustituyéndola.
     A = Z[:, :-1] - Z[:, -1:]
     b = yv - Z[:, -1] * (full - base)
@@ -573,7 +595,7 @@ def main():
         models={k: r(v) for k, v in models.items()},
     )
     path = OUT / "attribution.json"
-    path.write_text(json.dumps(data), encoding="utf-8")
+    path.write_text(json.dumps(data, allow_nan=False), encoding="utf-8")
     print(f"  escrito {path} ({path.stat().st_size / 1024:.0f} kB)")
 
 

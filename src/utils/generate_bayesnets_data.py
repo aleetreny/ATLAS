@@ -56,13 +56,19 @@ CACHE = (Path(os.environ.get("ATLAS_DATA_DIR", Path.home() / ".atlas_vision_data
 SEED = 19
 SIGMA = 0.25          # ruido de observación, conocido: una cosa menos que estimar
 PRIOR = 3.0           # desviación del prior gaussiano sobre cada peso
-GRID = 161            # puntos por eje de la cuadratura (161^3 = 4,2 millones)
-LIM = 9.0             # el cubo que se integra, [-LIM, LIM] por eje
+# La rejilla y el cubo NO se eligieron a ojo. Con 161 puntos en [-9, 9] el paso
+# es 0,1125 y la posterior de este modelo (ruido 0,25 sobre 24 puntos) es mucho
+# mas estrecha que eso: la cuadratura y cuatro cadenas de Metropolis discrepaban
+# 0,13 en la media predictiva, que es enorme. Con 241 puntos en [-6, 6] el paso
+# baja a 0,05 y las dos rutas vuelven a coincidir. El cubo sigue conteniendo los
+# dos modos, que estan en +-(2,2, 0,4, 1,6) aproximadamente.
+GRID = 241
+LIM = 6.0
 N_DATA = 24
 X_LO, X_HI = -2.0, 2.0
 YGRID = 241           # rejilla en y para comparar densidades predictivas
 
-TAG = f"g{GRID}l{LIM}p{PRIOR}s{SIGMA}n{N_DATA}d{SEED}"
+TAG = f"g{GRID}l{LIM}p{PRIOR}s{SIGMA}n{N_DATA}d{SEED}-v2"
 
 
 def cached(name, fn):
@@ -80,9 +86,24 @@ def cached(name, fn):
 
 
 def r(v, d=6):
+    """Redondeo para el JSON, con los no finitos convertidos en None.
+
+    `json.dumps` escribe `NaN` sin protestar y eso **no es JSON**: el navegador
+    lo rechaza al parsear, la promesa del fetch revienta y la página se queda
+    sin prosa y sin guardia, sin un solo error visible en el sitio donde está
+    el fallo. Pasó con la correlación del brazo constante, que no está definida
+    porque su predicción no varía. Aquí se convierte en None y la prosa tiene
+    su rama; y el volcado de abajo lleva `allow_nan=False` para que ningún otro
+    campo pueda colarse.
+    """
+    if v is None:
+        return None
     if isinstance(v, (list, tuple, np.ndarray)):
         return [r(x, d) for x in np.asarray(v).tolist()]
-    return round(float(v), d)
+    v = float(v)
+    if not np.isfinite(v):
+        return None
+    return round(v, d)
 
 
 # ------------------------------------------------------------------- datos
@@ -289,28 +310,50 @@ def stage_approx(x, y, xs, exact):
     S = th_map + rng.standard_normal((4000, 3)) @ L.T
     out["laplace"] = predictive_from_samples(S, xs, ys) + (th_map,)
 
+    # El conjunto de libro: mismos datos, ocho inicializaciones. Con tres pesos
+    # las ocho encuentran la MISMA funcion (o su reflejo, que es la misma), asi
+    # que el conjunto no tiene nada que promediar. Eso es un resultado y se
+    # publica, con el brazo que si produce dispersion al lado.
     ens = np.array([fit_map(x, y, np.random.default_rng(SEED + 40 + k), restarts=1)[0]
                     for k in range(8)])
     out["ensemble"] = predictive_from_samples(ens, xs, ys) + (ens.mean(0),)
 
-    # VI de campo medio: gaussiana diagonal, optimizada con el truco pathwise y
-    # el mismo presupuesto para todos.
-    mu = rng.standard_normal(3) * 0.5
-    rho = np.full(3, -1.0)
-    for step in range(6000):
+    boot = []
+    for k in range(8):
+        rb = np.random.default_rng(SEED + 80 + k)
+        idx = rb.integers(0, len(x), len(x))
+        boot.append(fit_map(x[idx], y[idx], rb, restarts=1)[0])
+    boot = np.array(boot)
+    out["bootstrap"] = predictive_from_samples(boot, xs, ys) + (boot.mean(0),)
+
+    # VI de campo medio: gaussiana diagonal, con el estimador pathwise y la
+    # entropia en forma cerrada.
+    #
+    # La primera version de esto mezclaba un gradiente tipo score function
+    # escrito a mano con la entropia y salia una desviacion 556 veces la
+    # exacta, o sea una posterior que cubre todo el cubo. El pathwise es una
+    # linea y usa el mismo gradiente analitico que el MAP:
+    #   d/dmu   = E[ grad log p ]
+    #   d/dsigma = E[ grad log p * eps ] + 1/sigma
+    mu = th_map + rng.standard_normal(3) * 0.1
+    rho = np.full(3, -2.0)
+    for step in range(8000):
         sd = np.log1p(np.exp(rho))
-        eps = rng.standard_normal((64, 3))
+        eps = rng.standard_normal((128, 3))
         th = mu + sd * eps
-        # gradiente del ELBO por diferencias sobre los parámetros variacionales
-        lp = log_prior(th) + log_lik(th, x, y)
-        w = lp - lp.mean()
-        gmu = -(w[:, None] * (th - mu) / sd ** 2).mean(0) + (mu) * 0
-        gsd = -(w[:, None] * (((th - mu) ** 2 - sd ** 2) / sd ** 3)).mean(0)
-        # y la entropía, que empuja a ensanchar
-        gsd -= 1.0 / sd
-        mu = mu - 0.01 * gmu
-        rho = rho - 0.01 * gsd * (1 / (1 + np.exp(-rho)))
-        rho = np.clip(rho, -6, 3)
+        w, b, v = th[:, 0:1], th[:, 1:2], th[:, 2:3]
+        z = np.tanh(w * x + b)
+        res = v * z - y
+        gw = np.sum(res * v * (1 - z ** 2) * x, axis=1)
+        gb = np.sum(res * v * (1 - z ** 2), axis=1)
+        gv = np.sum(res * z, axis=1)
+        grad = -(np.stack([gw, gb, gv], axis=1) / SIGMA ** 2 + th / PRIOR ** 2)
+        gmu = grad.mean(0)
+        gsd = (grad * eps).mean(0) + 1.0 / sd
+        lr = 0.02
+        mu = mu + lr * gmu
+        rho = rho + lr * gsd * (1 / (1 + np.exp(-rho)))
+        rho = np.clip(rho, -8, 2)
     sd = np.log1p(np.exp(rho))
     S = mu + sd * rng.standard_normal((4000, 3))
     out["vi"] = predictive_from_samples(S, xs, ys) + (mu,)
@@ -414,8 +457,9 @@ def main():
 
     approx = cached("approx", lambda: stage_approx(x, y, xs, exact))
     labels = dict(map="a single best fit (MAP)", laplace="Laplace around the MAP",
-                  ensemble="deep ensemble, eight fits", vi="mean field VI",
-                  sgld="SGLD")
+                  ensemble="ensemble of eight, same data",
+                  bootstrap="ensemble of eight, resampled data",
+                  vi="mean field VI", sgld="SGLD")
     rows = []
     for k, (mean, sd, dens, th) in approx.items():
         s = score(exact, mean, sd, dens, xs, inside)
@@ -423,8 +467,28 @@ def main():
         print(f"    {labels[k]:<26} TV in {s['tv_in']:.4f} out {s['tv_out']:.4f}  "
               f"sd ratio in {s['sd_ratio_in']:.3f} out {s['sd_ratio_out']:.3f}")
 
-    growth = float(exact["pred_sd"][~inside].mean() / exact["pred_sd"][inside].mean())
-    print(f"  exact predictive sd grows {growth:.3f} times outside the data")
+    # Tres regiones, no dos. El guion previsto decia "la incertidumbre crece al
+    # alejarse de los datos" y la medida dice lo contrario, porque una tanh
+    # satura: mas alla de los datos todas las funciones de la posterior se
+    # aplanan en el mismo sitio y el modelo esta MAS seguro. Donde crece es en
+    # el hueco del medio, que es lo que este dataset tiene y casi ningun
+    # ejemplo de libro dibuja.
+    # El hueco se lee de los datos, no se escribe: es el trozo entre el último
+    # punto de la izquierda y el primero de la derecha.
+    lo_gap = float(x[x < 0].max())
+    hi_gap = float(x[x > 0].min())
+    gap = (xs > lo_gap) & (xs < hi_gap)
+    far = ~inside
+    on = inside & ~gap
+    regions = dict(
+        on_data=float(exact["pred_sd"][on].mean()),
+        in_gap=float(exact["pred_sd"][gap].mean()),
+        far=float(exact["pred_sd"][far].mean()))
+    growth = regions["in_gap"] / regions["on_data"]
+    far_ratio = regions["far"] / regions["on_data"]
+    print(f"  exact predictive sd: on the data {regions['on_data']:.4f}, in the gap "
+          f"{regions['in_gap']:.4f} ({growth:.2f} times), far outside "
+          f"{regions['far']:.4f} ({far_ratio:.2f} times)")
 
     priors = cached("prior_funcs", stage_prior_functions)
     sweep = cached("prior_sweep", lambda: stage_prior_sweep(x, y, xs))
@@ -432,10 +496,12 @@ def main():
     assert worst < 0.01, "la cuadratura y las cadenas no coinciden"
     assert abs(exact["mean_theta"][0]) < 1e-9 and abs(exact["mean_theta"][2]) < 1e-9, \
         "la simetría de la posterior no sale exacta y esa sección la afirma"
-    assert growth > 1.2, "la incertidumbre exacta no crece fuera de los datos"
+    assert growth > 1.2, "la incertidumbre exacta no crece en el hueco"
     by = {row["key"]: row for row in rows}
-    assert by["map"]["tv_out"] > by["ensemble"]["tv_out"], \
-        "un punto único gana a un conjunto fuera de los datos"
+    assert by["sgld"]["tv_all"] < by["map"]["tv_all"], \
+        "el muestreador no le gana a un punto único, y entonces no hay artículo"
+    assert by["bootstrap"]["sd_ratio_in"] > 5 * by["ensemble"]["sd_ratio_in"], \
+        "los dos conjuntos dan la misma dispersión, y la comparación no enseña nada"
 
     data = dict(
         meta=dict(seed=SEED, sigma=SIGMA, prior=PRIOR, grid=GRID, lim=LIM,
@@ -450,6 +516,9 @@ def main():
                    map=r(exact["map"], 5), map_logp=r(exact["map_logp"]),
                    mean_w=r(exact["mean_theta"][0], 12),
                    mean_v=r(exact["mean_theta"][2], 12),
+                   regions={k: r(v) for k, v in regions.items()},
+                   gap_lo=r(lo_gap, 4), gap_hi=r(hi_gap, 4), gap_growth=r(growth),
+                   far_ratio=r(far_ratio),
                    ax=r(exact["ax"], 4), w_marg=r(exact["w_marg"], 6),
                    v_marg=r(exact["v_marg"], 6),
                    slice_wb=r(exact["slice_wb"][::4, ::4], 6),
@@ -470,7 +539,7 @@ def main():
         prior_sweep=[{k: r(v) for k, v in row.items()} for row in sweep],
     )
     path = OUT / "bayesnets.json"
-    path.write_text(json.dumps(data), encoding="utf-8")
+    path.write_text(json.dumps(data, allow_nan=False), encoding="utf-8")
     print(f"  escrito {path} ({path.stat().st_size / 1024:.0f} kB)")
 
 
