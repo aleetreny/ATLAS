@@ -248,7 +248,7 @@ export function initProse(data) {
     + `identical by running that article's own encoder on them. The shared judge is the module's, `
     + `${(M.judge_accuracy * 100).toFixed(2)}% on held out digits. The weights the page runs are `
     + `${n0(data.net.count)} numbers in float16, and the page checks itself against the `
-    + `generator on a ${data.net.probe.points.length} point probe at each level rather than `
+    + `generator on a ${data.net.probe.points[0].length} point probe at each level rather than `
     + `trusting that it read them correctly.`);
 
   return IDS;

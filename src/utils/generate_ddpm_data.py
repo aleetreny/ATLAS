@@ -843,15 +843,28 @@ print(f"  the ring's radial profile and its slope at {len(PAGE_TS)} levels: "
 
 # And a probe the page checks itself against: if it has read the weights or the
 # schedule wrongly, these will not match, however plausible its pictures look.
+# The probe points are DRAWN FROM q(x_t) rather than spread over the square, and
+# that is not a convenience either. Uniform points land where the density is
+# 1e-25, twenty orders of magnitude under the median, and comparing a score
+# there measures what float16 can carry rather than whether the page read the
+# file correctly: the first version of this guard failed at 168% on a point
+# whose density it had itself rounded to zero. Sampling the points the way the
+# process does puts the guard where every number in the article is evaluated.
 rs = np.random.RandomState(404)
-probe_pts = rs.uniform(-3.6, 3.6, size=(40, 2))
-probe = {"points": mat(probe_pts, 4), "t": PAGE_TS, "q": [], "score": [], "eps": []}
+base_x0 = toy_sample(40, seed=404)
+probe = {"points": [], "t": PAGE_TS, "q": [], "score": [], "eps": []}
 for t in PAGE_TS:
-    probe["q"].append(arr(forward_direct(probe_pts, t), 6))
-    probe["score"].append(mat(true_score(probe_pts, t), 4))
-    probe["eps"].append(mat(-learned_score(NET, probe_pts, t)
-                           * np.sqrt(max(1 - float(ABAR[t]), 1e-12)), 4))
-print(f"  a {len(probe_pts)} point probe at each of those levels, for the page to check itself")
+    a = float(ABAR[t])
+    pts = np.sqrt(a) * base_x0 + np.sqrt(max(1 - a, 1e-12)) * rs.randn(40, 2)
+    probe["points"].append(mat(pts, 4))
+    # scientific notation, not six decimal places: a density of 8e-25 written
+    # to six decimals is the number zero, and then nothing can be checked
+    probe["q"].append([sci(v, 6) for v in forward_direct(pts, t)])
+    probe["score"].append(mat(true_score(pts, t), 4))
+    probe["eps"].append(mat(-learned_score(NET, pts, t)
+                           * np.sqrt(max(1 - a, 1e-12)), 4))
+print(f"  a {len(base_x0)} point probe at each level, drawn from q(x_t) itself so the guard "
+      f"sits where the article's numbers are")
 
 payload = {
     "meta": {"seed": SEED_MAIN, "seeds": SEEDS, "threads": THREADS,

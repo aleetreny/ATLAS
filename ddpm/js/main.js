@@ -50,7 +50,8 @@ function runGuards(data, kit) {
 
   P.t.forEach((t, li) => {
     const v = Math.max(1 - data.net.abar[li], 1e-12);
-    P.points.forEach((pt, i) => {
+    /* the points are drawn from q(x_t), so there is one set per level */
+    P.points[li].forEach((pt, i) => {
       const T = kit.truthAt(li, pt[0], pt[1]);
       const q = P.q[li][i];
       if (q > 1e-6) worstQ = Math.max(worstQ, Math.abs(T.q - q) / q);
@@ -71,8 +72,10 @@ function runGuards(data, kit) {
   });
 
   /* The tolerances come from the rounding in the file, not from taste: the
-     probe is written to six figures for the density and four for the vectors,
-     and the ring's profile travels as float16, which carries about three. */
+     density travels in scientific notation with six figures, the vectors to
+     four decimals, and the ring's radial profile travels as float16, which
+     carries about three. The probe points are drawn from q(x_t) itself, so
+     none of them sits in a tail where float16 has nothing left to carry. */
   check('the exact density', worstQ < 5e-3,
     `the page's own q(x_t) differs from the generator's by ${worstQ.toExponential(2)} relative`);
   check('the exact score', worstScore < 5e-2,
