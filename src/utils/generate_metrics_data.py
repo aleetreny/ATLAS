@@ -612,6 +612,7 @@ def main():
         meta=dict(seed=SEED, dims=DIMS, vocab=sc["vocab"], docs=sc["n"],
                   classes=list(R8), counts=sc["counts"], enum_n=ENUM_N,
                   bins=BINS, bleu_sentences=BLEU_SENTENCES,
+                  bleu_min_len=BLEU_MIN_LEN, bleu_max_len=30,
                   note="the classifiers run on a singular value decomposition of "
                        "the same weighted counts the TF-IDF article measured"),
         tasks=r(blocks),

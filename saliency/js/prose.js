@@ -274,8 +274,10 @@ export function initProse(data) {
     + `explanation from a decorative one is whether anybody built something to score it `
     + `against, and in three of the four cases in this module that scoring device had to be `
     + `manufactured on purpose, because the world does not ship with one. `
-    + `<a href="../">Back to the atlas</a>, where the branches that are still dark are the `
-    + `ones about acting rather than explaining.`);
+    + `What comes after it is the branch that scores everything else: `
+    + `<a href="../hyperparameters/">the engineering toolkit</a> opens by enumerating a `
+    + `whole hyperparameter surface, so that for once the thing a search is scored against `
+    + `is not another search.`);
 
   set('ref-note',
     `Nothing on this page was trained for it. The detector is the one from the detection `

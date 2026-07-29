@@ -1865,19 +1865,150 @@
           validating, and deploying these engines efficiently.
         </p>
       </div>
+
+      <div class="articles-container">
+        <!-- card: hyperparameters -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./hyperparameters/';" style="cursor: pointer">
+            <img src="assets/thumbnails/hyperparameters.svg"
+                 alt="Where to Look Next article image: the whole dial surface enumerated, so grid, random and Bayesian search can be scored against the answer." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Where to Look Next</h2>
+            <p class="article-description">
+              Two dials, 961 combinations, every one of them measured twice. With the answer in hand, four search methods finish within a few thousandths of each other, and the reason is the shape of the surface rather than the cleverness of the search.
+            </p>
+            <button class="content-button">
+              <a href="./hyperparameters/">Dive In</a>
+            </button>
+          </div>
+        </div>
+        <!-- card: automl -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./automl/';" style="cursor: pointer">
+            <img src="assets/thumbnails/automl.svg"
+                 alt="Trying Everything article image: every pipeline in the catalogue run on four tables, so what the search buys can be separated from what it reports." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Trying Everything</h2>
+            <p class="article-description">
+              Hand the search the model as well as its dials and it returns a score that is biased upward by exactly as much as it looked. Here the whole catalogue is enumerated, so both halves of that sentence are measurable.
+            </p>
+            <button class="content-button">
+              <a href="./automl/">Dive In</a>
+            </button>
+          </div>
+        </div>
+        <!-- card: distillation -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./distillation/';" style="cursor: pointer">
+            <img src="assets/thumbnails/distillation.svg"
+                 alt="Somebody Else's Weights article image: the transfer curve against four controls, including a network of the same shape that was never trained." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Somebody Else's Weights</h2>
+            <p class="article-description">
+              Inherit what a model learned to see, or inherit what it answers. Both work, and in both cases a control built to be boring takes most of the win away.
+            </p>
+            <button class="content-button">
+              <a href="./distillation/">Dive In</a>
+            </button>
+          </div>
+        </div>
+        <!-- card: lora -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./lora/';" style="cursor: pointer">
+            <img src="assets/thumbnails/lora.svg"
+                 alt="Barely Moving the Weights article image: the singular spectrum of what fine tuning does to a matrix, against a random matrix of the same norm." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Barely Moving the Weights</h2>
+            <p class="article-description">
+              Adapting a model changes its weight matrices, and the change has a shape. Measuring that shape is what makes it possible to train a thousandth of the parameters, and four bit weights are what makes it fit.
+            </p>
+            <button class="content-button">
+              <a href="./lora/">Dive In</a>
+            </button>
+          </div>
+        </div>
+        <!-- card: crossval -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./crossval/';" style="cursor: pointer">
+            <img src="assets/thumbnails/crossval.svg"
+                 alt="Every Row Gets a Turn article image: what a held out score estimates, measured against a risk that can be computed rather than estimated." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Every Row Gets a Turn</h2>
+            <p class="article-description">
+              Ninety per cent accuracy on data containing nothing at all, and the printed error bar understated by a factor. Four ways a split quietly stops answering the question you asked.
+            </p>
+            <button class="content-button">
+              <a href="./crossval/">Dive In</a>
+            </button>
+          </div>
+        </div>
+        <!-- card: metrics -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./metrics/';" style="cursor: pointer">
+            <img src="assets/thumbnails/metrics.svg"
+                 alt="One Number for a Model article image: every confusion matrix of a hundred cases, enumerated, plus what BLEU cannot see." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">One Number for a Model</h2>
+            <p class="article-description">
+              The area under a curve is a count over pairs and cannot see calibration. F1 cannot see the true negatives. BLEU cannot see word order beyond four. All three are measured rather than asserted.
+            </p>
+            <button class="content-button">
+              <a href="./metrics/">Dive In</a>
+            </button>
+          </div>
+        </div>
+        <!-- card: ann-search -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./ann-search/';" style="cursor: pointer">
+            <img src="assets/thumbnails/ann-search.svg"
+                 alt="Close Enough, Faster article image: three indexes scored against exhaustive search, with the cost counted in distances rather than in seconds." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Close Enough, Faster</h2>
+            <p class="article-description">
+              An inverted file, a navigable graph and a product quantiser on the same vectors, with the hierarchy of the graph ablated away and the answer key made of categories rather than of neighbours.
+            </p>
+            <button class="content-button">
+              <a href="./ann-search/">Dive In</a>
+            </button>
+          </div>
+        </div>
+        <!-- card: vector-db -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./vector-db/';" style="cursor: pointer">
+            <img src="assets/thumbnails/vector-db.svg"
+                 alt="Where the Vectors Live article image: what a filter does to a graph, what deletions do to recall, and why words and directions fuse." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Where the Vectors Live</h2>
+            <p class="article-description">
+              An index assumes the collection sits still, the query is only a vector, and the nearest vectors are what you wanted. A database gets none of those, and each one that goes breaks something measurable.
+            </p>
+            <button class="content-button">
+              <a href="./vector-db/">Dive In</a>
+            </button>
+          </div>
+        </div>
+      </div>
       <details class="roadmap">
         <summary>Full branch map: 8. The Engineering Toolkit</summary>
         <div class="branch">
           <h4>8.1 Tuning &nbsp;·&nbsp; 8.2 Evaluation &nbsp;·&nbsp; 8.3 Vector Search</h4>
           <div class="chips">
-            <span class="chip">Grid · Random · Bayesian Search</span>
-            <span class="chip">AutoML</span>
-            <span class="chip">Transfer Learning · Distillation</span>
-            <span class="chip">LoRA · QLoRA</span>
-            <span class="chip">K-Fold · TimeSeriesSplit</span>
-            <span class="chip">ROC-AUC · MCC · BLEU</span>
-            <span class="chip">ANN · HNSW · FAISS</span>
-            <span class="chip">Vector Databases</span>
+            <span class="chip live"><a href="./hyperparameters/">Grid · Random · Bayesian Search</a></span>
+            <span class="chip live"><a href="./automl/">AutoML</a></span>
+            <span class="chip live"><a href="./distillation/">Transfer Learning · Distillation</a></span>
+            <span class="chip live"><a href="./lora/">LoRA · QLoRA</a></span>
+            <span class="chip live"><a href="./crossval/">K-Fold · TimeSeriesSplit</a></span>
+            <span class="chip live"><a href="./metrics/">ROC-AUC · MCC · BLEU</a></span>
+            <span class="chip live"><a href="./ann-search/">ANN · HNSW · FAISS</a></span>
+            <span class="chip live"><a href="./vector-db/">Vector Databases</a></span>
           </div>
         </div>
       </details>

@@ -397,3 +397,48 @@ Y el barrido de navegador de verdad ya se hizo antes de empujar, contra el
 puerto frío local, que es la comprobación que de verdad mira la página. Lo que
 falta cuando la red está cerrada es solo la última confirmación de que el CDN
 sirve lo mismo que el repositorio.
+
+
+## Trampa 23: el espacio de acentos no se habia agotado, la busqueda si
+
+Con 78 articulos publicados, `--next` devolvia **dos** colores por encima de dE
+12 y el mensaje de `--reparte` invitaba a ensanchar la banda de luminosidad, es
+decir a aceptar que dos acentos empezaran a parecerse. Antes de bajar el
+liston conviene mirar la rejilla: la de `acentos_libres` iba de tres en tres
+grados de tono con tres saturaciones y cuatro valores, o sea 1.440 candidatos
+antes de filtrar. Afinandola al mismo rango (tono de uno en uno, siete
+saturaciones y nueve valores, unos 15.000 candidatos) salen **diez** colores y
+el peor esta a dE 13,7, sin tocar ni el umbral ni la banda.
+
+La leccion general, que vale para cualquier "ya no queda sitio": antes de
+relajar un criterio de calidad, comprobar si lo que se agoto fue el criterio o
+el barrido. El coste de afinar aqui es una pasada mas larga, y se paga una vez
+porque las distancias se llevan en un acumulador (coger un color solo puede
+ACERCAR a los demas, asi que se actualiza contra el elegido en vez de
+recalcularse contra todo). Sigue tardando un segundo, que es lo que pide correr
+en cada push.
+
+## Trampa 24: matar el envoltorio no mata el script
+
+Encadenar generadores con un `sh chain.sh` en segundo plano y luego querer
+cambiarlo: `ps` lista el `bash -c` que lo lanzo **y** el `sh` que lo ejecuta, y
+matar el primero deja al segundo vivo esperando. El sintoma es tener dos
+cadenas a la vez sobre los mismos cachés, que es la trampa 54 por otro camino.
+Se matan todos los PID cuya linea de comandos contenga el script, se comprueba
+con `ps -eo pid,cmd | grep -c` que quedan cero, y solo entonces se relanza. Y
+`sed -i` sobre un script de shell **que esta corriendo** es peor que inutil:
+`sh` lo lee a trozos, asi que la edicion puede entrar a mitad.
+
+## Trampa 25: un modulo entero sin torch
+
+El modulo 8 se escribio en la nube sin instalar torch: numpy, scipy,
+scikit-learn y statsmodels, unos 40 segundos de `pip install
+--break-system-packages`, contra los ~3 GB y 4 minutos que arrastra torch desde
+PyPI (el indice de CPU esta bloqueado por el proxy, trampa 14). Lo que lo hace
+posible es que las dos paginas que necesitan entrenar algo estudian **capas
+lineales**, no arquitecturas, asi que un perceptron en numpy con Adam
+(`src/utils/tinynet.py`, unas 200 lineas con objetivos blandos, LoRA y
+cuantizacion a cuatro bits) es el sujeto correcto y no un sucedaneo. La regla:
+antes de instalar un framework, mirar si lo que el articulo mide es una
+propiedad de una matriz o una propiedad de una arquitectura. Si es lo primero,
+el framework solo aporta dependencias.
