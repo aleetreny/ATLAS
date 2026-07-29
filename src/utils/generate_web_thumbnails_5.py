@@ -277,6 +277,47 @@ def thumb_q_learning():
     write("q-learning", body)
 
 
+# ---------------------------------------------------------------------------
+def thumb_dqn():
+    """El acantilado sombreado con lo que la red se cree, y su camino."""
+    accent = "#6a3270"
+    d = load("dqn", "dqn")
+    M = d["meta"]
+    rows, cols = M["rows"], M["cols"]
+    Q = d["weights"]["Q"]
+    V = [max(row) for row in Q]
+    lo, hi = min(V), max(V)
+    pad = 24
+    cw = (W - 2 * pad) / cols
+    ch = (H - 2 * pad - 40) / rows
+    top = pad + 20
+    cx = lambda rc: round(pad + rc[1] * cw + cw / 2)
+    cy = lambda rc: round(top + rc[0] * ch + ch / 2)
+
+    def shade(v):
+        f = (v - lo) / (hi - lo) if hi > lo else 0.5
+        a = int(231 + (255 - 231) * f)
+        b = int(223 + (255 - 223) * f)
+        c = int(240 + (255 - 240) * f)
+        return f"#{a:02x}{b:02x}{c:02x}"
+
+    cells = "".join(
+        f'<rect x="{round(pad + c * cw)}" y="{round(top + r_ * ch)}" '
+        f'width="{round(cw) - 2}" height="{round(ch) - 2}" fill="{shade(V[r_ * cols + c])}" />'
+        for r_ in range(rows) for c in range(cols))
+    cliff = "".join(
+        f'<rect x="{round(pad + c * cw)}" y="{round(top + r_ * ch)}" '
+        f'width="{round(cw) - 2}" height="{round(ch) - 2}" />' for r_, c in M["cliff"])
+    path = d["weights"]["path"]
+    assert len(path) > 5, "el camino de la red no llega a ningun sitio"
+    line = " ".join(f"{cx(p)},{cy(p)}" for p in path)
+    body = (f'  <g stroke="#d4dada" stroke-width="1.5">{cells}</g>\n'
+            f'  <g fill="#df2a5d" fill-opacity="0.45">{cliff}</g>\n'
+            f'  <polyline points="{line}" fill="none" stroke="{accent}" '
+            f'stroke-width="5" stroke-linejoin="round" />\n')
+    write("dqn", body)
+
+
 THUMBS = {
     "linear-programming": thumb_linear_programming,
     "genetic-algorithms": thumb_genetic_algorithms,
@@ -284,6 +325,7 @@ THUMBS = {
     "bandits": thumb_bandits,
     "thompson-ucb": thumb_thompson_ucb,
     "q-learning": thumb_q_learning,
+    "dqn": thumb_dqn,
 }
 
 

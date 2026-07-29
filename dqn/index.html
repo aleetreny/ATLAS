@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>When the Table Does Not Fit | ATLAS</title>
+  <meta name="description" content="A visual, interactive introduction to deep Q-networks: a table of values replaced by a function of two numbers on a world whose exact answer is still known, the two crutches ablated in a two by two with a noise floor, and the gap between what a network believes a state is worth and what its own policy collects." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/dqn/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="When the Table Does Not Fit | ATLAS" />
+  <meta property="og:description" content="A visual, interactive introduction to deep Q-networks: a table of values replaced by a function of two numbers on a world whose exact answer is still known, the two crutches ablated in a two by two with a noise floor, and the gap between what a network believes a state is worth and what its own policy collects." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/dqn/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="When the Table Does Not Fit | ATLAS" />
+  <meta name="twitter:description" content="A visual, interactive introduction to deep Q-networks: a table of values replaced by a function of two numbers on a world whose exact answer is still known, the two crutches ablated in a two by two with a noise floor, and the gap between what a network believes a state is worth and what its own policy collects." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    :root {
+      --primary: #6a3270;
+      --secondary: #55285a;
+    }
+    .narrow-widget {
+      max-width: 880px;
+    }
+    .gen-table {
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      margin-top: 0.4rem;
+      width: 100%;
+    }
+    .gen-table th,
+    .gen-table td {
+      padding: 4px 10px 4px 0;
+      text-align: left;
+      font-weight: 400;
+      white-space: nowrap;
+    }
+    .gen-table th {
+      font-family: var(--font-heavy);
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .gen-table td:first-child,
+    .gen-table th:first-child {
+      opacity: 0.75;
+    }
+    .gen-table td:last-child,
+    .gen-table th:last-child {
+      white-space: normal;
+    }
+    .gen-note {
+      margin-top: 0.6rem;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+    .slider-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+      margin: 0.2rem 0 0.6rem;
+      font-family: var(--font-mono);
+      font-size: 13px;
+    }
+    .slider-row input[type="range"] {
+      width: 200px;
+      accent-color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <section id="intro">
+    <h1 id="intro-hed">When the Table Does Not Fit</h1>
+    <h1 id="intro-sub">Everything in the last article rested on keeping one number per square. Replace the table with a function that has to guess the squares it was never shown, and three things that were guaranteed stop being guaranteed</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 5.3 · Reinforcement Learning · Deep Q-Networks</span>
+  </section>
+
+  <br />
+
+  <section>
+    <p class="body-text">
+      <a href="../q-learning/">The previous article</a> could check its answer
+      because forty eight squares fit in memory and in a value iteration. A
+      camera pointed at a room has more states than there are atoms in it. The
+      fix is obvious and it is where the trouble starts: stop storing values and
+      start predicting them.
+    </p>
+    <br />
+    <p class="body-text" id="opening-note"></p>
+  </section>
+
+  <section>
+    <h1 class="body-header">Two Numbers Instead of Forty Eight Rows</h1>
+    <p class="body-text" id="setup-intro"></p>
+    <p class="body-text">
+      $$ \mathcal{L}(\theta) = \Big(r + \max_{a'} Q_{\theta^{-}}(s',a') - Q_{\theta}(s,a)\Big)^{2} $$
+    </p>
+    <p class="body-text" id="setup-note"></p>
+  </section>
+
+  <section id="net-scrolly" class="scrolly">
+    <div class="scrolly-container">
+      <div class="steps-container">
+        <div class="step" data-index="0">
+          <div class="step-content">
+            <h3>The Answer, Once More</h3>
+            <p id="scrolly-step-0"></p>
+          </div>
+        </div>
+        <div class="step" data-index="1">
+          <div class="step-content">
+            <h3>What the Network Believes</h3>
+            <p id="scrolly-step-1"></p>
+          </div>
+        </div>
+        <div class="step" data-index="2">
+          <div class="step-content">
+            <h3>Where It Is Wrong</h3>
+            <p id="scrolly-step-2"></p>
+          </div>
+        </div>
+        <div class="step" data-index="3">
+          <div class="step-content">
+            <h3>And What It Does Anyway</h3>
+            <p id="scrolly-step-3"></p>
+          </div>
+        </div>
+        <div class="step-spacer"></div>
+      </div>
+      <div class="charts-container">
+        <div class="chart-wrap" id="net-chart"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="body-text" id="scrolly-note"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="rep-widget">
+    <div class="controls-row" id="rep-controls" role="group" aria-label="which representation"></div>
+    <div id="rep-chart"></div>
+    <div class="widget-readout" id="rep-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="rep-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">Two Crutches, Removed One at a Time</h1>
+    <p class="body-text" id="ablation-intro"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="ablation-widget">
+    <div id="ablation-chart"></div>
+    <div class="widget-readout" id="ablation-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="ablation-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">What It Believes and What It Collects</h1>
+    <p class="body-text" id="over-intro"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="over-widget">
+    <div id="over-chart"></div>
+    <div class="widget-readout" id="over-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="over-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text" id="verdict-intro"></p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>What you have</th>
+          <th>Reach for</th>
+          <th>Why</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">States you can count</span></td>
+          <td>A table</td>
+          <td id="verdict-table"></td>
+          <td id="verdict-table-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">States you cannot</span></td>
+          <td>A network, with both crutches</td>
+          <td id="verdict-net"></td>
+          <td id="verdict-net-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">A value you intend to trust</span></td>
+          <td>The return, not the network's estimate</td>
+          <td id="verdict-value"></td>
+          <td id="verdict-value-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">A simple problem</span></td>
+          <td>Something simpler than a network</td>
+          <td id="verdict-simple"></td>
+          <td id="verdict-simple-warn"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="closing-note"></p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! The trained network is exported weight by weight and
+      run again in your browser, and the guard checks its outputs against the
+      file for all forty eight squares. The exact answer is the same value
+      iteration <a href="../q-learning/">the previous article</a> used, on the
+      same world.
+    </p>
+  </section>
+
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text" id="resources-note"></p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://doi.org/10.1038/nature14236">[1] Human-level Control Through Deep Reinforcement Learning</a><br />
+      (Mnih, V. et al., 2015; the replay buffer and the frozen target network, ablated here one at a time)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://doi.org/10.1609/aaai.v30i1.10295">[2] Deep Reinforcement Learning with Double Q-learning</a><br />
+      (van Hasselt, H., Guez, A. and Silver, D., 2016; the overestimation this page measures against the return actually collected)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://link.springer.com/article/10.1023/A:1018056104778">[3] An Analysis of Temporal-Difference Learning with Function Approximation</a><br />
+      (Tsitsiklis, J. N. and Van Roy, D., 1997; why bootstrapping off a function of the state can diverge at all)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1812.02648">[4] Deep Reinforcement Learning and the Deadly Triad</a><br />
+      (van Hasselt, H. et al., 2018; the three ingredients, and the measurement that they only bite together)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>
