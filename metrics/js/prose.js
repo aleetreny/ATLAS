@@ -138,7 +138,18 @@ export function initProse(data) {
   set('verdict-intro',
     `Four rows, and the middle column is what each one is a statement about rather than what `
     + `it is "for". Across the models measured on this page, two metrics disagreed about `
-    + `which of two models was better in ${flips} of ${comps} comparisons.`);
+    + `which of two models was better in ${flips} of ${comps} comparisons, over the `
+    + `${D.length} tasks the section uses (${D.map((r) => r.task).join(' and ')}). The `
+    + `commonest disagreement is not exotic: `
+    + (() => {
+      const tally = {};
+      D.forEach((r) => r.detail.forEach((x) => {
+        const key = [x.m1, x.m2].sort().join(' against ');
+        tally[key] = (tally[key] || 0) + 1;
+      }));
+      const top = Object.entries(tally).sort((a, b) => b[1] - a[1])[0];
+      return `<span class="bold">${top[0]}</span>, which flips ${top[1]} times.`;
+    })());
 
   set('verdict-auc',
     `The probability that a positive outranks a negative, counted exactly and agreeing with `
@@ -190,14 +201,19 @@ export function initProse(data) {
     + `<span class="mono">src/<wbr>utils/<wbr>generate_<wbr>metrics_<wbr>data.py</span>, seed ${M.seed}. The `
     + `classifiers run on a singular value decomposition of the same weighted counts the `
     + `<a href="../tf-idf/">TF-IDF article</a> measured, ${M.dims} dimensions over `
-    + `${n0(M.vocab)} terms and ${n0(M.docs)} single label newswires. The area is computed `
+    + `${n0(M.vocab)} terms and ${n0(M.docs)} single label newswires in ${M.classes.length} `
+    + `categories, from ${n0(Math.min(...Object.values(M.counts)))} documents to `
+    + `${n0(Math.max(...Object.values(M.counts)))}: that spread is not incidental, it is `
+    + `what the prevalence section sweeps, over ${PR.seeds} seeds per point. `
+    + `The area is computed `
     + `twice, once by trapezoids over the curve and once by ranking every pair, and the two `
     + `have to agree. The enumeration is every confusion matrix with ${M.enum_n} cases, all `
     + `${n0(E.matrices)} of them, with the disagreement rates taken over ${n0(E.pairs)} `
     + `random pairs and the pair count printed next to them. Calibration error uses `
     + `${M.bins} equal width bins. BLEU is written in the generator with clipping, a brevity `
-    + `penalty and up to four grams, over ${n0(B.sentences)} sentences of the Brown corpus `
-    + `between ${M.bleu_min_len} and ${M.bleu_max_len} words; the nearest neighbour substitution uses the skip gram `
+    + `penalty and up to four grams, over ${n0(M.bleu_sentences)} sentences of the Brown corpus `
+    + `between ${M.bleu_min_len} and ${M.bleu_max_len} words, ${B.mean_ref_len} words long on average; `
+    + `the nearest neighbour substitution uses the skip gram `
     + `vectors of the <a href="../embeddings/">embeddings article</a>, ${B.embed_meta.shipped} `
     + `words at ${B.embed_meta.dim} dimensions, read from its published file.`);
 }

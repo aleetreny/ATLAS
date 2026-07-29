@@ -86,10 +86,13 @@ export function initProse(data) {
     + `<span class="bold">The bottleneck loses more than the training adds.</span> `
     + `The <span class="bold">shuffled</span> arm, trained to convergence on the source task `
     + `with the labels dealt at random, reached ${f4(FW.shuffled_train)} on its own scrambled `
-    + `training set, which is memorisation rather than structure, and its features score `
-    + `${f4(big.shuffled)}: below the honest encoder, as it should be. And the `
+    + `training set and ${f4(FW.shuffled_acc)} on real source labels, which is memorisation `
+    + `rather than structure by both readings, and its features score `
+    + `${f4(big.shuffled)}: below the honest encoder, as it should be. The honest encoder for `
+    + `comparison reaches ${f4(FW.source_acc)} on the task it was trained for. And the `
     + `<span class="bold">oracle</span>, an encoder of exactly the same shape trained on the `
-    + `destination task itself, reaches ${f4(big.oracle)}, comfortably above the pixels. That `
+    + `destination task itself, reaches ${f4(big.oracle)} through a frozen probe and `
+    + `${f4(FW.oracle_full)} trained end to end, comfortably above the pixels either way. That `
     + `is the sentence the whole section is for: the ${M.hidden[M.hidden.length - 1]} unit `
     + `bottleneck is not the problem, because a bottleneck filled with the right features `
     + `wins easily. What fails is the assumption that digits and clothing are close enough `
@@ -213,10 +216,18 @@ export function initProse(data) {
     + `Encoders are ${M.hidden.join(' and ')} hidden units trained for ${M.source_epochs} `
     + `epochs on ${n0(M.source_n)} rows of the source task; probes are logistic regressions `
     + `on the frozen features; fine tuning and training from scratch are ${M.tune_epochs} `
-    + `epochs of Adam. Every point is ${M.seeds} seeds and the spreads quoted are across `
-    + `them. The teacher is ${TE.members} networks of `
+    + `epochs of Adam. Every point in the transfer section is ${M.seeds} seeds and every point `
+    + `in the distillation section is ${D.seeds}; the spreads quoted are the population `
+    + `spread across them, and with counts this small they are an indication of scale rather `
+    + `than an interval. The teacher is ${TE.members} networks of `
     + `${M.teacher_hidden.join(' and ')} units; the student is `
-    + `${M.student_hidden.join(' and ')}, trained for ${M.distil_epochs} epochs. Accuracy is `
+    + `${M.student_hidden.join(' and ')}, trained for ${M.distil_epochs} epochs. The `
+    + `${TE.members} teacher members are the ${M.teacher_members} the meta block names and `
+    + `carry ${n0(TE.params)} parameters between them, and they agree with each other on `
+    + `${(D.teacher_agree * 100).toFixed(1)}% of the test rows, which is the number that says `
+    + `how much of the ensemble's advantage is disagreement rather than depth. The transfer `
+    + `curves are swept at ${M.sizes.length} sizes from ${M.sizes[0]} to `
+    + `${n0(M.sizes[M.sizes.length - 1])} labelled rows. Accuracy is `
     + `on ${n0(M.test_n)} held out rows of the destination task throughout. No wall clocks: `
     + `the only costs quoted are parameter counts.`);
 }

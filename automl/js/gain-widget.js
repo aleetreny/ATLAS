@@ -88,18 +88,31 @@ export function initGainWidget(data) {
       const d = T[n];
       const gain = d.best.test - d.default.test;
       const real = Math.abs(gain) > d.best.test_sd + d.default.test_sd;
-      return `<tr><td>${n}</td><td>${d.default.test.toFixed(4)}</td>`
+      return `<tr><td>${n}</td>`
+        + `<td>${d.n_train.toLocaleString('en-US')} by ${d.features.toLocaleString('en-US')}, `
+        + `${d.classes} classes</td>`
+        + `<td>${d.default.test.toFixed(4)}</td>`
         + `<td>${d.best.test.toFixed(4)}</td>`
         + `<td>${gain >= 0 ? '+' : ''}${gain.toFixed(4)}</td>`
+        + `<td>${d.span.test_lo.toFixed(3)} to ${d.span.test_hi.toFixed(3)}</td>`
         + `<td>${real ? 'outside the noise' : 'inside the noise'}</td></tr>`;
     }).join('');
+    const widest = names.reduce((a, b) => ((T[b].span.cv_hi - T[b].span.cv_lo)
+      > (T[a].span.cv_hi - T[a].span.cv_lo) ? b : a));
     readout.innerHTML = `<table class="gen-table"><thead><tr><th>table</th>`
-      + `<th>out of the box</th><th>searched</th><th>bought</th><th>verdict</th></tr></thead>`
+      + `<th>train rows by columns</th>`
+      + `<th>out of the box</th><th>searched</th><th>bought</th>`
+      + `<th>whole catalogue spans</th><th>verdict</th></tr></thead>`
       + `<tbody>${rows}</tbody></table>`
-      + `<div class="gen-note">The last column compares the gain against the two `
+      + `<div class="gen-note">The verdict column compares the gain against the two `
       + `bootstrap spreads it is made of, which is the only honest bar to clear: a `
       + `difference smaller than how much the held out set itself wobbles is not a `
-      + `difference.</div>`;
+      + `difference. The column before it is the reason the gain looks so small: the `
+      + `catalogue's ${T[widest].span.cv_lo.toFixed(3)} to `
+      + `${T[widest].span.cv_hi.toFixed(3)} on ${widest} in cross validation is an enormous `
+      + `range, and almost all of it belongs to pipelines nobody would ever choose. The `
+      + `search is not competing against the worst of the catalogue, it is competing against `
+      + `the defaults, and the defaults are already near the top.</div>`;
   }
 
   render();

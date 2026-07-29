@@ -84,18 +84,23 @@ export function initTransferWidget(data) {
     const big = rows[rows.length - 1];
     const closes = rows.find((r) => r.transfer - r.scratch <= r.transfer_sd + r.scratch_sd);
     readout.innerHTML = `<table class="gen-table"><thead><tr><th>rows</th>`
-      + `<th>pixels</th><th>never trained</th><th>shuffled labels</th><th>transferred</th>`
-      + `<th>this task</th></tr></thead><tbody>`
+      + `<th>pixels</th><th>never trained</th><th>shuffled labels</th><th>frozen encoder</th>`
+      + `<th>fine tuned</th><th>this task</th></tr></thead><tbody>`
       + [small, rows[Math.floor(rows.length / 2)], big].map((r) => `<tr><td>${r.n}</td>`
-        + `<td>${r.pixels.toFixed(4)}</td><td>${r.random.toFixed(4)}</td>`
-        + `<td>${r.shuffled.toFixed(4)}</td><td>${r.transfer.toFixed(4)}</td>`
-        + `<td>${r.oracle.toFixed(4)}</td></tr>`).join('')
+        + `<td>${r.pixels.toFixed(4)} &plusmn; ${r.pixels_sd.toFixed(3)}</td>`
+        + `<td>${r.random.toFixed(4)} &plusmn; ${r.random_sd.toFixed(3)}</td>`
+        + `<td>${r.shuffled.toFixed(4)} &plusmn; ${r.shuffled_sd.toFixed(3)}</td>`
+        + `<td>${r.transfer.toFixed(4)} &plusmn; ${r.transfer_sd.toFixed(3)}</td>`
+        + `<td>${r.finetune.toFixed(4)} &plusmn; ${r.finetune_sd.toFixed(3)}</td>`
+        + `<td>${r.oracle.toFixed(4)} &plusmn; ${r.oracle_sd.toFixed(3)}</td></tr>`).join('')
       + `</tbody></table><div class="gen-note">With ${small.n} labelled rows the transferred `
       + `encoder scores ${small.transfer.toFixed(4)} and the untrained one of the same shape `
       + `scores ${small.random.toFixed(4)}, so `
       + `${(small.transfer - small.random).toFixed(4)} of the `
       + `${(small.transfer - small.pixels).toFixed(4)} it has over raw pixels is what the `
-      + `training bought and the rest is what the projection bought. `
+      + `training bought and the rest is what the projection bought. Every cell carries the `
+      + `spread over seeds, because at ${small.n} rows it is large enough that a table `
+      + `without it would be reporting noise as a result. `
       + (closes
         ? `Training from scratch catches up at ${closes.n} rows, where the two are within `
           + `their own seed spread of each other.`

@@ -197,10 +197,17 @@ export function initProse(data) {
     + `simulated section is ${n0(M.truth_sets)} independent datasets of ${M.truth_n} rows and `
     + `${M.truth_d} columns from a logistic process, with the risk of each fitted model `
     + `computed on ${n0(M.pop)} fresh rows rather than estimated. The leakage section is `
-    + `${N.seeds} datasets of ${N.n} rows and ${n0(N.p)} noise columns with coin flip labels. `
-    + `The time section runs on the ${TM.n} usable months of the Mauna Loa carbon dioxide `
-    + `series that the <a href="../arima/">forecasting article</a> published, asserted by its `
-    + `digest <span class="mono">${M.co2_digest}</span> before anything else runs, with `
+    + `${N.seeds} datasets of ${M.noise_n} rows and ${n0(M.noise_p)} noise columns with coin `
+    + `flip labels, of which the ${M.noise_keep} that separate best are kept. The resplitting `
+    + `sweep is ${M.repeat_sets} datasets per number of repeats, and the partition noise on `
+    + `its own is ${M.partition_runs} resplits of one fixed dataset. The time section runs on `
+    + `the ${TM.n} usable months of ${TM.series.name} in ${TM.series.unit}, `
+    + `${TM.series.start} to ${TM.series.end}, which the `
+    + `<a href="../arima/">forecasting article</a> built from ${n0(TM.series.weekly_n)} `
+    + `weekly readings with ${TM.series.weekly_missing} missing and `
+    + `${TM.series.months_interpolated} months interpolated, and whose period is `
+    + `${TM.series.period}. It is asserted by its `
+    + `digest <span class="mono">${TM.digest}</span> before anything else runs, with `
     + `${M.lags} lags and a ridge fit. The group section finds near duplicates among `
     + `${n0(G.docs)} Reuters newswires by cosine similarity in ${G.dims} dimensions and joins `
     + `them transitively. The empty fold section compares ${n0(rare.trials)} simulated splits `

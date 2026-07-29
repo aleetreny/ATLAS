@@ -94,6 +94,13 @@ function runGuards(data) {
     `shuffling gives ${shuf.mae}, random gives ${rand.mae} and forward chaining gives `
     + `${fwd.mae}: the control did not isolate the order`);
 
+  /* the digest the generator asserted against and the one it actually computed
+     have to be the same string, or "the same series as the forecasting article"
+     is a claim resting on a constant nobody rechecked */
+  check('the series is the one the constant names',
+    data.time.digest === data.meta.co2_digest,
+    `${data.time.digest} measured against ${data.meta.co2_digest} asserted`);
+
   /* the two routes to the same probability. The tolerance is not a round number
      chosen to pass: it is four standard errors of the simulation itself, so the
      guard tightens as the trial count rises and a real disagreement cannot hide

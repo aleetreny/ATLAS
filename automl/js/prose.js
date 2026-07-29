@@ -121,7 +121,16 @@ export function initProse(data) {
     + `anything to the model. The fix is not to search less. The fix is that the number you `
     + `report has to come from somewhere the search never touched, and that is what nested `
     + `cross validation is: the whole search repeated inside every outer fold, `
-    + `${n0(N.fits)} fits for one honest number.`);
+    + `${n0(N.fits)} fits for one honest number. And it answers a second question on the way, `
+    + `which is whether the search is even stable: `
+    + (N.same_pick
+      ? `every outer fold picked the same pipeline, so the winner is a property of the table `
+        + `rather than of the split it was chosen on.`
+      : `<span class="bold">the outer folds did not all pick the same pipeline.</span> The `
+        + `number is honest either way, but the thing being reported is "what this search `
+        + `does on this table", not "how good this pipeline is", because there is no single `
+        + `pipeline. That distinction is invisible in a flat search, which only ever picks `
+        + `once and has nothing to disagree with.`));
 
   set('port-intro',
     `Everything so far treats each table as if it were the first table anyone had ever seen. `
@@ -130,7 +139,8 @@ export function initProse(data) {
     + `cover a lot of tables.`);
 
   set('port-note',
-    `The list is built greedily on ${P.learnt_on.join(', ')} and spent, cold, on `
+    `The list is built greedily on the ${M.warm.length} warm tables `
+    + `(${P.learnt_on.join(', ')}) and spent, cold, on `
     + `${P.cold}. Greedily matters here and it is worth one sentence: each entry is chosen `
     + `to maximise the <span class="bold">best of the list</span> across tables, not its `
     + `average, so the second entry is picked to cover the tables where the first one fails. `
@@ -217,9 +227,15 @@ export function initProse(data) {
     + `<span class="mono">src/<wbr>utils/<wbr>generate_<wbr>automl_<wbr>data.py</span>, seed ${M.seed}. The `
     + `catalogue is ${M.scalers.join(', ')} crossed with ${M.reducers.join(', ')} crossed `
     + `with ${M.weights.join(', ')} crossed with ${M.models.length} model settings, `
-    + `${n0(M.configs)} pipelines, each scored by ${M.folds} fold stratified cross `
+    + `${n0(M.configs)} pipelines, which is `
+    + `${Object.entries(T.wine.axes).map(([k, a]) => `${a.levels} ${k}s`).join(' by ')} `
+    + `multiplied out. Each is scored by ${M.folds} fold stratified cross `
     + `validation on ${pct(1 - M.test_frac)} of the rows and once on the `
-    + `${pct(M.test_frac)} held out. Forests are ${M.trees} trees, boosting is `
+    + `${pct(M.test_frac)} held out, over four tables: `
+    + `${Object.entries(T).map(([n, d]) => `${n} at ${n0(d.n_train)} by ${n0(d.features)} `
+      + `with ${d.classes} classes and ${n0(d.n_test)} held out`).join('; ')}, the last of `
+    + `them the Reuters newswires cut to a vocabulary of ${n0(M.r8_vocab)} words. `
+    + `Forests are ${M.trees} trees, boosting is `
     + `${M.boost_iters} iterations, and the digits table is cut to ${n0(M.digits_n)} rows: `
     + `all three are budget decisions and all three are in the cache key, so a rerun with `
     + `different ones cannot silently mix with these. Held out spreads are ${M.boot} `

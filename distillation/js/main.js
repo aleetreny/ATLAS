@@ -39,6 +39,27 @@ function check(label, ok, detail) {
 }
 
 function runGuards(data) {
+  /* Every distillation arm ships the per seed accuracies it was summarised from,
+     so the summary can be checked against them instead of trusted. A mean that
+     does not match its own list means the arm was averaged over something other
+     than what it published, and no amount of looking at the chart shows that. */
+  Object.entries(data.distil.arms).forEach(([name, arm]) => {
+    const a = arm.accs;
+    check(`${name}: the mean is the mean of its own seeds`,
+      Math.abs(a.reduce((x, y) => x + y, 0) / a.length - arm.mean) < 5e-6,
+      `${a.length} seeds average ${a.reduce((x, y) => x + y, 0) / a.length} and the file `
+      + `says ${arm.mean}`);
+    const m = a.reduce((x, y) => x + y, 0) / a.length;
+    /* population spread, ddof zero, which is what the generator writes
+       everywhere; checking against the sample version fails by exactly
+       sqrt(n/(n-1)) and looks like a measurement error rather than a convention */
+    const sd = Math.sqrt(a.reduce((s, v) => s + (v - m) ** 2, 0) / a.length);
+    check(`${name}: the spread is the spread of its own seeds`,
+      Math.abs(sd - arm.sd) < 5e-6, `${sd} against ${arm.sd}`);
+    check(`${name}: it ran on every seed`, a.length === data.distil.seeds,
+      `${a.length} accuracies against the ${data.distil.seeds} seeds this section used`);
+  });
+
   ['forward', 'backward'].forEach((dir) => {
     const D = data.transfer[dir];
     check(`${dir}: every arm has every sample size`,
