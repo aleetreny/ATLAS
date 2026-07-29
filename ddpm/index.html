@@ -3,20 +3,322 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>DDPM | ATLAS</title>
+  <title>A Thousand Easy Problems | ATLAS</title>
+  <meta name="description" content="A visual, interactive introduction to denoising diffusion: the forward process in closed form, the true score field beside the one a network learns, what the prior term everybody assumes away is actually worth, and how few steps sampling really needs." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/ddpm/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="A Thousand Easy Problems | ATLAS" />
+  <meta property="og:description" content="A visual, interactive introduction to denoising diffusion: the forward process in closed form, the true score field beside the one a network learns, what the prior term everybody assumes away is actually worth, and how few steps sampling really needs." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/ddpm/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="A Thousand Easy Problems | ATLAS" />
+  <meta name="twitter:description" content="A visual, interactive introduction to denoising diffusion: the forward process in closed form, the true score field beside the one a network learns, what the prior term everybody assumes away is actually worth, and how few steps sampling really needs." />
   <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
   <style>
     :root {
       --primary: #164e63;
       --secondary: #123e4f;
     }
+    .narrow-widget {
+      max-width: 880px;
+    }
+    .widget-readout {
+      overflow-x: auto;
+    }
+    .gen-table {
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      margin-top: 0.4rem;
+      width: 100%;
+    }
+    .gen-table th,
+    .gen-table td {
+      padding: 4px 10px 4px 0;
+      text-align: left;
+      font-weight: 400;
+      white-space: nowrap;
+    }
+    .gen-table th {
+      font-family: var(--font-heavy);
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .gen-table td:first-child,
+    .gen-table th:first-child {
+      opacity: 0.75;
+    }
+    .gen-table td:last-child,
+    .gen-table th:last-child {
+      white-space: normal;
+    }
+    .gen-note {
+      margin-top: 0.6rem;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+    .gen-pair {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.6rem;
+      align-items: flex-start;
+      justify-content: center;
+    }
+    .gen-pair canvas {
+      border: 1px solid var(--stone);
+      background: var(--white);
+    }
+    .gen-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    .canvas-caption {
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      letter-spacing: 0.3px;
+      color: var(--squidink);
+      opacity: 0.85;
+      text-align: center;
+      max-width: 360px;
+      line-height: 1.35;
+    }
+    .slider-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+      margin: 0.2rem 0 0.6rem;
+      font-family: var(--font-mono);
+      font-size: 13px;
+    }
+    .slider-row input[type="range"] {
+      width: 240px;
+      accent-color: var(--primary);
+    }
   </style>
 </head>
 <body>
-  <!-- Placeholder claiming this folder and this accent while the article is
-       written. It carries no article yet: check_publication.py counts a folder
-       as published only when it has js/main.js as well, so this is invisible to
-       the guard and visible to the accent allocator, which is the point. -->
-  <p>DDPM, in progress.</p>
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <section id="intro">
+    <h1 id="intro-hed">A Thousand Easy Problems</h1>
+    <h1 id="intro-sub">Every model in the previous module tried to write one impossible density down; this one refuses, destroys the data with noise instead, and learns to take one step back at a time</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 3.3 · Diffusion · Denoising Diffusion Probabilistic Models</span>
+  </section>
+
+  <br />
+
+  <section>
+    <p class="body-text">
+      Add a little gaussian noise to a picture. Add a little more. Keep going
+      for a thousand steps and what you have left is indistinguishable from
+      static: whatever the picture was, it is gone. Nothing about that is
+      clever, and that is the point, because every single step of it is a
+      gaussian and gaussians are the one thing everybody can compute with.
+    </p>
+    <br />
+    <p class="body-text">
+      The model is the process run backwards. Not in one leap, which would be
+      the impossible problem again, but one small step at a time: given
+      something slightly noisy, guess what it looked like slightly less noisy.
+      That is a regression, it has a squared error loss, and there is nothing
+      variational or adversarial about it.
+    </p>
+    <br />
+    <p class="body-text" id="opening-note"></p>
+  </section>
+
+  <section>
+    <h1 class="body-header">Watch the Data Disappear</h1>
+    <p class="body-text" id="scrolly-intro"></p>
+  </section>
+
+  <section id="ddpm-scrolly" class="scrolly">
+    <div class="scrolly-container">
+      <div class="steps-container">
+        <div class="step" data-index="0">
+          <div class="step-content">
+            <h3>The Density This Module Has Been Fitting</h3>
+            <p id="scrolly-step-0"></p>
+          </div>
+        </div>
+        <div class="step" data-index="1">
+          <div class="step-content">
+            <h3>A Hundred Steps In, the Hole Is Already Filling</h3>
+            <p id="scrolly-step-1"></p>
+          </div>
+        </div>
+        <div class="step" data-index="2">
+          <div class="step-content">
+            <h3>Halfway, the Ring and the Blobs Are One Blur</h3>
+            <p id="scrolly-step-2"></p>
+          </div>
+        </div>
+        <div class="step" data-index="3">
+          <div class="step-content">
+            <h3>And Then There Is Nothing Left</h3>
+            <p id="scrolly-step-3"></p>
+          </div>
+        </div>
+        <div class="step" data-index="4">
+          <div class="step-content">
+            <h3>Which Is a Number, Not a Figure of Speech</h3>
+            <p id="scrolly-step-4"></p>
+          </div>
+        </div>
+      </div>
+      <div class="graphic-container">
+        <div class="charts-container">
+          <div class="chart-wrap" id="ddpm-chart"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h1 class="body-header">The Field It Is Trying to Learn</h1>
+    <p class="body-text" id="score-intro"></p>
+    <br />
+    <p class="body-text" id="score-note"></p>
+  </section>
+
+  <div class="widget narrow-widget">
+    <div id="score-buttons" class="button-row"></div>
+    <div class="slider-row">
+      <label for="score-slider">noise level</label>
+      <input type="range" id="score-slider" min="0" max="6" step="1" value="2"
+             aria-label="which noise level to show the score field at" />
+      <span id="score-value" class="value"></span>
+    </div>
+    <div class="gen-pair">
+      <div>
+        <div id="score-canvas"></div>
+        <div class="canvas-caption" id="score-caption"></div>
+      </div>
+      <div id="score-chart"></div>
+    </div>
+    <div class="widget-readout" id="score-readout"></div>
+  </div>
+
+  <section>
+    <h1 class="body-header">Running It Backwards, Here</h1>
+    <p class="body-text" id="reverse-intro"></p>
+    <br />
+    <p class="body-text" id="reverse-note"></p>
+  </section>
+
+  <div class="widget narrow-widget">
+    <div id="reverse-buttons" class="button-row"></div>
+    <div class="slider-row">
+      <label for="reverse-slider">steps allowed</label>
+      <input type="range" id="reverse-slider" min="0" max="7" step="1" value="4"
+             aria-label="how many steps the sampler is allowed to take" />
+      <span id="reverse-value" class="value"></span>
+    </div>
+    <div class="gen-pair">
+      <div>
+        <div id="reverse-canvas"></div>
+        <div class="canvas-caption" id="reverse-caption"></div>
+      </div>
+      <div id="reverse-chart"></div>
+    </div>
+    <div class="widget-readout" id="reverse-readout"></div>
+  </div>
+
+  <section>
+    <h1 class="body-header">The Term Everybody Assumes Away</h1>
+    <p class="body-text" id="prior-intro"></p>
+  </section>
+
+  <div class="widget narrow-widget">
+    <div id="prior-buttons" class="button-row"></div>
+    <div id="prior-chart"></div>
+    <div class="widget-readout" id="prior-readout"></div>
+  </div>
+
+  <section>
+    <h1 class="body-header">And the Same Thing on 196 Pixels</h1>
+    <p class="body-text" id="pixel-intro"></p>
+  </section>
+
+  <div class="widget narrow-widget">
+    <div id="pixel-canvas"></div>
+    <div class="canvas-caption" id="pixel-caption"></div>
+    <div class="widget-readout" id="pixel-readout"></div>
+  </div>
+
+  <section>
+    <h1 class="body-header">What This Costs, and What It Buys</h1>
+    <p class="body-text" id="verdict-intro"></p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>What you want</th>
+          <th>Reach for</th>
+          <th>Why</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">A number for the density</span></td>
+          <td>Not this</td>
+          <td id="verdict-exact"></td>
+          <td id="verdict-exact-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">Samples that hold up</span></td>
+          <td>This</td>
+          <td id="verdict-sample"></td>
+          <td id="verdict-sample-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">Few steps</span></td>
+          <td>The deterministic sampler</td>
+          <td id="verdict-steps"></td>
+          <td id="verdict-steps-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">A shape with a hole in it</span></td>
+          <td>Still nothing here</td>
+          <td id="verdict-hole"></td>
+          <td id="verdict-hole-warn"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="closing-1"></p>
+    <br />
+    <p class="body-text" id="closing-2"></p>
+  </section>
+
+  <section>
+    <h1 class="body-header">How This Was Measured</h1>
+    <p class="body-text" id="ref-note"></p>
+  </section>
+
+  <br /><br />
 </body>
 </html>

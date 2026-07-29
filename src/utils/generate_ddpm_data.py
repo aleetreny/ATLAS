@@ -47,7 +47,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 from src.utils.generative_common import (          # noqa: E402
     ROOT as REPO, SEED, TOY, arr, banner, c2st, cached, digits14, export_flat,
-    judge, judge_ink_check, mat, rbf_mmd2, real_vs_real_floor, rnd, sci,
+    export_half, judge, judge_ink_check, mat, rbf_mmd2, real_vs_real_floor, rnd, sci,
     threads, toy_entropy, toy_grid, toy_kl, toy_pdf, toy_quadrature_report,
     toy_sample, write_json, disc_weights, toy_hole_exact)
 
@@ -806,6 +806,43 @@ board["ddpm"] = {
 print(f"  this article: no exact density (the reverse chain has none), sample statistic "
       f"{board['ddpm']['mmd2_best']} against a floor of {board['ddpm']['floor']}")
 
+# ================================================ what the browser runs
+banner("H. exporting the toy process so the page can run it")
+# the module's export contract, unchanged: W is (inputs, outputs) and is
+# written row major over OUTPUT units, so the page reads a layer with a stride
+blocks = []
+for i, lin in enumerate([NET.net[0], NET.net[2], NET.net[4], NET.net[6]]):
+    blocks.append((f"l{i}", lin.weight.detach().numpy().T, lin.bias.detach().numpy()))
+net_spec, net_b64, net_v = export_half(blocks)
+print(f"  the score network: {len(net_v):,} numbers, float16 base64 is {len(net_b64) / 1024:.0f} kB")
+
+# The page recomputes the exact density itself rather than being handed a
+# picture of it: the two blobs are gaussians convolved with a gaussian, which is
+# a gaussian and is four lines of JavaScript, and the ring is radial, so all it
+# needs is that one radial profile per level. 400 radii instead of a 64 by 64
+# field per level, and what it draws is exact rather than resampled.
+PAGE_TS = [0, 100, 250, 400, 600, 800, 999]
+RHO_MAX, RHO_N = 9.0, 400
+rho_axis = np.linspace(0.0, RHO_MAX, RHO_N)
+prof_flat = []
+for t in PAGE_TS:
+    prof_flat.extend(_ring_profile(t, rho_axis).tolist())
+prof_b64, prof_v = export_flat(prof_flat)
+print(f"  the ring's radial profile at {len(PAGE_TS)} levels: {len(prof_v):,} numbers, "
+      f"{len(prof_b64) / 1024:.0f} kB")
+
+# And a probe the page checks itself against: if it has read the weights or the
+# schedule wrongly, these will not match, however plausible its pictures look.
+rs = np.random.RandomState(404)
+probe_pts = rs.uniform(-3.6, 3.6, size=(40, 2))
+probe = {"points": mat(probe_pts, 4), "t": PAGE_TS, "q": [], "score": [], "eps": []}
+for t in PAGE_TS:
+    probe["q"].append(arr(forward_direct(probe_pts, t), 6))
+    probe["score"].append(mat(true_score(probe_pts, t), 4))
+    probe["eps"].append(mat(-learned_score(NET, probe_pts, t)
+                           * np.sqrt(max(1 - float(ABAR[t]), 1e-12)), 4))
+print(f"  a {len(probe_pts)} point probe at each of those levels, for the page to check itself")
+
 payload = {
     "meta": {"seed": SEED_MAIN, "seeds": SEEDS, "threads": THREADS,
              "torch": torch.__version__, "steps": STEPS, "grid": GRID,
@@ -839,5 +876,13 @@ payload = {
                "biggest": BIG, "toy_params": int(sum(p.numel() for p in NET.parameters())),
                "samples_b64": strip_b64, "real_b64": real_b64},
     "board": board,
+    "net": {"format": "float16 little-endian, base64; dense layers in the order of the spec, "
+                      "row major over output units, then the bias",
+            "b64": net_b64, "count": len(net_v), "spec": net_spec,
+            "hidden": HID, "steps": STEPS,
+            "abar": arr(ABAR[PAGE_TS], 8), "abar_all": arr(ABAR, 8),
+            "page_ts": PAGE_TS,
+            "ring_b64": prof_b64, "rho_max": RHO_MAX, "rho_n": RHO_N,
+            "probe": probe},
 }
 write_json(OUT / "ddpm.json", payload)
