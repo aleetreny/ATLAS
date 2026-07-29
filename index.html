@@ -974,6 +974,26 @@
             </button>
           </div>
         </div>
+
+        <!-- card: ddpm -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./ddpm/';" style="cursor: pointer">
+            <img src="assets/thumbnails/ddpm.svg"
+                 alt="A Thousand Easy Problems article image: the same density at four noise levels, dissolving from a ring and two blobs into one gaussian blur, with the exact distance to a standard normal under each." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">A Thousand Easy Problems</h2>
+            <p class="article-description">
+              Destroy the data with noise whose every step is a gaussian, then
+              learn to take one step back. Here the forward process is closed
+              form, so you can see the exact score field the network is trying
+              to learn, drawn beside the one it actually learned.
+            </p>
+            <button class="content-button">
+              <a href="./ddpm/">Dive In</a>
+            </button>
+          </div>
+        </div>
       </div>
 
       <details class="roadmap">
@@ -989,15 +1009,20 @@
           </div>
         </div>
         <div class="branch">
-          <h4>3.1 Adversarial &nbsp;·&nbsp; 3.3 Diffusion</h4>
+          <h4>3.3 Diffusion</h4>
+          <div class="chips">
+            <span class="chip live"><a href="./ddpm/">DDPM</a></span>
+            <span class="chip">Latent Diffusion</span>
+            <span class="chip">ControlNet</span>
+            <span class="chip">Consistency Models · Rectified Flow</span>
+          </div>
+        </div>
+        <div class="branch">
+          <h4>3.1 Adversarial</h4>
           <div class="chips">
             <span class="chip">GANs · DCGAN · WGAN</span>
             <span class="chip">StyleGAN</span>
             <span class="chip">Pix2Pix · CycleGAN</span>
-            <span class="chip">DDPM</span>
-            <span class="chip">Latent Diffusion</span>
-            <span class="chip">ControlNet</span>
-            <span class="chip">Consistency Models · Rectified Flow</span>
           </div>
         </div>
       </details>

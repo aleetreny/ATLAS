@@ -33,10 +33,14 @@ export function makeDDPM(data) {
   /* the ring's radial profile at each level the page can show, unpacked into
      one array per level so a lookup is an index rather than a search */
   const rings = [];
+  const ringDs = [];
   {
-    const flat = decodeWeights(N.ring_b64, N.rho_n * N.page_ts.length);
+    const nAll = N.rho_n * N.page_ts.length;
+    const flat = decodeWeights(N.ring_b64, nAll);
+    const flatD = decodeWeights(N.ringd_b64, nAll);
     for (let i = 0; i < N.page_ts.length; i++) {
       rings.push(flat.subarray(i * N.rho_n, (i + 1) * N.rho_n));
+      ringDs.push(flatD.subarray(i * N.rho_n, (i + 1) * N.rho_n));
     }
   }
   const dRho = N.rho_max / (N.rho_n - 1);
@@ -68,13 +72,17 @@ export function makeDDPM(data) {
      shipped samples; the derivative is what the score needs along the radius */
   function ringAt(level, rho) {
     const p = rings[level];
+    const q = ringDs[level];
     const u = rho / dRho;
     if (u >= N.rho_n - 1) return [0, 0];
     const i = Math.floor(u);
     const f = u - i;
-    const v = p[i] * (1 - f) + p[i + 1] * f;
-    const d = (p[i + 1] - p[i]) / dRho;
-    return [v, d];
+    /* Both the value and the SLOPE are interpolated from shipped arrays. The
+       slope is not recovered by differencing the value: doing that turns a
+       smooth profile into a staircase, and the page's score came out 168%
+       wrong while its density was only 6% wrong. The generator has the exact
+       derivative from its spline, so it ships it. */
+    return [p[i] * (1 - f) + p[i + 1] * f, q[i] * (1 - f) + q[i + 1] * f];
   }
 
   /** q(x_t) and grad log q(x_t), exactly, at one point. `level` indexes

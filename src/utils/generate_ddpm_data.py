@@ -822,14 +822,24 @@ print(f"  the score network: {len(net_v):,} numbers, float16 base64 is {len(net_
 # needs is that one radial profile per level. 400 radii instead of a 64 by 64
 # field per level, and what it draws is exact rather than resampled.
 PAGE_TS = [0, 100, 250, 400, 600, 800, 999]
-RHO_MAX, RHO_N = 9.0, 400
+RHO_MAX, RHO_N = 9.0, 1000
 rho_axis = np.linspace(0.0, RHO_MAX, RHO_N)
-prof_flat = []
+prof_flat, deriv_flat = [], []
 for t in PAGE_TS:
-    prof_flat.extend(_ring_profile(t, rho_axis).tolist())
+    # The DERIVATIVE ships too, and that is not a convenience. The page needs
+    # the score, which is the profile's slope, and a slope recovered by
+    # differencing a linearly interpolated table is a staircase: with 400
+    # samples the page's score came out 168% wrong while its density was only
+    # 6% wrong. Shipping the spline's own derivative costs one more array and
+    # makes both of them right.
+    spl = CubicSpline(rho_axis, _ring_profile(t, rho_axis))
+    prof_flat.extend(spl(rho_axis).tolist())
+    deriv_flat.extend(spl(rho_axis, 1).tolist())
 prof_b64, prof_v = export_flat(prof_flat)
-print(f"  the ring's radial profile at {len(PAGE_TS)} levels: {len(prof_v):,} numbers, "
-      f"{len(prof_b64) / 1024:.0f} kB")
+deriv_b64, deriv_v = export_flat(deriv_flat)
+print(f"  the ring's radial profile and its slope at {len(PAGE_TS)} levels: "
+      f"{len(prof_v) + len(deriv_v):,} numbers, "
+      f"{(len(prof_b64) + len(deriv_b64)) / 1024:.0f} kB")
 
 # And a probe the page checks itself against: if it has read the weights or the
 # schedule wrongly, these will not match, however plausible its pictures look.
@@ -882,7 +892,8 @@ payload = {
             "hidden": HID, "steps": STEPS,
             "abar": arr(ABAR[PAGE_TS], 8), "abar_all": arr(ABAR, 8),
             "page_ts": PAGE_TS,
-            "ring_b64": prof_b64, "rho_max": RHO_MAX, "rho_n": RHO_N,
+            "ring_b64": prof_b64, "ringd_b64": deriv_b64,
+            "rho_max": RHO_MAX, "rho_n": RHO_N,
             "probe": probe},
 }
 write_json(OUT / "ddpm.json", payload)
