@@ -112,8 +112,8 @@ Este repositorio empezó como notebooks de ML y se está convirtiendo en una web
 | 86 | Where the Vectors Live (el subgrafo que el filtro parte en trozos, el recall con marcas de borrado, palabras contra direcciones fusionadas por rango, y los bytes por vector con su rescate) | `vector-db/` | `#854960` |
 **El módulo 7 entero (artículos 60 a 67), publicado de una vez.** Las tres
 secciones cerradas y los ocho chips encendidos: 7.1 causalidad (60 a 63), 7.2
-incertidumbre (64 y 65), 7.3 explicabilidad (66 y 67), encadenados en ese orden
-y encadenados en ese orden. La cadena de lectura del 57 (wavenet) ya no entra
+incertidumbre (64 y 65), 7.3 explicabilidad (66 y 67), encadenados en ese orden.
+La cadena de lectura del 57 (wavenet) ya no entra
 aquí directamente: entre medias va el módulo 5 entero (69 a 77), que es la
 tarjeta siguiente en la portada, y es el 77 (mcts) el que enlaza al 60. Lo que
 hay que saber de cada uno:

@@ -69,7 +69,7 @@ export function initSpecWidget(data) {
       yFmt: energy ? d3.format('.0%') : d3.format('.1e'),
     });
     axisLabels(g, w, h, {
-      x: 'directions kept, largest first',
+      x: `the first ${n} directions, largest first`,
       y: energy ? 'share of the total energy' : 'singular value',
     });
 
@@ -110,6 +110,10 @@ export function initSpecWidget(data) {
       + `<span class="bold">${L.delta.r90}</span> directions to hold ninety per cent of its `
       + `energy; a random matrix of the same shape and the same norm needs `
       + `${L.random.r90}, and the pretrained matrix itself needs ${L.base.r90}. `
+      + (Math.max(L.base.r90, L.random.r90) > n
+        ? `Those last two are off the right of the plot on purpose: the chart draws the first `
+          + `${n} directions, and neither of them has reached the dashed line by then. `
+        : '')
       + (lowRank
         ? `So the update really is concentrated: ${(L.random.r90 / L.delta.r90).toFixed(1)} `
           + `times fewer directions than the null. `

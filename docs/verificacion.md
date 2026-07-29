@@ -399,7 +399,7 @@ falta cuando la red está cerrada es solo la última confirmación de que el CDN
 sirve lo mismo que el repositorio.
 
 
-## Trampa 23: el espacio de acentos no se habia agotado, la busqueda si
+## Trampa 30: el espacio de acentos no se habia agotado, la busqueda si
 
 Con 78 articulos publicados, `--next` devolvia **dos** colores por encima de dE
 12 y el mensaje de `--reparte` invitaba a ensanchar la banda de luminosidad, es
@@ -418,7 +418,7 @@ ACERCAR a los demas, asi que se actualiza contra el elegido en vez de
 recalcularse contra todo). Sigue tardando un segundo, que es lo que pide correr
 en cada push.
 
-## Trampa 24: matar el envoltorio no mata el script
+## Trampa 31: matar el envoltorio no mata el script
 
 Encadenar generadores con un `sh chain.sh` en segundo plano y luego querer
 cambiarlo: `ps` lista el `bash -c` que lo lanzo **y** el `sh` que lo ejecuta, y
@@ -429,7 +429,7 @@ con `ps -eo pid,cmd | grep -c` que quedan cero, y solo entonces se relanza. Y
 `sed -i` sobre un script de shell **que esta corriendo** es peor que inutil:
 `sh` lo lee a trozos, asi que la edicion puede entrar a mitad.
 
-## Trampa 25: un modulo entero sin torch
+## Trampa 32: un modulo entero sin torch
 
 El modulo 8 se escribio en la nube sin instalar torch: numpy, scipy,
 scikit-learn y statsmodels, unos 40 segundos de `pip install
@@ -444,7 +444,7 @@ propiedad de una matriz o una propiedad de una arquitectura. Si es lo primero,
 el framework solo aporta dependencias.
 
 
-## Trampa 26: cuatro hilos sobre una matriz diminuta son nueve veces mas lentos
+## Trampa 33: cuatro hilos sobre una matriz diminuta son nueve veces mas lentos
 
 La receta ya avisa de no sobresuscribir hilos, y este modulo se encontro el
 caso extremo por el otro lado. Un perceptron entrenado con lotes de 32 filas
@@ -467,3 +467,20 @@ en vez de mezclarse con la nueva.
 La regla generalizable: antes de dejar correr una tirada larga de numpy, medir
 el mismo bucle a uno, dos y cuatro hilos. Cuesta dos minutos y aqui convirtio
 dos horas de generador en un cuarto de hora.
+
+**Y la mitad que falta, que se pago despues.** Con la leccion recien aprendida,
+el generador de validacion cruzada aparecio en `ps` al 392% de CPU y parecio el
+mismo fallo: se mato la cadena para fijar los hilos a uno. Medido el bucle real
+antes de tocar nada, **1,26 s con un hilo y 1,26 s con cuatro**, o sea ninguna
+diferencia, y los cinco minutos de la primera etapa se tiraron para nada. El
+motivo es que el coste dominante de ese generador no son los ajustes diminutos
+sino evaluar el riesgo de cada modelo sobre un millon de filas frescas, que es
+un producto de matrices grande y quiere los cuatro nucleos.
+
+Asi que el 392% no dice si sobra paralelismo o si falta: dice cuantos nucleos se
+estan usando, y nada mas. Lo que decide es el **tamaño de la matriz del bucle
+caliente**, y eso se mide, no se deduce de un sintoma que las dos situaciones
+comparten. La forma correcta de aplicar la trampa es la frase de arriba tal cual,
+medir, y no su version corta, "pinchar los hilos a uno", que aqui habria sido un
+error. Una leccion recien aprendida es justo cuando mas facil es aplicarla donde
+no toca.

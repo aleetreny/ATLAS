@@ -59,7 +59,13 @@ export function initQuantWidget(data) {
       });
     } else if (st.view === 'blocks') {
       const B = Q.blocks;
-      const x = d3.scaleLinear().domain([4, 4.75]).range([0, w]);
+      /* the domain comes from the measurement and not from an expectation of it:
+         a block of sixteen weights costs six bits per weight, half again the
+         nominal four, and a hardcoded axis simply threw that point off the plot */
+      const bits = B.flatMap((b) => [b.bits, b.bits_double]);
+      const lo = d3.min(bits); const hi = d3.max(bits);
+      const x = d3.scaleLinear().domain([lo - (hi - lo) * 0.06, hi + (hi - lo) * 0.06])
+        .range([0, w]);
       const y = d3.scaleLinear()
         .domain([d3.min(B.map((b) => b.err)) * 0.92, d3.max(B.map((b) => b.err)) * 1.06])
         .range([h, 0]);
@@ -127,8 +133,9 @@ export function initQuantWidget(data) {
       + `${best[1][1].toFixed(4)} and ${best[2][0]} at ${best[2][1].toFixed(4)}. Note that `
       + `fp4 has only ${Q.fp4.length} distinct levels rather than sixteen, because a `
       + `floating point format spends one of its codes on negative zero. Squashing the whole `
-      + `network to four bits moves its accuracy from ${Q.base_acc.toFixed(4)} to `
-      + `${Q.quant_acc.toFixed(4)}, a drop of ${drop.toFixed(4)}.</div>`;
+      + `network to four bits moves its accuracy on the task it was trained for from `
+      + `${Q.base_acc.toFixed(4)} to ${Q.quant_acc.toFixed(4)}, a drop of `
+      + `${drop.toFixed(4)}.</div>`;
   }
 
   render();

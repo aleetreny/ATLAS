@@ -47,6 +47,15 @@ export function initProse(data) {
   const meanInt4 = Q.rows.reduce((s, r) => s + r.int4, 0) / Q.rows.length;
   const nf4Wins = meanNf4 < meanInt4;
   const sweep = data.data_sweep;
+  const ceilAt = data.ceiling.find((c) => c.rank === r8.rank) || data.ceiling[data.ceiling.length - 1];
+  const loraAt = loras.find((a) => a.rank === ceilAt.rank) || r8;
+  const A = data.alpha;
+  const fixedArm = A.rows.filter((r) => r.arm === 'fixed lr').sort((a, b) => a.alpha - b.alpha);
+  const compArm = A.rows.filter((r) => r.arm === 'compensated lr').sort((a, b) => a.alpha - b.alpha);
+  const meet = A.rows.filter((r) => r.alpha === A.rank);
+  const compSpan = Math.max(...compArm.map((r) => r.mean)) - Math.min(...compArm.map((r) => r.mean));
+  const compFloor = 2 * Math.max(...compArm.map((r) => r.sd));
+  const compFlat = compSpan <= compFloor;
 
   set('opening-note',
     `The model is the one the <a href="../distillation/">transfer and distillation article</a> `
@@ -93,24 +102,48 @@ export function initProse(data) {
     + `fine tune you were trying to avoid.`);
 
   set('rank-note',
-    `Here it is available, so the ceiling can be drawn: truncate the real update to rank r `
-    + `with a singular value decomposition and apply it. Nothing trained by gradient descent `
-    + `can beat that at the same rank, because that is the best rank r approximation there `
-    + `is. Reading the trained adapter against it says which of the two claims is doing the `
-    + `work. The second view then puts every cheap method on the one axis they all compete `
+    `Here the full fine tune is available, so the truncation can be drawn: take the update `
+    + `it produced, keep only its top r directions, and apply that. It is the best rank r `
+    + `approximation <span class="bold">of that particular update</span>, and the first draft `
+    + `of this page called it a ceiling. It is not one, and the measurement says so: at rank `
+    + `${ceilAt.rank} the truncated update reaches ${f4(ceilAt.acc)} and a trained adapter of `
+    + `the same rank reaches ${f4(loraAt.mean)}. `
+    + (loraAt.mean > ceilAt.acc
+      ? `<span class="bold">The adapter beats the truncation.</span> That is not a `
+        + `contradiction, it is the distinction the section is for: an adapter does not `
+        + `approximate the update that full fine tuning happened to find, it goes looking for `
+        + `a different one that is low rank from the start, and re-optimising the two thin `
+        + `matrices recovers more than truncating loses. "The update is low rank, so a low `
+        + `rank adapter can copy it" is the wrong story even where the premise holds.`
+      : `The truncation stays ahead, so on this model the adapter is leaving something on the `
+        + `table that a rank r update could have taken.`)
+    + ` The second view then puts every cheap method on the one axis they all compete `
     + `on: rank ${r8.rank} moves ${n0(r8.trainable)} parameters, `
     + `${(r8.trainable / full.trainable * 100).toFixed(2)}% of the network, and reaches `
     + `${f4(r8.mean)} against ${f4(full.mean)} for moving everything and ${f4(head.mean)} for `
     + `moving the head alone.`);
 
   set('alpha-intro',
-    `One dial in the LoRA formula gets tuned as though it were capacity, and it is worth `
-    + `three sentences because the algebra makes a falsifiable prediction about it. The `
-    + `adapter contributes \\((\\alpha/r)BA\\), which is linear in \\(B\\), so multiplying `
-    + `alpha multiplies the gradient that reaches \\(B\\) by exactly the same factor. That `
-    + `is a learning rate wearing a hat. The test: sweep alpha with the learning rate fixed, `
-    + `then sweep it again dividing the learning rate by the same factor. If the algebra is `
-    + `the whole story, the second sweep is flat.`);
+    `One dial in the LoRA formula gets tuned as though it were capacity, and it is worth a `
+    + `paragraph because the algebra makes a falsifiable prediction about it. The adapter `
+    + `contributes \\((\\alpha/r)BA\\), which is linear in \\(B\\), so multiplying alpha `
+    + `multiplies the gradient reaching \\(B\\) by the same factor. If that is the whole `
+    + `story, alpha is a learning rate in a hat, and dividing the learning rate by the same `
+    + `factor should undo it exactly. Sweep it both ways and see. `
+    + (compFlat
+      ? `The compensated sweep is flat to ${f4(compSpan)}, which is what the algebra says.`
+      : `<span class="bold">The compensated sweep is not flat</span>: it runs `
+        + `${f4(compSpan)} against ${f4(compFloor)} of seed spread, and it runs `
+        + `${compArm[0].mean > compArm[compArm.length - 1].mean ? 'downhill' : 'uphill'}. `
+        + `The prediction fails, and it fails for two reasons that are worth more than the `
+        + `prediction was. Adam divides each gradient by its own running magnitude, so a `
+        + `constant factor in front of the gradient is exactly what it is built to ignore: `
+        + `alpha is not a step size, it scales how much of the output the adapter owns while `
+        + `the step stays the same. And the compensation is not surgical here, because the `
+        + `head is trained with the same learning rate as the adapter, so dividing one `
+        + `divided the other. The consistency check is the crossing point: at alpha = `
+        + `${A.rank} the two arms are the same run by construction, and they agree to `
+        + `${f4(Math.abs(meet[0].mean - meet[1].mean))}.`));
 
   set('quant-intro',
     `The other half of the acronym is about the frozen base. If nothing in it is going to `
@@ -127,7 +160,8 @@ export function initProse(data) {
     + `${f4(meanNf4)} relative error against ${f4(meanInt4)} for uniform, `
     + (nf4Wins ? `so it wins, ` : `so it does not win here, `)
     + `and the whole network squashed to four bits moves from ${f4(Q.base_acc)} to `
-    + `${f4(Q.quant_acc)} before any adapter is trained on it. Then the block size, which is `
+    + `${f4(Q.quant_acc)} on the task it was trained for, before any adapter touches it. Then `
+    + `the block size, which is `
     + `the trade nobody states: each block of weights carries its own scale, so smaller `
     + `blocks fit better and cost more metadata. At ${b64.block} weights per block the real `
     + `price is ${b64.bits.toFixed(3)} bits per weight rather than four, and quantising the `

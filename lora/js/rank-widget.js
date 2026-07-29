@@ -1,11 +1,12 @@
 /* Two questions about rank that are usually run together.
  *
- * The first view is a ceiling nobody publishes: take the update that full fine
- * tuning actually produced, truncate it to rank r with a singular value
- * decomposition, and apply it. No adapter trained by gradient descent can beat
- * that, because that IS the best rank r approximation of the thing being
- * approximated. Reading what LoRA reaches against it separates "rank r is not
- * enough" from "the optimiser did not find the rank r that was enough".
+ * The first view is a comparison nobody publishes: take the update that full
+ * fine tuning actually produced, truncate it to rank r with a singular value
+ * decomposition, and apply it. That is the best rank r approximation OF THAT
+ * UPDATE, which is not the same thing as the best rank r adapter, and the
+ * difference between those two is the point. A trained adapter is free to go
+ * looking for a different low rank update rather than copy this one, so it can
+ * and does come out above the curve.
  *
  * The second view puts every cheap adaptation method on one axis, the number of
  * parameters allowed to move, which is the axis they all claim to compete on.
@@ -63,8 +64,8 @@ export function initRankWidget(data) {
         .style('font-size', '11px').attr('fill', 'var(--smile)')
         .text(`full fine tuning, ${data.spectra.tuned_acc.toFixed(4)}`);
 
-      [['the update truncated to rank r', ceil.map((r) => [r.rank, r.acc]), 'var(--anchor)'],
-        ['what an adapter of rank r reaches', loras.map((a) => [a.rank, a.mean]), 'var(--primary)']]
+      [['the measured update, truncated to rank r', ceil.map((r) => [r.rank, r.acc]), 'var(--anchor)'],
+        ['what an adapter of rank r finds for itself', loras.map((a) => [a.rank, a.mean]), 'var(--primary)']]
         .forEach(([name, pts, colour], i) => {
           layer.append('path')
             .attr('d', d3.line().x((p) => x(p[0])).y((p) => y(p[1]))(pts))
@@ -75,8 +76,11 @@ export function initRankWidget(data) {
             .style('font-size', '11px').attr('fill', colour).text(name);
         });
     } else {
+      /* the named arms carry the only labels here, and at a narrow width two of
+         them land close enough to touch, so they are stacked by rank of x */
+      const ordered = others.slice().sort((a, b) => a.trainable - b.trainable);
       const pts = loras.map((a) => ({ ...a, label: `r=${a.rank}` }))
-        .concat(others.map((a) => ({ ...a, label: a.arm })));
+        .concat(ordered.map((a, i) => ({ ...a, label: a.arm, lift: 11 + (i % 2) * 15 })));
       const x = d3.scaleLog()
         .domain([d3.min(pts.map((p) => p.trainable)) * 0.5,
           d3.max(pts.map((p) => p.trainable)) * 2]).range([0, w]);
@@ -104,7 +108,7 @@ export function initRankWidget(data) {
           .attr('stroke', isLora ? 'var(--primary)' : 'var(--cosmos)').attr('stroke-width', 1.2);
         if (!isLora) {
           layer.append('text').attr('class', 'chart-note').attr('x', x(p.trainable))
-            .attr('y', y(p.mean) - 12)
+            .attr('y', y(p.mean) - p.lift)
             .attr('text-anchor', x(p.trainable) > w * 0.6 ? 'end' : 'middle')
             .style('font-size', '11px').text(p.label);
         }
@@ -136,12 +140,12 @@ export function initRankWidget(data) {
       + `${(r8.trainable / full.trainable * 100).toFixed(2)}% of the `
       + `${full.trainable.toLocaleString('en-US')} in the network, and reaches `
       + `${r8.mean.toFixed(4)} against ${full.mean.toFixed(4)} for moving all of them. `
-      + `The widest gap between what an adapter of a given rank could do and what training `
-      + `found is at rank ${worst.rank}: ${(worst.best - worst.got).toFixed(4)}, `
-      + (worst.best - worst.got > 0.01
-        ? `which is a search problem and not a capacity problem.`
-        : `which is small enough that capacity, and not the optimiser, is what limits the `
-          + `small ranks here.`)
+      + `The widest gap between the truncated update and what a trained adapter of that rank `
+      + `reaches is at rank ${worst.rank}: `
+      + `${Math.abs(worst.best - worst.got).toFixed(4)} in favour of `
+      + `${worst.best > worst.got ? 'the truncation' : 'the adapter'}. Where the adapter is `
+      + `ahead it is not copying this update at all, which is why "the update is low rank" `
+      + `explains less about why LoRA works than it looks like it does.`
       + `</div>`;
   }
 

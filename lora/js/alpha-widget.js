@@ -72,9 +72,14 @@ export function initAlphaWidget(data) {
     + (flat
       ? `which is flat to the precision this measurement has. Alpha is a learning rate. `
         + `Tuning it and tuning the learning rate are the same experiment run twice.`
-      : `which is still outside its own noise, so on this setup alpha is doing something `
-        + `beyond rescaling the step. That is worth knowing and it is not what the algebra `
-        + `predicts.`)
+      : `which is still outside its own noise, so alpha is doing something the algebra does `
+        + `not predict. Two reasons, and both are checkable: Adam divides every gradient by `
+        + `its own running magnitude, so a constant in front of it is exactly what it `
+        + `ignores; and the compensation moved the head's learning rate as well, because `
+        + `both are trained with the same one. The two arms must agree where alpha equals `
+        + `the rank, since there the compensation is a multiplication by one, and they do, `
+        + `to ${Math.abs((A.rows.filter((r) => r.alpha === A.rank)[0] || {}).mean
+          - (A.rows.filter((r) => r.alpha === A.rank)[1] || {}).mean).toFixed(4)}.`)
     + `</div>`;
 
   return { render: () => {} };

@@ -127,11 +127,16 @@ def stratified(y, n, rng):
 
 def load():
     a, b = mnist(), fashion_mnist()
-    return (flat(a[0]), a[1]), (flat(b[0]), b[1], flat(b[2])[:TEST_N], b[3][:TEST_N])
+    # El test del ORIGEN viaja también: la base está entrenada en dígitos, así
+    # que preguntarle por ropa da un 6%, y ese es el número equivocado para
+    # decir lo que cuesta cuantizarla. Lo que cuantizar rompe o no rompe se mide
+    # en la tarea que la red sabe hacer.
+    return ((flat(a[0]), a[1], flat(a[2])[:TEST_N], a[3][:TEST_N]),
+            (flat(b[0]), b[1], flat(b[2])[:TEST_N], b[3][:TEST_N]))
 
 
 def stage_base(src):
-    X, y = src
+    X, y = src[0], src[1]
     rng = np.random.default_rng(SEED)
     idx = stratified(y, SRC_N, rng)
     net = Net([X.shape[1], *HID, 10], np.random.default_rng(SEED))
@@ -340,8 +345,10 @@ def normality(w):
     return dict(kurtosis=kurt, ks=ks, sd=float(sd), mean=float(m))
 
 
-def stage_quant(base, tgt):
-    Xg, yg, Xt, yt = tgt
+def stage_quant(base, src):
+    """Los tres formatos sobre los pesos de verdad, y lo que cuesta en la tarea
+    que la red sabe hacer, que es la de origen y no la de destino."""
+    Xs, ys = src[2], src[3]
     rows, blocks = [], []
     for i, W in enumerate(base.W):
         rec = dict(layer=i, shape=list(W.shape), n=int(W.size), **normality(W))
@@ -362,7 +369,7 @@ def stage_quant(base, tgt):
     for i in range(len(qnet.W)):
         qnet.W[i], _, _ = quantize(base.W[i], NF4, block=64)
     return dict(rows=rows, blocks=blocks,
-                base_acc=base.accuracy(Xt, yt), quant_acc=qnet.accuracy(Xt, yt),
+                base_acc=base.accuracy(Xs, ys), quant_acc=qnet.accuracy(Xs, ys),
                 qnet=qnet)
 
 
@@ -434,7 +441,7 @@ def main():
     alpha = cached("alpha", lambda: stage_alpha(base, tgt))
 
     print("  6/7 la cuantización")
-    quant = cached("quant", lambda: stage_quant(base, tgt))
+    quant = cached("quant2", lambda: stage_quant(base, src))
 
     print("  7/7 el adaptador sobre la base cuantizada")
     qlora = cached("qlora", lambda: stage_qlora(base, quant["qnet"], tgt))

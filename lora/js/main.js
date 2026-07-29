@@ -44,9 +44,15 @@ function runGuards(data) {
       const rising = e.every((v, i) => i === 0 || v >= e[i - 1] - 1e-9);
       check(`layer ${L.layer}: the ${k} energy curve only goes up`, rising,
         'a cumulative share of a total went down, so the singular values are not sorted');
-      const r90 = e.findIndex((v) => v >= 0.9) + 1;
+      /* the curve is exported truncated, so it can only confirm an r90 that falls
+         inside it; past the end all it can say is that the file agrees the
+         answer is further out than the page can draw */
+      const hit = e.findIndex((v) => v >= 0.9);
       check(`layer ${L.layer}: directions for ninety per cent of the ${k}`,
-        r90 === L[k].r90, `the page counts ${r90} and the file says ${L[k].r90}`);
+        hit >= 0 ? hit + 1 === L[k].r90 : L[k].r90 > e.length,
+        hit >= 0 ? `the page counts ${hit + 1} and the file says ${L[k].r90}`
+          : `the drawn curve never reaches ninety per cent in ${e.length} directions, `
+            + `so the file's ${L[k].r90} has to be past ${e.length} and is not`);
     });
     /* the null has to be a null: a random matrix cannot be MORE concentrated
        than the pretrained weights it is standing in for, or it is not a null */
