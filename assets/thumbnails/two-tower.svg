@@ -11,8 +11,8 @@
   <rect x="273" y="180" width="62" height="30" fill="#df2a5d" opacity="0.55" />
   <rect x="283" y="134" width="42" height="30" fill="#df2a5d" opacity="0.75" />
   <text x="304" y="264" font-size="13" font-family="monospace" text-anchor="middle" fill="#232f3e">item</text>
-  <path d="M 96 94 L 200 62 L 304 94" fill="none" stroke="#856314" stroke-width="3" />
-  <circle cx="200" cy="62" r="17" fill="#856314" />
+  <path d="M 96 94 L 200 62 L 304 94" fill="none" stroke="#8a5369" stroke-width="3" />
+  <circle cx="200" cy="62" r="17" fill="#8a5369" />
   <text x="200" y="68" font-size="17" font-family="monospace" text-anchor="middle" fill="#ffffff">.</text>
   <path d="M 40 44 L 104 38 L 141 34 L 168 32 L 205 29 L 232 25 L 269 23 L 296 22 L 333 22 L 360 22" fill="none" stroke="#232f3e" stroke-width="2" opacity="0.6" />
 </svg>

@@ -38,17 +38,21 @@ export function initAttWidget(data) {
         .attr('x', x0(grp.label) + x1(key) + x1.bandwidth() / 2).attr('y', y(grp[key]) - 8)
         .attr('text-anchor', 'middle').style('font-size', '11px')
         .text(grp[key].toFixed(4));
-      g.append('text').attr('class', 'chart-note')
-        .attr('x', x0(grp.label) + x1(key) + x1.bandwidth() / 2).attr('y', h + 17)
-        .attr('text-anchor', 'middle').style('font-size', '10.5px')
-        /* two sub labels under a grouped bar have half a band each, which is
-           about seventy eight units: "one over degree" needs ninety and lands
-           on its neighbour */
-        .text(key === 'learned' ? 'attention' : '1 / degree');
     });
     g.append('text').attr('class', 'chart-note')
-      .attr('x', x0(grp.label) + x0.bandwidth() / 2).attr('y', h + 36)
+      .attr('x', x0(grp.label) + x0.bandwidth() / 2).attr('y', h + 20)
       .attr('text-anchor', 'middle').style('font-size', '11.5px').text(grp.label);
+  });
+
+  /* The two bars of a group used to name themselves underneath, and even
+     shortened to "attention" and "1 / degree" they sat a space apart and read
+     as one run on phrase. Half a band is not enough room for two names; a
+     legend has the whole width. */
+  [['attention', 'var(--primary)'], ['1 / degree', 'var(--stone)']].forEach(([txt, colour], i) => {
+    g.append('rect').attr('x', 6 + i * 104).attr('y', -12).attr('width', 10).attr('height', 10)
+      .attr('fill', colour);
+    g.append('text').attr('class', 'chart-note')
+      .attr('x', 20 + i * 104).attr('y', -3).style('font-size', '11px').text(txt);
   });
 
   drawAxes(g, x0, y, w, h, { xValues: [], yTicks: 5, yFmt: d3.format('.2f') });

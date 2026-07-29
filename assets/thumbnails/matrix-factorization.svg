@@ -3,34 +3,34 @@
   <!-- R = P Q': la tabla de valoraciones, casi vacia, escrita como el -->
   <!-- producto de dos tablas flacas, con la curva del barrido de rango -->
   <!-- que la pagina mide debajo -->
-  <rect x="28" y="44" width="12" height="12" fill="#647032" opacity="0.75" />
+  <rect x="28" y="44" width="12" height="12" fill="#4a5734" opacity="0.75" />
   <rect x="43" y="44" width="12" height="12" fill="none" stroke="#d4dada" />
   <rect x="58" y="44" width="12" height="12" fill="none" stroke="#d4dada" />
   <rect x="73" y="44" width="12" height="12" fill="none" stroke="#d4dada" />
   <rect x="88" y="44" width="12" height="12" fill="none" stroke="#d4dada" />
-  <rect x="103" y="44" width="12" height="12" fill="#647032" opacity="0.75" />
+  <rect x="103" y="44" width="12" height="12" fill="#4a5734" opacity="0.75" />
   <rect x="118" y="44" width="12" height="12" fill="none" stroke="#d4dada" />
   <rect x="133" y="44" width="12" height="12" fill="none" stroke="#d4dada" />
   <rect x="28" y="59" width="12" height="12" fill="none" stroke="#d4dada" />
-  <rect x="43" y="59" width="12" height="12" fill="#647032" opacity="0.75" />
+  <rect x="43" y="59" width="12" height="12" fill="#4a5734" opacity="0.75" />
   <rect x="58" y="59" width="12" height="12" fill="none" stroke="#d4dada" />
   <rect x="73" y="59" width="12" height="12" fill="none" stroke="#d4dada" />
   <rect x="88" y="59" width="12" height="12" fill="none" stroke="#d4dada" />
   <rect x="103" y="59" width="12" height="12" fill="none" stroke="#d4dada" />
-  <rect x="118" y="59" width="12" height="12" fill="#647032" opacity="0.75" />
+  <rect x="118" y="59" width="12" height="12" fill="#4a5734" opacity="0.75" />
   <rect x="133" y="59" width="12" height="12" fill="none" stroke="#d4dada" />
   <rect x="28" y="74" width="12" height="12" fill="none" stroke="#d4dada" />
   <rect x="43" y="74" width="12" height="12" fill="none" stroke="#d4dada" />
-  <rect x="58" y="74" width="12" height="12" fill="#647032" opacity="0.75" />
+  <rect x="58" y="74" width="12" height="12" fill="#4a5734" opacity="0.75" />
   <rect x="73" y="74" width="12" height="12" fill="none" stroke="#d4dada" />
   <rect x="88" y="74" width="12" height="12" fill="none" stroke="#d4dada" />
   <rect x="103" y="74" width="12" height="12" fill="none" stroke="#d4dada" />
   <rect x="118" y="74" width="12" height="12" fill="none" stroke="#d4dada" />
-  <rect x="133" y="74" width="12" height="12" fill="#647032" opacity="0.75" />
+  <rect x="133" y="74" width="12" height="12" fill="#4a5734" opacity="0.75" />
   <rect x="28" y="89" width="12" height="12" fill="none" stroke="#d4dada" />
   <rect x="43" y="89" width="12" height="12" fill="none" stroke="#d4dada" />
   <rect x="58" y="89" width="12" height="12" fill="none" stroke="#d4dada" />
-  <rect x="73" y="89" width="12" height="12" fill="#647032" opacity="0.75" />
+  <rect x="73" y="89" width="12" height="12" fill="#4a5734" opacity="0.75" />
   <rect x="88" y="89" width="12" height="12" fill="none" stroke="#d4dada" />
   <rect x="103" y="89" width="12" height="12" fill="none" stroke="#d4dada" />
   <rect x="118" y="89" width="12" height="12" fill="none" stroke="#d4dada" />
@@ -39,34 +39,34 @@
   <rect x="43" y="104" width="12" height="12" fill="none" stroke="#d4dada" />
   <rect x="58" y="104" width="12" height="12" fill="none" stroke="#d4dada" />
   <rect x="73" y="104" width="12" height="12" fill="none" stroke="#d4dada" />
-  <rect x="88" y="104" width="12" height="12" fill="#647032" opacity="0.75" />
+  <rect x="88" y="104" width="12" height="12" fill="#4a5734" opacity="0.75" />
   <rect x="103" y="104" width="12" height="12" fill="none" stroke="#d4dada" />
   <rect x="118" y="104" width="12" height="12" fill="none" stroke="#d4dada" />
   <rect x="133" y="104" width="12" height="12" fill="none" stroke="#d4dada" />
-  <rect x="28" y="119" width="12" height="12" fill="#647032" opacity="0.75" />
+  <rect x="28" y="119" width="12" height="12" fill="#4a5734" opacity="0.75" />
   <rect x="43" y="119" width="12" height="12" fill="none" stroke="#d4dada" />
   <rect x="58" y="119" width="12" height="12" fill="none" stroke="#d4dada" />
   <rect x="73" y="119" width="12" height="12" fill="none" stroke="#d4dada" />
   <rect x="88" y="119" width="12" height="12" fill="none" stroke="#d4dada" />
-  <rect x="103" y="119" width="12" height="12" fill="#647032" opacity="0.75" />
+  <rect x="103" y="119" width="12" height="12" fill="#4a5734" opacity="0.75" />
   <rect x="118" y="119" width="12" height="12" fill="none" stroke="#d4dada" />
   <rect x="133" y="119" width="12" height="12" fill="none" stroke="#d4dada" />
   <rect x="28" y="134" width="12" height="12" fill="none" stroke="#d4dada" />
-  <rect x="43" y="134" width="12" height="12" fill="#647032" opacity="0.75" />
+  <rect x="43" y="134" width="12" height="12" fill="#4a5734" opacity="0.75" />
   <rect x="58" y="134" width="12" height="12" fill="none" stroke="#d4dada" />
   <rect x="73" y="134" width="12" height="12" fill="none" stroke="#d4dada" />
   <rect x="88" y="134" width="12" height="12" fill="none" stroke="#d4dada" />
   <rect x="103" y="134" width="12" height="12" fill="none" stroke="#d4dada" />
-  <rect x="118" y="134" width="12" height="12" fill="#647032" opacity="0.75" />
+  <rect x="118" y="134" width="12" height="12" fill="#4a5734" opacity="0.75" />
   <rect x="133" y="134" width="12" height="12" fill="none" stroke="#d4dada" />
   <rect x="28" y="149" width="12" height="12" fill="none" stroke="#d4dada" />
   <rect x="43" y="149" width="12" height="12" fill="none" stroke="#d4dada" />
-  <rect x="58" y="149" width="12" height="12" fill="#647032" opacity="0.75" />
+  <rect x="58" y="149" width="12" height="12" fill="#4a5734" opacity="0.75" />
   <rect x="73" y="149" width="12" height="12" fill="none" stroke="#d4dada" />
   <rect x="88" y="149" width="12" height="12" fill="none" stroke="#d4dada" />
   <rect x="103" y="149" width="12" height="12" fill="none" stroke="#d4dada" />
   <rect x="118" y="149" width="12" height="12" fill="none" stroke="#d4dada" />
-  <rect x="133" y="149" width="12" height="12" fill="#647032" opacity="0.75" />
+  <rect x="133" y="149" width="12" height="12" fill="#4a5734" opacity="0.75" />
   <text x="160" y="110" font-size="20" font-family="monospace" fill="#232f3e">=</text>
   <rect x="182" y="44" width="12" height="12" fill="#003181" opacity="0.8" />
   <rect x="197" y="44" width="12" height="12" fill="#003181" opacity="0.8" />
@@ -117,12 +117,12 @@
   <rect x="337" y="74" width="12" height="12" fill="#df2a5d" opacity="0.8" />
   <rect x="352" y="74" width="12" height="12" fill="#df2a5d" opacity="0.8" />
   <rect x="367" y="74" width="12" height="12" fill="#df2a5d" opacity="0.8" />
-  <path d="M 40 200 L 93 213 L 147 223 L 200 236 L 253 247 L 307 259 L 360 268" fill="none" stroke="#647032" stroke-width="3" />
-  <circle cx="40" cy="200" r="3.5" fill="#647032" />
-  <circle cx="93" cy="213" r="3.5" fill="#647032" />
-  <circle cx="147" cy="223" r="3.5" fill="#647032" />
-  <circle cx="200" cy="236" r="3.5" fill="#647032" />
-  <circle cx="253" cy="247" r="3.5" fill="#647032" />
-  <circle cx="307" cy="259" r="3.5" fill="#647032" />
-  <circle cx="360" cy="268" r="3.5" fill="#647032" />
+  <path d="M 40 200 L 93 213 L 147 223 L 200 236 L 253 247 L 307 259 L 360 268" fill="none" stroke="#4a5734" stroke-width="3" />
+  <circle cx="40" cy="200" r="3.5" fill="#4a5734" />
+  <circle cx="93" cy="213" r="3.5" fill="#4a5734" />
+  <circle cx="147" cy="223" r="3.5" fill="#4a5734" />
+  <circle cx="200" cy="236" r="3.5" fill="#4a5734" />
+  <circle cx="253" cy="247" r="3.5" fill="#4a5734" />
+  <circle cx="307" cy="259" r="3.5" fill="#4a5734" />
+  <circle cx="360" cy="268" r="3.5" fill="#4a5734" />
 </svg>

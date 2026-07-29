@@ -65,10 +65,10 @@ export function initSweepWidget(data) {
 
     if (st.view === 'rank') {
       drawAxes(g, x, y, w, h, { xValues: xs, yTicks: 5, xFmt: (v) => String(v), yFmt: d3.format('.3f') });
-      axisLabels(g, w, h, { x: 'factors per reader and per book', y: 'error on a held out rating' });
+      axisLabels(g, w, h, { x: 'factors per reader and per book', y: 'root mean squared error' });
     } else {
       drawAxes(g, x, y, w, h, { xValues: [], yTicks: 5, yFmt: d3.format('.3f') });
-      axisLabels(g, w, h, { y: 'error on a held out rating' });
+      axisLabels(g, w, h, { y: 'root mean squared error' });
       rows.forEach((d) => {
         g.append('text').attr('class', 'chart-note')
           .attr('x', x(d.lam)).attr('y', h + 18).attr('text-anchor', 'middle')

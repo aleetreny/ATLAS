@@ -36,13 +36,13 @@
   <circle cx="240" cy="131" r="6" fill="#003181" opacity="0.45" />
   <circle cx="256" cy="105" r="6" fill="#003181" opacity="0.45" />
   <circle cx="154" cy="143" r="6" fill="#003181" opacity="0.45" />
-  <circle cx="205" cy="145" r="9" fill="#591c5c" opacity="1" />
-  <circle cx="133" cy="82" r="9" fill="#591c5c" opacity="1" />
-  <path d="M 44 276 L 89 214 L 133 220 L 178 230 L 267 240 L 356 236" fill="none" stroke="#591c5c" stroke-width="3" />
-  <circle cx="44" cy="276" r="3.5" fill="#591c5c" />
-  <circle cx="89" cy="214" r="3.5" fill="#591c5c" />
-  <circle cx="133" cy="220" r="3.5" fill="#591c5c" />
-  <circle cx="178" cy="230" r="3.5" fill="#591c5c" />
-  <circle cx="267" cy="240" r="3.5" fill="#591c5c" />
-  <circle cx="356" cy="236" r="3.5" fill="#591c5c" />
+  <circle cx="205" cy="145" r="9" fill="#0b009e" opacity="1" />
+  <circle cx="133" cy="82" r="9" fill="#0b009e" opacity="1" />
+  <path d="M 44 276 L 89 214 L 133 220 L 178 230 L 267 240 L 356 236" fill="none" stroke="#0b009e" stroke-width="3" />
+  <circle cx="44" cy="276" r="3.5" fill="#0b009e" />
+  <circle cx="89" cy="214" r="3.5" fill="#0b009e" />
+  <circle cx="133" cy="220" r="3.5" fill="#0b009e" />
+  <circle cx="178" cy="230" r="3.5" fill="#0b009e" />
+  <circle cx="267" cy="240" r="3.5" fill="#0b009e" />
+  <circle cx="356" cy="236" r="3.5" fill="#0b009e" />
 </svg>
