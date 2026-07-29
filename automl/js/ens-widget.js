@@ -66,6 +66,7 @@ export function initEnsWidget(data) {
 
     const last = rows[rows.length - 1];
     const bestTest = rows.reduce((a, b) => (b.test > a.test ? b : a));
+    const dips = rows.filter((r, i) => i > 0 && r.oof < rows[i - 1].oof - 1e-9).length;
     const gain = last.test - tbl.best.test;
     const sd = tbl.best.test_sd;
     readout.innerHTML = `<div class="gen-note">On <span class="bold">${st.table}</span>, `
@@ -80,9 +81,14 @@ export function initEnsWidget(data) {
         : `which is larger than the ${sd.toFixed(4)} that this held out set wobbles under `
           + `resampling.`)
       + ` The best held out score any size reached is ${bestTest.test.toFixed(4)} at `
-      + `${bestTest.k}, and that number is not available in advance: the blue curve is the `
-      + `one the system can see, and it is monotone by construction because each step is `
-      + `chosen to raise it.</div>`;
+      + `${bestTest.k}, and that number is not available in advance: the only curve the `
+      + `system can see is the blue one. And the blue one is worth a second look, because it `
+      + `is not monotone: ${dips} of its ${rows.length} steps go `
+      + `<span class="bold">down</span> on the very set that chose them. Each step takes the `
+      + `best move available, but a step is an average over one more member rather than an `
+      + `extension of the previous one, so the best available move can still land lower. `
+      + `Greedy selection with replacement is usually described as if it could not do that.`
+      + `</div>`;
   }
 
   render();

@@ -78,12 +78,23 @@ function runGuards(data) {
     !data.portfolio.learnt_on.includes(data.portfolio.cold),
     `${data.portfolio.cold} appears in the tables the list was learnt on`);
 
-  /* the out of fold curve of an ensemble is monotone by construction; if it
-     ever dips, the selection was not greedy on the set it claims */
+  /* The out of fold curve of a greedy ensemble is NOT monotone, and the first
+     version of this guard said it was. Adding a member with equal weight
+     changes the average rather than extending it, so the best available move at
+     step k+1 can still be worse than where step k landed. The guard used to
+     fire on correct data, which is the expensive way to have a guard; what it
+     checks now is what is actually true of the construction. */
   Object.entries(data.ensemble).forEach(([name, E]) => {
-    const dips = E.rows.filter((r, i) => i > 0 && r.oof < E.rows[i - 1].oof - 1e-9).length;
-    check(`${name}: the ensemble curve is monotone where it must be`, dips === 0,
-      `${dips} of ${E.rows.length} steps go down on the set that chose them`);
+    const distinct = E.rows.map((r) => r.distinct);
+    check(`${name}: the ensemble never un-picks a pipeline`,
+      distinct.every((v, i) => i === 0 || v >= distinct[i - 1]),
+      'the count of distinct members went down, which greedy selection cannot do');
+    check(`${name}: every step adds a pipeline that exists`,
+      E.rows.every((r) => r.added >= 0 && r.added < cfgs.length),
+      'a step added a configuration index outside the catalogue');
+    check(`${name}: the size of the average is the step number`,
+      E.rows.every((r, i) => r.k === i + 1),
+      'the sizes are not consecutive');
   });
 
   const bad = [];

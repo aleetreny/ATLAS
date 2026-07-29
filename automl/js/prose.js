@@ -190,15 +190,18 @@ export function initProse(data) {
     + `inside every fold.`);
 
   set('closing-1',
-    `Two things on this page point the same way and it is worth saying them together. The `
-    + `search bought ${real.length === 0 ? 'nothing that clears' : 'little that clears'} the `
-    + `noise of the sets used to judge it, and the score it reports overstates by up to `
-    + `${signed(worstCurse.many)}. Neither of those is an argument against automated `
-    + `machine learning; they are an argument about what it is for. On a table of a few `
-    + `hundred rows the catalogue is mostly a way of spending compute to move a number that `
-    + `cannot be measured to that precision. What survives is the cheap part: a warm start `
-    + `worth ${signed(pf.test - rd.test)} over blind draws for ${P.size} evaluations, and an `
-    + `average over models that were fitted anyway.`);
+    `The four tables do not agree, and that disagreement is the finding rather than an `
+    + `inconvenience. Searching the catalogue bought a gain larger than the noise of the set `
+    + `judging it on <span class="bold">${real.length} of the ${gains.length}</span>: `
+    + `${signed(bigGain.gain)} on ${bigGain.name} at best, and `
+    + `${gains.filter((x) => x.gain <= 0).length} of them came out at or below where they `
+    + `started. Meanwhile the score the search reports overstates by up to `
+    + `${signed(worstCurse.many)} on ${worstCurse.name}, and on wine the search reports a `
+    + `perfect ${f4(T.wine.best.cv)} while nesting the whole thing inside three outer folds `
+    + `says ${f4(N.mean)}. That is the shape of it: the catalogue helps most where there is `
+    + `room to help, and the number it hands you is least trustworthy exactly where it `
+    + `helped least. What survives everywhere is the cheap part, a warm start worth `
+    + `${signed(pf.test - rd.test)} over blind draws for ${P.size} evaluations.`);
 
   set('closing-2',
     `And there is a third way to arrive at a table already knowing something, which is `
