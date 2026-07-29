@@ -39,6 +39,7 @@ from collections import Counter
 from pathlib import Path
 
 import numpy as np
+from sklearn.utils.extmath import randomized_svd
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from annkit import HNSW, PQ, brute, recall_at  # noqa: E402
@@ -111,7 +112,12 @@ def corpus():
     df = (C > 0).sum(0)
     T = np.log1p(C) * np.log(len(texts) / np.maximum(df, 1)).astype(np.float32)
     T /= np.maximum(np.linalg.norm(T, axis=1, keepdims=True), 1e-9)
-    U, S, _ = np.linalg.svd(T - T.mean(0), full_matrices=False)
+    # Descomposición truncada y aleatorizada en vez de la completa: solo hacen
+    # falta las primeras columnas, y una SVD completa de una matriz de miles por
+    # miles materializa una U cuadrada de cientos de megas para tirar el 99% de
+    # ella. Con semilla fija, así que es tan reproducible como la otra.
+    U, S, _ = randomized_svd(T - T.mean(0), n_components=DIMS,
+                             random_state=SEED)
     Z = (U[:, :DIMS] * S[:DIMS]).astype(np.float64)
     return dict(Z=Z, counts=C, df=df, words=words, lab=lab, later=later,
                 texts=texts)
@@ -344,7 +350,9 @@ def stage_bytes(data):
     lo, hi = X.min(0), X.max(0)
     q8 = np.round((X - lo) / np.maximum(hi - lo, 1e-12) * 255)
     rec8 = q8 / 255 * (hi - lo) + lo
-    found = np.argsort(((Q[:, None, :] - rec8[None, :, :]) ** 2).sum(-1), 1)[:, :K]
+    d8 = np.maximum((rec8 ** 2).sum(1)[None, :] - 2.0 * (Q @ rec8.T)
+                    + (Q ** 2).sum(1)[:, None], 0.0)
+    found = np.argsort(d8, 1)[:, :K]
     rows.append(dict(scheme="int8 per column", bytes=float(DIMS + 8),
                      recall=recall_at(found, truth), quality=quality(found)))
     for m in (4, 8, 16):

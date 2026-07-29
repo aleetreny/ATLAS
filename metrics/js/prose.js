@@ -105,8 +105,10 @@ export function initProse(data) {
     + `about which matrix is better <span class="bold">${pct(E.flip_f1_mcc)}</span> of the `
     + `time, accuracy and the correlation coefficient ${pct(E.flip_acc_mcc)}, accuracy and `
     + `F1 ${pct(E.flip_acc_f1)}. Two structural facts explain most of that. F1 never reads `
-    + `the true negatives, so two matrices that differ only in how many rows the model `
-    + `correctly left alone get the same F1 and different correlation coefficients. And F1 `
+    + `the true negatives: holding the positive side fixed and letting the correctly ignored `
+    + `rows run from ${E.tn_sweep[0].tn} to ${n0(E.tn_sweep[E.tn_sweep.length - 1].tn)} leaves `
+    + `F1 at exactly ${E.tn_sweep[0].f1.toFixed(3)} and moves the correlation coefficient by `
+    + `${E.worst_tn.toFixed(3)}. And F1 `
     + `is not symmetric: swap which class is called positive and it moves by up to `
     + `${E.f1_asym_max.toFixed(3)}, while the correlation coefficient moves by exactly `
     + `${E.mcc_asym.toFixed(3)}, because it is a correlation between two binary variables `
@@ -195,7 +197,7 @@ export function initProse(data) {
     + `random pairs and the pair count printed next to them. Calibration error uses `
     + `${M.bins} equal width bins. BLEU is written in the generator with clipping, a brevity `
     + `penalty and up to four grams, over ${n0(B.sentences)} sentences of the Brown corpus `
-    + `between ${8} and 30 words; the nearest neighbour substitution uses the skip gram `
+    + `between ${M.bleu_min_len} and ${M.bleu_max_len} words; the nearest neighbour substitution uses the skip gram `
     + `vectors of the <a href="../embeddings/">embeddings article</a>, ${B.embed_meta.shipped} `
     + `words at ${B.embed_meta.dim} dimensions, read from its published file.`);
 }

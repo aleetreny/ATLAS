@@ -40,6 +40,7 @@ from collections import Counter
 from pathlib import Path
 
 import numpy as np
+from sklearn.utils.extmath import randomized_svd
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from annkit import HNSW, IVF, PQ, brute, kmeans, recall_at  # noqa: E402
@@ -98,6 +99,12 @@ def r(v, d=6):
 
 
 # ------------------------------------------------------------------- los datos
+
+def pairdist(Q, X):
+    """Distancias al cuadrado por la identidad de la norma, sin el tensor de en medio."""
+    return np.maximum((X ** 2).sum(1)[None, :] - 2.0 * (Q @ X.T)
+                      + (Q ** 2).sum(1)[:, None], 0.0)
+
 def reuters_vectors():
     docs, cats, split = reuters()
     keep = [i for i, c in enumerate(cats) if len(c) == 1 and c[0] in R8]
@@ -117,7 +124,12 @@ def reuters_vectors():
     df = (X > 0).sum(0)
     X = np.log1p(X) * np.log(len(texts) / np.maximum(df, 1)).astype(np.float32)
     X /= np.maximum(np.linalg.norm(X, axis=1, keepdims=True), 1e-9)
-    U, S, _ = np.linalg.svd(X - X.mean(0), full_matrices=False)
+    # Descomposición truncada y aleatorizada en vez de la completa: solo hacen
+    # falta las primeras columnas, y una SVD completa de una matriz de miles por
+    # miles materializa una U cuadrada de cientos de megas para tirar el 99% de
+    # ella. Con semilla fija, así que es tan reproducible como la otra.
+    U, S, _ = randomized_svd(X - X.mean(0), n_components=DIMS,
+                             random_state=SEED)
     Z = (U[:, :DIMS] * S[:DIMS]).astype(np.float64)
     return Z, lab, len(words), [" ".join(t[:12]) for t in texts]
 
@@ -155,14 +167,15 @@ def stage_concentration(Z):
     for d in CURSE_DIMS:
         X = rng.standard_normal((2000, d))
         Q = rng.standard_normal((100, d))
-        dist = np.sqrt(((Q[:, None, :] - X[None, :, :]) ** 2).sum(-1))
+        dist = np.sqrt(pairdist(Q, X))
         near = dist.min(1)
         far = dist.max(1)
         rows.append(dict(d=d, contrast=float(np.mean((far - near) / near)),
                          near=float(near.mean()), far=float(far.mean()),
                          ratio=float(np.mean(far / near))))
     Q = Z[rng.choice(len(Z), 100, replace=False)]
-    dist = np.sqrt(((Q[:, None, :] - Z[None, :, :]) ** 2).sum(-1))
+    dist = np.sqrt(np.maximum(
+        (Z ** 2).sum(1)[None, :] - 2.0 * (Q @ Z.T) + (Q ** 2).sum(1)[:, None], 0.0))
     dist[dist == 0] = np.inf
     near, far = dist.min(1), np.where(np.isfinite(dist), dist, -np.inf).max(1)
     real = dict(d=DIMS, contrast=float(np.mean((far - near) / near)),
@@ -226,7 +239,7 @@ def stage_indices(Z, lab):
         if DIMS % m:
             continue
         pq = PQ(X, m, 8, np.random.default_rng(SEED + 3))
-        d_true = ((Q[:, None, :] - X[None, :, :]) ** 2).sum(-1)
+        d_true = pairdist(Q, X)
         adc = np.stack([pq.adc(q) for q in Q])
         sdc = np.stack([pq.sdc(q) for q in Q])
         found = np.argsort(adc, 1)[:, :K]

@@ -57,10 +57,13 @@ export function initEnumWidget(data) {
     + `the correlation coefficient says ${mcca.toFixed(3)} against ${mccb.toFixed(3)}, `
     + `pointing opposite ways. `
     + (tnCase
-      ? `And the structural reason: F1 never reads the true negatives at all. Here are two `
-        + `matrices with identical F1 of ${tnCase[2].toFixed(3)}, [${tnCase[0].join(', ')}] `
-        + `and [${tnCase[1].join(', ')}], whose correlation coefficients are `
-        + `${tnCase[3].toFixed(3)} and ${tnCase[4].toFixed(3)}. `
+      ? `And the structural reason, which needs a table larger than a hundred cases to show, `
+        + `because with the total fixed the true negatives are determined by the other three: `
+        + `hold the positives side at ${tnCase[0].slice(0, 3).join(', ')} and let the true `
+        + `negatives run from ${tnCase[0][3]} to ${tnCase[1][3]}. F1 stays at exactly `
+        + `${tnCase[2].toFixed(3)} the whole way, and the correlation coefficient goes from `
+        + `${tnCase[3].toFixed(3)} to ${tnCase[4].toFixed(3)}, a span of `
+        + `${E.worst_tn.toFixed(3)}. `
       : '')
     + `Swapping which class is called positive changes F1 by `
     + `${E.f1_asym_max.toFixed(3)} at worst and by ${E.f1_asym.toFixed(3)} on average, and `

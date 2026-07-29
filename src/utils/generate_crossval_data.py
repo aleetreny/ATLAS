@@ -44,6 +44,7 @@ from math import comb
 from pathlib import Path
 
 import numpy as np
+from sklearn.utils.extmath import randomized_svd
 from sklearn.linear_model import LinearRegression, LogisticRegression, Ridge
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -324,7 +325,12 @@ def stage_groups():
     df = (X > 0).sum(0)
     X = np.log1p(X) * np.log(len(texts) / np.maximum(df, 1)).astype(np.float32)
     X /= np.maximum(np.linalg.norm(X, axis=1, keepdims=True), 1e-9)
-    U, S, _ = np.linalg.svd(X - X.mean(0), full_matrices=False)
+    # Descomposición truncada y aleatorizada en vez de la completa: solo hacen
+    # falta las primeras columnas, y una SVD completa de una matriz de miles por
+    # miles materializa una U cuadrada de cientos de megas para tirar el 99% de
+    # ella. Con semilla fija, así que es tan reproducible como la otra.
+    U, S, _ = randomized_svd(X - X.mean(0), n_components=DUP_DIMS,
+                             random_state=SEED)
     Z = (U[:, :DUP_DIMS] * S[:DUP_DIMS]).astype(np.float64)
     Zn = Z / np.maximum(np.linalg.norm(Z, axis=1, keepdims=True), 1e-12)
 

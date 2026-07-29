@@ -25,11 +25,22 @@ import heapq
 import numpy as np
 
 
-def brute(X, Q, k):
-    """La respuesta, y el coste exacto de conseguirla."""
-    d = ((Q[:, None, :] - X[None, :, :]) ** 2).sum(-1)
-    idx = np.argsort(d, axis=1)[:, :k]
-    return idx, len(X) * len(Q)
+def brute(X, Q, k, block=64):
+    """La respuesta, y el coste exacto de conseguirla.
+
+    Por bloques de consultas y con la identidad de la norma: la forma directa
+    (`(Q[:, None] - X[None]) ** 2`) materializa un tensor de consultas por
+    vectores por dimensiones, que con doscientas consultas sobre seis mil
+    vectores de sesenta y cuatro columnas son seiscientos megas para tirarlos
+    en la línea siguiente.
+    """
+    xn = (X ** 2).sum(1)[None, :]
+    out = np.zeros((len(Q), k), int)
+    for i in range(0, len(Q), block):
+        q = Q[i:i + block]
+        d = xn - 2.0 * (q @ X.T) + (q ** 2).sum(1)[:, None]
+        out[i:i + block] = np.argsort(d, axis=1)[:, :k]
+    return out, len(X) * len(Q)
 
 
 def recall_at(found, truth):

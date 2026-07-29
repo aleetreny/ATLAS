@@ -45,6 +45,7 @@ from math import exp, log
 from pathlib import Path
 
 import numpy as np
+from sklearn.utils.extmath import randomized_svd
 from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import GaussianNB
 from sklearn.ensemble import RandomForestClassifier
@@ -206,7 +207,12 @@ def reuters_table():
     df = (X > 0).sum(0)
     X = np.log1p(X) * np.log(len(texts) / np.maximum(df, 1)).astype(np.float32)
     X /= np.maximum(np.linalg.norm(X, axis=1, keepdims=True), 1e-9)
-    U, S, _ = np.linalg.svd(X - X.mean(0), full_matrices=False)
+    # Descomposición truncada y aleatorizada en vez de la completa: solo hacen
+    # falta las primeras columnas, y una SVD completa de una matriz de miles por
+    # miles materializa una U cuadrada de cientos de megas para tirar el 99% de
+    # ella. Con semilla fija, así que es tan reproducible como la otra.
+    U, S, _ = randomized_svd(X - X.mean(0), n_components=DIMS,
+                             random_state=SEED)
     Z = (U[:, :DIMS] * S[:DIMS]).astype(np.float64)
     return Z, lab, is_test, len(words)
 
@@ -345,20 +351,26 @@ def stage_enumerate(n=ENUM_N):
         den = np.sqrt((tp + fp).astype(float) * (tp + fn) * (tn + fp) * (tn + fn))
         M = np.where(den > 0, (tp * tn - fp * fn) / np.where(den > 0, den, 1), 0.0)
         ACC = (tp + tn) / n
-    # F1 no mira los verdaderos negativos: parejas con el mismo tp, fp, fn
-    same = {}
-    for i in range(len(A)):
-        key = (int(tp[i]), int(fp[i]), int(fn[i]))
-        same.setdefault(key, []).append(i)
-    worst_tn, worst_pair = 0.0, None
-    for key, ids in same.items():
-        if len(ids) < 2:
-            continue
-        lo, hi = ids[0], ids[-1]
-        d = abs(M[hi] - M[lo])
-        if d > worst_tn:
-            worst_tn, worst_pair = float(d), (A[lo].tolist(), A[hi].tolist(),
-                                              float(F[lo]), float(M[lo]), float(M[hi]))
+    # F1 no mira los verdaderos negativos, y eso NO se puede enseñar dentro de
+    # las matrices de n fijo: con tp, fp y fn dados, tn queda determinado por n,
+    # así que ahí no hay dos matrices con los mismos tres primeros. La
+    # demostración es dejar los tres fijos y mover tn, que es cambiar cuántos
+    # casos negativos fáciles hay: F1 no se entera y MCC sí.
+    def _f1(a, b, c):
+        return 0.0 if 2 * a + b + c == 0 else 2 * a / (2 * a + b + c)
+
+    def _mcc(a, b, c, d):
+        den = np.sqrt(float(a + b) * (a + c) * (d + b) * (d + c))
+        return 0.0 if den == 0 else float((a * d - b * c) / den)
+
+    base = (20, 15, 10)          # una fila razonable de la parte positiva
+    tns = [10, 50, 200, 1000, 5000]
+    fixed = _f1(*base)
+    sweep = [dict(tn=int(v), f1=fixed, mcc=_mcc(*base, v), n=int(sum(base) + v))
+             for v in tns]
+    worst_tn = float(max(s["mcc"] for s in sweep) - min(s["mcc"] for s in sweep))
+    worst_pair = ([*base, tns[0]], [*base, tns[-1]], fixed,
+                  _mcc(*base, tns[0]), _mcc(*base, tns[-1]))
     # desacuerdos de orden, muestreados sobre todos los pares (son demasiados
     # para enumerarlos, así que se sortean y se dice cuántos)
     rng = np.random.default_rng(SEED)
@@ -375,18 +387,21 @@ def stage_enumerate(n=ENUM_N):
     ex = (A[pairs[k, 0]].tolist(), A[pairs[k, 1]].tolist(),
           float(F[pairs[k, 0]]), float(F[pairs[k, 1]]),
           float(M[pairs[k, 0]]), float(M[pairs[k, 1]]))
-    # simetría al intercambiar las clases
-    swap = np.stack([tn, fn, fp, tp], 1)
-    Fs = np.where(2 * swap[:, 0] + swap[:, 1] + swap[:, 2] > 0,
-                  2 * swap[:, 0] / (2 * swap[:, 0] + swap[:, 1] + swap[:, 2]), 0.0)
+    # Simetría al intercambiar las clases. Se calcula de verdad para las dos:
+    # que MCC salga exactamente cero es la afirmación, no una suposición, y una
+    # resta de una cantidad consigo misma la habría dado gratis sin medirla.
+    stp, sfp, sfn, stn = tn, fn, fp, tp
+    Fs = np.where(2 * stp + sfp + sfn > 0, 2 * stp / (2 * stp + sfp + sfn), 0.0)
+    dens = np.sqrt((stp + sfp).astype(float) * (stp + sfn) * (stn + sfp) * (stn + sfn))
+    Ms = np.where(dens > 0, (stp * stn - sfp * sfn) / np.where(dens > 0, dens, 1), 0.0)
     return dict(matrices=int(len(A)), n=n,
                 flip_f1_mcc=flip_fm, flip_acc_mcc=flip_am, flip_acc_f1=flip_af,
                 pairs=int(len(pairs)),
-                worst_tn=worst_tn, worst_tn_case=worst_pair,
+                worst_tn=worst_tn, worst_tn_case=worst_pair, tn_sweep=sweep,
                 worst_flip=ex,
                 f1_asym=float(np.mean(np.abs(Fs - F))),
                 f1_asym_max=float(np.max(np.abs(Fs - F))),
-                mcc_asym=float(np.max(np.abs(M - M))),
+                mcc_asym=float(np.max(np.abs(Ms - M))),
                 f1_all_negative=float(F[(tp == 0)].max()),
                 cloud=[[int(a), int(b), float(c), float(d)]
                        for a, b, c, d in zip(tp[::97], fp[::97], F[::97], M[::97])])
