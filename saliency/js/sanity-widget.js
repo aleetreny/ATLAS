@@ -76,16 +76,22 @@ export function initSanityWidget(data) {
   });
 
   const full = order[order.length - 1];
+  const first = order[0];
+  /* El peor caso de Grad-CAM sobre TODO el recorrido, no solo el último paso:
+   * decir "está en -0,014 desde el primer paso" era falso, porque en uno de los
+   * escalones intermedios llega a +0,251. Sigue siendo poco, y el número que se
+   * publica tiene que ser el que se puede defender. */
+  const camWorst = Math.max(...order.map((r) => Math.abs(r.gradcam)));
   readout.innerHTML =
-    `<p>Left to right, more of the network is replaced by random numbers of the same scale, `
-    + `starting at the head and working down. By the right hand edge nothing of the trained `
-    + `model is left. The plain gradient's map still agrees with the trained one at `
-    + `<span class="bold">${sgn(full.gradient)}</span> and gradient times input at `
-    + `<span class="bold">${sgn(full.grad_input)}</span>: those pictures were never about the `
-    + `weights. Grad-CAM is at <span class="bold">${sgn(full.gradcam)}</span> from the first `
-    + `step onwards. The flat grey line is the input image, which by definition cannot notice `
-    + `and is drawn to show what "did not notice" looks like. Set this against the previous `
-    + `section, where gradient times input scored ${f3(S.grad_input.pointing)} and Grad-CAM `
-    + `${f3(S.gradcam.pointing)}: the higher score belongs to the method that is not looking `
-    + `at the model.</p>`;
+    `<p>Read it left to right: at the left edge only the head has been replaced by random `
+    + `numbers of the same scale, and by the right edge nothing of the trained model is left. `
+    + `The two flat lines at the top are the gradient methods, and they are flat from the very `
+    + `first step, before most of the model has been touched at all: `
+    + `<span class="bold">${sgn(first.gradient)}</span> and `
+    + `<span class="bold">${sgn(first.grad_input)}</span> after randomising one layer, `
+    + `${sgn(full.gradient)} and ${sgn(full.grad_input)} after randomising all of them. The `
+    + `line that falls is Grad-CAM, which never gets further from zero than `
+    + `<span class="bold">${sgn(camWorst)}</span> anywhere along the sweep. The grey line along `
+    + `the top is the input image, which cannot notice by definition and is drawn to show what `
+    + `"did not notice" looks like when it is honest about it.</p>`;
 }

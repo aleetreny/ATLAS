@@ -119,7 +119,8 @@ export function initProse(data) {
 
   set('chains-intro',
     `A grid is not how anybody computes a posterior, so before this one is used as an answer `
-    + `key it is worth checking against the method that is. ${word(data.chains.length)} `
+    + `key it is worth checking against the method that is: `
+    + `${word(data.chains.length)} `
     + `Metropolis chains, ${n0(data.chains[0].n + 1)} steps each, acceptance rate around `
     + `${f2(data.chains.reduce((s, c) => s + c.rate, 0) / data.chains.length)}, started from `
     + `different places and never told about each other. Their predictive means are drawn `
@@ -172,10 +173,10 @@ export function initProse(data) {
       : `An ensemble of ${word(8)} networks trained on the same data recovers `
         + `${f3(by.ensemble.sd_ratio_in)} of the right spread in the gap, against `
         + `${f3(by.bootstrap.sd_ratio_in)} when the data are resampled instead.`} `
-    + `And the two rows underneath are the ones that pay: `
+    + `The rows that do pay for the posterior are the ones that get near it: `
     + `<span class="bold">${best.label}</span> lands at ${f4(best.tv_all)}, `
-    + `${(worstRow.tv_all / best.tv_all).toFixed(1)} times closer to the truth than `
-    + `${worstRow.label} at ${f4(worstRow.tv_all)}, and `
+    + `${(worstRow.tv_all / best.tv_all).toFixed(1)} times closer to the truth than the worst `
+    + `row here (${worstRow.label}, ${f4(worstRow.tv_all)}), and `
     + `${by.sgld.sd_ratio_in > by.vi.sd_ratio_in
       ? `SGLD is the one that gets the size of the gap nearly right `
         + `(${f3(by.sgld.sd_ratio_in)} of it)`
@@ -208,8 +209,9 @@ export function initProse(data) {
     + `(${f2(bestPrior.log_evidence)}, against ${f2(lowPrior.log_evidence)} at `
     + `${lowPrior.scale} and ${f2(highPrior.log_evidence)} at ${highPrior.scale}), so the data `
     + `do have an opinion about the assumption. That opinion is worth `
-    + `${f1(bestPrior.log_evidence - highPrior.log_evidence)} in log evidence, which is a `
-    + `preference and not a proof.`);
+    + `${f1(bestPrior.log_evidence - lowPrior.log_evidence)} log units against the narrowest `
+    + `width in the sweep and ${f1(bestPrior.log_evidence - highPrior.log_evidence)} against `
+    + `the widest, which is a preference and not a proof.`);
 
   rows('#approx-table', [...A].sort((a, b) => a.tv_all - b.tv_all), (d) => [
     { html: `<span class="bold">${d.label}</span>` },

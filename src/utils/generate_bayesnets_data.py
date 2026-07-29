@@ -65,6 +65,9 @@ PRIOR = 3.0           # desviación del prior gaussiano sobre cada peso
 GRID = 241
 LIM = 6.0
 N_DATA = 24
+# Las anchuras de prior que barren las dos vistas del último widget. Una sola
+# lista: ver stage_prior_functions.
+PRIOR_SCALES = [0.5, 1.0, 3.0, 6.0]
 X_LO, X_HI = -2.0, 2.0
 YGRID = 241           # rejilla en y para comparar densidades predictivas
 
@@ -422,11 +425,17 @@ def score(exact, mean, sd, dens, xs, inside, every=10):
 
 
 def stage_prior_functions():
-    """Qué prior sobre funciones implica el prior sobre pesos."""
+    """Qué prior sobre funciones implica el prior sobre pesos.
+
+    Las mismas cuatro anchuras que el barrido, y no otras cuatro. Con [0,3, 1,
+    3, 10] aquí y [0,5, 1, 3, 6] allí, la página prometía en una vista una
+    tabla que la vista siguiente no enseñaba, y el lector no tiene forma de
+    saber cuál de las dos listas es la del experimento.
+    """
     rng = np.random.default_rng(SEED + 8)
     xs = np.linspace(-3, 3, 121)
     rows = []
-    for scale in [0.3, 1.0, 3.0, 10.0]:
+    for scale in PRIOR_SCALES:
         S = rng.standard_normal((4000, 3)) * scale
         f = net(S, xs)
         rows.append(dict(scale=scale, amplitude=float(np.abs(f).max(1).mean()),
@@ -452,7 +461,7 @@ def stage_prior_sweep(x, y, xs, base):
     global PRIOR
     keep = PRIOR
     rows = []
-    for scale in [0.5, 1.0, 3.0, 6.0]:
+    for scale in PRIOR_SCALES:
         if scale == keep:
             ex = base
         else:

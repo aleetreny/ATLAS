@@ -17,6 +17,8 @@ function note(g, x, y, text, { anchor = 'start', size = 11.5 } = {}) {
 }
 
 const f3 = (v) => v.toFixed(3);
+const WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight'];
+const word = (v) => (v >= 0 && v < WORDS.length ? WORDS[v] : String(v));
 const f4 = (v) => v.toFixed(4);
 const sgn = (v, d = 3) => (v >= 0 ? `+${v.toFixed(d)}` : v.toFixed(d));
 
@@ -109,10 +111,12 @@ export function initAttWidget(data) {
         + `that trained it knows that by a different route, which is removing it and watching `
         + `the accuracy fall by <span class="bold">${f4(best.published)}</span> over `
         + `${A.published_n.toLocaleString('en-US')} test sentences. Reading the map, you would `
-        + `say it looks mostly at the previous word (${f3(best.previous)} of its weight) and `
-        + `that it is the most peaked of the ${A.rows.length} (${f3(best.peak)}). Both of `
-        + `those readings are correct, and this is the head they point at. The next view asks `
-        + `whether they point at the right head when there are eight to rank.</p>`;
+        + `say it is a sharp one: <span class="bold">${f3(best.peak)}</span> of its weight on a `
+        + `single word, the most peaked of the ${word(A.rows.length)} heads, and only `
+        + `${f3(best.previous)} of it on the immediately preceding word, so whatever it is `
+        + `tracking is not adjacency. Those readings are correct, and this is the head they `
+        + `point at. The next view asks whether they point at the right head when there are `
+        + `${word(A.rows.length)} to rank.</p>`;
     } else if (view === 'read' || view === 'small') {
       const small = view === 'small';
       const pts = A.rows.map((r) => [r.peak, small ? -r.ablation : r.published, r]);

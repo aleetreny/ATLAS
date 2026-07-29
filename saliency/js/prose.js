@@ -29,6 +29,21 @@ export const PROSE_IDS = [
   'closing-1', 'closing-2', 'ref-note',
 ];
 
+/* Cuántas cabezas caben en una sola marca del retículo de 1/fichas, contando
+ * solo hacia arriba: con la desigualdad de un lado, la ventana que arranca en
+ * el valor más alto se traga las ocho. La misma cuenta que hace att-widget. */
+function crowded(A) {
+  const step = 1 / A.tokens;
+  const v = A.rows.map((r) => r.published).sort((a, b) => a - b);
+  let best = 1;
+  for (let i = 0; i < v.length; i++) {
+    let k = 0;
+    for (let j = i; j < v.length; j++) if (v[j] - v[i] <= step) k += 1;
+    best = Math.max(best, k);
+  }
+  return best;
+}
+
 function set(id, html) {
   const node = document.querySelector(`#${id}`);
   if (node) node.innerHTML = html;
@@ -127,8 +142,10 @@ export function initProse(data) {
     + `One more thing falls out of the arithmetic here. With a one by one head, the weights `
     + `Grad-CAM averages are exactly the head's own weights, so Grad-CAM `
     + `<span class="bold">is</span> the class activation map, up to a factor of `
-    + `${I.factor}. The page checks that: worst relative difference `
-    + `${I.worst_relative.toExponential(0)}.`);
+    + `${I.factor}. The page checks that, and the two agree `
+    + `${I.worst_relative === 0
+      ? 'to every bit: the worst relative difference across every scene is exactly zero'
+      : `to ${I.worst_relative.toExponential(0)} in the worst case`}.`);
 
   set('sanity-intro',
     `There is a check that costs nothing and that a saliency map has to pass before its score `
@@ -142,7 +159,9 @@ export function initProse(data) {
     + `<span class="bold">every layer</span>, the plain gradient's map still correlates `
     + `<span class="bold">${sgn(full.gradient)}</span> with the map from the trained model, `
     + `and gradient times input <span class="bold">${sgn(full.grad_input)}</span>. Grad-CAM `
-    + `falls to <span class="bold">${sgn(full.gradcam)}</span>. So the method that scored `
+    + `falls to <span class="bold">${sgn(full.gradcam)}</span>, and never gets further from `
+    + `zero than ${sgn(Math.max(...N.map((r) => Math.abs(r.gradcam))))} at any step of the `
+    + `ladder. So the method that scored `
     + `${f3(by.grad_input.pointing)} against the masks, the best of the cheap ones, is `
     + `producing essentially the same picture for a network whose weights are noise. It is an `
     + `edge detector with the model attached for decoration, and on a dataset where the `
@@ -183,10 +202,12 @@ export function initProse(data) {
     + `paragraph writes itself. But ${A.tokens} tags can only resolve accuracy in steps of `
     + `1/${A.tokens}, which is ${f4(step)}, and the published drops run from `
     + `${f4(Math.min(...A.rows.map((r) => r.published)))} to `
-    + `${f4(Math.max(...A.rows.map((r) => r.published)))}. Every difference this comparison is `
-    + `supposed to be about is smaller than one step of the ruler. The `
-    + `${f2(A.corrs_small.peak)} is a picture of the rounding, and the third view above draws `
-    + `both so the two can be put side by side.`);
+    + `${f4(Math.max(...A.rows.map((r) => r.published)))}, so `
+    + `<span class="bold">${word(crowded(A))} of the ${word(A.rows.length)} heads</span> sit `
+    + `inside a single step of that ruler and the ordering among them is decided by which side `
+    + `of a rounding boundary each one happened to fall on. The ${sgn(A.corrs_small.peak)} is a `
+    + `picture of that, and the third view above draws both so the two can be put side by `
+    + `side.`);
 
   set('att-adv',
     `And underneath the resolution question there is a harder limit, which is the experiment `

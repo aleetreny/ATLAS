@@ -106,7 +106,7 @@ export function initApproxWidget(data) {
       note(g, 0, -34, 'filled: the exact posterior predictive').attr('fill', 'var(--primary)');
       note(g, 0, -19, `dashed: ${row.label}`).attr('fill', 'var(--cosmos)');
       readout.innerHTML =
-        `<p><span class="bold">${row.label}</span>, drawn over the answer. Its distance to the `
+        `<p>Drawn over the answer: <span class="bold">${row.label}</span>. Its distance to the `
         + `exact predictive is <span class="bold">${f4(row.tv_all)}</span> in total variation, `
         + `${f4(row.tv_in)} inside the gap and ${f4(row.tv_out)} outside it, and its band is `
         + `<span class="bold">${f3(row.sd_ratio_in)}</span> as wide as the true one where it `
