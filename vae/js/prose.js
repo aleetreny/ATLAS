@@ -66,7 +66,7 @@ export function initProse(data) {
   set('scrolly-step-0',
     `An encoder that returns a point has nothing to say about where the points are. It puts `
     + `each digit somewhere and the somewheres form a cloud whose shape nobody chose and nobody `
-    + `wrote down. The picture is that cloud, exactly as the previous article published it.`);
+    + `wrote down. The picture is that cloud, exactly as the <a href="../autoencoders/">bottleneck article</a> published it.`);
   set('scrolly-step-1',
     `Change one thing: the encoder returns a <span class="bold">distribution</span> instead of a `
     + `point, a mean and a width per digit, and training draws a sample from it before decoding. `
@@ -88,7 +88,7 @@ export function initProse(data) {
   set('scrolly-step-4',
     `The two terms pull against each other and the colours are the price each digit pays: `
     + `darker is more nats spent sitting where it sits. Turn the second term off and the model `
-    + `is exactly the previous article's; turn it up and the codes are squeezed until they carry `
+    + `is exactly the <a href="../autoencoders/">bottleneck article</a>'s; turn it up and the codes are squeezed until they carry `
     + `nothing at all. The sweep further down measures both ends.`);
 
   set('integral-note',
@@ -190,7 +190,7 @@ export function initProse(data) {
   set('beta-intro',
     `The two terms can be weighed against each other explicitly, and the weight has a name. At `
     + `zero, the second term is gone and the objective is squared error through a bottleneck: `
-    + `the previous article's model, exactly. Everything below is the same code, the same `
+    + `the <a href="../autoencoders/">bottleneck article</a>'s model, exactly. Everything below is the same code, the same `
     + `${M.k_collapse} latent numbers, the same ${M.epochs} epochs and the same three seeds, `
     + `with one number changed.`);
 
@@ -280,7 +280,7 @@ export function initProse(data) {
       : `Nothing collapsed in this sweep, but the rate is still the number to watch.`}`);
 
   set('closing-note',
-    `So the promise from the previous article is kept, and it turned out to be worth less at two `
+    `So the promise the <a href="../autoencoders/">bottleneck article</a> made is kept, and it turned out to be worth less at two `
     + `numbers than the textbook suggests and much more at sixteen. What the variational `
     + `autoencoder really adds is not picture quality: it is that the model and the sampler are `
     + `the same object, that the code has a rate in nats you can read, and that the objective is `

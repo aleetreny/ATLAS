@@ -373,7 +373,9 @@ export function initProse(data, facts) {
     + `the data shuffled. What comes next is a different question altogether. Everything in this `
     + `module has been about finding structure that was already in the data; module 3 is about `
     + `learning the distribution well enough to <span class="bold">make more of it</span>. It `
-    + `starts <a href="../vae/">where the bottleneck article left off</a>, by taking that `
+    + `opens on <a href="../gans/">the road with no loss function on it</a>, where the objective `
+    + `is a second network that is trying to lose, and it comes back later to the quieter one, `
+    + `which starts <a href="../vae/">where the bottleneck article left off</a> by taking that `
     + `article's own decoder, sampling it, and asking what it takes to make the samples worth `
     + `looking at.`);
 

@@ -77,9 +77,9 @@ def arima_thumb():
     parts = head()
     band = (" ".join(f"{x:.0f},{y:.0f}" for x, y in zip(xf, ylo))
             + " " + " ".join(f"{x:.0f},{y:.0f}" for x, y in zip(xf[::-1], yhi[::-1])))
-    parts.append(f'  <polygon points="{band}" fill="#713f12" opacity="0.22" />')
+    parts.append(f'  <polygon points="{band}" fill="#705e32" opacity="0.22" />')
     parts.append(polyline(xs, yh, INK, 2))
-    parts.append(polyline(xf, ym, "#713f12", 2.6))
+    parts.append(polyline(xf, ym, "#705e32", 2.6))
     write("arima", parts)
 
 
@@ -155,9 +155,9 @@ def deepforecast_thumb():
         yv = scale([v], lo, hi, top=34, bottom=H - 34)[0]
         parts.append(f'  <line x1="24" y1="{yv:.0f}" x2="{W - 24}" y2="{yv:.0f}" '
                      f'stroke="{GREY}" stroke-width="1.4" stroke-dasharray="6 4" />')
-    parts.append(polyline(xs, ys, "#3c4e85", 3))
+    parts.append(polyline(xs, ys, "#143b85", 3))
     circles = "".join(f'<circle cx="{x:.0f}" cy="{y:.0f}" r="5" />' for x, y in zip(xs, ys))
-    parts.append(f'  <g fill="#3c4e85">{circles}</g>')
+    parts.append(f'  <g fill="#143b85">{circles}</g>')
     write("deep-forecast", parts)
 
 
@@ -179,7 +179,7 @@ def zeroshot_thumb():
         if i + 1 < len(xs):
             steps_x.append(xs[i + 1])
             steps_y.append(yb[i])
-    parts.append(polyline(steps_x, steps_y, "#0e5c29", 2.6))
+    parts.append(polyline(steps_x, steps_y, "#3e295c", 2.6))
     write("zero-shot", parts)
 
 

@@ -201,8 +201,14 @@ def sin_rayas():
     para que este fichero no se acuse a sí mismo. Y una línea que habla de la
     regla necesita poder citarlos: se salta la que diga "rayas largas" o lleve
     el token `no-raya-check`.
+
+    Las entidades HTML de raya también cuentan: un `&` + `mdash;` en un template
+    de JavaScript renderiza la misma raya en la página y el barrido por carácter
+    no lo ve (pasó en el 34, en una celda vacía de la tabla de subsamples). Se
+    construyen por concatenación por el mismo motivo que los caracteres.
     """
     EM, EN = chr(0x2014), chr(0x2013)
+    ENTIDADES = ["&" + "mdash;", "&" + "ndash;", "&#" + "8212;", "&#" + "8211;"]
     malos = []
     patrones = ["*.html", "*.js", "*.py", "*.md", "*.css"]
     saltar = ("assets/js/vendor", "node_modules", ".git")
@@ -216,7 +222,8 @@ def sin_rayas():
             except (UnicodeDecodeError, OSError):
                 continue
             for i, line in enumerate(t.splitlines(), 1):
-                if EM not in line and EN not in line:
+                if (EM not in line and EN not in line
+                        and not any(e in line for e in ENTIDADES)):
                     continue
                 if "rayas largas" in line or "no-raya-check" in line:
                     continue

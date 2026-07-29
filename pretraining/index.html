@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Three Ways To Read | ATLAS</title>
+  <meta name="description" content="One architecture, one budget, one corpus, three pretraining objectives. Masked, causal and span corruption trained for the same number of steps and probed the same way, with the fifteen percent masking rate swept instead of assumed." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/pretraining/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="Three Ways To Read | ATLAS" />
+  <meta property="og:description" content="BERT, GPT and T5 are the same architecture asked to predict three different things. Here they are, on one budget, measured." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/pretraining/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Three Ways To Read | ATLAS" />
+  <meta name="twitter:description" content="BERT, GPT and T5 are the same architecture asked to predict three different things. Here they are, on one budget, measured." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    /* Per-article theme. Everything else inherits from these two. */
+    :root {
+      --primary: #3730a3;
+      --secondary: #2c2682;
+    }
+  </style>
+</head>
+<body>
+  <!-- ======================= chrome ======================= -->
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <!-- ======================= hero ======================= -->
+  <section id="intro">
+    <h1 id="intro-hed">Three Ways To Read</h1>
+    <h1 id="intro-sub">The same architecture and the same budget, asked to predict three different things, and the three things turn out to decide almost everything</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 4.1 &middot; NLP &middot; Three Ways To Read</span>
+  </section>
+
+  <br />
+
+  <!-- ======================= introduction ======================= -->
+  <section>
+    <p class="body-text" id="intro-labels">
+      Every model in this branch so far has been trained on labels somebody
+      wrote by hand.
+    </p>
+    <br />
+    <p class="body-text" id="intro-three">
+      There are three well-known answers, and they are usually presented as
+      three different models.
+    </p>
+    <br />
+    <p class="body-text" id="intro-guard">
+      One architecture, one corpus, one budget.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the three ======================= -->
+  <section>
+    <h1 class="body-header">Same Model, Three Questions</h1>
+    <p class="body-text" id="arms-intro">
+      What separates them is a mask and a target, and nothing else.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="objective-widget">
+    <div class="controls-row" style="justify-content: center" id="objective-arms"></div>
+    <div id="objective-chart"></div>
+    <div class="widget-readout" id="objective-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="objective-note">
+      The three examples above are real training examples.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="arms-widget">
+    <div class="controls-row" style="justify-content: center" id="arms-views"></div>
+    <div id="arms-chart"></div>
+    <div class="widget-readout" id="arms-readout"></div>
+  </div>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table" id="arms-table">
+      <thead>
+        <tr>
+          <th>Objective</th>
+          <th>Parameters</th>
+          <th>Predictions it was graded on</th>
+          <th>Per token seen</th>
+          <th>Frozen probe</th>
+          <th>Filling one gap</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="arms-verdict">
+      The column nobody prints is the fourth one.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the mask rate ======================= -->
+  <section>
+    <h1 class="body-header">Where Fifteen Percent Came From</h1>
+    <p class="body-text" id="rate-intro">
+      One number in the masked objective has been copied from paper to paper
+      since 2018 without being re-derived.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="rate-widget">
+    <div class="controls-row">
+      <span class="slider-label">hidden = <span class="value" id="rate-slider-label">15%</span></span>
+      <input type="range" class="atlas-range" id="rate-slider" aria-label="fraction of the tokens hidden" min="0" max="4" step="1" value="1" />
+    </div>
+    <div id="rate-strip"></div>
+    <div id="rate-chart"></div>
+    <div class="widget-readout" id="rate-readout"></div>
+  </div>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table" id="rate-table">
+      <thead>
+        <tr>
+          <th>Masked</th>
+          <th>Predictions it was graded on</th>
+          <th>Final loss</th>
+          <th>Frozen probe</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="rate-verdict">
+      Two things are pulling against each other here, and the shape of the
+      curve is the argument.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= verdict ======================= -->
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text">
+      Three objectives on one budget, and what each of them can and cannot do
+      afterwards.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Objective</th>
+          <th>What it can do afterwards</th>
+          <th>What it scored here</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">Masked</span></td>
+          <td>Represent a sentence with both sides of every word in view. Cannot generate.</td>
+          <td id="v-bert">Measured above.</td>
+          <td id="v-bert-watch">It is graded on a fraction of the tokens it reads.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Causal</span></td>
+          <td>Generate, and represent, with only the left in view</td>
+          <td id="v-gpt">Measured above.</td>
+          <td id="v-gpt-watch">Every representation is missing the right-hand context.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Span corruption</span></td>
+          <td>Both, at the cost of a decoder</td>
+          <td id="v-t5">Measured above.</td>
+          <td id="v-t5-watch">The same budget buys fewer layers per side.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="closing-1">
+      The objective is not a detail of the training script.
+    </p>
+    <br />
+    <p class="body-text" id="closing-2">
+      One thing has been constant since the attention article, and it is the
+      part that scales worst.
+    </p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! Everything above was measured rather than cited: the
+      three objectives share an architecture, a corpus, a split, a parameter
+      budget within a few percent and an identical number of optimiser steps, so
+      that the only difference between the arms is what the model was asked to
+      predict, from
+      <code>src/utils/generate_pretraining_data.py</code>.
+    </p>
+  </section>
+
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text" id="ref-note">
+      The corpus and split are the previous two articles', unchanged.
+    </p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1810.04805">[1] BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding</a><br />
+      (Devlin, J., Chang, M., Lee, K. &amp; Toutanova, K., NAACL, 2019; the masked objective, the fifteen percent, and the eighty-ten-ten recipe implemented here)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://cdn.openai.com/research-covers/language-unsupervised/language_understanding_paper.pdf">[2] Improving Language Understanding by Generative Pre-Training</a><br />
+      (Radford, A., Narasimhan, K., Salimans, T. &amp; Sutskever, I., 2018; the causal objective as pretraining rather than as an end in itself)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://jmlr.org/papers/v21/20-074.html">[3] Exploring the Limits of Transfer Learning with a Unified Text-to-Text Transformer</a><br />
+      (Raffel, C. et al., JMLR, 2020; span corruption, and the systematic comparison this article is a miniature of)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/2202.08005">[4] Should You Mask 15% in Masked Language Modeling?</a><br />
+      (Wettig, A., Gao, T., Zhong, Z. &amp; Chen, D., EACL, 2023; the paper that asked the question the second table asks)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/2001.08361">[5] Scaling Laws for Neural Language Models</a><br />
+      (Kaplan, J. et al., 2020; why counting the supervised predictions per token is the column that ends up mattering)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>What Came Before | ATLAS</title>
+  <meta name="description" content="A hidden Markov model and three recurrent cells on the same tagged corpus and the same task. Viterbi runs in the page as a trellis you can read, and the gradient is measured against distance rather than described." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/sequences/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="What Came Before | ATLAS" />
+  <meta property="og:description" content="Four models of memory on one task with a known answer for every token, and two measurements of how far back each of them can actually see." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/sequences/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="What Came Before | ATLAS" />
+  <meta name="twitter:description" content="Four models of memory on one task with a known answer for every token, and two measurements of how far back each of them can actually see." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    /* Per-article theme. Everything else inherits from these two. */
+    :root {
+      --primary: #3c4e85;
+      --secondary: #303e6a;
+    }
+  </style>
+</head>
+<body>
+  <!-- ======================= chrome ======================= -->
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <!-- ======================= hero ======================= -->
+  <section id="intro">
+    <h1 id="intro-hed">What Came Before</h1>
+    <h1 id="intro-sub">Four models of memory on one task where every token has a known right answer, and two ways of measuring how far back each of them can really see</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 4.1 &middot; NLP &middot; What Came Before</span>
+  </section>
+
+  <br />
+
+  <!-- ======================= introduction ======================= -->
+  <section>
+    <p class="body-text" id="intro-order">
+      Three articles of this branch have now thrown the word order away.
+    </p>
+    <br />
+    <p class="body-text" id="intro-task">
+      The oldest task in the field is a good place to put it back.
+    </p>
+    <br />
+    <p class="body-text" id="intro-guard">
+      The Markov model runs in this page in full.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the hmm ======================= -->
+  <section>
+    <h1 class="body-header">One Step Of Memory</h1>
+    <p class="body-text" id="hmm-intro">
+      A hidden Markov model makes two assumptions, and both of them are wrong on
+      purpose.
+    </p>
+    <p class="body-text">
+      $$P(w_{1:n}, t_{1:n}) = \prod_{i=1}^{n} P(t_i \mid t_{i-1})\, P(w_i \mid t_i)$$
+    </p>
+    <p class="body-text" id="hmm-note">
+      Every tag depends on exactly one tag, and every word depends on exactly
+      one tag. Nothing else.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="trellis-widget">
+    <div class="controls-row" style="justify-content: center" id="trellis-views"></div>
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">sentence <span class="value" id="trellis-sentence-label">1 of 6</span></span>
+      <input type="range" class="atlas-range" id="trellis-sentence" aria-label="which sentence to tag" min="0" max="1" step="1" value="0" />
+    </div>
+    <div id="trellis-chart"></div>
+    <div class="widget-readout" id="trellis-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="hmm-score">
+      Over the whole held-out split, and against the one baseline that matters:
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table" id="hmm-table">
+      <thead>
+        <tr>
+          <th>Tokens</th>
+          <th>Most frequent tag for the word</th>
+          <th>Hidden Markov model</th>
+          <th>What the context bought</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="hmm-verdict">
+      The baseline is embarrassingly strong, and saying so is the point.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the nets ======================= -->
+  <section>
+    <h1 class="body-header">More Than One Step</h1>
+    <p class="body-text" id="nets-intro">
+      A recurrent network drops the Markov assumption entirely.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table" id="nets-table">
+      <thead>
+        <tr>
+          <th>Model</th>
+          <th>Hidden width</th>
+          <th>Recurrent parameters</th>
+          <th>Accuracy</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="nets-verdict">
+      Which is a small difference for a large change of machinery.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= memory ======================= -->
+  <section>
+    <h1 class="body-header">How Far Back Can It See</h1>
+    <p class="body-text" id="reach-intro">
+      Tagging does not need long memory, which is exactly why it cannot tell
+      these three apart.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="flow-widget">
+    <div class="controls-row" style="justify-content: center" id="flow-views"></div>
+    <div id="flow-chart"></div>
+    <div class="widget-readout" id="flow-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="reach-verdict">
+      The two views measure different things and mostly agree.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= verdict ======================= -->
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text">
+      Four models of memory, one task with an answer key, and one synthetic
+      task built to break them.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Reach for</th>
+          <th>When</th>
+          <th>What it bought here</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">Most frequent tag</span></td>
+          <td>Before writing any model at all</td>
+          <td id="v-base">Measured above.</td>
+          <td id="v-base-watch">It has no answer for a word it never saw.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Hidden Markov model</span></td>
+          <td>The label sequence has strong local structure and you want the whole model to fit in a table</td>
+          <td id="v-hmm">Measured above.</td>
+          <td id="v-hmm-watch">One step of memory, by construction.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Plain RNN</span></td>
+          <td>Rarely</td>
+          <td id="v-rnn">Measured above.</td>
+          <td id="v-rnn-watch">Its memory has a measured half life.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">LSTM or GRU</span></td>
+          <td>The answer depends on something that happened a while ago</td>
+          <td id="v-gated">Measured above.</td>
+          <td id="v-gated-watch">Still one token at a time, forever.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="closing-1">
+      Every model on this page has the same shape.
+    </p>
+    <br />
+    <p class="body-text" id="closing-2">
+      The next article removes the recurrence entirely.
+    </p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! Everything above ran here: the whole hidden Markov
+      model travels as three tables of log probabilities, so the page runs
+      Viterbi and the greedy decoder itself on every drag and checks both
+      against the generator at load time, with the corpus, the counts, the three
+      trained networks, the gradient probe and the copy task from
+      <code>src/utils/generate_sequences_data.py</code>.
+    </p>
+  </section>
+
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text" id="ref-note">
+      The corpus is the Brown corpus as distributed with NLTK.
+    </p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://ieeexplore.ieee.org/document/1054010">[1] Error Bounds for Convolutional Codes and an Asymptotically Optimum Decoding Algorithm</a><br />
+      (Viterbi, A., IEEE Transactions on Information Theory, 1967; the dynamic program the trellis above is drawing)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://ieeexplore.ieee.org/document/18626">[2] A Tutorial on Hidden Markov Models and Selected Applications in Speech Recognition</a><br />
+      (Rabiner, L., Proceedings of the IEEE, 1989; the three tables and what each of them is)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://www.bioinf.jku.at/publications/older/2604.pdf">[3] Long Short-Term Memory</a><br />
+      (Hochreiter, S. &amp; Schmidhuber, J., Neural Computation, 1997; the cell that exists because of the measurement in the second figure)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1412.3555">[4] Empirical Evaluation of Gated Recurrent Neural Networks on Sequence Modeling</a><br />
+      (Chung, J., Gulcehre, C., Cho, K. &amp; Bengio, Y., 2014; the GRU, and the same finding that on many tasks it and the LSTM are hard to tell apart)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://www.ai.mit.edu/projects/dm/bengio-vanishing.pdf">[5] Learning Long-Term Dependencies with Gradient Descent is Difficult</a><br />
+      (Bengio, Y., Simard, P. &amp; Frasconi, P., IEEE Transactions on Neural Networks, 1994; the argument the gradient figure turns into a curve)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>

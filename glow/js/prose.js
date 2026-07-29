@@ -331,11 +331,13 @@ export function initProse(data) {
     + `undo one small step of the damage. That model has no bound, no constant, no invertibility `
     + `requirement and no chain that has to mix, and it is what module 3.3 is about.`
     + `<br /><br />`
-    + `The next article in reading order leaves pictures behind entirely. Everything in this `
-    + `module could be shuffled without losing anything: the digits arrive in no particular order `
-    + `and nothing about digit 41 depends on digit 40. <a href="../arima/">Module 4 begins</a> by `
-    + `taking that away, which turns out to break far more of the machinery than it looks like it `
-    + `should, starting with what a test is allowed to tell you.`);
+    + `Module 3.3 is not written yet, and the article that is written next changes the object `
+    + `rather than the method. Everything in this atlas so far has started from a row of numbers, `
+    + `a set, or a picture. A <span class="bold">document</span> is none of those: it is a `
+    + `sequence of words, of no fixed length, drawn from a vocabulary nobody wrote down, and `
+    + `before any of this machinery can touch it somebody has to decide what its numbers are. `
+    + `That decision is older than most of this atlas and it is still the one to beat. `
+    + `<a href="../tf-idf/">Counting words</a> is next.`);
 
   set('resources-note',
     `${n0(M.n_digits_train)} MNIST digits to fit on and ${n0(M.n_digits_test)} held out, plus `

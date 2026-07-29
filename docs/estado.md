@@ -5,7 +5,7 @@
 > en la misma sesión.**
 
 
-Este repositorio empezó como notebooks de ML y se está convirtiendo (notebooks de ML) en una web educativa interactiva que clona la estética de mlu-explain.github.io. **La web ya está publicada en https://aleetreny.github.io/ATLAS/**.
+Este repositorio empezó como notebooks de ML y se está convirtiendo en una web educativa interactiva que clona la estética de mlu-explain.github.io. **La web ya está publicada en https://aleetreny.github.io/ATLAS/**.
 
 ## Arquitectura
 - El sitio vive en la **raíz del repo** (`index.html` + `assets/` + una carpeta por artículo), no en `docs/`. GitHub Pages está configurado a main → `/(root)`, con `.nojekyll`.
@@ -64,19 +64,164 @@ Este repositorio empezó como notebooks de ML y se está convirtiendo (notebooks
 | 38 | The Constant Nobody Computes (cadenas de Langevin vivas sobre la energía, el ruido quitado, el sesgo de CD contra un gradiente exacto) | `ebm/` | `#5f2412` |
 | 39 | Exactly (rejilla deformada capa a capa en vivo, la escalera de profundidad, el agujero que no puede abrir) | `flows/` | `#8a4b12` |
 | 40 | How Many Bits Is a Picture (muestreo vivo con temperatura y viaje de ida y vuelta exacto, bits contra gzip y PNG, la tabla dos por dos) | `glow/` | `#6d2f1f` |
-| 41 | One Step Ahead (cuatro diferencias con sus correlogramas, la identidad suavizado = ARIMA(0,1,1) comprobada en la página, cobertura de los intervalos contada) | `arima/` | `#713f12` |
-| 42 | The Size of a Surprise (GARCH ajustable con la verosimilitud en vivo, GARCH contra el VIX contra lo que pasó, excedencias de la línea de pérdida, respuesta al impulso con dos órdenes) | `volatility/` | `#851463` |
-| 43 | A Forecast Is a Table (la tabla de rasgos construida paso a paso, los tres protocolos de partición dibujados, el techo del árbol, tendencia de bisagras con su precio) | `time-features/` | `#853c43` |
-| 44 | Many Series at Once (la pila que resta su propia explicación, el cruce contra el número de series, los pesos de selección contra lo que cuesta romper cada entrada) | `deep-forecast/` | `#3c4e85` |
-| 45 | A Model That Never Saw Your Data (números a letras, el suelo del alfabeto, cien continuaciones muestreadas de una serie nunca vista, una familia entera quitada del corpus) | `zero-shot/` | `#0e5c29` |
-| 46 | What a Sound Looks Like (espectrograma vivo con la ventana como mando, resolución contra la verdad conocida, invertir con y sin fase para escuchar, MFCC contra el tono) | `spectrograms/` | `#5c0e1d` |
-| 47 | One Sample at a Time (campo receptivo exacto contra el periodo del tono, la ley mu escuchable, el modelo alimentado con su propia salida, CTC contra un decodificador que no para) | `wavenet/` | `#5c3e29` |
+| 41 | Counterfeit (cuatro divergencias sobre la misma familia, gradiente saturado medido, GAN entrenándose en el navegador) | `gans/` | `#3f6212` |
+| 42 | Style (esprites con factores conocidos y un agujero en la conjunta, mezcla de estilos viva, el grano del dataset medido) | `stylegan/` | `#831843` |
+| 43 | Translation (la mediana condicional muestreada, campo receptivo medido, dos traductores vivos, ciclo sin pares) | `translation/` | `#134e4a` |
+| 44 | What A Word Is Worth (el factorial de TF-IDF, suelo de ruido, idf contra información mutua, búsqueda viva) | `tf-idf/` | `#164e63` |
+| 45 | What It Is About (Gibbs colapsado en la página con clave de respuestas, estabilidad entre semillas, LDA contra NMF y LSA) | `topics/` | `#706b11` |
+| 46 | The Company It Keeps (la identidad de Levy y Goldberg dibujada, la ventana medida con etiquetas, FastText fuera de vocabulario) | `embeddings/` | `#713f12` |
+| 47 | What Came Before (trellis de Viterbi vivo, gradiente antes y después de entrenar, la tarea de copia) | `sequences/` | `#3c4e85` |
+| 48 | Everything At Once (el codificador corriendo en la página, invariancia a permutaciones exacta, ablación de cabezas) | `attention/` | `#5c0e40` |
+| 49 | Three Ways To Read (tres objetivos a un presupuesto, la señal por token, el 15% barrido) | `pretraining/` | `#3730a3` |
+| 50 | Back To Recurrence (recurrencia y convolución comprobadas como identidad, inicialización, copia selectiva) | `state-space/` | `#0e5c29` |
+| 51 | One Step Ahead (cuatro diferencias con sus correlogramas, la identidad suavizado = ARIMA(0,1,1) comprobada en la página, cobertura de los intervalos contada) | `arima/` | `#705e32` |
+| 52 | The Size of a Surprise (GARCH ajustable con la verosimilitud en vivo, GARCH contra el VIX contra lo que pasó, excedencias de la línea de pérdida, respuesta al impulso con dos órdenes) | `volatility/` | `#851463` |
+| 53 | A Forecast Is a Table (la tabla de rasgos construida paso a paso, los tres protocolos de partición dibujados, el techo del árbol, tendencia de bisagras con su precio) | `time-features/` | `#853c43` |
+| 54 | Many Series at Once (la pila que resta su propia explicación, el cruce contra el número de series, los pesos de selección contra lo que cuesta romper cada entrada) | `deep-forecast/` | `#143b85` |
+| 55 | A Model That Never Saw Your Data (números a letras, el suelo del alfabeto, cien continuaciones muestreadas de una serie nunca vista, una familia entera quitada del corpus) | `zero-shot/` | `#3e295c` |
+| 56 | What a Sound Looks Like (espectrograma vivo con la ventana como mando, resolución contra la verdad conocida, invertir con y sin fase para escuchar, MFCC contra el tono) | `spectrograms/` | `#5c0e1d` |
+| 57 | One Sample at a Time (campo receptivo exacto contra el periodo del tono, la ley mu escuchable, el modelo alimentado con su propia salida, CTC contra un decodificador que no para) | `wavenet/` | `#5c3e29` |
 
 Los artículos 1 a 6 pasaron una **revisión completa** (commit `5e4852b`, 2026-07-25): auditoría estática en paralelo más un barrido en navegador de cada control, cada paso de scrolly y cada etiqueta a 1425px y 375px. 73 hallazgos aplicados. Todas las páginas tienen ahora `canonical` + Open Graph, los 20 sliders tienen `aria-label`, y cada cierre enlaza al siguiente artículo.
 
 Dos de esos hallazgos eran errores numéricos publicados: `polyFit` del artículo 1 formaba `X'X` (grado 9 daba r² test 0.681 en vez de 0.649, invirtiendo la moraleja) y el lasso del artículo 2 no convergía por debajo de λ=1e-3. Ver [la receta de un artículo](receta-de-articulo.md).
 
-**Los módulos 1 y 2 están cerrados enteros: siete ramas, ni un chip apagado en ninguna. La sección 1 completa (21 artículos: 1.1, 1.2 y 1.3, esta última con el 32) y la sección 2 completa (14 artículos: 2.1 con seis y ocho chips cerrado por el 31, 2.2 con cinco artículos y cinco chips cerrado por el 30, 2.3 con dos artículos y tres chips cerrado por el 34, y 2.4 con uno y un chip, el 35). Lo que viene después ya no es rellenar un hueco de la sección 2: es el módulo 3, que tiene la puerta abierta desde el cierre del 30 (el autoencoder variacional) y ahora también desde el del 35. Cuidado con dos recuentos que es fácil equivocar: el módulo 2.2 son cinco artículos (25, 27, 28, 29, 30), no seis, porque el 26 y el 31 son de 2.1; y el 26 aparece entre medias por cronología, no por taxonomía. El 21 cumplió la promesa del 20 (ReLU gana a tanh con profundidad: 89,37/83,77 a 20 capas) y desmintió midiendo el tópico del gradiente que se desvanece (crece 1.271×). El 23 cerró el arco que abrió el 19: un clasificador de ventanas sobre un recorte y el mismo en una pasada convolucional dan el mismo número exacto. El 24 corre sobre los lienzos del 23. El 32 cierra el 1.3 dejando la imagen plana: la escena está escrita en forma cerrada, así que la verdad de referencia no es una anotación sino la función, y la cadena de cierres 23 -> 24 -> 32 está enganchada. El 2.2 va encadenado directions -> distances -> manifolds -> neighbours -> autoencoders, y el 2.1 kmeans -> gmm -> dbscan -> hierarchical -> assumptions -> affinities. La cadena de la sección 2 termina ahora en autoencoders -> outliers -> isolation -> baskets, que es la que exige la regla 7 del guardia, y el 2.3 se lee como un solo argumento: el 33 mide el defecto (el patrón se estima de la muestra que contiene al sospechoso) y el 34 mide las cuatro salidas, cerrando el bucle sobre las mismas ocho botellas plantadas.**
+**Los módulos 1 y 2 están cerrados enteros: siete ramas, ni un chip apagado en ninguna. La sección 1 completa (21 artículos: 1.1, 1.2 y 1.3, esta última con el 32) y la sección 2 completa (14 artículos: 2.1 con seis y ocho chips cerrado por el 31, 2.2 con cinco artículos y cinco chips cerrado por el 30, 2.3 con dos artículos y tres chips cerrado por el 34, y 2.4 con uno y un chip, el 35). El módulo 3 ya tiene dos secciones: la 3.2 (artículos 36 a 40, el camino de la verosimilitud) y la 3.1 (artículos 41 a 43, el adversarial), encadenada y en ese orden (gans -> stylegan -> translation) y enlazada desde el cierre del 35 (baskets), que es el último de la sección 2 en orden de lectura. Lo que queda del módulo 3 es la 3.3, la difusión, adonde apunta el cierre del 40 (glow), que es el último del módulo en orden de lectura; el cierre del 43 (translation) enlaza al 36 (vae), que es el puente de 3.1 a 3.2. Cuidado con dos recuentos que es fácil equivocar: el módulo 2.2 son cinco artículos (25, 27, 28, 29, 30), no seis, porque el 26 y el 31 son de 2.1; y el 26 aparece entre medias por cronología, no por taxonomía. El 21 cumplió la promesa del 20 (ReLU gana a tanh con profundidad: 89,37/83,77 a 20 capas) y desmintió midiendo el tópico del gradiente que se desvanece (crece 1.271×). El 23 cerró el arco que abrió el 19: un clasificador de ventanas sobre un recorte y el mismo en una pasada convolucional dan el mismo número exacto. El 24 corre sobre los lienzos del 23. El 32 cierra el 1.3 dejando la imagen plana: la escena está escrita en forma cerrada, así que la verdad de referencia no es una anotación sino la función, y la cadena de cierres 23 -> 24 -> 32 está enganchada. El 2.2 va encadenado directions -> distances -> manifolds -> neighbours -> autoencoders, y el 2.1 kmeans -> gmm -> dbscan -> hierarchical -> assumptions -> affinities. La cadena de la sección 2 termina ahora en autoencoders -> outliers -> isolation -> baskets, que es la que exige la regla 7 del guardia, y el 2.3 se lee como un solo argumento: el 33 mide el defecto (el patrón se estima de la muestra que contiene al sospechoso) y el 34 mide las cuatro salidas, cerrando el bucle sobre las mismas ocho botellas plantadas.**
+
+**Artículo 43** (`translation/`) cierra el módulo 3.1 y es el primero del sitio
+que **muestrea la condicional entera** en vez de razonar sobre ella: 128 renders
+del mismo plano, y el píxel de una ventana sale con dos valores y nada en medio.
+Ahí está el argumento del artículo medido en vez de contado: el error cuadrático
+lo minimiza la media (0,5167), que es un brillo que los datos **no contienen
+nunca**, y el error absoluto la mediana (0,7667), que salta al estado más común.
+No es que L1 "difumine menos", es que la condicional es bimodal y cada pérdida
+elige un sitio distinto de ella. Cifras ancladas. El campo receptivo del
+discriminador se mide con autodiff, no se calcula a mano: 1, 7, 18 y 30 píxeles
+para las cuatro ventanas, **y con una capa de normalización los cuatro pasan a
+32**, o sea la imagen entera, porque normalizar mezcla espacialmente y el
+"PatchGAN" deja de mirar un parche. Ese resultado se publica en la tabla junto al
+otro. Con la ventana de 7: L1 sola queda a 0,04237 del render verdadero con el
+31,5% del detalle de uno real, la adversaria sola a 0,07421 con el 112,7% (se
+pasa), y las dos juntas a 0,04845 con el 58,8%. La ventana de 1 píxel se comporta
+como L1 (0,04246 y 32,5%) y la de 30 como la adversaria (0,05695 y 77,8%). **Dos
+traductores entrenados corren en el navegador** sobre un plano que el lector
+pinta a mano, con las mismas cifras calculadas en vivo. La mitad sin pares: con
+la consistencia cíclica como única atadura, dos semillas de tres conservan el
+tipo de edificio al 100% y la tercera se queda en el 31,2%, o sea que el ciclo
+**no elige la correspondencia correcta**, solo una invertible. Y la prueba de
+esteganografía sale limpia: la traducción se mueve 0,895 y 0,882 veces lo que se
+mueve una imagen real bajo el mismo ruido (1,292 en la semilla que no acertó), y
+redondear la imagen intermedia a 4 bits deja el error de ciclo en 0,02189 contra
+0,02172, así que el round trip no va montado sobre una marca de agua invisible.
+
+**Artículo 42** (`stylegan/`) es el primero del sitio cuyos datos **los dibuja el
+propio fichero que los mide**, y esa es toda la tesis: la estructura de un
+espacio latente no se puede comprobar sobre caras porque nadie sabe cuáles son
+los factores verdaderos de una cara. Aquí hay 24.000 esprites de 32x32 con cinco
+factores escritos (forma, tamaño, dos posiciones y tono), recuperables de la
+imagen por aritmética (posición a 0,08 px, tamaño a 0,28, tono **exacto**) salvo
+la forma, que necesita un lector al 99,31%. Y un agujero deliberado en la
+conjunta: un esprite grande nunca es azul, con las dos marginales planas (43,0% y
+14,5%, o sea 6,3% si fueran independientes). Cifras ancladas. El agujero tiene
+**suelo de medida**, no cero: los propios esprites reales medidos sobre sus
+píxeles caen dentro el 1,03% de las veces (el borde antialiaseado sesga el tamaño
+0,28 px hacia arriba), y todo se lee contra ese 1,03%. Los dos generadores están
+igualados en pesos (76.371 y 74.111, 3,0% de diferencia, mismo discriminador de
+70.169) y el patrón está calibrado por los dos extremos (1,50 real contra real,
+121,58 con desenfoque de 3 px, 972,81 contra ruido). **La claridad del resultado
+depende de dónde se mida**: lo que se compara *dentro* de una red vale, lo que se
+compara *entre* las dos está confundido porque el de estilos dibuja bastante peor
+(434,99 contra 70,86, y sus dos semillas 434,99 y 880,38). Lo que sí sale: la
+longitud de camino perceptual es más corta en \(w\) que en \(z\) **en las dos
+semillas** (1,29 y 1,44 veces), que es la única comparación de la página inmune a
+ese sesgo, y la tercera columna que nadie tiene con datos reales (el mismo camino
+medido en los factores **verdaderos**) está de acuerdo. "Está a la derecha" es 8,9
+puntos más separable linealmente en \(w\) que en \(z\). En mezcla de estilos, el
+bloque de 16x16 mueve el tamaño **al 139%**, o sea que se pasa del valor objetivo
+en vez de alcanzarlo, y el bloque de 32x32 mueve todos los factores menos que
+ningún otro (0,04 a 0,11): la especialización existe y no es exclusiva. Las
+entradas de ruido por píxel **se apagan solas** (escalas aprendidas de 1,9e-3 a
+3,0e-4; la posición se mueve 92,1 veces menos con el ruido que con el estilo, el
+color 2.202,5 veces), que es lo que un modelo debe hacer cuando en los datos no
+queda nada al azar. Y el truncamiento **no reproduce su propio compromiso**: la
+distancia baja de forma monótona hasta psi = 1,15, y lo único que compra es tapar
+el agujero (3,53% a spread completo, 1,73% a la mitad).
+
+La última sección del 42 es la única del sitio donde **el artículo mide una
+decisión de su propio dataset**. Los esprites se dibujan sin grano por píxel, y
+eso no es gusto: tres copias de los mismos 24.000 esprites que solo difieren en
+el grano, entrenadas con la misma arquitectura, la misma semilla y los mismos
+5.000 pasos (el brazo sin grano **es** el generador que mide el resto de la
+página, por la misma clave de caché, no una repetición suya). El mecanismo es un
+atajo y se mide sin entrenar nada: una sola cifra, cuánto le quita a una imagen
+un desenfoque de 3 px, separa un esprite con grano del mismo esprite limpio el
+95,5% de las veces a 0,015 y el 100% a 0,04, así que el discriminador gana sin
+mirar una forma; a 0,50 sin grano, que es el control exacto. Y sigue ahí al
+final: después de 5.000 pasos esa misma cifra distingue el real de lo dibujado el
+93,5% y el 86,3% de las veces. El resultado, en una escala con los dos extremos
+clavados (real contra real 6,44, un rectángulo gris liso 1.600,08): **368,88 sin
+grano contra 847,81 y 575,93**. Y las columnas de conteo separan dos formas
+distintas de fallar que la distancia sola no distingue: el brazo de 0,015 tiene
+menos manchas sueltas (1,32 contra 2,04) y **más** saturación (0,698 contra
+0,661) que el bueno, y dibuja **la misma forma el 98,9% de las veces** (los datos
+reales, 28,0%); el de 0,04 conserva las formas y pierde el color (0,615 contra
+0,717). El brazo bueno tiene su propio defecto, 2,04 manchas por muestra contra
+1,00.
+
+**Artículo 41** (`gans/`) abre la sección 3.1 y es el primero del sitio cuya pérdida
+es un jugador. Tres datasets en orden de cuánto esconden: una mezcla de dos
+gaussianas en la recta donde **todo se integra en una rejilla** en vez de
+estimarse (y el navegador la recalcula al cargar, cuadrando con el generador a
+4,6e-9), el anillo de ocho gaussianas, y 20.000 dígitos de MNIST. Cifras
+ancladas. Las cuatro divergencias eligen respuestas distintas de la **misma**
+familia de un solo gaussiano: KL directa en (0, 1.58) cubriendo los dos modos,
+KL inversa en (-1.5, 0.52) sentada en uno solo (y el espejo puntúa igual a todos
+los dígitos, así que el objetivo tiene literalmente dos respuestas),
+Jensen-Shannon en (0, 1.56), que está entre las dos **por los pelos** (1,01
+veces más estrecha que la que cubre), y Wasserstein en (0, 1.58). La identidad
+`V(D*,G) = 2·JSD − 2·log2` cuadra a 3,3e-16 en su forma corregida por masa, y el
+hueco crudo de 1,0e-7 **es** la masa que la rejilla pierde en las colas. El
+gradiente saturado muere donde el modelo está peor: a separación 4,5 el mejor
+discriminador acierta el 99,91% y la pérdida original devuelve 1,75e-2 contra
+1,20e+1 de la no saturada (factor 6,8e2); a 6,0, factor 2,7e5. Con soportes
+disjuntos, JS es log 2 en todas partes y el crítico estima la distancia real con
+un 8,6% de error en el peor caso.
+
+El resultado que va contra el guion está en el anillo: **el reparto entre
+semillas es mayor que el reparto entre objetivos** (69,4% de muestras sobre el
+anillo entre dos semillas del mismo objetivo, contra 49,0% entre el mejor y el
+peor objetivo), y se publica con cuatro intentos de falsación, no con una
+tirada: al triple de presupuesto la no saturada pasa su peor semilla de 2 a 6
+modos y WGAN-GP de 3 y 3 a 8 y 6, así que parte de lo que parecía diferencia de
+objetivo era diferencia de velocidad. En MNIST, con un patrón de calidad
+calibrado por los dos lados (suelo 0,61 real contra real, 17,47 al borrar tres
+dígitos, 1.654,98 contra ruido, con un clasificador sonda al 94,14%): WGAN-GP
+4,00, saturada 10,09, WGAN recortada 16,75, DCGAN 21,38, sin convoluciones
+165,17, **y las dos semillas del DCGAN (31,70 y 11,06) encierran a la WGAN
+recortada entera**. Ninguno de los dos mecanismos de Lipschitz entrega un
+crítico 1-Lipschitz (0,03 recortando, 1,05 con penalización). Y la promesa de
+WGAN de que su estimación sirve de barra de progreso **no se reproduce**: las
+correlaciones de los dos brazos con crítico salen negativas (-0,569 y -0,352) y
+al restringirlas a la segunda mitad del entrenamiento ni siquiera coinciden en
+el signo (0,892 y -0,728). El widget final entrena una GAN **en la pestaña**,
+escrita dos veces (numpy y JavaScript, mismo generador congruencial, misma
+inicialización, mismo Adam): las trayectorias de 200 pasos coinciden a 4,9e-9.
+
+**El módulo 4.1 está cerrado entero: siete artículos, siete chips, ninguno apagado.** Es la primera rama del atlas cuyo objeto no es una fila de números ni un conjunto sino una **secuencia**, y la rama se lee como un solo argumento sobre qué se hace con el orden: los tres primeros lo tiran (contar palabras, temas latentes, vectores de palabras) y los cuatro últimos lo devuelven por cuatro caminos distintos (una recurrencia, atención, tres objetivos de preentrenamiento y una recurrencia lineal). Comparte datos como el 2.1 comparte los suyos, y lo afirma en vez de declararlo: el 45 reconstruye las 7.790 noticias del 44 y comprueba documentos, tokens y vocabulario contra su JSON; el 47, el 48 y el 49 comparten la partición del Brown y el 48 la afirma contra el fichero del 47; y la tarea de copia del 47 se genera con la misma función y las mismas semillas en el 48 y el 50, así que la tabla conjunta del 50 son las mismas secuencias y no secuencias parecidas. Estos siete se escribieron a la vez que el módulo 3 entero, en otra sesión, y eso dejó dos huellas que conviene leer antes de volver a repartir trabajo en paralelo: los números se cogieron **al mergear** y salieron 44 a 50 en vez de los 36 a 42 que parecían libres al empezar, y **cuatro de los siete acentos chocaron** (`#3f6212`, `#7c2d12`, `#134e4a` y `#831843` los publicó antes el módulo 3), así que se volvieron a coger de la reserva con `--next`. El reparto previo no basta cuando dos sesiones escriben siete artículos cada una: el guardia es la red de abajo y aquí hizo su trabajo. La cadena de lectura termina en `glow/` (el 40), que es la tarjeta anterior a la primera de esta rama, así que su cierre apunta ahora al 44 además de a la difusión que el 3.3 traerá, que es lo que exige la regla 7 del guardia.
+
+**Artículo 50** (`state-space/`) cierra la rama con el único guardia del sitio que **comprueba un teorema**: la página calcula la recurrencia paso a paso y el núcleo de la convolución en forma cerrada, desde los mismos parámetros, y exige que coincidan. Coinciden a **2,161e-14** en el peor de los cuatro decaimientos y 12 sistemas al azar cada uno, y la tolerancia no se elige, se deriva: los dos cálculos leen los **mismos** valores decodificados, así que el redondeo de la exportación se cancela entero y lo que queda es la diferencia entre dos órdenes de suma, por eso este puede exigir 1e-10 donde los otros artículos no pueden. Del resto, lo que más enseña es la inicialización, que aquí no es un detalle sino el modelo: la gaussiana de toda la vida deja un multiplicador en **2,0012** y su núcleo llega a **1,363e+75** veces su valor inicial, y hay que tener cuidado con las palabras, porque un núcleo que no decae puede ser lo mejor o lo peor y en un resumen se parecen: ese no recuerda, explota. La uniforme cae a la centésima en 55 pasos y los decaimientos repartidos en escala logarítmica en 151, que es la versión de este modelo de la vida media que el 47 midió sobre el gradiente, decidida antes de que llegue un solo dato. En la copia normal, generada con la misma función y semillas que en el 47 y el 48, el SSM acierta 1,0000 a las cinco distancias; la que separa es la copia **selectiva**, donde hay que mirar lo que se lee para decidir si guardarlo: a longitud 20, 88,13% contra 61,96% por token y **53,83% contra 7,67%** en secuencias enteras, y a longitud 40, 87,21% contra 61,33% y 51,83% contra 4,83%, o sea que el invariante se hunde (7,67 a 4,83) mientras el selectivo apenas se mueve. Esa tabla tiene dos longitudes y no tres, y el motivo está escrito en la página: el escaneo va paso a paso porque la página ejecuta el mismo, así que a longitud 80 un solo modelo pasa de la hora y hacen falta dos por fila. Y el coste, contado en multiplicaciones y sin relojes: el término cuadrático de la atención no adelanta a sus propias proyecciones hasta longitud 2d = 192, aunque el SSM ya es 2,5 veces más barato a longitud 8, que es la constante y no el exponente. Tres fallos pagados aquí: el widget de dualidad recibía el JSON crudo (b, c y x son cadenas en base64, se indexan sin protestar y un carácter por un número es NaN); `makeChart(clip: true)` devuelve el grupo recortado como **hijo** de `g`, así que el `g.selectAll('*').remove()` de un render lo desconecta y las curvas se dibujan en un nodo fuera del documento, con los ejes y las etiquetas intactos y solo los datos ausentes; y `logTicks` devolvía 0,30000000000000004, que impreso con `String(v)` se lleva la etiqueta del eje fuera del lienzo.
+
+**Artículo 49** (`pretraining/`) entrena **ocho** modelos para responder una sola pregunta: qué compra cada objetivo de preentrenamiento cuando todo lo demás está fijo. Misma arquitectura, mismo corpus y partición del Brown que el 47 y el 48, mismo vocabulario, mismos 1.200 pasos, y recuentos de parámetros dentro del 2,1%. El resultado va contra el guion en el sitio donde más se repite lo contrario: **el objetivo causal gana la sonda congelada, 74,09% contra 64,02% del enmascarado y 65,11% del de tramos, y gana también el rellenado de huecos** (12,75% contra 11,00% y 11,00%), que es la tarea construida para favorecer a los que ven los dos lados. La explicación es la columna que nadie imprime: los tres leen 1.843.200 tokens y el causal se califica sobre **0,9792 predicciones por token leído** contra las 0,1504 del enmascarado, un factor de 6,5, y a este presupuesto eso vale más que ver el lado derecho. El barrido del 15% folclórico da lo mismo por otro camino: la sonda sube monótona de 63,34% (5%) a **65,29% (50%)** y el óptimo medido es el extremo del rango, no 15, así que la página dice que en este rango la primera fuerza sigue ganando y **no** que la curva se dé la vuelta, que es lo que estaba escrito antes de medir. El widget de objetivos enseña el mismo pasaje corrompido por `corrupt_mlm` y `corrupt_spans`, las funciones que entrenaron, y cuenta las barras: 5 posiciones calificadas de 24 para el enmascarado, 23 para el causal, y 6 tokens de una segunda secuencia para el de tramos. Cuatro cosas costaron una tirada cada una: los ocho modelos iban a tardar **siete horas** hasta que se vio que la factura dominante de un artículo de lenguaje es el softmax sobre el vocabulario (recortado a 8.000 palabras, 91,38% de cobertura, publicado); la sonda congelada recodificaba el corpus en cada época y para cada brazo, costando más que los entrenamientos que mide; `<unk>` compartía el índice 0 con el relleno, así que una palabra desconocida se contaba como hueco y cada brazo la trataba distinto; y la fila del 15% del barrido era, bit a bit, el brazo enmascarado de la tabla de arriba, entrenado dos veces.
+
+**Artículo 48** (`attention/`) pone un codificador entero de 2.064.204 parámetros a correr **en el navegador**, sobre la misma partición del Brown del 47 afirmada contra su JSON, y saca 96,00% contra el 95,62% del HMM y el 95,44% de la GRU: la arquitectura que se lleva el módulo gana por cuatro décimas a tres tablas de conteos. Lo que cambia de verdad es otra cosa, y se mide: la sonda de alcance del 47, repetida aquí, **no encuentra vida media ninguna**, porque la influencia mediana a distancia 30 es 2,3739 veces la de distancia 1 en vez de la mitad, frente a las vidas medias de 3, 2 y 2 pasos de las tres recurrentes. La invariancia a permutaciones se dibuja como identidad y no como afirmación: sin codificación posicional, barajar la frase mueve la salida 4,3e-06 (el ruido de float32); con ella, 7,4081. El reescalado por raíz de d se mide igual: sin dividir, la entropía de la atención cae de 2,0731 a 0,1818 nats según d va de 8 a 512, con techo uniforme en 4,1589 y el peso máximo subiendo de 0,4237 a 0,9278; dividiendo, la entropía se queda entre 3,6838 y 3,6924 en todo el barrido. Dos resultados contra el guion. Uno: de las ocho cabezas **solo una importa** (capa 0 cabeza 1, -0,0308), las otras tres de la primera capa cuestan unas 0,009 y las cuatro de la segunda menos de 0,0006, y una de ellas sale **negativa** (-0,00006), o sea que quitarla mejora. Dos: el término cuadrático, que es de lo que va la fama, es el 4% del coste a longitud 8 y no adelanta a las proyecciones hasta longitud 2d = 192, aunque a 1.024 ya es el 84,2%. En la copia, generada con la misma función y las mismas semillas que en el 47, acierta 1,0000 a las cinco distancias con 45.132 parámetros, donde la GRU aguantaba hasta 20 y la LSTM caía a 0,398. Y un fallo caro que quedó anotado: la máscara confundía relleno con `<unk>` (los dos en el índice 0), una frase entera desconocida enmascaraba todas las claves, softmax sobre puros `-inf` daba NaN y **el entrenamiento no falló**: sacaba 0,1278, que es la clase mayoritaria, con una permutación y una ablación de aspecto perfectamente razonable. Se arregló enmascarando desde las etiquetas y añadiendo dos asertos, pérdida finita y acierto por encima de la mayoritaria.
+
+**Artículo 47** (`sequences/`) devuelve el orden con la tarea más vieja que hay: etiquetar cada palabra con su categoría gramatical, sobre las 57.340 frases del Brown partidas **por frase** (partir por token filtraría contexto de train a test). El HMM entero viaja al navegador, que es literalmente todo el modelo (tres tablas de log-probabilidades), y el guardia bueno de la página no compara contra una referencia: exige que el decodificador voraz **nunca** puntúe por encima de Viterbi, que es imposible si el programa dinámico está bien. Cifras ancladas: la referencia que importa no es el azar sino la etiqueta más frecuente de cada palabra, que no mira el contexto y saca 94,59%; el HMM saca 95,62% y la diferencia solo significa algo restringida al 54,33% de tokens ambiguos, donde es 95,17% contra 91,90%; en las 2.378 palabras nunca vistas, 63,84% contra 58,45%. Las tres redes con presupuesto igualado (218, 114 y 96 de anchura para que las tres tengan ~62.000 parámetros recurrentes) sacan 95,06%, 95,44% y 95,42%: **la tarea no necesita memoria y por eso no separa nada**. La sonda del gradiente sobre las redes entrenadas da vidas medias de 3, 2 y 2 pasos, las tres curvas una encima de otra, y eso no es un fallo de la sonda: entrenadas en una tarea local aprenden a ser locales. Por eso se mide también **antes de entrenar**, que es de lo que habla el teorema, y ahí sale 2, 3 y 3, la dirección del libro. Las dos diferencias son de un paso, así que el artículo dice que esta medida no separa estas tres arquitecturas en esta tarea. La que sí separa es la copia: la GRU aguanta 20 distractores y la LSTM cae a 0,398 ahí.
+
+**Artículo 46** (`embeddings/`) entrena skip-gram, GloVe y FastText sobre el Brown compartiendo vocabulario, dimensiones, épocas y ventana, porque casi todo el hueco publicado entre los tres es de hiperparámetros. El corpus se elige por sus etiquetas gramaticales, y eso convierte la afirmación más repetida sobre embeddings en una medida: con ventana 2, el **75,43%** de los diez vecinos de una palabra comparten su categoría; con ventana 5, el 66,40%; con ventana 10, el 59,50%. La ventana no ajusta la calidad, decide qué significa "parecido". La identidad de Levy y Goldberg se dibuja como identidad y no como ajuste, con la diagonal que el teorema predice, y el resultado se publica con su matiz: r = 0,7527 pero **pendiente 0,6900**, así que el modelo ordena los pares como la PMI desplazada sin alcanzar su escala, y citar solo la correlación habría hecho parecer exacta una afirmación que a cinco épocas no lo es. Y un resultado negativo que se queda: la composición de FastText para palabras fuera de vocabulario **no funciona a esta escala** (52,7% de aciertos contra 50% de azar, con el control emparejado y los vectores centrados). El primer control, dos palabras al azar, daba 0,3621 y medía la anisotropía del espacio en vez de la composición.
+
+**Artículo 45** (`topics/`) corre LDA sobre las **mismas** 7.790 noticias del 44, afirmado contra su JSON, y eso le da lo que casi ningún artículo de topic modelling tiene: las ocho categorías de Reuters como clave de respuestas. El muestreador de Gibbs colapsado corre en la página token a token, y su guardia es el más fuerte del sitio porque no tiene tolerancia: el congruencial lineal está escrito igual en los dos lados, los conteos son enteros y **la suma normalizadora es un bucle secuencial también en Python** (`np.sum` sobre ocho elementos es un árbol, y el último bit decide de qué lado del corte cae la muestra), así que el navegador reproduce los conteos exactamente en cuatro puntos de control a lo largo de 20 barridos sobre 55.417 tokens. Tres resultados contra el guion. Uno: **el preprocesado recomendado empeora**, ARI 0,5213 sin filtrar nada contra 0,4371 quitando las palabras muy frecuentes y la lista de vacías, y empeora justo en la dirección que el 44 predijo. Dos: el modelo cuyos temas se leen mejor es el que menos estructura encontró, NMF con la mejor coherencia (0,3266) y el peor ARI (0,1803), y LDA al revés. Tres: los tres criterios para elegir k eligen tres k distintos (perplejidad 4, coherencia 12, la clave 16). Y la semilla, que no es una decisión de modelado y nadie publica, mueve el ARI de 0,3799 a 0,5564, más que el filtrado entero.
+
+**Artículo 44** (`tf-idf/`) abre el módulo 4 midiendo que TF-IDF son **tres decisiones y solo dos están en el nombre**: las doce combinaciones sobre la partición ModApte de Reuters R8 con dos clasificadores, y con suelo de ruido antes de comparar nada (0,0106 de macro F1 por remuestreo del test, 0,0000 por semilla del solver). Normalizar la longitud mueve el marcador entre 0,0356 y 0,0792 en las seis filas, mismo signo en todas; la ponderación por rareza, con la longitud ya normalizada, mueve -0,0038, +0,0093 y -0,0022, y **ninguna de las tres llega al suelo**. En recuperación, que es la tarea para la que se inventó, rescata el conteo crudo (+0,0253) y resta a los otros dos. El mecanismo se mide en vez de suponerse: la explicación fácil (el modelo absorbe el reescalado y solo la regularización lo impide) es falsable y sale falsa, porque el hueco es mayor donde la penalización es más fuerte. La que aguanta es que la información que la presencia de un término puede llevar está acotada por su propia entropía, que es cero en df = 1, así que idf ordena al revés de esa cota: Spearman(idf, información mutua) = **-0,7441**, de los 200 términos más informativos ninguno está por encima del idf mediano y 47 están en la lista de palabras vacías. Todo lo que la página dibuja sale de conteos enteros, así que el guardia exige 1e-12.
 
 **Artículo 35** (`baskets/`) cierra el módulo 2.4 y con él la sección 2 entera, y es el único del sitio cuyo objeto no es un punto: una cesta es un conjunto, no hay distancia entre dos y no hay nada que promediar. 9.835 cestas reales de supermercado (Groceries de arules, 169 categorías, fuera del repo y comprobada por digest) más los 178 vinos binados a tercios, que **reproducen exactamente los códigos que publica `assumptions/`**. Las cestas viajan como un bitset por artículo, así que el soporte de cualquier conjunto es un AND y un popcount, y con eso el navegador enumera retículos enteros. Cifras ancladas: 2^169 - 1 tiene **51 dígitos** y se imprime entero; sobre los 20 artículos más comunes se cuentan los **1.048.575 subconjuntos uno a uno** y Apriori encuentra los mismos 174 conjuntos frecuentes contando solo 640 (el 0,06% del retículo), con el cierre descendente cumpliéndose en todos; **la poda crece más deprisa que el trabajo** (al 5% tira 0,005 candidatos por cada uno contado, al 0,1% tira 2,263); el orden de los artículos ES el algoritmo de FP-Growth (19.495 nodos con los comunes arriba contra 25.424 al revés, 1,304 veces); la confianza es una trampa medible ({bottled beer} => {whole milk} tiene 25,38% de confianza y lift 0,993, porque whole milk está en el 25,55% de las cestas de todos modos); el lift es simétrico a 4,4e-16 en los 18 pares reversibles mientras las confianzas difieren hasta 19 puntos; y el **test de permutación**, que casi nadie hace: barajando cada artículo por separado sobreviven 45,4 reglas de media contra 234 reales, el **19% de la cosecha**. El guardia de la página rehace la comparación Apriori contra fuerza bruta sobre 14 artículos, es decir contra la verdad y no contra el generador.
 
@@ -88,17 +233,19 @@ Dos de esos hallazgos eran errores numéricos publicados: `polyFit` del artícul
 
 **Y con los artículos 36 a 40, el módulo 3.2 entero.** Los cinco están encadenados entre ellos (vae -> vq-vae -> ebm -> flows -> glow), el primero recoge la promesa que dejó abierta el cierre del 30 (abre tomando la red de ese artículo, peso a peso de su propio fichero de datos, y muestreándola) y el último desemboca en el 3.3 por la difusión. De la sección 3 quedan 3.1 y 3.3.
 
-**Dónde está el mapa ahora mismo**: secciones 1 y 2 cerradas enteras, de la 3 solo el 3.2, y de la
-4 el 4.2 y el 4.3 (los artículos 41 a 47), que es lo último publicado. Los huecos abiertos son, por
-tamaño: el **4.1 entero** (NLP, siete chips, y es el que más lectores tiene esperando), el **3.1 y
-el 3.3** (adversarial y difusión, a los que apunta el cierre del 40), y las secciones 5 a 8 sin
-empezar. La cadena de lectura termina hoy en `wavenet/`, así que el siguiente artículo que se
-escriba en la sección 4 se inserta por taxonomía y hay que revisar qué cierre pasa a apuntar a
-cuál: el 40 (`glow/`) enlaza ahora al 41 (`arima/`) porque es la tarjeta siguiente en la portada,
-y ese enlace cruza de módulo, que es normal y ya pasa cuatro veces más en el sitio.
+**Dónde está el mapa ahora mismo**: secciones 1 y 2 cerradas enteras, de la 3 el 3.1 y el 3.2, y
+la **sección 4 entera** (4.1, 4.2 y 4.3, artículos 44 a 57), que es lo último publicado y salió de
+dos sesiones a la vez. Los huecos abiertos son, por tamaño: el **3.3** (difusión, al que apunta el
+cierre del 40) y las secciones 5 a 8 sin empezar, que es ya la mayor parte de lo que queda.
+La cadena de lectura de la sección 4 va `glow/` -> `tf-idf/` -> ... -> `state-space/` ->
+`arima/` -> ... -> `wavenet/`, y termina hoy en `wavenet/`, que devuelve a la portada. El enganche
+entre los dos bloques lo puso esta sesión al mergear: el cierre del 50 (`state-space/`) ya
+anunciaba "series temporales y audio" sin enlazar a nada, y ahora enlaza al 51 (`arima/`). Es
+justo la comprobación que hace el guardia, y la que hay que rehacer cuando se inserte cualquier
+artículo nuevo en medio de la sección.
 
 
-**Módulos 4.2 y 4.3 completos (artículos 41 a 47)**: siete artículos que estrenan la sección 4 por
+**Módulos 4.2 y 4.3 completos (artículos 51 a 57)**: siete artículos que estrenan la sección 4 por
 el lado de las series y del sonido, dejando el 4.1 (NLP) para después. Comparten dos capas de datos
 nuevas, las dos en `src/utils/`: `timeseries_data.py` (CO2 mensual de Mauna Loa, manchas solares,
 cuentas macro trimestrales, retornos diarios del S&P 500 y el VIX, todos empaquetados con
@@ -109,7 +256,7 @@ y la frontera entre dos fonemas se conocen exactamente, y ningún corpus grabado
 mismo sin un anotador humano que además no llega a la muestra.
 
 Los cinco de series comparten además **la misma serie y los mismos orígenes**, y no se declara, se
-comprueba: cada generador afirma el digest `22fe4dedba02bb9f` del CO2 que publica el 41 antes de
+comprueba: cada generador afirma el digest `22fe4dedba02bb9f` del CO2 que publica el 51 antes de
 correr, así que las tablas se leen juntas. En esos 109 orígenes: SARIMA 0,3705, ETS 0,4062, árbol
 impulsado sobre las diferencias 0,4974, tendencia de bisagras al mejor precio 0,5892, N-BEATS
 entrenado solo con series escritas 0,6221, el modelo de letras preentrenado 0,7477, estacional
@@ -130,27 +277,34 @@ dónde; (5) los pesos de selección de un modelo tipo TFT y la importancia por p
 lleva 0,4528) y "la promoción de ayer" recibe 0,3791 mientras romperla cuesta 1,08 veces la
 pérdida; (6) en audio, la ventana larga sobre un barrido **lineal** mejora sin parar, porque el
 sesgo se cancela por simetría, y solo al doblar la frecuencia aparece la U que todo el mundo
-dibuja (2,36 Hz a 32 muestras contra 446,72 a 2.048); (7) quitarle al corpus del 45 la familia
+dibuja (2,36 Hz a 32 muestras contra 446,72 a 2.048); (7) quitarle al corpus del 55 la familia
 `trend_season` entera no le degrada el pronóstico sobre esa familia, se lo **destruye**: 0,8314
 con ella contra **2,728** sin ella, y 2,728 quiere decir casi el triple de error que repetir el
 año pasado. Las otras seis familias tienen tendencias y tienen estaciones por separado, y resulta
 que eso no es lo mismo que haber visto una llevando a la otra; (8) el barrido de contexto del
 mismo modelo **no es monótono**: 1,2445 con 12 meses, 1,886 con 24, 2,3821 con 36 y 0,7749 con
 48, que es exactamente la longitud con la que se entrenó. No es que menos contexto sea peor, es
-que cualquier cosa que no sea 48 es peor, y 36 es peor que 12; (9) en el 47, correr libre **no**
+que cualquier cosa que no sea 48 es peor, y 36 es peor que 12; (9) en el 57, correr libre **no**
 degenera como dice el manual: el greedy se queda en 0,3379 de distancia espectral y muestrear a
 0,7 se va a 2,4742, un factor 7,3, porque en una vocal la continuación más probable es casi
-siempre la buena; (10) también en el 47, los picos de una pérdida CTC caen a **7,0 ms del inicio**
+siempre la buena; (10) también en el 57, los picos de una pérdida CTC caen a **7,0 ms del inicio**
 del fonema (una trama es 10 ms) y a 57,5 ms de su centro, con desfase mediano con signo -57,5 y
 fonemas de 126 ms: la misma alineación se lee excelente o rota según contra qué borde se mida, y
 CTC no tiene ningún término que empuje un pico hacia el centro de nada.
 
-**Sobre los acentos de estos siete**: el encargo repartió `#713f12` a la sesión, que es el reparto
-normal de un artículo por sesión. Como aquí van siete, los seis restantes salen de la `RESERVA` de
-`check_publication.py` en su orden, que es lo que dice la propia herramienta cuando se le pide un
-reparto (`--reparte`): variantes del mismo acento o colores nuevos que `--next` diga libres. No se
-eligieron a ojo, y por eso están garantizados a distancia visible unos de otros: esa reserva salió
-de un barrido CIELAB con el peor vecino a dE 15,5.
+**Sobre los acentos de estos siete, y lo que costó el merge**: el encargo repartió `#713f12` a la
+sesión, que es el reparto normal de un artículo por sesión. Como aquí van siete, los seis
+restantes salieron de la `RESERVA` de `check_publication.py` en su orden, que es lo que dice la
+propia herramienta cuando se le pide un reparto (`--reparte`). Y entonces pasó justo lo que el
+reparto existe para evitar, porque el reparto se hizo una vez y las dos sesiones siguieron
+escribiendo: al traer `main` había otra sesión con el módulo 4.1 entero publicado, **tres de mis
+siete acentos ya usados por sus artículos** (`#713f12` en `embeddings/`, `#3c4e85` en
+`sequences/`, `#0e5c29` en `state-space/`) y mis números 41 a 47 ocupados. Los tres se cambiaron
+a `#705e32`, `#143b85` y `#3e295c`, que es lo que `--next` daba por libre **después** del merge, y
+los artículos pasaron a 51 a 57. La lección no es que el reparto falle: es que **el número y el
+acento se confirman contra `main` en el momento de mergear, no en el de empezar**, exactamente
+igual que el número. El guardia cazó los cuatro problemas (los tres acentos y la cadena rota) sin
+que hubiera que buscarlos, que es para lo que está.
 
 Y dos identidades que la página comprueba en el navegador: el suavizado exponencial simple y el
 ARIMA(0,1,1) son **la misma recursión** (5,684e-13 sobre 526 meses y las 50 tasas del control)
@@ -171,7 +325,7 @@ Cifras del 39 (`flows/`): un flujo es invertible por construcción, y aquí se c
 
 Cifras del 40 (`glow/`): **el resultado en contra del guion** está en la tabla de compresores. El flujo cuesta 3,2257 bits por píxel, gzip 3,9337 y PNG 5,7795, pero un modelo independiente por píxel cuesta **2,5620** y le gana, y el histograma de grises solo, 2,8178: a este tamaño el flujo no ha ganado todavía el derecho a llamarse compresor. La trampa de la cuantización sí sale como dice el argumento: sin dequantización uniforme la misma arquitectura reporta -2,6658 bits a 2 épocas y -4,8388 a 30, que no es un número pequeño de bits sino un número negativo de bits, y sigue bajando cuando el entrenamiento para (la densidad media sube de +362,2 a +657,4 nats). De las cuatro ablaciones solo una resuelve, y cada veredicto se lee contra el suelo de **su propio par de filas**, no contra el peor de la tabla: el acoplamiento aditivo cuesta +3,3011 contra un suelo de 0,1177, o sea 28 veces; la permutación fija (+0,5599 contra 0,9549), invertir los canales (+0,0544 contra 0,2244) y quitar actnorm (-0,1080 contra 0,1177) están todas dentro del suyo. El peor suelo de la tabla, 0,9549, lo pone una sola rama ruidosa, y usarlo en todas partes medía la única diferencia real contra una vara casi diez veces la que le tocaba. La tabla dos por dos de fuera de distribución: el modelo de Fashion gasta 0,6310 bits **menos** en los dígitos que en sus propias imágenes retenidas (suelo de esa comparación 0,0134, así que resuelve), pero el modelo de dígitos gasta 3,0437 **más** en Fashion, de modo que las dos direcciones se contradicen; la explicación competidora está medida y no descartada (gzip necesita 3,9337 bits por píxel para un dígito y 6,5974 para una imagen de Fashion, y sobre las 1.600 retenidas los bits del modelo y los de gzip correlacionan +0,7600). Y la temperatura, que es el sitio donde este artículo casi publica una conclusión que sus propios datos no aguantan: el juez compartido prefiere **1,0** (0,6693, contra 0,9326 en dígitos reales), y leído a solas eso dice que el consejo de muestrear por debajo de uno no se reproduce. No dice eso. El artículo 38 ya midió que **este mismo juez puntúa tinta**, así que la comprobación se repite aquí con estos datos: a lo largo de las seis temperaturas la confianza correlaciona **+0,9938 con la tinta** de las muestras, y las seis son más pálidas que un dígito real (0,0117 a 0,0582 contra 0,1287, o sea que ni la más oscura llega a la mitad). El juez no ordena temperaturas, ordena tinta, y 1,0 gana por ser la menos pálida de seis opciones pálidas: la pregunta **no se puede contestar con este instrumento**, y la página lo dice en vez de quedarse con el ranking. El gráfico pasó a ser tinta contra confianza justamente para que eso se vea en vez de leerse. La red exportada son 14.280 números en 37 kB de float16, y codificar dieciséis dígitos retenidos e invertirlos devuelve los píxeles a 1,132e-06, que es lo que un flujo sabe hacer y ningún otro modelo del módulo puede.
 
-**Artículo 32** (`nerf/`)**Artículo 32** (`nerf/`) cierra el módulo 1.3 y con él la sección 1 entera, y es el primero cuyo dataset no es un dataset: la escena está escrita en forma cerrada (cuatro sólidos como funciones de distancia con una cáscara de soporte compacto de 0,045 y radiancia Blinn-Phong con lóbulo especular), así que una fotografía es esa forma cerrada integrada a lo largo de 4.096 rayos y la verdad de referencia no es una anotación, es la función. 24 fotos de 64x64 en tres anillos (10°, 28°, 46°), 8 retenidas entre los anillos y 6 fuera de la banda (-14° y 68°), todas a 512 pasos de cuadratura y **redondeadas a bytes**, porque eso es lo que el navegador lee del PNG.
+**Artículo 32** (`nerf/`) cierra el módulo 1.3 y con él la sección 1 entera, y es el primero cuyo dataset no es un dataset: la escena está escrita en forma cerrada (cuatro sólidos como funciones de distancia con una cáscara de soporte compacto de 0,045 y radiancia Blinn-Phong con lóbulo especular), así que una fotografía es esa forma cerrada integrada a lo largo de 4.096 rayos y la verdad de referencia no es una anotación, es la función. 24 fotos de 64x64 en tres anillos (10°, 28°, 46°), 8 retenidas entre los anillos y 6 fuera de la banda (-14° y 68°), todas a 512 pasos de cuadratura y **redondeadas a bytes**, porque eso es lo que el navegador lee del PNG.
 
 Cifras ancladas. La cuadratura, antes de aprender nada: 8 pasos dan 24,95 dB contra la misma integral a 1.024 pasos, 64 dan 54,32 dB y el barrido cruza los 40 dB en 24 pasos. El campo son 18.820 pesos (4 capas de 64) y saca 39,39 dB en las fotos que vio y 38,43 en las 8 que no; **pero 21,81 dB desde debajo de la banda y 37,34 desde encima**, que es la cifra que casi nadie publica. La codificación de Fourier vale 6,18 dB (32,25 sin bandas contra 38,43 con 6), y **sobrevive entera a su propio control**: la misma red sin bandas con los mismos 18.568 pesos gastados en anchura (68 por capa) baja a 31,05, o sea que más anchura sin frecuencias es peor, no mejor. La escalera se aplana: L=0 32,25, L=2 33,46, L=4 38,52, L=6 38,43, L=8 38,74. Media precisión no cuesta nada (83,71 dB de acuerdo con float32) y la rejilla de ocupación de 40^3 se queda con el 39,0% de las muestras cambiando la imagen en 87,98 dB.
 
@@ -202,7 +356,7 @@ Y la geometría, que ninguna de las dos pérdidas pidió nunca: el campo pone la
 
 **Estructura de la portada (revisión integral 2026-07-27, revisión transversal 2026-07-28)**: cada módulo tiene su propia galería de tarjetas (antes las 4 de clustering vivían en la del módulo 1) y el orden es taxonómico, no cronológico, **en las tarjetas y también en los chips**. Las cifras de las frases numéricas del artículo 21 las compone `resnet/js/prose.js` desde el JSON al cargar, con ramas condicionales por si una re-tirada mueve el resultado; el patrón vale para artículos futuros.
 
-**La cadena de lectura, que ahora es la taxonómica de las tarjetas y no la cronológica**: 1.1 va classical-regression -> regularization -> robust-regression -> non-parametric-regression -> svr-kernel-ridge -> gradient-boosting -> deep-learning-tables; 1.2 va probabilistic-classification -> geometric-classification -> kda -> trees-and-ensembles -> imbalanced-learning -> calibration; 1.3 va classical-features -> viola-jones -> lenet -> resnet -> convnext -> detection -> segmentation -> nerf; 2.1 va kmeans -> gmm -> dbscan -> hierarchical -> assumptions -> affinities; 2.2 va directions -> distances -> manifolds -> neighbours -> autoencoders. Los cuatro puentes entre ramas son deep-learning-tables→probabilistic-classification, calibration→classical-features, nerf→kmeans y affinities→directions, y el quinto (autoencoders→módulo 3, por el autoencoder variacional) está escrito sin enlace porque el módulo 3 no existe. **No hay que acordarse de esto: las reglas 7 y 8 de `check_publication.py` lo comprueban**, la primera exigiendo que cada artículo enlace a la tarjeta siguiente (mirando su `index.html` y su `prose.js`, porque desde el 21 los cierres se componen al cargar) y la segunda que los chips de cada rama vayan en ese mismo orden.
+**La cadena de lectura, que ahora es la taxonómica de las tarjetas y no la cronológica**: 1.1 va classical-regression -> regularization -> robust-regression -> non-parametric-regression -> svr-kernel-ridge -> gradient-boosting -> deep-learning-tables; 1.2 va probabilistic-classification -> geometric-classification -> kda -> trees-and-ensembles -> imbalanced-learning -> calibration; 1.3 va classical-features -> viola-jones -> lenet -> resnet -> convnext -> detection -> segmentation -> nerf; 2.1 va kmeans -> gmm -> dbscan -> hierarchical -> assumptions -> affinities; 2.2 va directions -> distances -> manifolds -> neighbours -> autoencoders; 2.3 va outliers -> isolation; 2.4 es baskets solo; 3.1 va gans -> stylegan -> translation; 3.2 va vae -> vq-vae -> ebm -> flows -> glow. Los puentes entre ramas son deep-learning-tables→probabilistic-classification, calibration→classical-features, nerf→kmeans, affinities→directions, autoencoders→outliers, isolation→baskets, baskets→gans (el salto al módulo 3) y translation→vae (de 3.1 a 3.2). El cierre del 40 (glow) apunta a la 3.3, la difusión, todavía sin enlace porque no existe; quien publique la 3.3 tiene que enganchar ese cierre. **No hay que acordarse de esto: las reglas 7 y 8 de `check_publication.py` lo comprueban**, la primera exigiendo que cada artículo enlace a la tarjeta siguiente (mirando su `index.html` y su `prose.js`, porque desde el 21 los cierres se componen al cargar) y la segunda que los chips de cada rama vayan en ese mismo orden.
 
 ## Módulo 1.3, infraestructura de visión (nueva)
 - **`assets/js/imagery.js`**: el segundo camino de render del sitio (canvas, no SVG). `loadImage`, `imageToGray` (luma 601, igual que rgb2gray), `makeCanvas` (dpr, max-width), `paintGray` (zoom entero vía bitmap offscreen porque `putImageData` ignora transformaciones), `pixelGrid`, `divergingColour`, `canvasLabel`. Requiere http: `getImageData` se contamina en `file://`.

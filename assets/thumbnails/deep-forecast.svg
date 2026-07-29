@@ -3,6 +3,6 @@
   <line x1="24" y1="64" x2="376" y2="64" stroke="#8e9aa6" stroke-width="1.4" stroke-dasharray="6 4" />
   <line x1="24" y1="245" x2="376" y2="245" stroke="#8e9aa6" stroke-width="1.4" stroke-dasharray="6 4" />
   <line x1="24" y1="81" x2="376" y2="81" stroke="#8e9aa6" stroke-width="1.4" stroke-dasharray="6 4" />
-  <polyline points="40,118 150,76 260,172 360,184" fill="none" stroke="#3c4e85" stroke-width="3" />
-  <g fill="#3c4e85"><circle cx="40" cy="118" r="5" /><circle cx="150" cy="76" r="5" /><circle cx="260" cy="172" r="5" /><circle cx="360" cy="184" r="5" /></g>
+  <polyline points="40,118 150,76 260,172 360,184" fill="none" stroke="#143b85" stroke-width="3" />
+  <g fill="#143b85"><circle cx="40" cy="118" r="5" /><circle cx="150" cy="76" r="5" /><circle cx="260" cy="172" r="5" /><circle cx="360" cy="184" r="5" /></g>
 </svg>

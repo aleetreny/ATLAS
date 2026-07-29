@@ -81,7 +81,7 @@ export function initScalingWidget(data) {
     const placed = [];
     series.forEach(([label, vals_, colour], i) => {
       const shade = colour === 'var(--primary)'
-        ? d3.interpolateRgb('#c3cadd', '#3c4e85')(i / Math.max(1, S.rows.length - 1))
+        ? d3.interpolateRgb('#c3cadd', '#143b85')(i / Math.max(1, S.rows.length - 1))
         : colour;
       layer.append('path').datum(vals_).attr('fill', 'none').attr('stroke', shade)
         .attr('stroke-width', 2).attr('d', line);
