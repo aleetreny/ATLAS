@@ -1093,6 +1093,26 @@
             </button>
           </div>
         </div>
+
+        <!-- card: consistency -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./consistency/';" style="cursor: pointer">
+            <img src="assets/thumbnails/consistency.svg"
+                 alt="Straight to the Point article image: distance from real digits against the number of network evaluations, with the plain rectified flow starting far above and falling for a hundred evaluations while the reflowed one is flat from the first." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Straight to the Point</h2>
+            <p class="article-description">
+              Sampling needs a chain because the path from noise to data is
+              curved. Measure how curved, straighten it by retraining on the
+              model's own output, and the chain collapses to one evaluation
+              for a change the measurement cannot see.
+            </p>
+            <button class="content-button">
+              <a href="./consistency/">Dive In</a>
+            </button>
+          </div>
+        </div>
       </div>
 
       <details class="roadmap">
@@ -1121,7 +1141,7 @@
             <span class="chip live"><a href="./ddpm/">DDPM</a></span>
             <span class="chip live"><a href="./latent-diffusion/">Latent Diffusion</a></span>
             <span class="chip live"><a href="./controlnet/">ControlNet</a></span>
-            <span class="chip">Consistency Models · Rectified Flow</span>
+            <span class="chip live"><a href="./consistency/">Consistency Models · Rectified Flow</a></span>
           </div>
         </div>
       </details>

@@ -3,20 +3,291 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Consistency Models and Rectified Flow | ATLAS</title>
+  <title>Straight to the Point | ATLAS</title>
+  <meta name="description" content="A visual, interactive introduction to rectified flow, reflow and consistency distillation: why a diffusion sampler needs a chain at all, how curved its path really is, and what it costs to collapse that chain to a single network evaluation." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/consistency/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="Straight to the Point | ATLAS" />
+  <meta property="og:description" content="A visual, interactive introduction to rectified flow, reflow and consistency distillation: why a diffusion sampler needs a chain at all, how curved its path really is, and what it costs to collapse that chain to a single network evaluation." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/consistency/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Straight to the Point | ATLAS" />
+  <meta name="twitter:description" content="A visual, interactive introduction to rectified flow, reflow and consistency distillation: why a diffusion sampler needs a chain at all, how curved its path really is, and what it costs to collapse that chain to a single network evaluation." />
   <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
   <style>
     :root {
       --primary: #5c293b;
       --secondary: #4a212f;
     }
+    .narrow-widget {
+      max-width: 880px;
+    }
+    .widget-readout {
+      overflow-x: auto;
+    }
+    .gen-table {
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      margin-top: 0.4rem;
+      width: 100%;
+    }
+    .gen-table th,
+    .gen-table td {
+      padding: 4px 10px 4px 0;
+      text-align: left;
+      font-weight: 400;
+      white-space: nowrap;
+    }
+    .gen-table th {
+      font-family: var(--font-heavy);
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .gen-table td:first-child,
+    .gen-table th:first-child {
+      opacity: 0.75;
+    }
+    .gen-note {
+      margin-top: 0.6rem;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+    /* an svg carrying only a viewBox has an intrinsic ratio and no intrinsic
+       size, so every chart on this page is told to fill its column */
+    .widget svg {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+    }
+    .gen-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    /* the strip is twelve digits wide and would drag the page sideways on a
+       phone, so it scrolls inside its own box rather than inside the article */
+    .strip-scroll {
+      overflow-x: auto;
+      max-width: 100%;
+    }
+    .strip-scroll canvas {
+      display: block;
+      margin: 0 auto;
+    }
+    .canvas-caption {
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      letter-spacing: 0.3px;
+      color: var(--squidink);
+      opacity: 0.85;
+      text-align: center;
+      max-width: 420px;
+      margin: 0.4rem auto 0;
+      line-height: 1.35;
+    }
+    .slider-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+      margin: 0.2rem 0 0.6rem;
+      font-family: var(--font-mono);
+      font-size: 13px;
+    }
+    .slider-row input[type="range"] {
+      width: 240px;
+      accent-color: var(--primary);
+    }
+    .slider-row input[type="range"]:disabled {
+      opacity: 0.35;
+    }
   </style>
 </head>
 <body>
-  <!-- Placeholder claiming this folder and this accent while the article is
-       written. It carries no article yet: check_publication.py counts a folder
-       as published only when it has js/main.js as well, so this is invisible to
-       the guard and visible to the accent allocator, which is the point. -->
-  <p>Consistency Models and Rectified Flow, in progress.</p>
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <section id="intro">
+    <h1 id="intro-hed">Straight to the Point</h1>
+    <h1 id="intro-sub">Sampling has always been a chain of network passes, and the chain exists for one reason: the path from noise to data is curved, so a big step misses. Straighten the path and the chain gets shorter, until it stops being a chain at all</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 3.3 &middot; Diffusion &middot; Few Step Sampling</span>
+  </section>
+
+  <br />
+
+  <section>
+    <p class="body-text">
+      Every sampler in this module has had the same shape. Start from noise, ask
+      a network what to do, take a small step, repeat. The pixel article ran two
+      hundred of those steps and the conditioning article made each one cost two
+      network passes instead of one. That is four hundred passes for a picture
+      the decoder then renders in a single pass, and it is the reason diffusion
+      models are slow in a way that has nothing to do with how big they are.
+    </p>
+    <br />
+    <p class="body-text">
+      The obvious response is to take fewer, larger steps. It does not work, and
+      the reason it does not work is not a subtlety of the algorithm: it is a
+      fact about the shape of the path the sampler is walking. This article
+      measures that shape, and then measures what three different attempts to
+      change it are actually worth.
+    </p>
+    <br />
+    <p class="body-text" id="opening-note"></p>
+  </section>
+
+  <section>
+    <h1 class="body-header">One Evaluation, Four Ways</h1>
+    <p class="body-text" id="strip-intro"></p>
+  </section>
+
+  <div class="widget narrow-widget">
+    <div class="strip-scroll"><div id="strip-canvas"></div></div>
+    <div class="canvas-caption" id="strip-caption"></div>
+    <div class="widget-readout" id="strip-readout"></div>
+  </div>
+
+  <section>
+    <h1 class="body-header">Why a Big Step Misses</h1>
+    <p class="body-text" id="path-intro"></p>
+    <br />
+    <p class="body-text" id="path-note"></p>
+  </section>
+
+  <div class="widget narrow-widget">
+    <div id="path-buttons" class="button-row"></div>
+    <div class="slider-row">
+      <label for="path-slider">budget</label>
+      <input type="range" id="path-slider" min="0" max="6" step="1" value="0"
+             aria-label="how many steps the coarse walk is allowed" />
+      <span id="path-value" class="value"></span>
+    </div>
+    <div id="path-chart"></div>
+    <div class="widget-readout" id="path-readout"></div>
+  </div>
+
+  <section>
+    <h1 class="body-header">Retrain It On Its Own Output</h1>
+    <p class="body-text" id="reflow-intro"></p>
+    <br />
+    <p class="body-text">
+      Why that should straighten anything is worth a sentence. The training
+      target is the velocity of the straight line joining a pair, and when the
+      pairs are independent, many different lines run through the same point in
+      different directions. The network cannot satisfy all of them, so it learns
+      their average, and the average of a fan of directions is not the direction
+      of any of them: the field bends. Pairing noise with the sample it actually
+      produced removes the crossings, and a field with nothing to average is
+      free to be straight.
+    </p>
+  </section>
+
+  <section>
+    <h1 class="body-header">What a Step Is Worth</h1>
+    <p class="body-text" id="steps-intro"></p>
+    <br />
+    <p class="body-text" id="steps-note"></p>
+  </section>
+
+  <div class="widget narrow-widget">
+    <div id="steps-buttons" class="button-row"></div>
+    <div id="steps-chart"></div>
+    <div class="widget-readout" id="steps-readout"></div>
+  </div>
+
+  <section>
+    <h1 class="body-header">Which of Those Differences Are Real</h1>
+    <p class="body-text" id="spread-intro"></p>
+    <br />
+    <p class="body-text" id="spread-note"></p>
+  </section>
+
+  <div class="widget narrow-widget">
+    <div id="spread-buttons" class="button-row"></div>
+    <div id="spread-chart"></div>
+    <div class="widget-readout" id="spread-readout"></div>
+  </div>
+
+  <section>
+    <h1 class="body-header">Sampling It Here</h1>
+    <p class="body-text" id="live-intro"></p>
+  </section>
+
+  <div class="widget narrow-widget">
+    <div id="live-buttons" class="button-row"></div>
+    <div class="slider-row">
+      <label for="live-slider">budget</label>
+      <input type="range" id="live-slider" min="0" max="6" step="1" value="0"
+             aria-label="how many network evaluations each picture is allowed" />
+      <span id="live-value" class="value"></span>
+    </div>
+    <div id="live-canvas"></div>
+    <div class="canvas-caption" id="live-caption"></div>
+    <div class="widget-readout" id="live-readout"></div>
+  </div>
+
+  <section>
+    <h1 class="body-header">What Each One Bought</h1>
+    <p class="body-text" id="verdict-intro"></p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>The idea</th>
+          <th>What it is</th>
+          <th>What it cost</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">Rectified flow</span></td>
+          <td id="verdict-flow"></td>
+          <td id="verdict-flow-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">Reflow</span></td>
+          <td id="verdict-reflow"></td>
+          <td id="verdict-reflow-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">Consistency distillation</span></td>
+          <td id="verdict-student"></td>
+          <td id="verdict-student-warn"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="closing-1"></p>
+    <br />
+    <p class="body-text" id="closing-2"></p>
+  </section>
+
+  <section>
+    <h1 class="body-header">How This Was Measured</h1>
+    <p class="body-text" id="ref-note"></p>
+  </section>
+
+  <br /><br />
 </body>
 </html>

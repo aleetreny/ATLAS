@@ -306,3 +306,40 @@ casos el arreglo era el enunciado y no el número:
 Antes de tocar el dato, comprobar que el guardia pide algo que el experimento
 puede dar.
 
+
+## Trampa 27: un control desactivado a propósito sale como DEAD CONTROL
+
+El barrido pone cada slider en cada posición y avisa si el estado no se mueve.
+El artículo 69 tiene un brazo (el estudiante destilado) que por construcción se
+evalúa una sola vez, así que su slider se apaga y el arnés lo reporta, aunque
+esté bien. Dos cosas que aprender de ahí:
+
+- **El hallazgo hay que resolverlo, no silenciarlo.** Al lector le pasa lo
+  mismo que al arnés: ve un mando que no responde. Lo que lo arregla es que el
+  número de al lado deje de repetir un valor y diga por qué está apagado
+  (`one, by construction`).
+- **Y hay que comprobar a mano que el control SÍ funciona donde debe.** El
+  barrido deja el widget en el último botón que pulsó, que era justo el que
+  apaga el mando, así que su veredicto sobre ese slider no vale para los otros
+  dos brazos. Un script corto que selecciona el brazo con presupuesto y recorre
+  las siete posiciones comprobando que salen siete lienzos distintos: eso es lo
+  que cierra el hallazgo.
+
+Regla general: cuando el arnés reporta algo en un estado que él mismo eligió,
+antes de creerle o descartarlo hay que reproducir el estado que importa.
+
+## Trampa 28: un `probe` de una pasada no valida un bucle
+
+Las páginas de este sitio comprueban sus pesos contra un probe del generador
+antes de dibujar nada, y hasta el 69 ese probe era siempre "esta entrada da
+esta salida". Un muestreador que **camina** tiene tres decisiones más que viven
+fuera de las capas: el tamaño de paso, los tiempos a los que se le pregunta al
+campo y el sentido de la marcha. Se pueden equivocar las tres con los pesos
+leídos perfectamente, y el resultado sigue pareciendo dígitos.
+
+El probe lleva ahora los extremos de un paseo corto (8 pasos) además de la
+pasada suelta, y el navegador tiene que reproducirlos **caminando**. Lo mismo
+vale para cualquier cosa derivada que la página vuelva a calcular: la matriz de
+proyección con la que se dibujan las trayectorias también va en el probe,
+porque una sombra viva y una sombra guardada en marcos distintos parecen un
+resultado y son un artefacto.

@@ -186,4 +186,70 @@ if d:
     write("controlnet", lines)
 
 
+
+# ------------------------------------------------------------------ consistency
+# The card is the gap at the left edge: the same model, one evaluation, before
+# and after its paths were straightened. The two curves meet at the right, which
+# is the other half of the point, so both ends are worth drawing.
+d = load("consistency", "consistency.json")
+if d:
+    ACC = "#5c293b"
+    A = d["arms"]
+    B = d["meta"]["budgets"]
+    rows = lambda name: sorted((r for r in A if r["arm"] == name), key=lambda r: r["steps"])
+    lines = head()
+    lines.append("  <!-- distance from real digits against the step budget -->")
+    L, R, TOP, BOT = 60, W - 34, 78, 222
+    vals = [abs(float(r["mmd2"])) for r in A] + [abs(float(d["setup"]["floor"]["mmd2_max"]))]
+    lo, hi = np.log10(min(vals)), np.log10(max(vals))
+    px = lambda s: L + (R - L) * (np.log10(s) - np.log10(B[0])) / (np.log10(B[-1]) - np.log10(B[0]))
+    py = lambda v: BOT - (BOT - TOP) * (np.log10(abs(float(v))) - lo) / (hi - lo)
+    floor_y = py(d["setup"]["floor"]["mmd2_max"])
+    lines.append(f'  <line x1="{L}" y1="{floor_y:.0f}" x2="{R}" y2="{floor_y:.0f}" '
+                 f'stroke="#1d4ed8" stroke-width="1.4" stroke-dasharray="6 4" opacity="0.8" />')
+    lines.append(f'  <text x="{R}" y="{floor_y + 15:.0f}" text-anchor="end" '
+                 f'font-family="monospace" font-size="11" fill="#1d4ed8">real against real</text>')
+    for name, colour, dash in (("rectified flow", "#232f3e", ' stroke-dasharray="6 4"'),
+                               ("after reflow", ACC, "")):
+        rs = rows(name)
+        pts = " ".join(f"{px(r['steps']):.0f},{py(r['mmd2']):.0f}" for r in rs)
+        lines.append(f'  <polyline points="{pts}" fill="none" stroke="{colour}" '
+                     f'stroke-width="2.4"{dash} />')
+        for r in rs:
+            lines.append(f'    <circle cx="{px(r["steps"]):.0f}" cy="{py(r["mmd2"]):.0f}" r="3.6" '
+                         f'fill="{colour}" />')
+    a1 = rows("rectified flow")[0]
+    b1 = rows("after reflow")[0]
+    ya, yb = py(a1["mmd2"]), py(b1["mmd2"])
+    ratio = abs(float(a1["mmd2"])) / abs(float(b1["mmd2"]))
+    # The gap at one evaluation, drawn as the bracket it is. The label does NOT
+    # go beside the bracket: the falling curve passes straight through that
+    # space, and the first draft put a caption on top of its own data. It goes
+    # in the empty band between the flat curve and the floor line, which is the
+    # only region of this card with nothing in it.
+    lines.append(f'  <line x1="{L + 12}" y1="{ya:.0f}" x2="{L + 12}" y2="{yb:.0f}" '
+                 f'stroke="{ACC}" stroke-width="1.4" stroke-dasharray="3 3" />')
+    for yy in (ya, yb):
+        lines.append(f'    <line x1="{L + 7}" y1="{yy:.0f}" x2="{L + 17}" y2="{yy:.0f}" '
+                     f'stroke="{ACC}" stroke-width="1.4" />')
+    lines.append(f'  <text x="{L + 18}" y="{BOT - 12:.0f}" text-anchor="start" '
+                 f'font-family="monospace" font-size="12" fill="{ACC}">'
+                 f'{ratio:.0f} times closer at one evaluation</text>')
+    lines.append(f'  <text x="{px(1):.0f}" y="{ya - 12:.0f}" text-anchor="start" '
+                 f'font-family="monospace" font-size="11" fill="#232f3e">rectified flow</text>')
+    lines.append(f'  <text x="{px(B[-1]):.0f}" y="{py(rows("after reflow")[-1]["mmd2"]) + 18:.0f}" '
+                 f'text-anchor="end" font-family="monospace" font-size="11" '
+                 f'fill="{ACC}">after reflow</text>')
+    for s in (1, 10, 100):
+        lines.append(f'  <text x="{px(s):.0f}" y="{BOT + 20}" text-anchor="middle" '
+                     f'font-family="monospace" font-size="12" fill="{INK}">{s}</text>')
+    lines.append(f'  <text x="{(L + R) / 2:.0f}" y="{BOT + 44}" text-anchor="middle" '
+                 f'font-family="monospace" font-size="12" fill="{INK}">'
+                 f'network evaluations per sample</text>')
+    lines.append(f'  <text x="{(L + R) / 2:.0f}" y="{TOP - 34}" text-anchor="middle" '
+                 f'font-family="monospace" font-size="12" fill="{INK}">'
+                 f'one evaluation, before and after</text>')
+    write("consistency", lines)
+
+
 print("done")
