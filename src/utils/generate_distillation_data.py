@@ -58,21 +58,21 @@ CACHE = (Path(os.environ.get("ATLAS_DATA_DIR", Path.home() / ".atlas_vision_data
 
 SEED = 19
 HID = (256, 128)              # la arquitectura compartida por todos los brazos
-SRC_N = 20000                 # filas de la tarea de origen
+SRC_N = 12000                 # filas de la tarea de origen
 TGT_TEST = 5000               # filas de test de la tarea de destino
-SRC_EPOCHS = 15
-FT_EPOCHS = 40
+SRC_EPOCHS = 12
+FT_EPOCHS = 20
 SIZES = (10, 25, 50, 100, 250, 500, 1000, 2500, 5000)
-SEEDS = 3
+SEEDS = 2
 
 TEACHER_HID = (512, 512)
-TEACHER_MEMBERS = 5
-TEACHER_N = 20000
+TEACHER_MEMBERS = 3
+TEACHER_N = 12000
 STUDENT_HID = (32,)
-DISTIL_EPOCHS = 25
+DISTIL_EPOCHS = 20
 DISTIL_SEEDS = 3
 TEMPS = (1.0, 2.0, 4.0, 8.0, 16.0)
-UNLABELLED = 20000
+UNLABELLED = 12000
 
 TAG = (f"h{'-'.join(map(str, HID))}n{SRC_N}e{SRC_EPOCHS}f{FT_EPOCHS}"
        f"s{SEEDS}t{TEACHER_MEMBERS}d{DISTIL_EPOCHS}u{UNLABELLED}v{SEED}")

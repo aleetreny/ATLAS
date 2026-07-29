@@ -57,16 +57,16 @@ CACHE = (Path(os.environ.get("ATLAS_DATA_DIR", Path.home() / ".atlas_vision_data
 
 SEED = 19
 HID = (256, 128)
-SRC_N = 20000
+SRC_N = 12000
 TGT_N = 5000
 TEST_N = 5000
-SRC_EPOCHS = 15
-FT_EPOCHS = 40
-RANKS = (1, 2, 4, 8, 16, 32, 64)
-ALPHAS = (1, 2, 4, 8, 16, 32)
+SRC_EPOCHS = 12
+FT_EPOCHS = 25
+RANKS = (1, 2, 4, 8, 16, 32)
+ALPHAS = (2, 4, 8, 16, 32)
 ALPHA_RANK = 8
-SEEDS = 3
-DATA_SWEEP = (250, 1000, 5000, 20000)
+SEEDS = 2
+DATA_SWEEP = (250, 1000, 5000, 12000)
 BLOCKS = (16, 32, 64, 128, 256, 1024)
 
 TAG = (f"h{'-'.join(map(str, HID))}s{SRC_N}t{TGT_N}e{SRC_EPOCHS}f{FT_EPOCHS}"
