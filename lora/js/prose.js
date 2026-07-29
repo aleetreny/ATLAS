@@ -49,7 +49,8 @@ export function initProse(data) {
   const sweep = data.data_sweep;
 
   set('opening-note',
-    `The model is the one the <a href="../distillation/">previous article</a> used, so the `
+    `The model is the one the <a href="../distillation/">transfer and distillation article</a> `
+    + `used, so the `
     + `two pages share their setup rather than describing similar ones: a perceptron of `
     + `${M.hidden.join(' and ')} hidden units and ${n0(M.params)} parameters, pretrained on `
     + `${n0(M.source_n)} digits and adapted to ${n0(M.target_n)} rows of clothing, scored on `

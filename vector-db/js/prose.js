@@ -41,7 +41,8 @@ export function initProse(data) {
   const enough = rer.find((r) => r.recall >= 0.95) || rer[rer.length - 1];
 
   set('opening-note',
-    `Same collection as the previous article, and same answer key: `
+    `Same collection as the <a href="../ann-search/">approximate search article</a>, and same `
+    + `answer key: `
     + `${n0(F.n)} Reuters newswires as ${M.dims} columns, with `
     + `${M.queries} held out as queries and the category of each document available for `
     + `scoring but never for searching. The metadata used for filtering is real rather than `

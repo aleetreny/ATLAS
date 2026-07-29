@@ -104,7 +104,8 @@ export function initProse(data) {
       + `${s.ranked.map(([k, v]) => `${k} ${f3(v)}`).join(', ')}`).join('. ') + `.`);
 
   set('curse-intro',
-    `The <a href="../hyperparameters/">previous article</a> measured the winner's curse over `
+    `The <a href="../hyperparameters/">hyperparameter search article</a> measured the `
+    + `winner's curse over `
     + `a grid of one model and found it real but small. Here the catalogue is a different `
     + `shape: fewer candidates, `
     + `but candidates that differ from each other far more, and tables that are much smaller `
