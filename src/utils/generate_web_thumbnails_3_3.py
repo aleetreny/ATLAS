@@ -98,4 +98,44 @@ if d:
                  f'nats from a standard normal, exactly</text>')
     write("ddpm", lines)
 
+
+# --------------------------------------------------------------- latent-diffusion
+# The article is about two costs pulling opposite ways, so the card is that
+# chart with everything stripped but the crossing.
+d = load("latent-diffusion", "latent.json")
+if d:
+    ACC = "#995e45"
+    T = d["trade"]
+    lines = head()
+    lines.append("  <!-- the ceiling against what the diffusion reaches -->")
+    L, R, TOP, BOT = 66, W - 34, 70, 232
+    ks = [r["k"] for r in T]
+    vals = [abs(float(r["mmd2"])) for r in T] + [abs(float(r["ceiling_mmd2"])) for r in T]
+    lo, hi = np.log10(min(vals)), np.log10(max(vals))
+    px = lambda k: L + (R - L) * (np.log2(k) - np.log2(ks[0])) / (np.log2(ks[-1]) - np.log2(ks[0]))
+    py = lambda v: BOT - (BOT - TOP) * (np.log10(abs(float(v))) - lo) / (hi - lo)
+    for key, colour, dash, name in (("ceiling_mmd2", "#232f3e", ' stroke-dasharray="6 4"',
+                                     "what the decoder allows"),
+                                    ("mmd2", ACC, "", "what the diffusion reaches")):
+        pts = " ".join(f"{px(r['k']):.0f},{py(r[key]):.0f}" for r in T)
+        lines.append(f'  <polyline points="{pts}" fill="none" stroke="{colour}" '
+                     f'stroke-width="2.4"{dash} />')
+        for r in T:
+            lines.append(f'    <circle cx="{px(r["k"]):.0f}" cy="{py(r[key]):.0f}" r="4" '
+                         f'fill="{colour}" />')
+        lines.append(f'  <text x="{R}" y="{py(T[-1][key]) + (16 if key == "ceiling_mmd2" else -10):.0f}" '
+                     f'text-anchor="end" font-family="monospace" font-size="12" '
+                     f'fill="{colour}">{name}</text>')
+    for r in T:
+        lines.append(f'  <text x="{px(r["k"]):.0f}" y="{BOT + 20}" text-anchor="middle" '
+                     f'font-family="monospace" font-size="12" fill="{INK}">{r["k"]}</text>')
+    lines.append(f'  <text x="{(L + R) / 2:.0f}" y="{BOT + 44}" text-anchor="middle" '
+                 f'font-family="monospace" font-size="12" fill="{INK}">'
+                 f'numbers in the bottleneck</text>')
+    lines.append(f'  <text x="{(L + R) / 2:.0f}" y="{TOP - 28}" text-anchor="middle" '
+                 f'font-family="monospace" font-size="12" fill="{INK}">'
+                 f'the ceiling, and what reaches it</text>')
+    write("latent-diffusion", lines)
+
+
 print("done")

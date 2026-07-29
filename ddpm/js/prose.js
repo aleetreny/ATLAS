@@ -233,15 +233,10 @@ export function initProse(data) {
     + `diffusion is the fine structure at the clean end, and the expensive part of doing it on `
     + `images is that there are ${M.digit_side * M.digit_side} dimensions of fine structure to `
     + `get right, then the move is to stop working in pixels: run the diffusion in the small `
-    + `space an autoencoder already learned, and let the decoder put the detail back. That is `
-    + `latent diffusion, and it is the next thing this module will do.`
-    + `<br /><br />`
-    + `The article that comes next in the atlas, though, changes the object rather than the `
-    + `method. Everything up to here has started from a row of numbers or a picture, and both of `
-    + `those arrive already numeric. A <span class="bold">document</span> does not: it is a `
-    + `sequence of words of no fixed length, from a vocabulary nobody wrote down, and before any `
-    + `of this machinery can touch it somebody has to decide what its numbers are. `
-    + `<a href="../tf-idf/">Counting words</a> is where that starts.`);
+    + `space an autoencoder already learned, and let the decoder put the detail back. `
+    + `<a href="../latent-diffusion/">That is the next article</a>, and it costs a fortieth of `
+    + `the weights this one needed. It also buys a limit that is fixed before any diffusion is `
+    + `trained, which almost nobody reports and which turns out to be the thing worth measuring.`);
 
   set('ref-note',
     `${n0(M.n_train)} draws from the closed form density, seed ${M.seed}, a ${M.hidden} wide `

@@ -1053,6 +1053,26 @@
             </button>
           </div>
         </div>
+
+        <!-- card: latent-diffusion -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./latent-diffusion/';" style="cursor: pointer">
+            <img src="assets/thumbnails/latent-diffusion.svg"
+                 alt="The Ceiling You Cannot See article image: two curves against bottleneck size, one for what the decoder allows and one for what the diffusion reaches, meeting at small sizes and separating at large ones." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">The Ceiling You Cannot See</h2>
+            <p class="article-description">
+              Run the same diffusion in an autoencoder's small space and it
+              costs a fortieth of the network. The price is a limit fixed
+              before any diffusion is trained, measurable in one forward pass,
+              and almost never reported.
+            </p>
+            <button class="content-button">
+              <a href="./latent-diffusion/">Dive In</a>
+            </button>
+          </div>
+        </div>
       </div>
 
       <details class="roadmap">
@@ -1079,7 +1099,7 @@
           <h4>3.3 Diffusion</h4>
           <div class="chips">
             <span class="chip live"><a href="./ddpm/">DDPM</a></span>
-            <span class="chip">Latent Diffusion</span>
+            <span class="chip live"><a href="./latent-diffusion/">Latent Diffusion</a></span>
             <span class="chip">ControlNet</span>
             <span class="chip">Consistency Models · Rectified Flow</span>
           </div>

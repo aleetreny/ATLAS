@@ -82,6 +82,7 @@ Este repositorio empezó como notebooks de ML y se está convirtiendo en una web
 | 56 | What a Sound Looks Like (espectrograma vivo con la ventana como mando, resolución contra la verdad conocida, invertir con y sin fase para escuchar, MFCC contra el tono) | `spectrograms/` | `#5c0e1d` |
 | 57 | One Sample at a Time (campo receptivo exacto contra el periodo del tono, la ley mu escuchable, el modelo alimentado con su propia salida, CTC contra un decodificador que no para) | `wavenet/` | `#5c3e29` |
 | 58 | A Thousand Easy Problems (el campo del score verdadero contra el aprendido, la cadena inversa corriendo en vivo con el presupuesto de pasos, el término del prior que se asume cero) | `ddpm/` | `#674599` |
+| 59 | The Ceiling You Cannot See (viajes de ida y vuelta calculados en la página, las dos escaleras sobre los mismos ejes, el techo contra lo que la difusión alcanza) | `latent-diffusion/` | `#995e45` |
 
 Los artículos 1 a 6 pasaron una **revisión completa** (commit `5e4852b`, 2026-07-25): auditoría estática en paralelo más un barrido en navegador de cada control, cada paso de scrolly y cada etiqueta a 1425px y 375px. 73 hallazgos aplicados. Todas las páginas tienen ahora `canonical` + Open Graph, los 20 sliders tienen `aria-label`, y cada cierre enlaza al siguiente artículo.
 
