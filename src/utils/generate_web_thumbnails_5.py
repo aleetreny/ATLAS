@@ -346,6 +346,50 @@ def thumb_policy_gradient():
     return write("policy-gradient", body)
 
 
+# ---------------------------------------------------------------------------
+def thumb_mcts():
+    """El tablero resuelto con las columnas que empatan y las que pierden, y el
+    reparto de simulaciones de la busqueda encima."""
+    accent = "#856314"
+    d = load("mcts", "mcts")
+    T = d["tree"]
+    grid = T["grid"]
+    rows, cols = len(grid), len(grid[0])
+    exact = T["frames"][0]["exact"]
+    frame = [f for f in T["frames"] if f["sims"] == max(g["sims"] for g in T["frames"])][0]
+    total = sum(frame["counts"].values())
+    assert total > 0, "la busqueda del fichero no visito nada"
+    assert frame["pick"] in T["best"], "la miniatura ensena una busqueda que se equivoca"
+    # casillas cuadradas: con celdas apaisadas el tablero no se lee como un
+    # tablero, y una tarjeta se mira un segundo
+    cell, top = 48, 12
+    pad = round((W - cell * cols) / 2)
+    cells, discs = [], []
+    for r_ in range(rows):
+        for c in range(cols):
+            x, y = pad + c * cell, top + r_ * cell
+            cells.append(f'<rect x="{x}" y="{y}" width="{cell - 4}" height="{cell - 4}" />')
+            v = grid[r_][c]
+            if v:
+                discs.append((v, round(x + (cell - 4) / 2), round(y + (cell - 4) / 2)))
+    base = H - 16
+    tall = base - (top + rows * cell) - 26
+    bars = []
+    for c in range(cols):
+        share = frame["counts"].get(str(c), 0) / total
+        hgt = max(round(share * tall / max(frame["counts"].values()) * total), 2)
+        good = exact[str(c)] == max(exact.values())
+        bars.append(f'<rect x="{pad + c * cell + 6}" y="{base - hgt}" '
+                    f'width="{cell - 16}" height="{hgt}" '
+                    f'fill="{accent if good else "#c9ced0"}" />')
+    body = (f'  <g fill="#e7eaec">{"".join(cells)}</g>\n'
+            + "".join(f'  <circle cx="{x}" cy="{y}" r="15" '
+                      f'fill="{accent if v == T["who"] else "#1c3f6e"}" />\n'
+                      for v, x, y in discs)
+            + f'  <g>{"".join(bars)}</g>\n')
+    return write("mcts", body)
+
+
 THUMBS = {
     "linear-programming": thumb_linear_programming,
     "genetic-algorithms": thumb_genetic_algorithms,
@@ -355,6 +399,7 @@ THUMBS = {
     "q-learning": thumb_q_learning,
     "dqn": thumb_dqn,
     "policy-gradient": thumb_policy_gradient,
+    "mcts": thumb_mcts,
 }
 
 

@@ -73,26 +73,42 @@ def play(state, col, who):
     return tuple(lst)
 
 
-def winner(state):
-    """Quién ha hecho línea, si alguien. Se comprueban las cuatro direcciones."""
-    grid = [[0] * COLS for _ in range(ROWS)]
-    for c, colvals in enumerate(state):
-        for r_, v in enumerate(colvals):
-            grid[r_][c] = v
+def _lines():
+    """Las 17 lineas de cuatro casillas que existen en un tablero de 4 por 5,
+    en indices planos. Enumerarlas una vez y comprobarlas es bastante mas rapido
+    que barrer el tablero entero en cuatro direcciones desde cada casilla, y esta
+    funcion se llama millones de veces."""
+    out = []
     for r_ in range(ROWS):
         for c in range(COLS):
-            v = grid[r_][c]
-            if v == 0:
-                continue
             for dr, dc in ((0, 1), (1, 0), (1, 1), (1, -1)):
-                n = 0
+                cells = []
                 rr, cc = r_, c
-                while 0 <= rr < ROWS and 0 <= cc < COLS and grid[rr][cc] == v:
-                    n += 1
+                for _ in range(CONNECT):
+                    if not (0 <= rr < ROWS and 0 <= cc < COLS):
+                        break
+                    cells.append(rr * COLS + cc)
                     rr += dr
                     cc += dc
-                if n >= CONNECT:
-                    return v
+                if len(cells) == CONNECT:
+                    out.append(tuple(cells))
+    return out
+
+
+LINES = _lines()
+
+
+def winner(state):
+    """Quién ha hecho línea, si alguien."""
+    g = [0] * (ROWS * COLS)
+    for c, colvals in enumerate(state):
+        base = c
+        for r_, v in enumerate(colvals):
+            g[r_ * COLS + base] = v
+    for a, b, c2, d in LINES:
+        v = g[a]
+        if v and v == g[b] and v == g[c2] and v == g[d]:
+            return v
     return 0
 
 
@@ -141,7 +157,7 @@ def rollout_random(state, who, rng):
         if t is not None:
             return 0.0 if t == 0.5 else (1.0 if t == who else -1.0)
         ms = moves(state)
-        state = play(state, ms[rng.randrange(len(ms))], 3 - 0 if False else who)
+        state = play(state, ms[rng.randrange(len(ms))], who)
         who = 3 - who
 
 
@@ -171,14 +187,20 @@ def rollout_smart(state, who, rng):
 
 def mcts(state, who, sims, rng, c_uct=1.4, smart=False):
     """Cuatro pasos por simulación: bajar por el árbol con la fórmula, añadir un
-    hijo, jugar al azar hasta el final, y subir el resultado."""
+    hijo, jugar al azar hasta el final, y subir el resultado.
+
+    Un convenio y nada más: `W[nodo]` guarda el valor **desde el punto de vista
+    de quien mueve en ese nodo**, así que al subir por el camino el signo se da
+    la vuelta en cada paso y al leer un hijo desde su padre también. Escrito de
+    cualquier otra forma la búsqueda juega contra sí misma sin avisar.
+    """
     root = (state, who)
     N = {root: 0}
     W = {root: 0.0}
     children = {}
     rollout = rollout_smart if smart else rollout_random
     for _ in range(sims):
-        path = []
+        path = [root]
         node = root
         while True:
             s, w = node
@@ -193,13 +215,9 @@ def mcts(state, who, sims, rng, c_uct=1.4, smart=False):
                     W.setdefault(ch, 0.0)
             unseen = [ch for ch in children[node] if N[ch] == 0]
             if unseen:
-                child = unseen[rng.randrange(len(unseen))]
+                node = unseen[rng.randrange(len(unseen))]
                 path.append(node)
-                node = child
-                value = -rollout(child[0], child[1], rng)
-                path.append(node)
-                N[node] += 1
-                W[node] += -value if False else value * -1
+                value = rollout(node[0], node[1], rng)
                 break
             total = sum(N[ch] for ch in children[node])
             best, bestch = -1e18, None
@@ -210,11 +228,12 @@ def mcts(state, who, sims, rng, c_uct=1.4, smart=False):
                 u = q + c_uct * math.sqrt(math.log(total + 1) / N[ch])
                 if u > best:
                     best, bestch = u, ch
-            path.append(node)
             node = bestch
-        for i, nd in enumerate(reversed(path)):
-            N[nd] = N.get(nd, 0) + 1
-            W[nd] = W.get(nd, 0.0) + (value if (len(path) - 1 - i) % 2 == 0 else -value)
+            path.append(node)
+        # el valor está en el punto de vista del último nodo del camino
+        for j in range(len(path)):
+            N[path[j]] += 1
+            W[path[j]] += value if (len(path) - 1 - j) % 2 == 0 else -value
     kids = children.get(root, [])
     counts = {}
     for cc, ch in zip(moves(state), kids):
@@ -319,6 +338,36 @@ def stage_constant():
             "textbook_c": 1.4, "positions": len(positions)}
 
 
+def stage_noise():
+    """El suelo de ruido, que es lo que decide si las otras comparaciones dicen
+    algo. La misma configuración repetida con semillas de búsqueda distintas se
+    mueve sola; cualquier diferencia entre dos brazos por debajo de eso no es una
+    diferencia. Se usan **las mismas 120 posiciones** que el barrido de la
+    constante, para que su suelo sirva también allí.
+    """
+    rng = random.Random(SEED + 2)
+    positions = sample_positions(120, rng)
+    truth = {p: solve(*p) for p in positions}
+    out = []
+    for sims in (64, 256, 1024):
+        for smart in (False, True):
+            scores = []
+            for s in range(6):
+                good = 0
+                rng2 = random.Random(SEED + 100 + s)
+                for state, who in positions:
+                    pick, _ = mcts(state, who, sims, rng2, smart=smart)
+                    if pick in truth[(state, who)][1]:
+                        good += 1
+                scores.append(good)
+            out.append({"sims": sims, "smart": smart, "scores": scores,
+                        "mean": r(sum(scores) / len(scores) / len(positions), 4),
+                        "spread": r(float(np.std([g / len(positions) for g in scores])), 4),
+                        "seeds": len(scores)})
+    return {"rows": out, "positions": len(positions), "note":
+            "same positions as the constant sweep, so its floor is this one"}
+
+
 def stage_versus_minimax():
     rng = random.Random(SEED + 4)
     positions = sample_positions(100, rng)
@@ -415,7 +464,9 @@ def stage_model():
         X, U, Y = rollout(n)
         Z = np.hstack([X, U])
         Wm, *_ = np.linalg.lstsq(Z, Y, rcond=None)
-        truth = np.hstack([A.T, B.T]).T
+        # Z es [posicion, velocidad, empuje] y Y el estado siguiente, asi que la
+        # matriz verdadera es A y B apiladas y traspuestas, no concatenadas
+        truth = np.vstack([A.T, B.T])
         # error de un paso, y error de imaginar k pasos
         Xt, Ut, Yt = rollout(400)
         one = float(np.abs(np.hstack([Xt, Ut]) @ Wm - Yt).mean())
@@ -434,28 +485,34 @@ def stage_model():
         rows.append({"samples": n, "one_step": r(one, 6),
                      "weight_error": r(float(np.abs(Wm - truth).max()), 6),
                      "horizon": horizon})
-    return {"rows": rows, "noise": noise,
+    # el suelo del error de un paso medido contra lo que pasó de verdad: el
+    # mundo mete ruido gaussiano en cada paso, así que ni el modelo exacto puede
+    # bajar de la media del valor absoluto de ese ruido
+    floor = float(noise * math.sqrt(2 / math.pi))
+    return {"rows": rows, "noise": noise, "one_step_floor": r(floor, 6),
             "note": "a linear world and a linear model, so what is measured is data, not shape"}
 
 
 def main():
     t0 = time.time()
-    print("1/6 resolver el juego entero")
+    print("1/7 resolver el juego entero")
     sol = cached("solve", stage_solve)
-    print("2/6 acierto contra simulaciones")
+    print("2/7 acierto contra simulaciones")
     acc = cached("accuracy", stage_accuracy)
-    print("3/6 la constante")
+    print("3/7 la constante")
     con = cached("constant", stage_constant)
-    print("4/6 contra minimax")
+    print("4/7 el suelo de ruido")
+    noise = cached("noise", stage_noise)
+    print("5/7 contra minimax")
     vs = cached("versus", stage_versus_minimax)
-    print("5/6 un árbol para dibujar")
+    print("6/7 un árbol para dibujar")
     tree = cached("tree", stage_tree)
-    print("6/6 planear dentro de un modelo")
+    print("7/7 planear dentro de un modelo")
     mod = cached("model", stage_model)
 
     data = {"meta": {"seed": SEED, "rows": ROWS, "cols": COLS, "connect": CONNECT,
                      "note": "positions and node counts, never a clock"},
-            "solve": sol, "accuracy": acc, "constant": con, "versus": vs,
+            "solve": sol, "accuracy": acc, "constant": con, "noise": noise, "versus": vs,
             "tree": tree, "model": mod}
     f = OUT / "mcts.json"
     f.write_text(json.dumps(data, indent=1))
@@ -468,6 +525,9 @@ def main():
         if row["sims"] in (8, 128, 2048):
             print(f"  {row['sims']} simulaciones, listo={row['smart']}: {row['share']}")
     print(f"  mejor constante: {con['best_c']} (el libro dice {con['textbook_c']})")
+    for row in noise["rows"]:
+        print(f"  suelo {row['sims']} sims listo={row['smart']}: media {row['mean']}, "
+              f"dispersion {row['spread']} sobre {row['seeds']} semillas")
     for row, tr in zip(vs["minimax"], vs["tree"]):
         print(f"  profundidad {row['depth']}: minimax {row['share']} con {row['nodes']} nodos, "
               f"árbol {tr['share']} con {tr['sims']}")

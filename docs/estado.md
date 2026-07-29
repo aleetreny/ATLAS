@@ -89,6 +89,7 @@ Este repositorio empezó como notebooks de ML y se está convirtiendo en una web
 | 63 | A World That Remembers (acantilado resuelto exacto por iteracion de valor, SARSA contra Q-learning en lo que cobran y en lo que dejan, epsilon a cero los iguala, sesgo del maximo con doble tabla) | `q-learning/` | `#392270` |
 | 64 | When the Table Does Not Fit (tabla contra recta contra red sobre el mismo acantilado exacto, las dos muletas ablacionadas con suelo de ruido, lo que la red se cree contra lo que cobra) | `dqn/` | `#6a3270` |
 | 65 | Pushing the Policy Itself (gradiente exacto por algebra lineal, error y coseno del estimador barriendo episodios, linea base contra nada, reuso y recorte medidos uno a uno, premio a la entropia barrido) | `policy-gradient/` | `#647032` |
+| 66 | Thinking Before Moving (conecta cuatro de 4x5 resuelto entero, acierto de la busqueda barriendo simulaciones, la constante barrida contra su suelo de ruido, tiradas listas que no compran nada, contra minimax a igual numero de nodos, y el error de un plan dentro de un modelo aprendido) | `mcts/` | `#856314` |
 
 Los artículos 1 a 6 pasaron una **revisión completa** (commit `5e4852b`, 2026-07-25): auditoría estática en paralelo más un barrido en navegador de cada control, cada paso de scrolly y cada etiqueta a 1425px y 375px. 73 hallazgos aplicados. Todas las páginas tienen ahora `canonical` + Open Graph, los 20 sliders tienen `aria-label`, y cada cierre enlaza al siguiente artículo.
 
