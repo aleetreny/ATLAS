@@ -130,7 +130,20 @@ dónde; (5) los pesos de selección de un modelo tipo TFT y la importancia por p
 lleva 0,4528) y "la promoción de ayer" recibe 0,3791 mientras romperla cuesta 1,08 veces la
 pérdida; (6) en audio, la ventana larga sobre un barrido **lineal** mejora sin parar, porque el
 sesgo se cancela por simetría, y solo al doblar la frecuencia aparece la U que todo el mundo
-dibuja (2,36 Hz a 32 muestras contra 446,72 a 2.048).
+dibuja (2,36 Hz a 32 muestras contra 446,72 a 2.048); (7) quitarle al corpus del 45 la familia
+`trend_season` entera no le degrada el pronóstico sobre esa familia, se lo **destruye**: 0,8314
+con ella contra **2,728** sin ella, y 2,728 quiere decir casi el triple de error que repetir el
+año pasado. Las otras seis familias tienen tendencias y tienen estaciones por separado, y resulta
+que eso no es lo mismo que haber visto una llevando a la otra; (8) el barrido de contexto del
+mismo modelo **no es monótono**: 1,2445 con 12 meses, 1,886 con 24, 2,3821 con 36 y 0,7749 con
+48, que es exactamente la longitud con la que se entrenó. No es que menos contexto sea peor, es
+que cualquier cosa que no sea 48 es peor, y 36 es peor que 12; (9) en el 47, correr libre **no**
+degenera como dice el manual: el greedy se queda en 0,3379 de distancia espectral y muestrear a
+0,7 se va a 2,4742, un factor 7,3, porque en una vocal la continuación más probable es casi
+siempre la buena; (10) también en el 47, los picos de una pérdida CTC caen a **7,0 ms del inicio**
+del fonema (una trama es 10 ms) y a 57,5 ms de su centro, con desfase mediano con signo -57,5 y
+fonemas de 126 ms: la misma alineación se lee excelente o rota según contra qué borde se mida, y
+CTC no tiene ningún término que empuje un pico hacia el centro de nada.
 
 **Sobre los acentos de estos siete**: el encargo repartió `#713f12` a la sesión, que es el reparto
 normal de un artículo por sesión. Como aquí van siete, los seis restantes salen de la `RESERVA` de

@@ -1,6 +1,10 @@
 /* Every figure on this page, composed from the file it was measured into. */
 const n0 = (v) => v.toLocaleString('en-US');
 const pc = (v, d = 1) => `${(v * 100).toFixed(d)}%`;
+/* "a, b and c" rather than the "a, b, c" a bare join gives, since these lists
+   are read as sentences and their length depends on the measurement */
+const andList = (xs) => (xs.length < 2 ? (xs[0] || '')
+  : `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}`);
 
 function set(id, html) {
   const node = document.querySelector(`#${id}`);
@@ -22,6 +26,7 @@ export function initProse(data) {
   const small = S.rows[0];
   const big = S.rows[S.rows.length - 1];
   const bestCtx = X.rows.reduce((a, b) => (b.mase < a.mase ? b : a), X.rows[0]);
+  const worstCtx = X.rows.reduce((a, b) => (b.mase > a.mase ? b : a), X.rows[0]);
   const prevBest = B ? B.rows.reduce((a, b) => (b.mase_mean < a.mase_mean ? b : a), B.rows[0])
     : null;
   const prevNaive = B ? B.rows.find((r) => r.model === 'seasonal naive') : null;
@@ -92,9 +97,9 @@ export function initProse(data) {
     `<span class="value">${P.co2.mase}</span> on ${P.co2.n_origins} origins of a series it was `
     + `never fitted to. `
     + `${beaten.length
-      ? `That is better than ${beaten.map((b) => b.model).join(', ')} from the first article of `
+      ? `That is better than ${andList(beaten.map((b) => b.model))} from the first article of `
         + `this branch, all of which were fitted to this series, and worse than `
-        + `${B.rows.filter((r) => r.mase_mean <= P.co2.mase).map((r) => r.model).join(' and ')}.`
+        + `${andList(B.rows.filter((r) => r.mase_mean <= P.co2.mase).map((r) => r.model))}.`
       : `That is worse than everything the first article fitted to this series.`} `
     + `On the sunspots, where nothing in its corpus resembles an eleven year cycle that is never `
     + `the same length twice, it scores ${P.sunspots.mase} over ${P.sunspots.n_origins} origins. `
@@ -123,16 +128,29 @@ export function initProse(data) {
         + `${big.series} scored ${big.mase}. `}`
     + `Each row is one training run, so small differences between neighbouring rows are one seed `
     + `apiece and should not be read as a trend; the two ends are far enough apart to mean `
-    + `something. Note also what this axis is not: every series in the pile is `
-    + `${M.length} points long, so a bigger pile is more <i>variety</i> and never more history. `
+    + `something. The bottom row is the same recipe as the model in the section above, and it `
+    + `does not print the same number (${big.mase} here, ${P.co2.mase} there) for two reasons `
+    + `worth stating rather than hiding: this sweep is its own training run, and it is scored on `
+    + `every other origin (${S.n_origins} of them) to keep four trainings affordable, where the `
+    + `section above uses all ${P.co2.n_origins}. Note also what this axis is not: every series `
+    + `in the pile is ${M.length} points long, so a bigger pile is more <i>variety</i> and never `
+    + `more history. `
     + `And how much of the history does it use at all? Feeding it `
     + `${X.rows.map((r) => r.context).join(', ')} months of context and asking for the same twelve `
     + `gives ${X.rows.map((r) => r.mase).join(', ')}, so the best is `
     + `${bestCtx.context} months` + `${bestCtx.context === X.trained_on
-      ? `, which is exactly the length it was trained on: a context window is not a suggestion, `
-        + `it is part of the model.`
-      : `, against the ${X.trained_on} it was trained on, which is a reminder that a context `
-        + `window is part of the model and not a knob.`}`);
+      ? `, which is exactly the length it was trained on. `
+      : `, against the ${X.trained_on} it was trained on. `}`
+    + `${worstCtx.context !== X.rows[0].context && worstCtx.mase > X.rows[0].mase
+      ? `And the way it degrades is worth more than the ranking: it is not that shorter is worse, `
+        + `it is that <span class="bold">anything other than ${X.trained_on} is worse</span>, `
+        + `with ${worstCtx.context} months (${worstCtx.mase}) scoring worse than `
+        + `${X.rows[0].context} months (${X.rows[0].mase}). A model that had learned "read the `
+        + `history you are given" would not do that. This one learned to read a window of exactly `
+        + `${X.trained_on}, and a window of ${worstCtx.context} is not a shorter version of that, `
+        + `it is a different input. `
+      : `Shorter context is worse all the way down, which is the well behaved version of this. `}`
+    + `A context window is not a suggestion, it is part of the model.`);
 
   set('unseen-intro',
     `Here is the experiment a public benchmark cannot run. Take the corpus, remove an entire `
@@ -151,15 +169,28 @@ export function initProse(data) {
     </tr>`).join('');
   }
 
+  const blind = U.rows['never saw it'];
+  const shown = U.rows['saw it'];
   set('unseen-note',
-    `${U.gap > 0
-      ? `Removing the family costs ${U.gap} in error, a factor of ${U.ratio}. The model that never `
-        + `saw the shape still forecasts it, because a trend with a season is not unrelated to a `
-        + `damped trend or a bare season, and what it lost is the part that was specific.`
-      : `Removing the family cost nothing measurable (${U.rows['never saw it'].mase} against `
-        + `${U.rows['saw it'].mase}), which says the other families already contain everything `
-        + `this one needed.`} `
-    + `Either way the number exists, and that is the whole point. When a foundation forecaster `
+    `${U.gap <= 0
+      ? `Removing the family cost nothing measurable (${blind.mase} against ${shown.mase}), which `
+        + `says the other families already contain everything this one needed.`
+      : blind.mase < 1
+        ? `Removing the family costs ${U.gap} in error, a factor of ${U.ratio}, and the model that `
+          + `never saw the shape still forecasts it: ${blind.mase} is under the unit, so it is `
+          + `still beating a seasonal naive forecast. A trend with a season is not unrelated to a `
+          + `damped trend or a bare season, and what it lost is the part that was specific.`
+        : `<span class="bold">Removing the family does not cost accuracy, it removes it.</span> `
+          + `The model that saw the shape scores ${shown.mase}; the one that never did scores `
+          + `${blind.mase}, a factor of ${U.ratio}. That second number is not a degraded forecast, `
+          + `it is a failure: the unit here is the error of a seasonal naive forecast, so `
+          + `${blind.mase} means ${(blind.mase).toFixed(1)} times worse than repeating last year `
+          + `on a series it has never seen the like of. The six remaining families do contain `
+          + `trends and they do contain seasons, separately, and that turns out not to be the `
+          + `same thing as having seen one carrying the other. Whatever this model does, it is `
+          + `less like reasoning from parts than the word "foundation" invites you to think.`} `
+    + `And whichever way it had come out, the number exists, which is the whole point. When a `
+    + `foundation forecaster `
     + `reports a benchmark result, this is the number nobody can compute: the corpora are `
     + `enormous, assembled from public repositories, and the benchmarks are public too. `
     + `<span class="bold">The claim "it had never seen this series" is usually an assertion about `
