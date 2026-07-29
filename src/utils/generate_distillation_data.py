@@ -38,8 +38,21 @@ Lo que se mide:
 
 Ejecutar desde cualquier sitio: `python src/utils/generate_distillation_data.py`.
 """
-import json
 import os
+
+# Un lote de 32 filas contra una matriz de 784 por 256 es una multiplicación
+# diminuta, y repartirla entre cuatro hilos cuesta más que hacerla: medido en
+# esta máquina, cinco épocas tardan 1,7 s con un hilo y 15,2 s con cuatro, un
+# factor de 9 en la dirección contraria a la que uno espera. Se fija antes de
+# importar numpy, que es cuando el BLAS lee estas variables, y el número va en
+# el TAG porque el reparto de hilos cambia el orden de las reducciones en coma
+# flotante y por tanto los últimos decimales.
+THREADS = 1
+for _v in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS",
+           "NUMEXPR_NUM_THREADS", "VECLIB_MAXIMUM_THREADS"):
+    os.environ.setdefault(_v, str(THREADS))
+
+import json
 import pickle
 import sys
 from pathlib import Path
@@ -75,7 +88,7 @@ TEMPS = (1.0, 2.0, 4.0, 8.0, 16.0)
 UNLABELLED = 12000
 
 TAG = (f"h{'-'.join(map(str, HID))}n{SRC_N}e{SRC_EPOCHS}f{FT_EPOCHS}"
-       f"s{SEEDS}t{TEACHER_MEMBERS}d{DISTIL_EPOCHS}u{UNLABELLED}v{SEED}")
+       f"s{SEEDS}t{TEACHER_MEMBERS}d{DISTIL_EPOCHS}u{UNLABELLED}v{SEED}th{THREADS}")
 
 
 def cached(name, fn):

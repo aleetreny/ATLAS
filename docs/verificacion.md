@@ -442,3 +442,28 @@ cuantizacion a cuatro bits) es el sujeto correcto y no un sucedaneo. La regla:
 antes de instalar un framework, mirar si lo que el articulo mide es una
 propiedad de una matriz o una propiedad de una arquitectura. Si es lo primero,
 el framework solo aporta dependencias.
+
+
+## Trampa 26: cuatro hilos sobre una matriz diminuta son nueve veces mas lentos
+
+La receta ya avisa de no sobresuscribir hilos, y este modulo se encontro el
+caso extremo por el otro lado. Un perceptron entrenado con lotes de 32 filas
+hace multiplicaciones de 32 por 784 por 256, que son diminutas: repartirlas
+entre los cuatro nucleos cuesta mas en lanzar hilos que en multiplicar. Medido
+en esta maquina con el mismo bucle, cinco epocas tardan **1,7 s con un hilo,
+2,0 s con dos y 15,2 s con cuatro**. Un factor de nueve, y en la direccion
+contraria a la que uno espera.
+
+El sintoma en `ps` es reconocible y facil de leer al reves: 385% de CPU y carga
+media 6,7 sobre cuatro nucleos parece "esta aprovechando la maquina" y es
+"esta peleandose consigo misma".
+
+Dos detalles operativos. Las variables (`OMP_NUM_THREADS` y sus cuatro
+hermanas) las lee el BLAS **al importar numpy**, asi que se fijan antes del
+`import`, no en `main()`. Y el numero de hilos va en la clave del cache, porque
+cambia el orden de las reducciones en coma flotante: la tirada vieja se borra
+en vez de mezclarse con la nueva.
+
+La regla generalizable: antes de dejar correr una tirada larga de numpy, medir
+el mismo bucle a uno, dos y cuatro hilos. Cuesta dos minutos y aqui convirtio
+dos horas de generador en un cuarto de hora.
