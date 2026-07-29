@@ -58,15 +58,22 @@ export function initTrapWidget(data) {
       .attr('y', 0).attr('height', R.h)
       .attr('fill', 'var(--primary)').attr('opacity', 0.12);
   }
-  R.g.append('text').attr('class', 'chart-annotation')
-    .attr('x', sx((sepRegions[0][0] + sepRegions[0][1]) / 2)).attr('y', 14)
+  /* Measured and clamped: centred on the shaded region this label crossed the
+     left edge into the axis ticks, and its lane met the other label's. The
+     two live on separate lanes, each kept inside the canvas by its own width. */
+  const tightLabel = R.g.append('text').attr('class', 'chart-annotation')
+    .attr('y', 14)
     .attr('text-anchor', 'middle').style('font-size', '0.66rem').style('text-transform', 'none')
     .attr('fill', 'var(--primary)').text('tight pair still separate');
+  const tightHalf = tightLabel.node().getComputedTextLength() / 2 + 2;
+  const tightMid = sx((sepRegions[0][0] + sepRegions[0][1]) / 2);
+  tightLabel.attr('x', Math.min(Math.max(tightMid, tightHalf), R.w - tightHalf));
 
   R.g.append('path').attr('fill', 'none').attr('stroke', 'var(--cosmos)').attr('stroke-width', 3)
     .attr('d', d3.line().x((s) => sx(s.eps)).y((s) => sy(s.recovered))(sweep));
+  const diffY = sy(sweep[sweep.length - 1].recovered) - 8;
   R.g.append('text').attr('class', 'chart-annotation')
-    .attr('x', sx(sweep[sweep.length - 1].eps)).attr('y', sy(sweep[sweep.length - 1].recovered) - 8)
+    .attr('x', sx(sweep[sweep.length - 1].eps)).attr('y', diffY < 30 ? 32 : diffY)
     .attr('text-anchor', 'end').style('font-size', '0.66rem').style('text-transform', 'none')
     .attr('fill', 'var(--cosmos)').text('diffuse cluster held together');
 

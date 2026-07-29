@@ -31,8 +31,10 @@ export function digitsSolve(data) {
 
 export function initDigitsWidget(data, solved) {
   const G = data.digits;
+  /* the MDS views print seven-character ticks (−0.0002): 62px of left margin
+     clamped the rotated axis label onto them */
   const chart = makeChart('#digits-chart', {
-    width: 700, height: 440, margin: { top: 60, right: 26, bottom: 56, left: 62 },
+    width: 700, height: 440, margin: { top: 60, right: 26, bottom: 56, left: 86 },
   });
   const { g, w, h } = chart;
   const viewButtons = document.querySelector('#digits-view-buttons');
