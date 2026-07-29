@@ -26,12 +26,18 @@ export function initPixelWidget(data) {
   const real = decodeWeights(P.real_b64, n * dim);
 
   const COLS = 12;
-  const ROWS = Math.ceil(n / COLS) * 2;          // samples on top, real below
+  /* one blank row of pixels between the two blocks and above the first, so the
+     captions sit on white instead of on the top row of digits */
+  const PAD = 1;
+  const ROWS = Math.ceil(n / COLS) * 2 + PAD * 2;
   const ZOOM = 6;
   const cv = makeCanvas(document.querySelector('#pixel-canvas'),
     COLS * side * ZOOM, ROWS * side * ZOOM);
 
-  const big = new Float64Array(COLS * side * ROWS * side);
+  /* The values are stored inverted (1 - pixel), so the blank state of this
+     array is ONE, not zero: left at zero the padding rows painted solid black
+     bands between the two blocks. */
+  const big = new Float64Array(COLS * side * ROWS * side).fill(1);
   const place = (src, index, rowBlock) => {
     const r = rowBlock + Math.floor(index / COLS);
     const c = index % COLS;
@@ -42,12 +48,14 @@ export function initPixelWidget(data) {
       }
     }
   };
-  for (let i = 0; i < n; i++) place(samples, i, 0);
-  for (let i = 0; i < n; i++) place(real, i, Math.ceil(n / COLS));
+  for (let i = 0; i < n; i++) place(samples, i, PAD);
+  for (let i = 0; i < n; i++) place(real, i, Math.ceil(n / COLS) + PAD * 2);
   paintGray(cv.ctx, big, COLS * side, ROWS * side, { zoom: ZOOM });
   const W = COLS * side * ZOOM;
-  canvasLabel(cv.ctx, 'made by the model', 6, 14, { align: 'start', size: 11 });
-  canvasLabel(cv.ctx, 'real held out digits', 6, (ROWS * side * ZOOM) / 2 + 14,
+  const bandH = (Math.ceil(n / COLS) + PAD) * side * ZOOM;
+  canvasLabel(cv.ctx, 'made by the model', 6, PAD * side * ZOOM - 4,
+    { align: 'start', size: 11 });
+  canvasLabel(cv.ctx, 'real held out digits', 6, bandH + PAD * side * ZOOM - 4,
     { align: 'start', size: 11 });
 
   const best = P.ladder[P.ladder.length - 1];

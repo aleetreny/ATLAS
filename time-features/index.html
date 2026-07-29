@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>A Forecast Is a Table | ATLAS</title>
+  <meta name="description" content="A visual, interactive introduction to feature based forecasting: turning a series into rows and columns for gradient boosting, the cross validation that leaks the future, the ceiling a tree cannot forecast past, and a Prophet style decomposition scored against a truth that was written down first." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/time-features/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="A Forecast Is a Table | ATLAS" />
+  <meta property="og:description" content="A visual, interactive introduction to feature based forecasting: turning a series into rows and columns for gradient boosting, the cross validation that leaks the future, the ceiling a tree cannot forecast past, and a Prophet style decomposition scored against a truth that was written down first." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/time-features/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="A Forecast Is a Table | ATLAS" />
+  <meta name="twitter:description" content="A visual, interactive introduction to feature based forecasting: turning a series into rows and columns for gradient boosting, the cross validation that leaks the future, the ceiling a tree cannot forecast past, and a Prophet style decomposition scored against a truth that was written down first." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    :root {
+      --primary: #853c43;
+      --secondary: #6a3036;
+    }
+    .narrow-widget {
+      max-width: 880px;
+    }
+    .gen-table {
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      margin-top: 0.4rem;
+      width: 100%;
+    }
+    .gen-table th,
+    .gen-table td {
+      padding: 4px 10px 4px 0;
+      text-align: left;
+      font-weight: 400;
+      white-space: nowrap;
+    }
+    .gen-table th {
+      font-family: var(--font-heavy);
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .gen-table td:first-child,
+    .gen-table th:first-child {
+      opacity: 0.75;
+    }
+    .gen-table td:last-child,
+    .gen-table th:last-child {
+      white-space: normal;
+    }
+    .gen-note {
+      margin-top: 0.6rem;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+    .slider-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+      margin: 0.2rem 0 0.6rem;
+      font-family: var(--font-mono);
+      font-size: 13px;
+    }
+    .slider-row input[type="range"] {
+      width: 240px;
+      accent-color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <section id="intro">
+    <h1 id="intro-hed">A Forecast Is a Table</h1>
+    <h1 id="intro-sub">Write the past into columns and the future into a target and any regressor in this atlas can forecast, which is what most people who forecast for a living now do, and which breaks in three ways that a model built for series cannot break in</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 4.2 · Time Series · Feature Based Forecasting</span>
+  </section>
+
+  <br />
+
+  <section>
+    <p class="body-text">
+      The two articles before this one wrote down a shape for the series and
+      estimated a handful of numbers inside it. There is another way, and it is
+      the one that wins competitions: put the series in a table. One row per
+      month, the target is that month's value, and the columns are anything you
+      can compute from before it. Then reach for the gradient boosting from
+      <a href="../gradient-boosting/">module 1</a> and stop thinking about time
+      altogether.
+    </p>
+    <br />
+    <p class="body-text" id="opening-note"></p>
+  </section>
+
+  <section>
+    <h1 class="body-header">Making the Table</h1>
+    <p class="body-text" id="scrolly-intro"></p>
+  </section>
+
+  <section id="table-scrolly" class="scrolly">
+    <div class="scrolly-container">
+      <div class="steps-container">
+        <div class="step" data-index="0">
+          <div class="step-content">
+            <h3>One Row per Month</h3>
+            <p id="scrolly-step-0"></p>
+          </div>
+        </div>
+        <div class="step" data-index="1">
+          <div class="step-content">
+            <h3>The Past, as Columns</h3>
+            <p id="scrolly-step-1"></p>
+          </div>
+        </div>
+        <div class="step" data-index="2">
+          <div class="step-content">
+            <h3>The Calendar, as Columns</h3>
+            <p id="scrolly-step-2"></p>
+          </div>
+        </div>
+        <div class="step" data-index="3">
+          <div class="step-content">
+            <h3>And Whatever Else You Like</h3>
+            <p id="scrolly-step-3"></p>
+          </div>
+        </div>
+        <div class="step-spacer"></div>
+      </div>
+      <div class="charts-container">
+        <div class="chart-wrap" id="table-chart"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="body-text" id="table-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">The Split That Lies</h1>
+    <p class="body-text" id="leak-intro"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="leak-widget">
+    <div class="controls-row" id="leak-controls" role="group" aria-label="which protocol"></div>
+    <div id="leak-chart"></div>
+    <div class="widget-readout" id="leak-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="leak-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">The Ceiling</h1>
+    <p class="body-text" id="ceiling-intro"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="ceiling-widget">
+    <div class="controls-row" id="ceiling-controls" role="group" aria-label="which target"></div>
+    <div id="ceiling-chart"></div>
+    <div class="widget-readout" id="ceiling-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="ceiling-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">Which Columns Paid</h1>
+    <p class="body-text" id="features-intro"></p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Columns</th>
+          <th>How many</th>
+          <th>One month ahead</th>
+          <th>A year ahead</th>
+          <th>Averaged over the twelve</th>
+        </tr>
+      </thead>
+      <tbody id="features-table"></tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="features-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">A Trend Made of Hinges</h1>
+    <p class="body-text" id="prophet-intro"></p>
+    <p class="body-text">
+      $$ y_t = \underbrace{a + bt + \sum_{j} \delta_j (t - c_j)_+}_{\text{trend}} + \underbrace{\sum_{k=1}^{K}\left[\alpha_k \sin\tfrac{2\pi k t}{P} + \beta_k \cos\tfrac{2\pi k t}{P}\right]}_{\text{season}} + \varepsilon_t, \qquad \text{penalise } \textstyle\sum_j |\delta_j| $$
+    </p>
+    <p class="body-text" id="prophet-equation-note"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="prophet-widget">
+    <div class="slider-row">
+      <label for="tau-slider">how expensive a bend is</label>
+      <input type="range" id="tau-slider" min="0" max="6" step="1" value="3"
+             aria-label="the penalty on each change of slope in the trend" />
+      <span id="tau-value" class="value"></span>
+    </div>
+    <div id="prophet-chart"></div>
+    <div class="widget-readout" id="prophet-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="prophet-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">Scoring a Decomposition</h1>
+    <p class="body-text" id="decomp-intro"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="decomp-widget">
+    <div id="decomp-chart"></div>
+    <div class="widget-readout" id="decomp-readout"></div>
+  </div>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>What the series really is</th>
+          <th>Error in the recovered trend</th>
+          <th>Error in the recovered season</th>
+          <th>Error in the fit itself</th>
+        </tr>
+      </thead>
+      <tbody id="decomp-table"></tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="decomp-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">Everything, on the Same Origins</h1>
+    <p class="body-text" id="board-intro"></p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Model</th>
+          <th>Where it is from</th>
+          <th>One month ahead</th>
+          <th>A year ahead</th>
+          <th>Averaged over the twelve</th>
+        </tr>
+      </thead>
+      <tbody id="board-table"></tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="board-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text" id="verdict-intro"></p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>What you have</th>
+          <th>Reach for</th>
+          <th>Why</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">A series with a trend</span></td>
+          <td>The differences, not the levels</td>
+          <td id="verdict-diff"></td>
+          <td id="verdict-diff-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">Covariates, holidays, promotions</span></td>
+          <td>The table, and any regressor</td>
+          <td id="verdict-table"></td>
+          <td id="verdict-table-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">A number you will report</span></td>
+          <td>A rolling origin, never a shuffle</td>
+          <td id="verdict-cv"></td>
+          <td id="verdict-cv-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">An explanation, not a forecast</span></td>
+          <td>An additive decomposition</td>
+          <td id="verdict-decomp"></td>
+          <td id="verdict-decomp-warn"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="closing-note"></p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! The hinge trend, its penalty and the fitted
+      decomposition are recomputed in this page, in JavaScript, and checked on
+      load against the two solvers the generator used. Every other number was
+      measured by <code>src/utils/generate_timefeatures_data.py</code>.
+    </p>
+  </section>
+
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text" id="resources-note"></p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://doi.org/10.1080/00031305.2017.1380080">[1] Forecasting at Scale</a><br />
+      (Taylor, S. J. &amp; Letham, B., 2018; the piecewise linear trend with an L1 penalty on its bends, which this page implements and sweeps)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1603.02754">[2] XGBoost: A Scalable Tree Boosting System</a><br />
+      (Chen, T. &amp; Guestrin, C., 2016; the regressor the table is handed to)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://doi.org/10.1016/j.ijforecast.2019.07.001">[3] The M4 Competition: 100,000 Time Series and 61 Forecasting Methods</a><br />
+      (Makridakis, S., Spiliotis, E. &amp; Assimakopoulos, V., 2020; where feature based and hybrid methods first beat the classical ones, and by how little)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://doi.org/10.1016/j.ijforecast.2016.02.001">[4] A Note on the Validity of Cross-Validation for Evaluating Autoregressive Time Series Prediction</a><br />
+      (Bergmeir, C., Hyndman, R. J. &amp; Koo, B., 2018; when a shuffled split is and is not a lie, measured here on one series)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://doi.org/10.1016/j.eswa.2012.01.039">[5] Machine Learning Strategies for Time Series Forecasting</a><br />
+      (Ben Taieb, S. et al.; the recursive and direct strategies compared in the table above)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>

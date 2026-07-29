@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Style | ATLAS</title>
+  <meta name="description" content="What a mapping network and per-layer styles actually buy, measured on a dataset whose factors are known exactly and whose joint distribution has a deliberate hole in it: path length, linear separability, which block controls which factor, what the noise inputs change, and the truncation trade, with the trained generator running in your browser." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/stylegan/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="Style | ATLAS" />
+  <meta property="og:description" content="A latent space you can steer, measured rather than admired: a mapping network, styles per layer, and a dataset with a hole in it." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/stylegan/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Style | ATLAS" />
+  <meta name="twitter:description" content="Style mixing you can drag, running the trained generator in your own tab." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    /* Per-article theme. Everything else inherits from these two. */
+    :root {
+      --primary: #831843;
+      --secondary: #691336;
+    }
+    .side-by-side {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 1.5rem;
+      align-items: start;
+    }
+    .side-by-side.wide-left {
+      grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    }
+    @media (max-width: 950px) {
+      .side-by-side,
+      .side-by-side.wide-left {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+    .sheet-wrap {
+      overflow-x: auto;
+    }
+    .sheet-wrap canvas {
+      image-rendering: pixelated;
+    }
+    .sheet-label {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      text-align: center;
+      margin-bottom: 0.35rem;
+      color: var(--squidink);
+    }
+    /* A row of sprites is the unit of this page, and it must never be scaled
+       past its own pixels. */
+    .tile-row {
+      display: flex;
+      justify-content: center;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+  <!-- ======================= chrome ======================= -->
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <!-- ======================= hero ======================= -->
+  <section id="intro">
+    <h1 id="intro-hed">Style</h1>
+    <h1 id="intro-sub">A latent space nobody asked anything of, and what happens when you do: where the noise enters, what shape it is allowed to have, and which layer ends up holding which idea</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 3.1 · Adversarial · Style</span>
+  </section>
+
+  <br />
+
+  <!-- ======================= introduction ======================= -->
+  <section>
+    <p class="body-text">
+      The <a href="../gans/">previous article</a> ended with a generator whose
+      latent space worked: a straight line between two noise vectors passed
+      through digits the whole way, so the map from noise to picture was smooth.
+      That is all it had. No coordinate meant anything, nothing stopped one
+      number from controlling stroke width and slant and which digit it was all
+      at once, and there was no way to change the thickness of a seven without
+      risking its identity.
+    </p>
+    <br />
+    <p class="body-text">
+      StyleGAN's answer is two changes, and they sound like plumbing. Put a
+      small network in front of the latent, and stop feeding the latent in at
+      the input: feed it into every layer, as a pair of numbers per channel that
+      say what statistics that layer's output should have. Both changes are
+      about <span class="bold">where the latent enters</span>, and the claim is
+      that where it enters decides whether the space has any structure.
+    </p>
+    <br />
+    <p class="body-text" id="dataset-note">Measured below.</p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the hole ======================= -->
+  <section>
+    <h1 class="body-header">A Hole In The Data</h1>
+    <p class="body-text" id="hole-intro">Measured below.</p>
+    <br />
+    <p class="body-text">
+      Every point below is one sprite, measured off its own pixels: how big it
+      came out and what colour it came out. The dashed rectangle is the
+      combination the data never contains. Switch between the data and the two
+      generators and watch who respects it.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="hole-widget">
+    <div class="controls-row" style="justify-content: center" id="hole-buttons"></div>
+    <div class="side-by-side wide-left">
+      <div id="hole-chart"></div>
+      <div class="sheet-wrap" id="hole-sheet"></div>
+    </div>
+    <div class="widget-readout" id="hole-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="hole-result">Measured below.</p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= architecture ======================= -->
+  <section>
+    <h1 class="body-header">Where The Latent Enters</h1>
+    <p class="body-text">
+      The two networks below have almost the same weight count and are trained
+      on the same sprites with the same loss for the same number of steps. The
+      only difference is the route the latent takes to the pixels.
+    </p>
+  </section>
+
+  <section id="arch-scrolly" class="scrolly">
+    <div class="scrolly-container">
+      <div class="charts-container">
+        <div class="chart-wrap" id="arch-chart"></div>
+      </div>
+      <div class="steps-container" id="arch-steps">
+        <div class="step" data-index="0">
+          <div class="step-content">
+            <h3>The ordinary way</h3>
+            <p>The noise vector goes through one dense layer into a small feature map, and everything after that is convolution. Whatever structure the latent space ends up with is a side effect.</p>
+          </div>
+        </div>
+        <div class="step" data-index="1">
+          <div class="step-content">
+            <h3>A network in front of it</h3>
+            <p>Four layers between the noise and anything that draws. The point is not capacity, it is that \(w\) need not be gaussian: the mapping is allowed to do whatever bending the data demands, so the synthesis network does not have to.</p>
+          </div>
+        </div>
+        <div class="step" data-index="2">
+          <div class="step-content">
+            <h3>A style per block</h3>
+            <p>The input is now a learned constant, and \(w\) arrives at every block instead, as a scale and a shift applied after each block normalises its own channels. Each block gets its own copy, which is what makes mixing two samples possible at all.</p>
+          </div>
+        </div>
+        <div class="step" data-index="3">
+          <div class="step-content">
+            <h3>And a page of noise</h3>
+            <p>One noise map per block, scaled by a learned amount per channel. The bet is that a generator given a free source of randomness will spend it on the details that do not need remembering, and leave the style to carry what does.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="body-text" id="arch-note">Measured below.</p>
+    <div style="text-align: center; margin: 1.2rem 0">
+      \( \mathrm{AdaIN}(x_i, y) = y_{s,i}\,\dfrac{x_i - \mu(x_i)}{\sigma(x_i)} + y_{b,i} \)
+    </div>
+    <p class="body-text">
+      Per channel \(i\), per sample: throw away the statistics this block
+      produced and adopt the ones the style asks for. The style is an affine
+      map of \(w\), so what the latent controls is not the content of a feature
+      map but its scale and offset, one number each, per channel, per block.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= metrics ======================= -->
+  <section>
+    <h1 class="body-header">Two Metrics, And A Third Nobody Has</h1>
+    <p class="body-text" id="ppl-intro">Measured below.</p>
+  </section>
+
+  <div class="interactive-full" id="ppl-widget">
+    <div id="ppl-chart"></div>
+    <div class="widget-readout" id="ppl-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="ppl-result">Measured below.</p>
+    <br />
+    <p class="body-text" id="sep-intro">Measured below.</p>
+  </section>
+
+  <div class="interactive-full" id="sep-widget">
+    <div class="widget-readout" id="sep-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="sep-result">Measured below.</p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= style mixing ======================= -->
+  <section>
+    <h1 class="body-header">Which Block Holds Which Idea</h1>
+    <p class="body-text" id="mix-intro">Measured below.</p>
+    <br />
+    <p class="body-text">
+      The generator below is the trained one, running here from its quantised
+      weights. Take two sprites, give the later blocks the second one's style,
+      and read what moved. The table under the pictures is measured off those
+      three images in this tab, with the same arithmetic that produced the
+      chart.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="mix-widget">
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">blocks taking B's style: <span class="value" id="mix-from-value">4-5</span></span>
+      <input type="range" class="atlas-range" id="mix-from" aria-label="from which block onwards the second sample's style is used" min="0" max="5" step="1" value="3" />
+    </div>
+    <div class="controls-row" style="justify-content: center" id="mix-buttons"></div>
+    <div class="tile-row" id="mix-tiles"></div>
+    <div class="widget-readout" id="mix-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="mix-table-intro">Measured below.</p>
+  </section>
+
+  <div class="interactive-full" id="mix-chart-widget">
+    <div id="mix-chart"></div>
+    <div class="widget-readout" id="mix-chart-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="mix-result">Measured below.</p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= noise ======================= -->
+  <section>
+    <h1 class="body-header">What The Noise Is For</h1>
+    <p class="body-text" id="noise-intro">Measured below.</p>
+  </section>
+
+  <div class="interactive-full" id="noise-widget">
+    <div class="controls-row" style="justify-content: center" id="noise-buttons"></div>
+    <div class="side-by-side wide-left">
+      <div class="tile-row" id="noise-tiles"></div>
+      <div id="noise-map"></div>
+    </div>
+    <div class="widget-readout" id="noise-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="noise-result">Measured below.</p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= truncation ======================= -->
+  <section>
+    <h1 class="body-header">Typical, Or Varied</h1>
+    <p class="body-text" id="trunc-intro">Measured below.</p>
+  </section>
+
+  <div class="interactive-full" id="trunc-widget">
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">spread kept: <span class="value" id="trunc-psi-value">1.00</span></span>
+      <input type="range" class="atlas-range" id="trunc-psi" aria-label="how much of the latent spread is kept" min="0" max="6" step="1" value="5" />
+    </div>
+    <div class="tile-row" id="trunc-tiles"></div>
+    <div id="trunc-chart"></div>
+    <div class="widget-readout" id="trunc-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="trunc-result">Measured below.</p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the grain ======================= -->
+  <section>
+    <h1 class="body-header">The One Decision The Data Made</h1>
+    <p class="body-text" id="grain-intro">Measured below.</p>
+  </section>
+
+  <div class="interactive-full" id="grain-widget">
+    <div id="grain-chart"></div>
+    <div class="widget-readout" id="grain-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="grain-result">Measured below.</p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= verdict ======================= -->
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text">
+      What each idea on this page is worth, at this scale, on this dataset.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Idea</th>
+          <th>What it buys</th>
+          <th>Measured here</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">A mapping network</span></td>
+          <td>A latent whose distribution is allowed to match the data's shape instead of being forced to stay gaussian</td>
+          <td id="verdict-mapping">Measured above.</td>
+          <td>It only helps where the data's factors are entangled. On a dataset with an independent, unbounded set of factors there is nothing for the mapping to unbend.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Styles per block</span></td>
+          <td>Control that is localised by scale, so an edit can be made at one resolution and not the others</td>
+          <td id="verdict-styles">Measured above.</td>
+          <td>Which factor lands in which block is decided by the training run, not by the architecture. The layers are ordered by resolution, and what that ordering buys depends entirely on whether the data's factors are ordered by scale too.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Per-pixel noise</span></td>
+          <td>A free source of randomness for the parts of an image that carry no information</td>
+          <td id="verdict-noise">Measured above.</td>
+          <td>Free randomness is only free if the model would otherwise have spent latent capacity on it. Measure what it changes before believing it changed the right thing.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Truncation</span></td>
+          <td>A dial between typical samples and varied ones, after training, at no cost</td>
+          <td id="verdict-trunc">Measured above.</td>
+          <td>It is a way of hiding the tails of the model, and the tails are where the failures live. A sample sheet at a low setting is not evidence about the model, it is evidence about its middle.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="limits-note">Measured below.</p>
+    <br />
+    <p class="body-text" id="closing-note">Measured below.</p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! Every number here comes from
+      <code>src/utils/generate_stylegan_data.py</code>, which draws the sprites,
+      trains both generators, measures them on the quantised weights the browser
+      receives, and hands this page the same network so that the mixing and the
+      noise and the truncation above are the model the numbers describe.
+    </p>
+  </section>
+
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text" id="resources-note">Measured below.</p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1812.04948">[1] A Style-Based Generator Architecture for Generative Adversarial Networks</a><br />
+      (Karras, T., Laine, S. &amp; Aila, T., CVPR, 2019; the mapping network, adaptive instance normalisation, style mixing, the noise inputs, and both metrics this page reproduces)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1912.04958">[2] Analyzing and Improving the Image Quality of StyleGAN</a><br />
+      (Karras, T. et al., CVPR, 2020; what instance normalisation does to the water droplets, and path length as a regulariser rather than a report)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1703.06868">[3] Arbitrary Style Transfer in Real-time with Adaptive Instance Normalization</a><br />
+      (Huang, X. &amp; Belongie, S., ICCV, 2017; where the normalisation layer this article leans on came from)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1710.10196">[4] Progressive Growing of GANs for Improved Quality, Stability, and Variation</a><br />
+      (Karras, T. et al., ICLR, 2018; the truncation trick, and the training recipe StyleGAN inherited)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1811.12359">[5] Challenging Common Assumptions in the Unsupervised Learning of Disentangled Representations</a><br />
+      (Locatello, F. et al., ICML, 2019; why measuring disentanglement needs ground truth factors, which is the reason this article draws its own data)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1907.10786">[6] Image2StyleGAN: How to Embed Images Into the StyleGAN Latent Space?</a><br />
+      (Abdal, R., Qin, Y. &amp; Wonka, P., ICCV, 2019; what the per-layer style space can represent that the mapped latent cannot)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>

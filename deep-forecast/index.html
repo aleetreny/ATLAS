@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Many Series at Once | ATLAS</title>
+  <meta name="description" content="A visual, interactive introduction to N-BEATS and temporal fusion style models: one network trained across many series instead of one model per series, an interpretable basis scored against components that were written down first, and a variable selection weight put beside what permuting that variable actually costs." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/deep-forecast/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="Many Series at Once | ATLAS" />
+  <meta property="og:description" content="A visual, interactive introduction to N-BEATS and temporal fusion style models: one network trained across many series instead of one model per series, an interpretable basis scored against components that were written down first, and a variable selection weight put beside what permuting that variable actually costs." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/deep-forecast/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Many Series at Once | ATLAS" />
+  <meta name="twitter:description" content="A visual, interactive introduction to N-BEATS and temporal fusion style models: one network trained across many series instead of one model per series, an interpretable basis scored against components that were written down first, and a variable selection weight put beside what permuting that variable actually costs." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    :root {
+      --primary: #143b85;
+      --secondary: #102f6a;
+    }
+    .narrow-widget {
+      max-width: 880px;
+    }
+    .gen-table {
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      margin-top: 0.4rem;
+      width: 100%;
+    }
+    .gen-table th,
+    .gen-table td {
+      padding: 4px 10px 4px 0;
+      text-align: left;
+      font-weight: 400;
+      white-space: nowrap;
+    }
+    .gen-table th {
+      font-family: var(--font-heavy);
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .gen-table td:first-child,
+    .gen-table th:first-child {
+      opacity: 0.75;
+    }
+    .gen-table td:last-child,
+    .gen-table th:last-child {
+      white-space: normal;
+    }
+    .gen-note {
+      margin-top: 0.6rem;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <section id="intro">
+    <h1 id="intro-hed">Many Series at Once</h1>
+    <h1 id="intro-sub">Every model so far has been fitted to one series and thrown away. Train one network across hundreds of them instead and something has to be given up, so this article measures what, and how many series it takes before the trade is worth making</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 4.2 · Time Series · N-BEATS and Temporal Fusion</span>
+  </section>
+
+  <br />
+
+  <section>
+    <p class="body-text">
+      <a href="../time-features/">The previous article</a> ended on a table with
+      fifteen columns, fitted to one series. Ask the same question of a thousand
+      series and that method fits a thousand models, none of which knows
+      anything the others learned. Every deep forecaster of the last decade is
+      built on the opposite bet: one network, trained on all of them, that has
+      never seen your series before it is asked about it.
+    </p>
+    <br />
+    <p class="body-text" id="opening-note"></p>
+  </section>
+
+  <section>
+    <h1 class="body-header">A Stack That Subtracts</h1>
+    <p class="body-text" id="scrolly-intro"></p>
+    <p class="body-text">
+      $$ \mathbf{r}_{\ell} = \mathbf{r}_{\ell-1} - \hat{\mathbf{b}}_{\ell}, \qquad \hat{\mathbf{y}} = \sum_{\ell} \hat{\mathbf{f}}_{\ell}, \qquad \hat{\mathbf{b}}_\ell = \mathbf{B}\,\theta_\ell^{b},\; \hat{\mathbf{f}}_\ell = \mathbf{F}\,\theta_\ell^{f} $$
+    </p>
+    <p class="body-text" id="stack-equation-note"></p>
+  </section>
+
+  <section id="stack-scrolly" class="scrolly">
+    <div class="scrolly-container">
+      <div class="steps-container">
+        <div class="step" data-index="0">
+          <div class="step-content">
+            <h3>What It Is Given</h3>
+            <p id="scrolly-step-0"></p>
+          </div>
+        </div>
+        <div class="step" data-index="1">
+          <div class="step-content">
+            <h3>The Trend Blocks</h3>
+            <p id="scrolly-step-1"></p>
+          </div>
+        </div>
+        <div class="step" data-index="2">
+          <div class="step-content">
+            <h3>What Is Left, in Waves</h3>
+            <p id="scrolly-step-2"></p>
+          </div>
+        </div>
+        <div class="step" data-index="3">
+          <div class="step-content">
+            <h3>The Sum, and the Answer Key</h3>
+            <p id="scrolly-step-3"></p>
+          </div>
+        </div>
+        <div class="step-spacer"></div>
+      </div>
+      <div class="charts-container">
+        <div class="chart-wrap" id="stack-chart"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="body-text" id="stack-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">How Many Series It Takes</h1>
+    <p class="body-text" id="scaling-intro"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="scaling-widget">
+    <div class="controls-row" id="scaling-controls" role="group" aria-label="which view"></div>
+    <div id="scaling-chart"></div>
+    <div class="widget-readout" id="scaling-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="scaling-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">Two Bases</h1>
+    <p class="body-text" id="bases-intro"></p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>What the series really is</th>
+          <th>Error in the recovered trend</th>
+          <th>Error in the recovered season</th>
+          <th>How many windows</th>
+        </tr>
+      </thead>
+      <tbody id="bases-table"></tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="bases-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">What Attention Is Worth</h1>
+    <p class="body-text" id="attention-intro"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="attention-widget">
+    <div class="controls-row" id="attention-controls" role="group" aria-label="which ranking"></div>
+    <div id="attention-chart"></div>
+    <div class="widget-readout" id="attention-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="attention-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">The Boring Half of the Recipe</h1>
+    <p class="body-text" id="norm-intro"></p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Model</th>
+          <th>Trained on</th>
+          <th>Error on the held out series</th>
+          <th>Against the seasonal naive</th>
+        </tr>
+      </thead>
+      <tbody id="board-table"></tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="board-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text" id="verdict-intro"></p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>What you have</th>
+          <th>Reach for</th>
+          <th>Why</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">One series</span></td>
+          <td>Anything from the last three articles</td>
+          <td id="verdict-one"></td>
+          <td id="verdict-one-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">Hundreds of related series</span></td>
+          <td>One network across all of them</td>
+          <td id="verdict-many"></td>
+          <td id="verdict-many-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">An explanation</span></td>
+          <td>The interpretable basis, carefully</td>
+          <td id="verdict-interp"></td>
+          <td id="verdict-interp-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">To know which input matters</span></td>
+          <td>Permutation, not the attention weights</td>
+          <td id="verdict-attn"></td>
+          <td id="verdict-attn-warn"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="closing-note"></p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! The stack above is drawn from the network's own block
+      outputs, exported from the trained model, and the page checks on load that
+      the parts it draws add up to the forecast it draws. Every number was
+      measured by <code>src/utils/generate_deepforecast_data.py</code>.
+    </p>
+  </section>
+
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text" id="resources-note"></p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1905.10437">[1] N-BEATS: Neural Basis Expansion Analysis for Interpretable Time Series Forecasting</a><br />
+      (Oreshkin, B. N. et al., 2020; the doubly residual stack and the two bases this page rebuilds)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1912.09363">[2] Temporal Fusion Transformers for Interpretable Multi-horizon Time Series Forecasting</a><br />
+      (Lim, B. et al., 2021; variable selection weights and attention over the lookback, in the shape the third widget copies)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1704.04110">[3] DeepAR: Probabilistic Forecasting with Autoregressive Recurrent Networks</a><br />
+      (Salinas, D. et al., 2020; the global model argument, and the per series scaling this page ablates)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1907.10902">[4] Attention Is Not Explanation</a><br />
+      (Jain, S. &amp; Wallace, B. C., 2019; the experiment the last widget runs on a forecaster instead of a classifier)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://doi.org/10.1016/j.ijforecast.2021.11.013">[5] The M5 Accuracy Competition: Results, Findings and Conclusions</a><br />
+      (Makridakis, S., Spiliotis, E. &amp; Assimakopoulos, V., 2022; where global models won, on forty two thousand series)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>

@@ -4,16 +4,16 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Somewhere to Sample From | ATLAS</title>
-  <meta name="description" content="A visual, interactive introduction to variational autoencoders: sample the previous article's decoder and watch it fail, put a distribution in the middle on purpose, and check the bound against an exact log likelihood computed by quadrature." />
+  <meta name="description" content="A visual, interactive introduction to variational autoencoders: sample the bottleneck article's decoder and watch it fail, put a distribution in the middle on purpose, and check the bound against an exact log likelihood computed by quadrature." />
   <link rel="canonical" href="https://aleetreny.github.io/ATLAS/vae/" />
   <meta property="og:type" content="article" />
   <meta property="og:site_name" content="ATLAS" />
   <meta property="og:title" content="Somewhere to Sample From | ATLAS" />
-  <meta property="og:description" content="A visual, interactive introduction to variational autoencoders: sample the previous article's decoder and watch it fail, put a distribution in the middle on purpose, and check the bound against an exact log likelihood computed by quadrature." />
+  <meta property="og:description" content="A visual, interactive introduction to variational autoencoders: sample the bottleneck article's decoder and watch it fail, put a distribution in the middle on purpose, and check the bound against an exact log likelihood computed by quadrature." />
   <meta property="og:url" content="https://aleetreny.github.io/ATLAS/vae/" />
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:title" content="Somewhere to Sample From | ATLAS" />
-  <meta name="twitter:description" content="A visual, interactive introduction to variational autoencoders: sample the previous article's decoder and watch it fail, put a distribution in the middle on purpose, and check the bound against an exact log likelihood computed by quadrature." />
+  <meta name="twitter:description" content="A visual, interactive introduction to variational autoencoders: sample the bottleneck article's decoder and watch it fail, put a distribution in the middle on purpose, and check the bound against an exact log likelihood computed by quadrature." />
   <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="../assets/styles/fonts.css" />
   <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
@@ -126,7 +126,7 @@
   <!-- ======================= hero ======================= -->
   <section id="intro">
     <h1 id="intro-hed">Somewhere to Sample From</h1>
-    <h1 id="intro-sub">The last article left a decoder that answers anywhere in the plane, and no reason to believe that a point picked at random is somewhere it answers well; this one puts a distribution there on purpose and measures what that costs and what it buys</h1>
+    <h1 id="intro-sub">The bottleneck article left a decoder that answers anywhere in the plane, and no reason to believe that a point picked at random is somewhere it answers well; this one puts a distribution there on purpose and measures what that costs and what it buys</h1>
     <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
     <span id="intro__module">Module 3.2 · Probabilistic Generative Models · Latent Variables</span>
   </section>
@@ -389,7 +389,7 @@
       Thanks for reading! Both halves of the variational network above run in
       this page, in JavaScript, from the float16 weights the generator exported,
       and the plane on the left is drawn by loading the
-      <a href="../autoencoders/">previous article's</a> own published network
+      <a href="../autoencoders/">bottleneck article's</a> own published network
       and running it here too, so the two decoders in the comparison are
       literally the two files. Every number quoted was measured by
       <code>src/utils/generate_vae_data.py</code> on those same quantised

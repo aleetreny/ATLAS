@@ -47,7 +47,7 @@ def load(folder, name):
 # process: the same density at four noise levels, left to right, dissolving.
 d = load("ddpm", "ddpm.json")
 if d:
-    ACC = "#164e63"
+    ACC = "#674599"
     rows = d["destroy"]["rows"]
     pick = [rows[0], rows[4], rows[8], rows[-1]]
     lines = head()

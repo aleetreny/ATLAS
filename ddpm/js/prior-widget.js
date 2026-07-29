@@ -46,7 +46,9 @@ export function initPriorWidget(data) {
       const all = NAMES.flatMap((n) => P[n].rows.map((r) => Math.max(r.kl, 1e-17)));
       const x = d3.scaleLog().domain([80, 1300]).range([0, w]);
       const y = d3.scaleLog().domain([Math.min(...all) * 0.3, Math.max(...all) * 3]).range([h, 0]);
-      const decades = d3.range(-17, 2).map((e) => 10 ** e)
+      /* nineteen decades of labels is a wall of text on a 350px panel: every
+         third one carries the scale perfectly well */
+      const decades = d3.range(-18, 3, 3).map((e) => 10 ** e)
         .filter((v) => v >= y.domain()[0] && v <= y.domain()[1]);
       drawGrid(g, x, y, w, h, { xValues: Ts, yValues: decades });
       drawAxes(g, x, y, w, h, { xValues: Ts, yValues: decades, yFmt: d3.format('.0e') });
@@ -58,10 +60,14 @@ export function initPriorWidget(data) {
       if (ceil >= y.domain()[0] && ceil <= y.domain()[1]) {
         layer.append('line').attr('x1', 0).attr('x2', w).attr('y1', y(ceil)).attr('y2', y(ceil))
           .attr('stroke', 'var(--anchor)').attr('stroke-width', 1.6).attr('stroke-dasharray', '7 4');
+        /* Bottom left, which is the only part of this panel nothing crosses:
+           every curve starts above the ceiling and dives to the right, so a
+           label anywhere near the line itself lands on all three of them. The
+           colour is what ties it to the line. */
         layer.append('text').attr('class', 'chart-note')
-          .attr('x', 2).attr('y', y(ceil) - 7).style('font-size', '11.5px')
+          .attr('x', 6).attr('y', h - 10).style('font-size', '11.5px')
           .attr('fill', 'var(--anchor)')
-          .text(`the whole entropy of the truth, ${ceil} nats`);
+          .text(`dashed: the truth's whole entropy, ${ceil} nats`);
       }
       NAMES.forEach((n, i) => {
         const rows = P[n].rows;
@@ -71,8 +77,13 @@ export function initPriorWidget(data) {
         layer.selectAll(`circle.s${i}`).data(rows).join('circle').attr('class', `s${i}`)
           .attr('cx', (r) => x(r.T)).attr('cy', (r) => y(Math.max(r.kl, 1e-17))).attr('r', 4)
           .attr('fill', COLOURS[n]);
+        /* at the end of each curve rather than stacked in the corner, where
+           the ceiling line and the linear curve both already are */
+        const last = rows[rows.length - 1];
+        const ly = Math.min(h - 22, Math.max(12, y(Math.max(last.kl, 1e-17)) - 9));
         layer.append('text').attr('class', 'chart-note')
-          .attr('x', w - 4).attr('y', 12 + i * 16).attr('text-anchor', 'end')
+          .attr('x', x(last.T) - 9).attr('y', ly)
+          .attr('text-anchor', 'end')
           .style('font-size', '11.5px').attr('fill', COLOURS[n]).text(n);
       });
       wrapLabel(title, 'cut the schedule short and the term you dropped is the biggest one', w - 8);

@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>One Step Ahead | ATLAS</title>
+  <meta name="description" content="A visual, interactive introduction to ARIMA, SARIMA and exponential smoothing: what a stationarity test can and cannot see, what a correlogram can identify, the exact identity between a smoother and a moving average model, and whether a prediction interval covers what it promises." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/arima/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="One Step Ahead | ATLAS" />
+  <meta property="og:description" content="A visual, interactive introduction to ARIMA, SARIMA and exponential smoothing: what a stationarity test can and cannot see, what a correlogram can identify, the exact identity between a smoother and a moving average model, and whether a prediction interval covers what it promises." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/arima/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="One Step Ahead | ATLAS" />
+  <meta name="twitter:description" content="A visual, interactive introduction to ARIMA, SARIMA and exponential smoothing: what a stationarity test can and cannot see, what a correlogram can identify, the exact identity between a smoother and a moving average model, and whether a prediction interval covers what it promises." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    :root {
+      --primary: #705e32;
+      --secondary: #5a4b28;
+    }
+    .narrow-widget {
+      max-width: 880px;
+    }
+    .gen-table {
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      margin-top: 0.4rem;
+      width: 100%;
+    }
+    .gen-table th,
+    .gen-table td {
+      padding: 4px 10px 4px 0;
+      text-align: left;
+      font-weight: 400;
+      white-space: nowrap;
+    }
+    .gen-table th {
+      font-family: var(--font-heavy);
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .gen-table td:first-child,
+    .gen-table th:first-child {
+      opacity: 0.75;
+    }
+    .gen-table td:last-child,
+    .gen-table th:last-child {
+      white-space: normal;
+    }
+    .gen-note {
+      margin-top: 0.6rem;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+    .slider-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+      margin: 0.2rem 0 0.6rem;
+      font-family: var(--font-mono);
+      font-size: 13px;
+    }
+    .slider-row input[type="range"] {
+      width: 240px;
+      accent-color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <section id="intro">
+    <h1 id="intro-hed">One Step Ahead</h1>
+    <h1 id="intro-sub">Every model in this atlas so far was handed a table whose rows could be shuffled without losing anything. Put the rows in order, promise not to look at the ones below, and almost every habit has to be relearned, starting with what a test is allowed to tell you</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 4.2 · Time Series · ARIMA, SARIMA and Exponential Smoothing</span>
+  </section>
+
+  <br />
+
+  <section>
+    <p class="body-text">
+      A row of a table is usually exchangeable with any other row: shuffle the
+      training set and nothing is lost. That is the assumption underneath cross
+      validation, underneath bootstrapping, and underneath most of what the
+      previous four modules did. A series breaks it. Row 300 comes after row
+      299, the only rows you may learn from are the ones above the line, and the
+      thing you are asked to predict is the one thing you have never seen: the
+      future.
+    </p>
+    <br />
+    <p class="body-text" id="opening-note"></p>
+  </section>
+
+  <section>
+    <h1 class="body-header">The Part That Repeats</h1>
+    <p class="body-text" id="scrolly-intro"></p>
+  </section>
+
+  <section id="stationarity-scrolly" class="scrolly">
+    <div class="scrolly-container">
+      <div class="steps-container">
+        <div class="step" data-index="0">
+          <div class="step-content">
+            <h3>As It Comes</h3>
+            <p id="scrolly-step-0"></p>
+          </div>
+        </div>
+        <div class="step" data-index="1">
+          <div class="step-content">
+            <h3>Subtract Last Month</h3>
+            <p id="scrolly-step-1"></p>
+          </div>
+        </div>
+        <div class="step" data-index="2">
+          <div class="step-content">
+            <h3>Subtract Last Year Instead</h3>
+            <p id="scrolly-step-2"></p>
+          </div>
+        </div>
+        <div class="step" data-index="3">
+          <div class="step-content">
+            <h3>Both</h3>
+            <p id="scrolly-step-3"></p>
+          </div>
+        </div>
+        <div class="step-spacer"></div>
+      </div>
+      <div class="charts-container">
+        <div class="chart-wrap" id="stationarity-chart"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="body-text" id="stationarity-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">Reading a Correlogram</h1>
+    <p class="body-text">
+      The classical way to choose a model is to plot two functions of the data
+      and read the order off them. The autocorrelation at lag $k$ is the
+      correlation of the series with itself shifted by $k$; the partial
+      autocorrelation is what is left of it once the shorter lags have had their
+      turn:
+    </p>
+    <p class="body-text">
+      $$ \rho_k = \frac{\sum_{t=k+1}^{n}(y_t-\bar y)(y_{t-k}-\bar y)}{\sum_{t=1}^{n}(y_t-\bar y)^2}, \qquad \phi_{kk} = \operatorname{corr}\left(y_t,\, y_{t-k} \mid y_{t-1},\dots,y_{t-k+1}\right) $$
+    </p>
+    <p class="body-text" id="identify-intro"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="identify-widget">
+    <div class="controls-row" id="identify-controls" role="group" aria-label="which simulated series to look at"></div>
+    <div id="identify-chart"></div>
+    <div class="widget-readout" id="identify-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="identify-note"></p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Process</th>
+          <th>Observations</th>
+          <th>The textbook rule gets it right</th>
+          <th>The smallest AIC gets it right</th>
+          <th>The rule overshoots</th>
+        </tr>
+      </thead>
+      <tbody id="identify-table"></tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="identify-table-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">Two Names for One Model</h1>
+    <p class="body-text" id="identity-intro"></p>
+    <p class="body-text">
+      $$ \ell_t = \alpha y_t + (1-\alpha)\,\ell_{t-1} \qquad\text{against}\qquad \hat y_{t+1} = y_t + \theta e_t,\quad e_t = y_t - \hat y_t $$
+    </p>
+    <p class="body-text" id="identity-algebra"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="identity-widget">
+    <div class="slider-row">
+      <label for="alpha-slider">smoothing rate</label>
+      <input type="range" id="alpha-slider" min="1" max="50" step="1" value="15"
+             aria-label="how much weight the smoother puts on the newest observation" />
+      <span id="alpha-value" class="value"></span>
+    </div>
+    <div id="identity-chart"></div>
+    <div class="widget-readout" id="identity-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="identity-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">A Forecast, and How Sure It Is</h1>
+    <p class="body-text" id="forecast-intro"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="forecast-widget">
+    <div class="controls-row" id="forecast-controls" role="group" aria-label="which forecast to draw"></div>
+    <div id="forecast-chart"></div>
+    <div class="widget-readout" id="forecast-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="forecast-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">What the Interval Promised</h1>
+    <p class="body-text" id="coverage-intro"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="coverage-widget">
+    <div class="controls-row" id="coverage-controls" role="group" aria-label="which series to score"></div>
+    <div id="coverage-chart"></div>
+    <div class="widget-readout" id="coverage-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="coverage-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">The Leaderboard</h1>
+    <p class="body-text" id="board-intro"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="board-widget">
+    <div id="board-chart"></div>
+  </div>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Model</th>
+          <th>One month ahead</th>
+          <th>A year ahead</th>
+          <th>Averaged over the twelve</th>
+          <th>On the sunspots</th>
+        </tr>
+      </thead>
+      <tbody id="board-table"></tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="board-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text" id="verdict-intro"></p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>What you have</th>
+          <th>Reach for</th>
+          <th>Why</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">A trend and a fixed cycle</span></td>
+          <td>SARIMA, or additive exponential smoothing</td>
+          <td id="verdict-season"></td>
+          <td id="verdict-season-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">A cycle with no fixed length</span></td>
+          <td>An autoregression, not a seasonal term</td>
+          <td id="verdict-cycle"></td>
+          <td id="verdict-cycle-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">A number to put in a report</span></td>
+          <td>A rolling origin, never a random split</td>
+          <td id="verdict-eval"></td>
+          <td id="verdict-eval-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">An interval, not a point</span></td>
+          <td>Whatever it is, score it</td>
+          <td id="verdict-interval"></td>
+          <td id="verdict-interval-warn"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="closing-note"></p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! The correlograms, the two recursions and the identity
+      between them are computed in this page, in JavaScript, from the same
+      rounded series the generator measured on, and checked against it on load.
+      Every other number was measured by
+      <code>src/utils/generate_arima_data.py</code>.
+    </p>
+  </section>
+
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text" id="resources-note"></p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://otexts.com/fpp3/">[1] Forecasting: Principles and Practice</a><br />
+      (Hyndman, R. J. &amp; Athanasopoulos, G., 3rd edition; the state space view of exponential smoothing, MASE, and the rolling origin)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://www.jstor.org/stable/2284333">[2] Distribution of the Estimators for Autoregressive Time Series with a Unit Root</a><br />
+      (Dickey, D. A. &amp; Fuller, W. A., 1979; the test whose null hypothesis is a unit root, run on four differences of the same series here)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://doi.org/10.1016/0304-4076(92)90104-Y">[3] Testing the Null Hypothesis of Stationarity Against the Alternative of a Unit Root</a><br />
+      (Kwiatkowski, D., Phillips, P. C. B., Schmidt, P. &amp; Shin, Y., 1992; the test with the null the other way round, run beside it)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://doi.org/10.1002/for.3980040103">[4] The Accuracy of Extrapolation Methods: Results of a Forecasting Competition</a><br />
+      (Makridakis, S. et al., 1982; the first competition to find that elaborate methods lose to simple ones out of sample)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://doi.org/10.1016/j.ijforecast.2006.03.001">[5] Another Look at Measures of Forecast Accuracy</a><br />
+      (Hyndman, R. J. &amp; Koehler, A. B., 2006; why the errors on this page are divided by an in sample seasonal naive error)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>

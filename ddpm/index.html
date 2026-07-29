@@ -24,8 +24,8 @@
   <script type="module" src="./js/main.js"></script>
   <style>
     :root {
-      --primary: #164e63;
-      --secondary: #123e4f;
+      --primary: #674599;
+      --secondary: #533779;
     }
     .narrow-widget {
       max-width: 880px;
@@ -76,6 +76,30 @@
     .gen-pair canvas {
       border: 1px solid var(--stone);
       background: var(--white);
+    }
+    /* An <svg> carrying only a viewBox has an intrinsic RATIO and no intrinsic
+       size, so as a flex item its width is whatever the engine falls back to:
+       the 300px default for a replaced element if you are lucky, and zero if
+       you are not. The flows article is the lucky case and has been drawing a
+       400 unit chart into 300 pixels without anyone noticing; this one was the
+       other case and drew it into nothing. Neither is worth relying on, so the
+       half is sized here and the svg is told to fill it. */
+    .gen-pair .chart-half {
+      flex: 1 1 380px;
+      min-width: 300px;
+      max-width: 420px;
+    }
+    .gen-pair .chart-half svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    /* the scrolly graphic is a canvas here rather than an svg, and the shared
+       rule that fits a chart to its column only names svg */
+    .charts-container canvas {
+      width: 100%;
+      height: auto;
+      display: block;
     }
     .gen-stack {
       display: flex;
@@ -212,7 +236,7 @@
         <div id="score-canvas"></div>
         <div class="canvas-caption" id="score-caption"></div>
       </div>
-      <div id="score-chart"></div>
+      <div class="chart-half" id="score-chart"></div>
     </div>
     <div class="widget-readout" id="score-readout"></div>
   </div>
@@ -237,7 +261,7 @@
         <div id="reverse-canvas"></div>
         <div class="canvas-caption" id="reverse-caption"></div>
       </div>
-      <div id="reverse-chart"></div>
+      <div class="chart-half" id="reverse-chart"></div>
     </div>
     <div class="widget-readout" id="reverse-readout"></div>
   </div>

@@ -875,6 +875,65 @@
         </p>
       </div>
       <div class="articles-container">
+        <!-- card: gans -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./gans/';" style="cursor: pointer">
+            <img src="assets/thumbnails/gans.svg"
+                 alt="Counterfeit article image: eight thin rings arranged on a circle marking where the data is, with a generator's samples piled onto only two of them." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Counterfeit</h2>
+            <p class="article-description">
+              Two networks that want opposite things. Watch four divergences pick
+              four different answers out of the same family, see the gradient of
+              the original loss die where the model is worst, and train a GAN in
+              your own tab until it forgets half the data.
+            </p>
+            <button class="content-button">
+              <a href="./gans/">Dive In</a>
+            </button>
+          </div>
+        </div>
+
+        <!-- card: stylegan -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./stylegan/';" style="cursor: pointer">
+            <img src="assets/thumbnails/stylegan.svg"
+                 alt="Style article image: a scatter of sprites by measured size and colour, with a dashed rectangle marking the one combination the data never contains, empty." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Style</h2>
+            <p class="article-description">
+              A latent space nobody asked anything of, and what changes when you
+              do. On sprites whose factors are known exactly and whose joint
+              distribution has a hole in it: mix two samples layer by layer and
+              measure which idea each block was holding.
+            </p>
+            <button class="content-button">
+              <a href="./stylegan/">Dive In</a>
+            </button>
+          </div>
+        </div>
+
+        <!-- card: translation -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./translation/';" style="cursor: pointer">
+            <img src="assets/thumbnails/translation.svg"
+                 alt="Translation article image: a flat plan of a scene on the left, an arrow, and the same scene rendered with lit windows and road markings on the right." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Translation</h2>
+            <p class="article-description">
+              One picture into another, with the answer in hand and then without
+              it. Why an averaging loss is obliged to blur, how wide a patch
+              critic really sees, and what a cycle constraint fails to pin down.
+              Draw a plan and both translators answer live.
+            </p>
+            <button class="content-button">
+              <a href="./translation/">Dive In</a>
+            </button>
+          </div>
+        </div>
         <!-- card: vae -->
         <div class="article-card">
           <div class="imgBx" onclick="location.href='./vae/';" style="cursor: pointer">
@@ -999,6 +1058,14 @@
       <details class="roadmap">
         <summary>Full branch map: 3. Generative AI</summary>
         <div class="branch">
+          <h4>3.1 Adversarial</h4>
+          <div class="chips">
+            <span class="chip live"><a href="./gans/">GANs · DCGAN · WGAN</a></span>
+            <span class="chip live"><a href="./stylegan/">StyleGAN</a></span>
+            <span class="chip live"><a href="./translation/">Pix2Pix · CycleGAN</a></span>
+          </div>
+        </div>
+        <div class="branch">
           <h4>3.2 Probabilistic &amp; Flows</h4>
           <div class="chips">
             <span class="chip live"><a href="./vae/">VAEs</a></span>
@@ -1017,14 +1084,6 @@
             <span class="chip">Consistency Models · Rectified Flow</span>
           </div>
         </div>
-        <div class="branch">
-          <h4>3.1 Adversarial</h4>
-          <div class="chips">
-            <span class="chip">GANs · DCGAN · WGAN</span>
-            <span class="chip">StyleGAN</span>
-            <span class="chip">Pix2Pix · CycleGAN</span>
-          </div>
-        </div>
       </details>
 
       <!-- ===== MODULE 4 ===== -->
@@ -1036,30 +1095,300 @@
           Understanding human language and forecasting the future from history.
         </p>
       </div>
+
+      <div class="articles-container">
+        <!-- card: tf-idf -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./tf-idf/';" style="cursor: pointer">
+            <img src="assets/thumbnails/tf-idf.svg"
+                 alt="What A Word Is Worth article image: the rank-frequency curve of a corpus on logarithmic axes, a straight line falling from left to right, with the long tail of words that occur exactly once shaded in teal." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">What A Word Is Worth</h2>
+            <p class="article-description">
+              Turning a document into a vector is three separate decisions, not
+              one formula. All twelve combinations measured on one split, with a
+              noise floor drawn in, and the decision that is not in the name
+              turns out to be the one doing the work.
+            </p>
+            <button class="content-button">
+              <a href="./tf-idf/">Dive In</a>
+            </button>
+          </div>
+        </div>
+
+        <!-- card: topics -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./topics/';" style="cursor: pointer">
+            <img src="assets/thumbnails/topics.svg"
+                 alt="What It Is About article image: six hundred documents as rows grouped into their true categories by horizontal rules, with the topic each one was assigned picked out in olive, forming a staircase of blocks." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">What It Is About</h2>
+            <p class="article-description">
+              Thousands of axes reduced to eight, on a corpus where the eight
+              real answers are sitting right there to check against. The
+              collapsed Gibbs sampler runs in the page, from a random start.
+            </p>
+            <button class="content-button">
+              <a href="./topics/">Dive In</a>
+            </button>
+          </div>
+        </div>
+
+        <!-- card: embeddings -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./embeddings/';" style="cursor: pointer">
+            <img src="assets/thumbnails/embeddings.svg"
+                 alt="The Company It Keeps article image: a scatter of word-context pairs with the dot product the training produced against the mutual information a count predicts, and the dashed diagonal the theorem says they should lie on." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">The Company It Keeps</h2>
+            <p class="article-description">
+              Give a word a position instead of an axis and the position has to
+              be learned from its neighbours. Three ways of doing it on one
+              tagged corpus, with a part-of-speech tag on every neighbour.
+            </p>
+            <button class="content-button">
+              <a href="./embeddings/">Dive In</a>
+            </button>
+          </div>
+        </div>
+
+        <!-- card: sequences -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./sequences/';" style="cursor: pointer">
+            <img src="assets/thumbnails/sequences.svg"
+                 alt="What Came Before article image: a Viterbi trellis, twelve grey candidate tags at each of eight words, with the single best path drawn through it in dark green." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">What Came Before</h2>
+            <p class="article-description">
+              Four models of memory on one task where every token has a known
+              right answer, and two measurements of how far back each of them
+              can really see.
+            </p>
+            <button class="content-button">
+              <a href="./sequences/">Dive In</a>
+            </button>
+          </div>
+        </div>
+
+        <!-- card: attention -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./attention/';" style="cursor: pointer">
+            <img src="assets/thumbnails/attention.svg"
+                 alt="Everything At Once article image: how much an input still moves the state as the distance grows, a nearly flat line where a recurrence would already have lost half of it." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Everything At Once</h2>
+            <p class="article-description">
+              Make every pair of positions one step apart and pay for it in a
+              currency that grows with the square of the length. The trained
+              encoder runs in the page, so the constants can be switched off.
+            </p>
+            <button class="content-button">
+              <a href="./attention/">Dive In</a>
+            </button>
+          </div>
+        </div>
+
+        <!-- card: pretraining -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./pretraining/';" style="cursor: pointer">
+            <img src="assets/thumbnails/pretraining.svg"
+                 alt="Three Ways To Read article image: three indigo bars of very different heights, the supervised predictions each pretraining objective extracts from every token of text it reads." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Three Ways To Read</h2>
+            <p class="article-description">
+              One architecture and one budget, asked to predict three different
+              things. The fifteen percent masking rate is swept instead of
+              assumed, and the column nobody prints explains the rest.
+            </p>
+            <button class="content-button">
+              <a href="./pretraining/">Dive In</a>
+            </button>
+          </div>
+        </div>
+
+        <!-- card: state-space -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./state-space/';" style="cursor: pointer">
+            <img src="assets/thumbnails/state-space.svg"
+                 alt="Back To Recurrence article image: three convolution kernels from three initialisations, one diverging off the top, one decaying almost immediately and one reaching far to the right." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Back To Recurrence</h2>
+            <p class="article-description">
+              A linear recurrence is also a convolution, exactly, so it trains
+              in parallel and runs one step at a time. The page computes both
+              and reports how far apart they are.
+            </p>
+            <button class="content-button">
+              <a href="./state-space/">Dive In</a>
+            </button>
+          </div>
+        </div>
+        <!-- card: arima -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./arima/';" style="cursor: pointer">
+            <img src="assets/thumbnails/arima.svg"
+                 alt="One Step Ahead article image: a rising seasonal curve of carbon dioxide with a forecast and its interval fanning out from the right hand end." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">One Step Ahead</h2>
+            <p class="article-description">
+              Put the rows in order and almost every habit has to be relearned.
+              Watch two stationarity tests pass a series that is obviously
+              seasonal, check an exact identity between a smoother and an ARIMA
+              in your browser, and count how often an interval keeps its promise.
+            </p>
+            <button class="content-button">
+              <a href="./arima/">Dive In</a>
+            </button>
+          </div>
+        </div>
+        <!-- card: volatility -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./volatility/';" style="cursor: pointer">
+            <img src="assets/thumbnails/volatility.svg"
+                 alt="The Size of a Surprise article image: the spiky absolute daily returns of an index in grey with the fitted volatility path drawn over them." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">The Size of a Surprise</h2>
+            <p class="article-description">
+              On twenty years of daily returns the next value is a coin flip and
+              its spread is not. Fit a variance nobody ever observes with three
+              sliders, score it against the options market, and count the days
+              the loss went past the line.
+            </p>
+            <button class="content-button">
+              <a href="./volatility/">Dive In</a>
+            </button>
+          </div>
+        </div>
+        <!-- card: time-features -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./time-features/';" style="cursor: pointer">
+            <img src="assets/thumbnails/time-features.svg"
+                 alt="A Forecast Is a Table article image: a heatmap of a feature matrix, one row per month, with the target column picked out in a different colour." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">A Forecast Is a Table</h2>
+            <p class="article-description">
+              Write the past into columns and any regressor can forecast, which
+              is what most people who forecast for a living now do. Then meet
+              the split that lies, the ceiling a tree cannot forecast past, and a
+              decomposition scored against a truth written down first.
+            </p>
+            <button class="content-button">
+              <a href="./time-features/">Dive In</a>
+            </button>
+          </div>
+        </div>
+        <!-- card: deep-forecast -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./deep-forecast/';" style="cursor: pointer">
+            <img src="assets/thumbnails/deep-forecast.svg"
+                 alt="Many Series at Once article image: a falling curve of error against the number of series a single network was trained on, with three dashed reference lines." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Many Series at Once</h2>
+            <p class="article-description">
+              One network across hundreds of series instead of one model each.
+              Watch a stack of blocks subtract its own explanation, score its
+              interpretable half against components written down in advance, and
+              put a variable selection weight beside what breaking that variable
+              costs.
+            </p>
+            <button class="content-button">
+              <a href="./deep-forecast/">Dive In</a>
+            </button>
+          </div>
+        </div>
+        <!-- card: zero-shot -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./zero-shot/';" style="cursor: pointer">
+            <img src="assets/thumbnails/zero-shot.svg"
+                 alt="A Model That Never Saw Your Data article image: a smooth series in grey with the staircase of its quantised version drawn over it." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">A Model That Never Saw Your Data</h2>
+            <p class="article-description">
+              Turn numbers into letters and train a language model on a pile of
+              series, then ask it to finish one it has never read. Measure the
+              floor the alphabet puts under it, and remove a whole family from
+              the pile to find out what having seen the shape was worth.
+            </p>
+            <button class="content-button">
+              <a href="./zero-shot/">Dive In</a>
+            </button>
+          </div>
+        </div>
+        <!-- card: spectrograms -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./spectrograms/';" style="cursor: pointer">
+            <img src="assets/thumbnails/spectrograms.svg"
+                 alt="What a Sound Looks Like article image: the spectrogram of a rising sweep, a diagonal bright band from bottom left to top right." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">What a Sound Looks Like</h2>
+            <p class="article-description">
+              Nothing eats audio directly: it becomes a picture first. Slide the
+              window length over a sweep whose frequency is known at every
+              sample, hear what a spectrogram threw away, and find out what a
+              cepstral coefficient is actually for.
+            </p>
+            <button class="content-button">
+              <a href="./spectrograms/">Dive In</a>
+            </button>
+          </div>
+        </div>
+        <!-- card: wavenet -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./wavenet/';" style="cursor: pointer">
+            <img src="assets/thumbnails/wavenet.svg"
+                 alt="One Sample at a Time article image: the fan of a dilated causal convolution stack, lines spreading back from one output over six rows of samples." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">One Sample at a Time</h2>
+            <p class="article-description">
+              How far back a stack of dilated convolutions can see is arithmetic,
+              not a hyperparameter, and the prediction it makes about pitch is
+              tested here. Then listen to a model fed its own output, and watch a
+              decoder refuse to stop talking.
+            </p>
+            <button class="content-button">
+              <a href="./wavenet/">Dive In</a>
+            </button>
+          </div>
+        </div>
+      </div>
       <details class="roadmap">
         <summary>Full branch map: 4. Sequential Intelligence</summary>
         <div class="branch">
           <h4>4.1 NLP</h4>
           <div class="chips">
-            <span class="chip">TF-IDF · N-Grams</span>
-            <span class="chip">LDA Topics</span>
-            <span class="chip">Word2Vec · GloVe · FastText</span>
-            <span class="chip">HMM · RNN · LSTM · GRU</span>
-            <span class="chip">Self-Attention</span>
-            <span class="chip">BERT · GPT · T5</span>
-            <span class="chip">Mamba / SSMs</span>
+            <span class="chip live"><a href="./tf-idf/">TF-IDF · N-Grams</a></span>
+            <span class="chip live"><a href="./topics/">LDA Topics</a></span>
+            <span class="chip live"><a href="./embeddings/">Word2Vec · GloVe · FastText</a></span>
+            <span class="chip live"><a href="./sequences/">HMM · RNN · LSTM · GRU</a></span>
+            <span class="chip live"><a href="./attention/">Self-Attention</a></span>
+            <span class="chip live"><a href="./pretraining/">BERT · GPT · T5</a></span>
+            <span class="chip live"><a href="./state-space/">Mamba / SSMs</a></span>
           </div>
         </div>
         <div class="branch">
           <h4>4.2 Time Series &nbsp;·&nbsp; 4.3 Audio</h4>
           <div class="chips">
-            <span class="chip">ARIMA · SARIMA · ETS</span>
-            <span class="chip">VAR · GARCH</span>
-            <span class="chip">Prophet · XGBoost-TS</span>
-            <span class="chip">N-BEATS · TFT</span>
-            <span class="chip">TimeGPT · Chronos</span>
-            <span class="chip">Spectrograms · MFCCs</span>
-            <span class="chip">WaveNet · Whisper</span>
+            <span class="chip live"><a href="./arima/">ARIMA · SARIMA · ETS</a></span>
+            <span class="chip live"><a href="./volatility/">VAR · GARCH</a></span>
+            <span class="chip live"><a href="./time-features/">Prophet · XGBoost-TS</a></span>
+            <span class="chip live"><a href="./deep-forecast/">N-BEATS · TFT</a></span>
+            <span class="chip live"><a href="./zero-shot/">TimeGPT · Chronos</a></span>
+            <span class="chip live"><a href="./spectrograms/">Spectrograms · MFCCs</a></span>
+            <span class="chip live"><a href="./wavenet/">WaveNet · Whisper</a></span>
           </div>
         </div>
       </details>

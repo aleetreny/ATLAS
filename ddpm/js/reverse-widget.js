@@ -45,7 +45,7 @@ export function initReverseWidget(data, kit) {
     width: 400, height: 330, margin: { top: 50, right: 26, bottom: 56, left: 78 },
   });
   const { g, w, h } = chart;
-  chart.svg.style('max-width', '410px');
+  /* the width is the column's, set in the page's stylesheet: see .chart-half */
   const layer = g.append('g');
   const title = g.append('text').attr('class', 'chart-note')
     .attr('x', w / 2).attr('y', -32).attr('text-anchor', 'middle')
@@ -79,7 +79,7 @@ export function initReverseWidget(data, kit) {
     cv.ctx.arc(px(0), py(0), (1.2 / (2 * HALF)) * SIDE, 0, Math.PI * 2);
     cv.ctx.stroke();
     cv.ctx.restore();
-    cv.ctx.fillStyle = 'rgba(22,78,99,0.72)';
+    cv.ctx.fillStyle = 'rgba(103,69,153,0.72)';
     let inHole = 0;
     for (let i = 0; i < N_DRAW; i++) {
       const x = last[i * 2];

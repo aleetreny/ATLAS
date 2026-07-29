@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>The Company It Keeps | ATLAS</title>
+  <meta name="description" content="Skip-gram, GloVe and FastText trained on the same tagged corpus with the same budget. The window decides what similar means, and the tags make that a count rather than an impression. All three run in the page." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/embeddings/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="The Company It Keeps | ATLAS" />
+  <meta property="og:description" content="Give a word a position instead of an axis. Three ways of doing it, measured on the same corpus, with a part-of-speech tag on every neighbour." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/embeddings/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="The Company It Keeps | ATLAS" />
+  <meta name="twitter:description" content="Give a word a position instead of an axis. Three ways of doing it, measured on the same corpus, with a part-of-speech tag on every neighbour." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    /* Per-article theme. Everything else inherits from these two. */
+    :root {
+      --primary: #713f12;
+      --secondary: #5a320e;
+    }
+    .nb-table,
+    .an-table {
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      width: 100%;
+    }
+    .nb-table th,
+    .an-table th {
+      font-family: var(--font-heavy);
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      text-align: left;
+      padding: 6px 10px 6px 0;
+      font-weight: 400;
+    }
+    .nb-table td,
+    .an-table td {
+      padding: 4px 10px 4px 0;
+      vertical-align: top;
+      white-space: nowrap;
+    }
+    .nb-table td.rank {
+      opacity: 0.45;
+    }
+    .nb-table .same-pos {
+      color: var(--primary);
+      font-weight: 600;
+    }
+    .nb-table .other-pos {
+      opacity: 0.85;
+    }
+    .nb-table .tag {
+      opacity: 0.4;
+      font-size: 10.5px;
+    }
+    .nb-table .cos {
+      opacity: 0.55;
+      font-size: 10.5px;
+    }
+    @media (max-width: 560px) {
+      .nb-table,
+      .an-table {
+        font-size: 10.5px;
+      }
+      .nb-table td,
+      .nb-table th,
+      .an-table td,
+      .an-table th {
+        padding: 4px 5px 4px 0;
+      }
+      .nb-table .tag {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- ======================= chrome ======================= -->
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <!-- ======================= hero ======================= -->
+  <section id="intro">
+    <h1 id="intro-hed">The Company It Keeps</h1>
+    <h1 id="intro-sub">Give a word a position instead of an axis of its own, and the position has to be learned from its neighbours, which turns out to be counting again</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 4.1 &middot; NLP &middot; The Company It Keeps</span>
+  </section>
+
+  <br />
+
+  <!-- ======================= introduction ======================= -->
+  <section>
+    <p class="body-text" id="intro-problem">
+      Two articles of this branch have now represented a document by counting
+      its words, and both have run into the same wall.
+    </p>
+    <br />
+    <p class="body-text" id="intro-idea">
+      The repair is a sentence from a linguist, written in 1957 and quoted ever
+      since: you shall know a word by the company it keeps.
+    </p>
+    <br />
+    <p class="body-text" id="intro-guard">
+      Three models, one corpus, and all three run in this page.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the objective ======================= -->
+  <section>
+    <h1 class="body-header">What Is Actually Being Optimised</h1>
+    <p class="body-text" id="objective-intro">
+      Skip-gram with negative sampling is usually described as a neural network,
+      which makes it sound more mysterious than it is.
+    </p>
+    <p class="body-text">
+      $$\ell = \log \sigma(v_w \cdot v_c) + \sum_{i=1}^{k} \mathbb{E}_{c_i \sim P_n} \log \sigma(-v_w \cdot v_{c_i})$$
+    </p>
+    <p class="body-text" id="objective-theorem">
+      And there is a theorem about where that lands.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="pmi-widget">
+    <div class="controls-row" style="justify-content: center" id="pmi-views"></div>
+    <div id="pmi-chart"></div>
+    <div class="widget-readout" id="pmi-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="pmi-note">
+      Which reframes the whole thing.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= neighbours ======================= -->
+  <section>
+    <h1 class="body-header">Ask All Three The Same Question</h1>
+    <p class="body-text" id="nb-intro">
+      The usual way to show off an embedding is a list of nearest neighbours for
+      a well-chosen word.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="neighbours-widget">
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">word <span class="value" id="neighbours-word-label">word</span></span>
+      <input type="range" class="atlas-range" id="neighbours-word" aria-label="which word to find neighbours for" min="0" max="1" step="1" value="0" />
+    </div>
+    <div id="neighbours-chart"></div>
+    <div class="widget-readout" id="neighbours-readout"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= the window ======================= -->
+  <section>
+    <h1 class="body-header">The Window Decides What Similar Means</h1>
+    <p class="body-text" id="window-intro">
+      There is one hyperparameter here that changes the meaning of the output
+      rather than its quality.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table" id="window-table">
+      <thead>
+        <tr>
+          <th>Window</th>
+          <th>Training pairs</th>
+          <th>Neighbours sharing the part of speech</th>
+          <th>Neighbours sharing the first four letters</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="window-verdict">
+      Same algorithm, same corpus, same number of dimensions.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= three models ======================= -->
+  <section>
+    <h1 class="body-header">Three Models, One Table</h1>
+    <p class="body-text" id="models-intro">
+      All three on the same corpus, the same vocabulary, the same number of
+      dimensions and the same window.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table" id="models-table">
+      <thead>
+        <tr>
+          <th>Model</th>
+          <th>Neighbours sharing the part of speech</th>
+          <th>Neighbours sharing a prefix</th>
+          <th>Analogies</th>
+          <th>Analogies without the exclusion</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="analogy-note">
+      The last two columns are the same test with one line changed.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="analogy-widget">
+    <div class="controls-row" style="justify-content: center" id="analogy-sets"></div>
+    <div class="controls-row" style="justify-content: center" id="analogy-models"></div>
+    <div id="analogy-chart"></div>
+    <div class="widget-readout" id="analogy-readout"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= oov ======================= -->
+  <section>
+    <h1 class="body-header">The Word That Was Not There</h1>
+    <p class="body-text" id="oov-intro">
+      Every model so far in this branch has had the same hard edge: a word that
+      was not in the training vocabulary has no representation at all.
+    </p>
+    <br />
+    <p class="body-text" id="oov-result">
+      Measured on words that fell just below the vocabulary cut:
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= verdict ======================= -->
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text">
+      Three ways to give a word a position, measured on one tagged corpus.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Reach for</th>
+          <th>When</th>
+          <th>What it bought here</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">Skip-gram</span></td>
+          <td>You have a corpus and want vectors out of it without thinking hard</td>
+          <td id="v-sg">Measured above.</td>
+          <td id="v-sg-watch">It has no answer for a word it never saw.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">GloVe</span></td>
+          <td>The co-occurrence matrix fits in memory and you would rather fit it once than stream pairs</td>
+          <td id="v-gl">Measured above.</td>
+          <td id="v-gl-watch">Same hard edge on unseen words.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">FastText</span></td>
+          <td>Morphology matters, or the vocabulary is open, which it always is</td>
+          <td id="v-ft">Measured above.</td>
+          <td id="v-ft-watch">Character n-grams tie words that only look alike.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">The window</span></td>
+          <td>You care whether "similar" means same-role or same-topic</td>
+          <td id="v-win">Measured above.</td>
+          <td id="v-win-watch">It is reported as a detail and behaves as a definition.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="closing-1">
+      A word now has a position, and the position knows things.
+    </p>
+    <br />
+    <p class="body-text" id="closing-2">
+      What none of it knows is where the word was.
+    </p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! Everything above ran here: all three models travel as
+      half-precision vectors and every neighbour list, every analogy and every
+      part-of-speech count on this page is computed in the browser from them,
+      checked at load time against the references the generator produced from
+      the same rounded values, with the training, the co-occurrence matrix and
+      those references from
+      <code>src/utils/generate_embeddings_data.py</code>.
+    </p>
+  </section>
+
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text" id="ref-note">
+      The corpus is the Brown corpus as distributed with NLTK.
+    </p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1310.4546">[1] Distributed Representations of Words and Phrases and their Compositionality</a><br />
+      (Mikolov, T., Sutskever, I., Chen, K., Corrado, G. &amp; Dean, J., NIPS, 2013; skip-gram with negative sampling, the subsampling of frequent words and the three-quarter power noise distribution, all three implemented here)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://papers.nips.cc/paper_files/paper/2014/hash/feab05aa91085b7a8012516bc3533958-Abstract.html">[2] Neural Word Embedding as Implicit Matrix Factorization</a><br />
+      (Levy, O. &amp; Goldberg, Y., NIPS, 2014; the theorem the second figure plots as an identity rather than as a fit)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://aclanthology.org/D14-1162/">[3] GloVe: Global Vectors for Word Representation</a><br />
+      (Pennington, J., Socher, R. &amp; Manning, C., EMNLP, 2014; the weighted least squares objective on the co-occurrence counts)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://aclanthology.org/Q17-1010/">[4] Enriching Word Vectors with Subword Information</a><br />
+      (Bojanowski, P., Grave, E., Joulin, A. &amp; Mikolov, T., TACL, 2017; the character n-grams that give an unseen word a vector)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://aclanthology.org/Q15-1016/">[5] Improving Distributional Similarity with Lessons Learned from Word Embeddings</a><br />
+      (Levy, O., Goldberg, Y. &amp; Dagan, I., TACL, 2015; that most of the reported gap between these methods is hyperparameters, which is why everything here shares them)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>

@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>What a Sound Looks Like | ATLAS</title>
+  <meta name="description" content="A visual, interactive introduction to spectrograms and MFCCs: the window length that trades time against frequency, measured against a sweep whose frequency is known at every sample, what the mel filterbank throws away, and what a cepstral coefficient is actually for." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/spectrograms/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="What a Sound Looks Like | ATLAS" />
+  <meta property="og:description" content="A visual, interactive introduction to spectrograms and MFCCs: the window length that trades time against frequency, measured against a sweep whose frequency is known at every sample, what the mel filterbank throws away, and what a cepstral coefficient is actually for." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/spectrograms/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="What a Sound Looks Like | ATLAS" />
+  <meta name="twitter:description" content="A visual, interactive introduction to spectrograms and MFCCs: the window length that trades time against frequency, measured against a sweep whose frequency is known at every sample, what the mel filterbank throws away, and what a cepstral coefficient is actually for." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    :root {
+      --primary: #5c0e1d;
+      --secondary: #4a0b17;
+    }
+    .narrow-widget {
+      max-width: 880px;
+    }
+    .gen-table {
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      margin-top: 0.4rem;
+      width: 100%;
+    }
+    .gen-table th,
+    .gen-table td {
+      padding: 4px 10px 4px 0;
+      text-align: left;
+      font-weight: 400;
+      white-space: nowrap;
+    }
+    .gen-table th {
+      font-family: var(--font-heavy);
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .gen-table td:first-child,
+    .gen-table th:first-child {
+      opacity: 0.75;
+    }
+    .gen-table td:last-child,
+    .gen-table th:last-child {
+      white-space: normal;
+    }
+    .gen-note {
+      margin-top: 0.6rem;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+    .slider-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+      margin: 0.2rem 0 0.6rem;
+      font-family: var(--font-mono);
+      font-size: 13px;
+    }
+    .slider-row input[type="range"] {
+      width: 240px;
+      accent-color: var(--primary);
+    }
+    .spec-canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      image-rendering: pixelated;
+      border: 1px solid var(--stone);
+      background: var(--white);
+    }
+  </style>
+</head>
+<body>
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <section id="intro">
+    <h1 id="intro-hed">What a Sound Looks Like</h1>
+    <h1 id="intro-sub">Almost nothing is done to audio directly. It is turned into a picture first, and the two numbers that decide what that picture can show are chosen so routinely that nobody measures what they cost, which is a shame, because both are exactly measurable</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 4.3 · Audio · Spectrograms and MFCCs</span>
+  </section>
+
+  <br />
+
+  <section>
+    <p class="body-text">
+      A microphone gives you one number, thousands of times a second. Nothing in
+      this atlas eats that. What models actually eat is a picture: a matrix of
+      how much energy sat at each frequency during each short slice of time. The
+      slice length is a choice, and it is the whole subject.
+    </p>
+    <br />
+    <p class="body-text" id="opening-note"></p>
+  </section>
+
+  <section>
+    <h1 class="body-header">Cutting Sound Into Squares</h1>
+    <p class="body-text" id="scrolly-intro"></p>
+  </section>
+
+  <section id="pipeline-scrolly" class="scrolly">
+    <div class="scrolly-container">
+      <div class="steps-container">
+        <div class="step" data-index="0">
+          <div class="step-content">
+            <h3>One Number, Eight Thousand Times a Second</h3>
+            <p id="scrolly-step-0"></p>
+          </div>
+        </div>
+        <div class="step" data-index="1">
+          <div class="step-content">
+            <h3>Take a Slice, and Taper It</h3>
+            <p id="scrolly-step-1"></p>
+          </div>
+        </div>
+        <div class="step" data-index="2">
+          <div class="step-content">
+            <h3>Ask What Is In It</h3>
+            <p id="scrolly-step-2"></p>
+          </div>
+        </div>
+        <div class="step" data-index="3">
+          <div class="step-content">
+            <h3>Then Slide, and Repeat</h3>
+            <p id="scrolly-step-3"></p>
+          </div>
+        </div>
+        <div class="step-spacer"></div>
+      </div>
+      <div class="charts-container">
+        <div class="chart-wrap" id="pipeline-chart"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="body-text" id="pipeline-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">The Only Knob</h1>
+    <p class="body-text" id="window-intro"></p>
+    <p class="body-text">
+      $$ X_t(f) = \sum_{n=0}^{N-1} w[n]\,x[tH + n]\,e^{-2\pi i f n / N}, \qquad \Delta f \approx \frac{f_s}{N}, \qquad \Delta t = \frac{N}{f_s} $$
+    </p>
+    <p class="body-text" id="window-equation-note"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="window-widget">
+    <div class="controls-row" id="window-controls" role="group" aria-label="which sound"></div>
+    <div class="slider-row">
+      <label for="win-slider">window length</label>
+      <input type="range" id="win-slider" min="0" max="7" step="1" value="4"
+             aria-label="how many samples go into each column of the picture" />
+      <span id="win-value" class="value"></span>
+    </div>
+    <div id="window-canvas"></div>
+    <div id="window-chart"></div>
+    <div class="widget-readout" id="window-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="window-note"></p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Two tones this far apart</th>
+          <th>Window the arithmetic predicts</th>
+          <th>Shortest window on the grid that resolved them</th>
+          <th>Ratio</th>
+        </tr>
+      </thead>
+      <tbody id="resolution-table"></tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="resolution-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">What the Picture Threw Away</h1>
+    <p class="body-text" id="invert-intro"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="invert-widget">
+    <div class="controls-row" id="invert-controls" role="group" aria-label="which reconstruction to hear"></div>
+    <div id="invert-chart"></div>
+    <div class="widget-readout" id="invert-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="invert-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">Thirteen Numbers</h1>
+    <p class="body-text" id="mfcc-intro"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="mfcc-widget">
+    <div class="controls-row" id="mfcc-controls" role="group" aria-label="which sound"></div>
+    <div id="mfcc-chart"></div>
+    <div class="widget-readout" id="mfcc-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="mfcc-note"></p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr id="identify-head"></tr>
+      </thead>
+      <tbody id="identify-table"></tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="identify-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text" id="verdict-intro"></p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>What you want</th>
+          <th>Reach for</th>
+          <th>Why</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">To see two close frequencies</span></td>
+          <td>A long window</td>
+          <td id="verdict-long"></td>
+          <td id="verdict-long-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">To see when something happened</span></td>
+          <td>A short window</td>
+          <td id="verdict-short"></td>
+          <td id="verdict-short-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">Features for a model</span></td>
+          <td>Log mel energies, or their cepstrum</td>
+          <td id="verdict-mel"></td>
+          <td id="verdict-mel-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">The sound back</span></td>
+          <td>Keep the phase</td>
+          <td id="verdict-phase"></td>
+          <td id="verdict-phase-warn"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="closing-note"></p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! Every spectrogram on this page is computed in your
+      browser, from sixteen bit samples the generator sent, with a fast Fourier
+      transform written in <code>assets/js/dsp.js</code>, and checked on load
+      against the one the generator computed in numpy. The sounds are synthetic
+      on purpose: a source and a filter whose parameters were written down
+      first, so the pitch, the resonances and the boundaries are known exactly
+      rather than annotated. Everything was measured by
+      <code>src/utils/generate_spectrograms_data.py</code>.
+    </p>
+  </section>
+
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text" id="resources-note"></p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://doi.org/10.1109/TASSP.1980.1163420">[1] Comparison of Parametric Representations for Monosyllabic Word Recognition</a><br />
+      (Davis, S. B. &amp; Mermelstein, P., 1980; where the mel frequency cepstral coefficients come from)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://doi.org/10.1109/TASSP.1984.1164317">[2] Signal Estimation from Modified Short-Time Fourier Transform</a><br />
+      (Griffin, D. &amp; Lim, J., 1984; the iteration that guesses a phase, scored here in two different units)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://doi.org/10.1121/1.1906875">[3] Control Methods Used in a Study of the Vowels</a><br />
+      (Peterson, G. E. &amp; Barney, H. L., 1952; the formant frequencies the synthesiser on this page uses)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://doi.org/10.1109/PROC.1978.10837">[4] On the Use of Windows for Harmonic Analysis with the Discrete Fourier Transform</a><br />
+      (Harris, F. J., 1978; why a Hann window costs a factor of two in resolution and buys it back in leakage)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://doi.org/10.1121/1.1912129">[5] Cepstrum Pitch Determination</a><br />
+      (Noll, A. M., 1967; reading the pitch out of the high quefrencies, including the octave errors this page reproduces)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>

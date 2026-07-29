@@ -98,6 +98,9 @@ async function boot() {
   const guards = () => safely('guards', () => runGuards(data, glow));
   if ('requestIdleCallback' in window) requestIdleCallback(guards, { timeout: 5000 });
   else setTimeout(guards, 1000);
+  /* The same handle every other article exposes, so a sweep can re-run these
+     checks in any state instead of only catching whatever they logged on load. */
+  window.__atlasCheck = () => { runGuards(data, glow); return []; };
 }
 
 if (document.readyState === 'loading') {

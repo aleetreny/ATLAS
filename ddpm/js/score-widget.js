@@ -21,7 +21,10 @@ export function initScoreWidget(data, kit) {
   const caption = document.querySelector('#score-caption');
   const readout = document.querySelector('#score-readout');
   const buttons = document.querySelector('#score-buttons');
-  const st = { view: 'both', level: 2 };
+  /* opens at the second level, where the two fields visibly differ and the
+     density still has structure: the first is the worst case and the ones
+     after it are where the network is already right */
+  const st = { view: 'both', level: 1 };
 
   slider.min = 0;
   slider.max = levels.length - 1;
@@ -46,13 +49,13 @@ export function initScoreWidget(data, kit) {
     width: 400, height: 330, margin: { top: 50, right: 26, bottom: 56, left: 74 },
   });
   const { g, w, h } = chart;
-  chart.svg.style('max-width', '410px');
+  /* the width is the column's, set in the page's stylesheet: see .chart-half */
   const layer = g.append('g');
   const title = g.append('text').attr('class', 'chart-note')
     .attr('x', w / 2).attr('y', -32).attr('text-anchor', 'middle')
     .style('font-size', '12px');
 
-  const ink = (t) => [255 - 216 * t, 255 - 177 * t, 255 - 158 * t];
+  const ink = (t) => [255 - 152 * t, 255 - 186 * t, 255 - 102 * t];
 
   function paint(level) {
     /* the density, computed here in closed form rather than shipped as a
@@ -76,35 +79,45 @@ export function initScoreWidget(data, kit) {
     const px = (x) => ((x + HALF) / (2 * HALF)) * NPIX * ZOOM;
     const py = (y) => (1 - (y + HALF) / (2 * HALF)) * NPIX * ZOOM;
     const G = 11;
-    const arrow = (x0, y0, sx, sy, colour, scale) => {
+    /* Two arrows from the same point, and the first version drew them the same
+       width: wherever the network is right (which is most of the plane) the
+       learned arrow covered the true one exactly and the picture looked like a
+       single field. The true field is drawn WIDE and the learned one THIN on
+       top of it, so agreement reads as a thin line inside a thick one and
+       disagreement is the only thing that separates. */
+    const arrow = (x0, y0, sx, sy, colour, width, dot) => {
       const n = Math.hypot(sx, sy);
       if (n < 1e-9) return;
-      const len = Math.min(18, scale * n);
+      const len = Math.min(18, 7.5 * n);
       const ux = (sx / n) * len;
       const uy = (sy / n) * len;
       const ax = px(x0);
       const ay = py(y0);
       cv.ctx.strokeStyle = colour;
       cv.ctx.fillStyle = colour;
-      cv.ctx.lineWidth = 1.6;
+      cv.ctx.lineWidth = width;
+      cv.ctx.lineCap = 'round';
       cv.ctx.beginPath();
       cv.ctx.moveTo(ax, ay);
       cv.ctx.lineTo(ax + ux, ay - uy);
       cv.ctx.stroke();
-      cv.ctx.beginPath();
-      cv.ctx.arc(ax + ux, ay - uy, 1.9, 0, Math.PI * 2);
-      cv.ctx.fill();
+      if (dot) {
+        cv.ctx.beginPath();
+        cv.ctx.arc(ax + ux, ay - uy, dot, 0, Math.PI * 2);
+        cv.ctx.fill();
+      }
     };
     for (let i = 0; i < G; i++) {
       for (let j = 0; j < G; j++) {
         const x = -HALF * 0.86 + ((i + 0.5) / G) * 2 * HALF * 0.86;
         const y = -HALF * 0.86 + ((j + 0.5) / G) * 2 * HALF * 0.86;
-        const T = kit.truthAt(level, x, y);
-        const scale = 7.5;
-        if (st.view !== 'learned') arrow(x, y, T.sx, T.sy, 'rgba(22,78,99,0.92)', scale);
+        if (st.view !== 'learned') {
+          const T = kit.truthAt(level, x, y);
+          arrow(x, y, T.sx, T.sy, 'rgba(103,69,153,0.55)', 5.0, 0);
+        }
         if (st.view !== 'true') {
           const M = kit.learnedAt(level, x, y);
-          arrow(x, y, M.sx, M.sy, 'rgba(180,83,9,0.85)', scale);
+          arrow(x, y, M.sx, M.sy, 'rgba(154,52,18,0.95)', 1.5, 1.7);
         }
       }
     }

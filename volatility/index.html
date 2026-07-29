@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>The Size of a Surprise | ATLAS</title>
+  <meta name="description" content="A visual, interactive introduction to vector autoregressions and GARCH: what several series know about each other, why Granger causality is not causality, and how a variance you cannot see gets forecast, fitted in your browser and scored against the options market." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/volatility/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="The Size of a Surprise | ATLAS" />
+  <meta property="og:description" content="A visual, interactive introduction to vector autoregressions and GARCH: what several series know about each other, why Granger causality is not causality, and how a variance you cannot see gets forecast, fitted in your browser and scored against the options market." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/volatility/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="The Size of a Surprise | ATLAS" />
+  <meta name="twitter:description" content="A visual, interactive introduction to vector autoregressions and GARCH: what several series know about each other, why Granger causality is not causality, and how a variance you cannot see gets forecast, fitted in your browser and scored against the options market." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    :root {
+      --primary: #851463;
+      --secondary: #6a104f;
+    }
+    .narrow-widget {
+      max-width: 880px;
+    }
+    .gen-table {
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      margin-top: 0.4rem;
+      width: 100%;
+    }
+    .gen-table th,
+    .gen-table td {
+      padding: 4px 10px 4px 0;
+      text-align: left;
+      font-weight: 400;
+      white-space: nowrap;
+    }
+    .gen-table th {
+      font-family: var(--font-heavy);
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .gen-table td:first-child,
+    .gen-table th:first-child {
+      opacity: 0.75;
+    }
+    .gen-table td:last-child,
+    .gen-table th:last-child {
+      white-space: normal;
+    }
+    .gen-note {
+      margin-top: 0.6rem;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+    .slider-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+      margin: 0.2rem 0 0.6rem;
+      font-family: var(--font-mono);
+      font-size: 13px;
+    }
+    .slider-row input[type="range"] {
+      width: 190px;
+      accent-color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <section id="intro">
+    <h1 id="intro-hed">The Size of a Surprise</h1>
+    <h1 id="intro-sub">On some series the next value is a coin flip and everyone knows it, and yet the width of the coin changes every week, is predictable, is what people actually pay for, and is never once observed</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 4.2 · Time Series · Vector Autoregressions and GARCH</span>
+  </section>
+
+  <br />
+
+  <section>
+    <p class="body-text">
+      <a href="../arima/">The previous article</a> forecast one series from its
+      own past and scored the answer against what happened. This one asks the
+      two questions that breaks. First: what if you have several series and
+      suspect they know something about each other? Second, and stranger: what
+      if the thing worth forecasting is not the next value at all?
+    </p>
+    <br />
+    <p class="body-text" id="opening-note"></p>
+  </section>
+
+  <section>
+    <h1 class="body-header">Nothing to Forecast, and Plenty</h1>
+    <p class="body-text" id="scrolly-intro"></p>
+  </section>
+
+  <section id="returns-scrolly" class="scrolly">
+    <div class="scrolly-container">
+      <div class="steps-container">
+        <div class="step" data-index="0">
+          <div class="step-content">
+            <h3>Twenty Years of Days</h3>
+            <p id="scrolly-step-0"></p>
+          </div>
+        </div>
+        <div class="step" data-index="1">
+          <div class="step-content">
+            <h3>Ask the Sign</h3>
+            <p id="scrolly-step-1"></p>
+          </div>
+        </div>
+        <div class="step" data-index="2">
+          <div class="step-content">
+            <h3>Ask the Size</h3>
+            <p id="scrolly-step-2"></p>
+          </div>
+        </div>
+        <div class="step" data-index="3">
+          <div class="step-content">
+            <h3>The Same Regression, Twice</h3>
+            <p id="scrolly-step-3"></p>
+          </div>
+        </div>
+        <div class="step-spacer"></div>
+      </div>
+      <div class="charts-container">
+        <div class="chart-wrap" id="returns-chart"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="body-text" id="returns-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">Fitting a Variance You Never See</h1>
+    <p class="body-text" id="garch-intro"></p>
+    <p class="body-text">
+      $$ \sigma_t^2 = \omega + \alpha\, r_{t-1}^2 + \beta\, \sigma_{t-1}^2, \qquad -\log L = \tfrac12\sum_t \left[\log(2\pi\sigma_t^2) + \frac{r_t^2}{\sigma_t^2}\right] $$
+    </p>
+    <p class="body-text" id="garch-equation-note"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="garch-widget">
+    <div class="slider-row">
+      <label for="omega-slider">omega</label>
+      <input type="range" id="omega-slider" min="1" max="60" step="1" value="30"
+             aria-label="the constant floor under the variance" />
+      <span id="omega-value" class="value"></span>
+    </div>
+    <div class="slider-row">
+      <label for="alpha-slider">alpha</label>
+      <input type="range" id="alpha-slider" min="0" max="40" step="1" value="20"
+             aria-label="how much yesterday's surprise moves today's variance" />
+      <span id="alpha-value" class="value"></span>
+      <label for="beta-slider">beta</label>
+      <input type="range" id="beta-slider" min="0" max="49" step="1" value="20"
+             aria-label="how much of yesterday's variance carries over" />
+      <span id="beta-value" class="value"></span>
+    </div>
+    <div class="controls-row" id="garch-controls" role="group" aria-label="fit the model"></div>
+    <div id="garch-chart"></div>
+    <div class="widget-readout" id="garch-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="garch-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">Scored Against the Options Market</h1>
+    <p class="body-text" id="vix-intro"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="vix-widget">
+    <div class="controls-row" id="vix-controls" role="group" aria-label="which view"></div>
+    <div id="vix-chart"></div>
+    <div class="widget-readout" id="vix-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="vix-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">The Number the Model Is For</h1>
+    <p class="body-text" id="risk-intro"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="risk-widget">
+    <div class="controls-row" id="risk-controls" role="group" aria-label="which level"></div>
+    <div id="risk-chart"></div>
+    <div class="widget-readout" id="risk-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="risk-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">Several Series at Once</h1>
+    <p class="body-text" id="var-intro"></p>
+    <p class="body-text">
+      $$ \mathbf{y}_t = \mathbf{c} + A_1\mathbf{y}_{t-1} + \dots + A_p\mathbf{y}_{t-p} + \boldsymbol{\varepsilon}_t, \qquad \dim A_i = k \times k $$
+    </p>
+    <p class="body-text" id="var-count"></p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Model</th>
+          <th>Parameters</th>
+          <th>Overall</th>
+          <th>Against the best, in standard errors</th>
+          <th>Resolves?</th>
+        </tr>
+      </thead>
+      <tbody id="var-table"></tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="var-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">Which Series Moves First</h1>
+    <p class="body-text" id="irf-intro"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="irf-widget">
+    <div class="controls-row" id="irf-controls" role="group" aria-label="which ordering"></div>
+    <div id="irf-chart"></div>
+    <div class="widget-readout" id="irf-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="irf-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">Causes, Allegedly</h1>
+    <p class="body-text" id="granger-intro"></p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Procedure, on two independent random walks</th>
+          <th>In levels</th>
+          <th>In differences</th>
+          <th>What it should be</th>
+        </tr>
+      </thead>
+      <tbody id="granger-table"></tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="granger-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text" id="verdict-intro"></p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>What you want</th>
+          <th>Reach for</th>
+          <th>Why</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">Tomorrow's return</span></td>
+          <td>Nothing. Use the mean</td>
+          <td id="verdict-mean"></td>
+          <td id="verdict-mean-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">Tomorrow's spread</span></td>
+          <td>GARCH, or the EWMA it contains</td>
+          <td id="verdict-vol"></td>
+          <td id="verdict-vol-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">A loss you will not exceed</span></td>
+          <td>GARCH with a fat tailed innovation</td>
+          <td id="verdict-risk"></td>
+          <td id="verdict-risk-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">To use one series to forecast another</span></td>
+          <td>A vector model, and low expectations</td>
+          <td id="verdict-var"></td>
+          <td id="verdict-var-warn"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="closing-note"></p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! The variance recursion and its likelihood are computed
+      in this page, in JavaScript, over all of the daily returns, and checked on
+      load against the fit that <code>arch</code> produced. Every other number
+      was measured by <code>src/utils/generate_volatility_data.py</code>.
+    </p>
+  </section>
+
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text" id="resources-note"></p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://doi.org/10.2307/1912773">[1] Autoregressive Conditional Heteroscedasticity with Estimates of the Variance of United Kingdom Inflation</a><br />
+      (Engle, R. F., 1982; the idea that the variance has a memory of its own)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://doi.org/10.1016/0304-4076(86)90063-1">[2] Generalized Autoregressive Conditional Heteroskedasticity</a><br />
+      (Bollerslev, T., 1986; the recursion this page runs, with three parameters)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://doi.org/10.2307/1912791">[3] Macroeconomics and Reality</a><br />
+      (Sims, C. A., 1980; the vector autoregression, and the identification problem the ordering buttons are about)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://doi.org/10.1016/0304-4076(74)90034-7">[4] Spurious Regressions in Econometrics</a><br />
+      (Granger, C. W. J. &amp; Newbold, P., 1974; the experiment repeated here on five hundred pairs of random walks)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://doi.org/10.1198/073500102753410444">[5] Evaluating Interval Forecasts / Techniques for Verifying the Accuracy of Risk Measurement Models</a><br />
+      (Kupiec, P., 1995; the exceedance test the risk table reports a p-value from)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>

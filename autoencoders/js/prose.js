@@ -226,10 +226,13 @@ export function initProse(data) {
     + `decode it, and look at what comes out. What is missing is any reason to believe a sampled `
     + `point will land somewhere the decoder handles well, which is a question about the `
     + `distribution of the code and not about reconstruction at all. Putting a distribution there `
-    + `on purpose is what a variational autoencoder does, and that is `
-    + `<a href="../vae/">where module 3 opens</a>, with the objective no longer "rebuild this" but `
-    + `"produce something that could have been this". It starts by taking the network on this page, `
-    + `weight for weight out of this page's own data file, and sampling it.`
+    + `on purpose is what a variational autoencoder does, and that is module 3, where the `
+    + `objective stops being "rebuild this" and starts being "produce something that could `
+    + `have been this". Module 3 opens with <a href="../gans/">Counterfeit</a>, which takes `
+    + `the harder road of not writing the objective down at all and training a second network `
+    + `to be it; the <a href="../vae/">variational autoencoder</a> arrives a section later, `
+    + `and it starts by taking the network on this page, weight for weight out of this page's `
+    + `own data file, and sampling it.`
     + `<br /><br />`
     + `Before that, module 2 has two branches left, and both of them change the question rather `
     + `than the method. The next article stops asking what the structure of the data is and starts `

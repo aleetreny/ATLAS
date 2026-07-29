@@ -18,7 +18,7 @@ export function initScrollyDDPM(data, kit) {
   const cv = makeCanvas(host, NPIX * ZOOM, NPIX * ZOOM);
   /* which of the shipped levels each scrolly step shows */
   const STEP_LEVEL = [0, 1, 3, 5, 6];
-  const ink = (t) => [255 - 216 * t, 255 - 177 * t, 255 - 158 * t];
+  const ink = (t) => [255 - 152 * t, 255 - 186 * t, 255 - 102 * t];
 
   function render(step) {
     const level = STEP_LEVEL[Math.min(step, STEP_LEVEL.length - 1)];

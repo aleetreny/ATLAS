@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Translation | ATLAS</title>
+  <meta name="description" content="Image to image translation measured on scenes this file draws itself, so the conditional distribution of the right answer can be sampled: why an averaging loss must blur, what the adversarial term adds, how wide a patch discriminator really sees, and what an unpaired cycle constraint does and does not pin down." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/translation/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="Translation | ATLAS" />
+  <meta property="og:description" content="pix2pix and CycleGAN, on a dataset where the conditional distribution of the right answer can be sampled and the correspondence is known." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/translation/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Translation | ATLAS" />
+  <meta name="twitter:description" content="Draw a plan and watch two trained translators disagree about it, in your own tab." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    /* Per-article theme. Everything else inherits from these two. */
+    :root {
+      --primary: #134e4a;
+      --secondary: #0f3e3b;
+    }
+    .side-by-side {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 1.5rem;
+      align-items: start;
+      justify-items: center;
+    }
+    @media (max-width: 950px) {
+      .side-by-side {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+    .sheet-wrap {
+      overflow-x: auto;
+    }
+    .sheet-wrap canvas,
+    .out-cell canvas {
+      image-rendering: pixelated;
+    }
+    .sheet-label {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      text-align: center;
+      margin-bottom: 0.3rem;
+      color: var(--squidink);
+    }
+    #strip-rows > div {
+      margin-bottom: 0.9rem;
+    }
+    /* `justify-items: center` on the parent sizes a grid item to its content,
+       which left this one too narrow for auto-fit to place two columns and
+       stacked the two answers vertically. */
+    #draw-outputs {
+      display: grid;
+      width: 100%;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1rem;
+      justify-items: center;
+    }
+    .out-cell {
+      max-width: 260px;
+    }
+    .out-cell .cap {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      text-align: center;
+      margin-top: 0.3rem;
+      color: var(--squidink);
+    }
+  </style>
+</head>
+<body>
+  <!-- ======================= chrome ======================= -->
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <!-- ======================= hero ======================= -->
+  <section id="intro">
+    <h1 id="intro-hed">Translation</h1>
+    <h1 id="intro-sub">Turning one picture into another, first with the answer in hand and then without it, and what "it has to be undoable" turns out to be worth as a constraint</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 3.1 · Adversarial · Translation</span>
+  </section>
+
+  <br />
+
+  <!-- ======================= introduction ======================= -->
+  <section>
+    <p class="body-text">
+      The two previous articles asked for a picture out of noise. This one
+      starts from a picture: a flat plan of a scene, to be turned into a render
+      of it. Sketch to photograph, map to satellite, daylight to dusk, and the
+      family of tasks nobody would have called generative modelling before
+      2016.
+    </p>
+    <br />
+    <p class="body-text">
+      Starting from a picture changes two things at once, and they pull in
+      opposite directions. There is now a right answer, so an ordinary
+      regression loss is available and there is no need for any of the
+      machinery in <a href="../gans/">Counterfeit</a>. And there is still not a
+      <span class="bold">unique</span> right answer, because the plan does not
+      say which windows are lit, so that regression loss is being asked a
+      question it can only answer with a summary of every answer that was
+      possible.
+    </p>
+    <br />
+    <p class="body-text" id="dataset-note">Measured below.</p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the conditional ======================= -->
+  <section>
+    <h1 class="body-header">Blur Is The Correct Answer</h1>
+    <p class="body-text" id="cond-intro">Measured below.</p>
+  </section>
+
+  <section id="cond-scrolly" class="scrolly">
+    <div class="scrolly-container">
+      <div class="charts-container">
+        <div class="chart-wrap" id="cond-scrolly-chart"></div>
+      </div>
+      <div class="steps-container" id="cond-steps">
+        <div class="step" data-index="0">
+          <div class="step-content">
+            <h3>One plan, one pixel</h3>
+            <p>Take a single plan and a single pixel inside one of its windows. The plan fixes where the window is. It says nothing about whether the light is on.</p>
+          </div>
+        </div>
+        <div class="step" data-index="1">
+          <div class="step-content">
+            <h3>Rendered again and again</h3>
+            <p>The same plan, rendered many times. This is the distribution of that one pixel, and it is not a bell around a middle: it is two lumps.</p>
+          </div>
+        </div>
+        <div class="step" data-index="2">
+          <div class="step-content">
+            <h3>Because a window is a switch</h3>
+            <p>Lit or unlit, nothing in between. Every render in the dataset puts that pixel at one end or the other, and the middle is a brightness the data never contains.</p>
+          </div>
+        </div>
+        <div class="step" data-index="3">
+          <div class="step-content">
+            <h3>And the two losses miss differently</h3>
+            <p>A squared-error loss is minimised by the mean, which lands in the empty middle: that is the grey window everybody has in mind. An absolute-error loss, which is the one pix2pix uses, is minimised by the median, which snaps to whichever state was commoner: sharp, confident, and wrong about the rest. Neither is failing. Both are answering exactly what was asked.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="body-text" id="cond-result">Measured below.</p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the arms ======================= -->
+  <section>
+    <h1 class="body-header">Five Ways To Train One Network</h1>
+    <p class="body-text" id="arms-intro">Measured below.</p>
+    <div style="text-align: center; margin: 1.2rem 0">
+      \( \mathcal{L} = \mathcal{L}_{\text{GAN}}(G, D) + \lambda\, \mathbb{E}\big[\lVert y - G(x) \rVert_1\big] \)
+    </div>
+    <p class="body-text">
+      The same U-Net, the same data, the same number of steps, and only the
+      loss changed. The bar chart is the detail each one keeps, measured as
+      what survives a three by three blur, with a real render and the middle of
+      the conditional distribution for scale.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="cond-widget">
+    <div id="cond-chart"></div>
+    <div class="widget-readout" id="cond-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="arms-result">Measured below.</p>
+  </section>
+
+  <div class="interactive-full" id="strip-widget">
+    <div class="sheet-wrap" id="strip-rows"></div>
+    <div class="widget-readout" id="strip-readout"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= the patch ======================= -->
+  <section>
+    <h1 class="body-header">How Much The Critic Sees</h1>
+    <p class="body-text" id="patch-intro">Measured below.</p>
+  </section>
+
+  <div class="interactive-full" id="patch-widget">
+    <div class="widget-readout" id="patch-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="patch-result">Measured below.</p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= draw ======================= -->
+  <section>
+    <h1 class="body-header">Draw One</h1>
+    <p class="body-text" id="draw-intro">Measured below.</p>
+    <br />
+    <p class="body-text">
+      Pick a colour and paint on the left. Both networks translate what you drew
+      as you draw it, from the same quantised weights the table above was
+      measured on.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="draw-widget">
+    <div class="controls-row" style="justify-content: center" id="draw-tools"></div>
+    <div class="controls-row" style="justify-content: center" id="draw-buttons"></div>
+    <div class="side-by-side">
+      <div id="draw-canvas"></div>
+      <div id="draw-outputs"></div>
+    </div>
+    <div class="widget-readout" id="draw-readout"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= cyclegan ======================= -->
+  <section>
+    <h1 class="body-header">Without The Pairs</h1>
+    <p class="body-text" id="cycle-intro">Measured below.</p>
+    <div style="text-align: center; margin: 1.2rem 0">
+      \( \mathcal{L}_{\text{cyc}} = \mathbb{E}_x\big[\lVert F(G(x)) - x \rVert_1\big]
+         + \mathbb{E}_y\big[\lVert G(F(y)) - y \rVert_1\big] \)
+    </div>
+    <p class="body-text" id="cycle-setup">Measured below.</p>
+  </section>
+
+  <div class="interactive-full" id="cycle-widget">
+    <div class="widget-readout" id="cycle-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="cycle-result">Measured below.</p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= steganography ======================= -->
+  <section>
+    <h1 class="body-header">What The Cycle Is Made Of</h1>
+    <p class="body-text" id="steg-intro">Measured below.</p>
+  </section>
+
+  <div class="interactive-full" id="steg-widget">
+    <div id="steg-chart"></div>
+    <div class="widget-readout" id="steg-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="steg-result">Measured below.</p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= verdict ======================= -->
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text">
+      What each idea on this page is worth, at this scale, on these scenes.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Idea</th>
+          <th>What it buys</th>
+          <th>Measured here</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">A regression loss</span></td>
+          <td>Fidelity: the output lands where the answer is, without a second network to argue with</td>
+          <td id="verdict-l1">Measured above.</td>
+          <td>It returns a summary of every answer that was possible, which is the right answer to the wrong question wherever the mapping is one to many.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">An adversarial term</span></td>
+          <td>Commitment: outputs that belong to the distribution rather than to its middle</td>
+          <td id="verdict-gan">Measured above.</td>
+          <td>It has no idea which of the possible answers is the right one, so on its own it will produce a perfectly plausible render of a different scene.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">A patch discriminator</span></td>
+          <td>A critic that judges texture locally, with far fewer weights than one that judges the whole image</td>
+          <td id="verdict-patch">Measured above.</td>
+          <td>The patch size everyone quotes is the window of the convolutions. Put a normalisation layer inside and its statistics pool over the whole image, so the real window is everything.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Cycle consistency</span></td>
+          <td>A way to train a translator with no paired examples at all</td>
+          <td id="verdict-cycle">Measured above.</td>
+          <td>Invertibility does not single out the correspondence you wanted. Any relabelling that is undoable scores the same, and the round trip can be carried by a signal too small to see.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="limits-note">Measured below.</p>
+    <br />
+    <p class="body-text" id="closing-note">Measured below.</p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! Every number here comes from
+      <code>src/utils/generate_translation_data.py</code>, which draws the
+      scenes, can redraw any of them as many times as the argument needs,
+      trains all seven networks, and hands this page two of them so that the
+      thing you painted above was translated by the model the table describes.
+    </p>
+  </section>
+
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text" id="resources-note">Measured below.</p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1611.07004">[1] Image-to-Image Translation with Conditional Adversarial Networks</a><br />
+      (Isola, P., Zhu, J.-Y., Zhou, T. &amp; Efros, A. A., CVPR, 2017; pix2pix, the L1 plus adversarial recipe, and the patch discriminator)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1703.10593">[2] Unpaired Image-to-Image Translation using Cycle-Consistent Adversarial Networks</a><br />
+      (Zhu, J.-Y., Park, T., Isola, P. &amp; Efros, A. A., ICCV, 2017; CycleGAN, and the failure cases its own section 7 lists)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1712.02950">[3] CycleGAN, a Master of Steganography</a><br />
+      (Chu, C., Zhmoginov, A. &amp; Sandler, M., NeurIPS workshop, 2017; the measurement this page's last section reproduces)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1505.04597">[4] U-Net: Convolutional Networks for Biomedical Image Segmentation</a><br />
+      (Ronneberger, O., Fischer, P. &amp; Brox, T., MICCAI, 2015; the skip connections both halves of this article rely on)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1611.02200">[5] Unsupervised Cross-Domain Image Generation</a><br />
+      (Taigman, Y., Polyak, A. &amp; Wolf, L., ICLR, 2017; the same unpaired problem solved by constraining a shared representation instead of a cycle)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1711.11586">[6] Toward Multimodal Image-to-Image Translation</a><br />
+      (Zhu, J.-Y. et al., NeurIPS, 2017; what to do about the one-to-many problem this article measures, rather than living with it)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>

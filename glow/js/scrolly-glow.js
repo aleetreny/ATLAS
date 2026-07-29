@@ -57,7 +57,22 @@ export function initScrollyGlow(data) {
     layer.selectAll('text.l').data(shown, (b) => b.key).join('text')
       .attr('class', 'chart-note l')
       .attr('x', -10).attr('y', (b) => y(b.key) + y.bandwidth() / 2 + 4)
-      .attr('text-anchor', 'end').style('font-size', '11.5px').text((b) => b.label);
+      .attr('text-anchor', 'end').style('font-size', '11.5px').text((b) => b.label)
+      /* Measured against the margin that actually exists rather than assumed to
+       * fit it. "a model per pixel, independent" needs 219 units and the left
+       * margin is 200, so it hung 29 units off the left edge of the canvas at
+       * every width. A row label is data, so its length is not something the
+       * margin can be planned around: place it, ask, and drop words. */
+      .each(function wrapRowLabel(b) {
+        const room = chart.margin.left - 12;
+        if (this.getComputedTextLength() <= room) return;
+        const parts = String(b.label).split(' ');
+        while (parts.length > 1) {
+          parts.pop();
+          this.textContent = parts.join(' ');
+          if (this.getComputedTextLength() <= room) return;
+        }
+      });
 
     const labels = [
       'eight bits a pixel, which is what the file costs before anyone looks at it',

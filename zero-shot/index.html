@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>A Model That Never Saw Your Data | ATLAS</title>
+  <meta name="description" content="A visual, interactive introduction to foundation forecasters in the style of TimeGPT and Chronos: values turned into an alphabet, a small transformer pretrained on written down series, and a forecast of a real record it was never fitted to, with the floor the tokeniser puts under it and the family it was never shown." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/zero-shot/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="A Model That Never Saw Your Data | ATLAS" />
+  <meta property="og:description" content="A visual, interactive introduction to foundation forecasters in the style of TimeGPT and Chronos: values turned into an alphabet, a small transformer pretrained on written down series, and a forecast of a real record it was never fitted to, with the floor the tokeniser puts under it and the family it was never shown." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/zero-shot/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="A Model That Never Saw Your Data | ATLAS" />
+  <meta name="twitter:description" content="A visual, interactive introduction to foundation forecasters in the style of TimeGPT and Chronos: values turned into an alphabet, a small transformer pretrained on written down series, and a forecast of a real record it was never fitted to, with the floor the tokeniser puts under it and the family it was never shown." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    :root {
+      --primary: #3e295c;
+      --secondary: #32214a;
+    }
+    .narrow-widget {
+      max-width: 880px;
+    }
+    .gen-table {
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      margin-top: 0.4rem;
+      width: 100%;
+    }
+    .gen-table th,
+    .gen-table td {
+      padding: 4px 10px 4px 0;
+      text-align: left;
+      font-weight: 400;
+      white-space: nowrap;
+    }
+    .gen-table th {
+      font-family: var(--font-heavy);
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .gen-table td:first-child,
+    .gen-table th:first-child {
+      opacity: 0.75;
+    }
+    .gen-table td:last-child,
+    .gen-table th:last-child {
+      white-space: normal;
+    }
+    .gen-note {
+      margin-top: 0.6rem;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+    .slider-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+      margin: 0.2rem 0 0.6rem;
+      font-family: var(--font-mono);
+      font-size: 13px;
+    }
+    .slider-row input[type="range"] {
+      width: 240px;
+      accent-color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <section id="intro">
+    <h1 id="intro-hed">A Model That Never Saw Your Data</h1>
+    <h1 id="intro-sub">Turn numbers into letters, train a language model on a pile of series, and then ask it to finish a sentence it has never read. The idea is absurd until it works, and the only way to know whether it worked is to be certain about what was in the pile</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 4.2 · Time Series · Pretrained Forecasters</span>
+  </section>
+
+  <br />
+
+  <section>
+    <p class="body-text">
+      <a href="../deep-forecast/">The previous article</a> ended with a network
+      trained on hundreds of series and asked about a real one it had never
+      seen. This one takes that seriously. The recipe is the one Chronos
+      describes and it is startling in its plainness: scale a window, chop the
+      values into a fixed alphabet, and train a small transformer to predict the
+      next letter. No fitting to your series, no parameters estimated from it,
+      no assumption about its shape. Just a continuation.
+    </p>
+    <br />
+    <p class="body-text" id="opening-note"></p>
+  </section>
+
+  <section>
+    <h1 class="body-header">Numbers Into Letters</h1>
+    <p class="body-text" id="scrolly-intro"></p>
+  </section>
+
+  <section id="token-scrolly" class="scrolly">
+    <div class="scrolly-container">
+      <div class="steps-container">
+        <div class="step" data-index="0">
+          <div class="step-content">
+            <h3>A Window, Anywhere, in Any Units</h3>
+            <p id="scrolly-step-0"></p>
+          </div>
+        </div>
+        <div class="step" data-index="1">
+          <div class="step-content">
+            <h3>Subtract the Middle, Divide by the Spread</h3>
+            <p id="scrolly-step-1"></p>
+          </div>
+        </div>
+        <div class="step" data-index="2">
+          <div class="step-content">
+            <h3>Round to the Nearest Letter</h3>
+            <p id="scrolly-step-2"></p>
+          </div>
+        </div>
+        <div class="step" data-index="3">
+          <div class="step-content">
+            <h3>And That Is the Whole Interface</h3>
+            <p id="scrolly-step-3"></p>
+          </div>
+        </div>
+        <div class="step-spacer"></div>
+      </div>
+      <div class="charts-container">
+        <div class="chart-wrap" id="token-chart"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="body-text" id="token-note"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="alphabet-widget">
+    <div class="slider-row">
+      <label for="bins-slider">letters in the alphabet</label>
+      <input type="range" id="bins-slider" min="0" max="3" step="1" value="2"
+             aria-label="how many bins the values are rounded into" />
+      <span id="bins-value" class="value"></span>
+    </div>
+    <div id="alphabet-chart"></div>
+    <div class="widget-readout" id="alphabet-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="alphabet-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">A Forecast With No Fitting</h1>
+    <p class="body-text" id="forecast-intro"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="forecast-widget">
+    <div class="controls-row" id="forecast-controls" role="group" aria-label="which view"></div>
+    <div id="forecast-chart"></div>
+    <div class="widget-readout" id="forecast-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="forecast-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">What the Pile Is Worth</h1>
+    <p class="body-text" id="corpus-intro"></p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Trained on</th>
+          <th>Windows it saw</th>
+          <th>Error on the real series</th>
+          <th>Against the whole pile</th>
+        </tr>
+      </thead>
+      <tbody id="corpus-table"></tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="corpus-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">The Question a Benchmark Cannot Answer</h1>
+    <p class="body-text" id="unseen-intro"></p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>The model</th>
+          <th>Families in its corpus</th>
+          <th>Error on the held out family</th>
+          <th>Ratio</th>
+        </tr>
+      </thead>
+      <tbody id="unseen-table"></tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="unseen-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">The Branch, on One Table</h1>
+    <p class="body-text" id="board-intro"></p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Model</th>
+          <th>Fitted to this series?</th>
+          <th>One month ahead</th>
+          <th>Averaged over the twelve</th>
+        </tr>
+      </thead>
+      <tbody id="board-table"></tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="board-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text" id="verdict-intro"></p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>What you have</th>
+          <th>Reach for</th>
+          <th>Why</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">No time and one series</span></td>
+          <td>A pretrained model</td>
+          <td id="verdict-quick"></td>
+          <td id="verdict-quick-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">Time, and one series</span></td>
+          <td>Fit something to it</td>
+          <td id="verdict-fit"></td>
+          <td id="verdict-fit-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">An interval, not a point</span></td>
+          <td>Sampled continuations</td>
+          <td id="verdict-interval"></td>
+          <td id="verdict-interval-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">A benchmark number to believe</span></td>
+          <td>Proof of what was in the corpus</td>
+          <td id="verdict-leak"></td>
+          <td id="verdict-leak-warn"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="closing-note"></p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! The alphabet is recomputed in this page from the same
+      series the generator quantised, and checked against it on load. Everything
+      else was measured by <code>src/utils/generate_zeroshot_data.py</code>,
+      which trains every model in this article from scratch on series that are
+      written down rather than collected.
+    </p>
+  </section>
+
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text" id="resources-note"></p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/2403.07815">[1] Chronos: Learning the Language of Time Series</a><br />
+      (Ansari, A. F. et al., 2024; scale, quantise, and train a language model on the tokens, which is the recipe this page rebuilds at small scale)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/2310.03589">[2] TimeGPT-1</a><br />
+      (Garza, A. &amp; Mergenthaler-Canseco, M., 2023; the first forecaster sold as a foundation model, and the paper that made the leakage question unavoidable)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/2310.10688">[3] A Decoder-Only Foundation Model for Time-Series Forecasting</a><br />
+      (Das, A. et al., 2024; patches instead of letters, and the same zero shot claim)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/2402.03885">[4] A Systematic Review and Analysis of Foundation Models for Time Series</a><br />
+      (surveying what the corpora contain, which is the question the last table of this page is about)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://doi.org/10.1016/j.ijforecast.2019.07.001">[5] The M4 Competition</a><br />
+      (Makridakis, S. et al., 2020; the benchmark almost every foundation forecaster reports on, and which almost all of them were also trained near)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>

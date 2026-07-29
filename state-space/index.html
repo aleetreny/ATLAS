@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Back To Recurrence | ATLAS</title>
+  <meta name="description" content="A linear recurrence is also a convolution, exactly, and the page computes both from the same parameters to prove it. Then what the initialisation decides, and the one task that separates a fixed system from a selective one." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/state-space/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="Back To Recurrence | ATLAS" />
+  <meta property="og:description" content="Train it as a convolution, run it as a recurrence. They are the same function, and the page checks that rather than asserting it." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/state-space/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Back To Recurrence | ATLAS" />
+  <meta name="twitter:description" content="Train it as a convolution, run it as a recurrence. They are the same function, and the page checks that rather than asserting it." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    /* Per-article theme. Everything else inherits from these two. */
+    :root {
+      --primary: #0e5c29;
+      --secondary: #0b4a21;
+    }
+  </style>
+</head>
+<body>
+  <!-- ======================= chrome ======================= -->
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <!-- ======================= hero ======================= -->
+  <section id="intro">
+    <h1 id="intro-hed">Back To Recurrence</h1>
+    <h1 id="intro-sub">A linear recurrence is also a convolution, exactly, so it can be trained in parallel and run one step at a time, and the page checks that rather than telling you</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 4.1 &middot; NLP &middot; Back To Recurrence</span>
+  </section>
+
+  <br />
+
+  <!-- ======================= introduction ======================= -->
+  <section>
+    <p class="body-text" id="intro-problem">
+      Attention bought a path of length one between any two positions, and the
+      bill for it grows with the square of the length.
+    </p>
+    <br />
+    <p class="body-text" id="intro-idea">
+      The way out starts by noticing which part of a recurrence caused the
+      trouble.
+    </p>
+    <p class="body-text">
+      $$h_t = a \odot h_{t-1} + b\, x_t, \qquad y_t = c^{\top} h_t \qquad \Longleftrightarrow \qquad y = k * x, \quad k_t = c^{\top}(a^{t} \odot b)$$
+    </p>
+    <p class="body-text" id="intro-guard">
+      Those two are the same function.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the duality ======================= -->
+  <section>
+    <h1 class="body-header">Two Computations, One Answer</h1>
+    <p class="body-text" id="duality-intro">
+      The left-hand form carries a state and touches each input once. The
+      right-hand form never mentions a state at all.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="duality-widget">
+    <div class="controls-row" style="justify-content: center" id="duality-views"></div>
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">how slowly the state forgets <span class="value" id="duality-decay-label">0.97</span></span>
+      <input type="range" class="atlas-range" id="duality-decay" aria-label="how slowly the state forgets" min="0" max="1" step="1" value="0" />
+    </div>
+    <div id="duality-chart"></div>
+    <div class="widget-readout" id="duality-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="duality-verdict">
+      Which is why these models exist at all.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table" id="duality-table">
+      <thead>
+        <tr>
+          <th>How slowly the state forgets</th>
+          <th>Worst disagreement, relative</th>
+          <th>Median disagreement</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <hr />
+
+  <!-- ======================= the init ======================= -->
+  <section>
+    <h1 class="body-header">The Initialisation Is The Model</h1>
+    <p class="body-text" id="init-intro">
+      A recurrence that multiplies by the same number every step either forgets
+      quickly or explodes, and which one it does is decided before training
+      starts.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="kernel-widget">
+    <div class="controls-row" style="justify-content: center" id="kernel-inits"></div>
+    <div id="kernel-chart"></div>
+    <div class="widget-readout" id="kernel-readout"></div>
+  </div>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table" id="init-table">
+      <thead>
+        <tr>
+          <th>How the decay was initialised</th>
+          <th>Largest multiplier</th>
+          <th>Kernel down to a hundredth</th>
+          <th>What happens</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="init-verdict">
+      Which is the whole content of the structured initialisations these models
+      are named after.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= selectivity ======================= -->
+  <section>
+    <h1 class="body-header">The Task That Needs Selection</h1>
+    <p class="body-text" id="sel-intro">
+      Everything above is linear and time-invariant: the same multiplier is
+      applied at every step, whatever is being read.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table" id="sel-table">
+      <thead>
+        <tr>
+          <th>Sequence length</th>
+          <th>Fixed dynamics, per token</th>
+          <th>Selective dynamics, per token</th>
+          <th>Fixed, whole sequences right</th>
+          <th>Selective, whole sequences right</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="sel-verdict">
+      The gap is the one idea in Mamba that changes what the model can do
+      rather than how fast it does it.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the bill ======================= -->
+  <section>
+    <h1 class="body-header">The Bill, Side By Side</h1>
+    <p class="body-text" id="cost-intro">
+      Three families, one count of multiplications, no clocks.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table" id="cost-table">
+      <thead>
+        <tr>
+          <th>Sequence length</th>
+          <th>Self-attention</th>
+          <th>Recurrence</th>
+          <th>State space</th>
+          <th>Attention over state space</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="cost-verdict">
+      And on the copy task the three previous articles all ran:
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table" id="copy-table">
+      <thead>
+        <tr>
+          <th>Distractors</th>
+          <th>Plain RNN</th>
+          <th>GRU</th>
+          <th>LSTM</th>
+          <th>Self-attention</th>
+          <th>State space</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <hr />
+
+  <!-- ======================= verdict ======================= -->
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text">
+      One layer, two computations, and the two decisions that make it work.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Property</th>
+          <th>What it gives you</th>
+          <th>What it measured here</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">Linear recurrence</span></td>
+          <td>Trains as a convolution, runs with constant memory per step</td>
+          <td id="v-dual">Measured above.</td>
+          <td id="v-dual-watch">Linear is the price of the equivalence.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Structured initialisation</span></td>
+          <td>A kernel that reaches far enough to be worth having</td>
+          <td id="v-init">Measured above.</td>
+          <td id="v-init-watch">The obvious initialisation diverges.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Selection</span></td>
+          <td>Dynamics that depend on what is being read</td>
+          <td id="v-sel">Measured above.</td>
+          <td id="v-sel-watch">It gives up the convolution.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Linear cost in length</span></td>
+          <td>Context that can grow without the bill squaring</td>
+          <td id="v-cost">Measured above.</td>
+          <td id="v-cost-watch">The constant matters more than the exponent until the sequence is long.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="closing-1">
+      This branch started by throwing the order away and has now spent six
+      articles putting it back.
+    </p>
+    <br />
+    <p class="body-text" id="closing-2">
+      That closes the natural language branch of module 4.
+    </p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! Everything above ran here: the page computes the
+      recurrence step by step and the convolution kernel in closed form from the
+      same parameters and reports the worst disagreement between them, which is
+      the article's first claim checked in front of you rather than quoted, with
+      the sweeps, the selective copy task and the operation counts from
+      <code>src/utils/generate_statespace_data.py</code>.
+    </p>
+  </section>
+
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text" id="ref-note">
+      The copy task is generated by the same function as in the three previous
+      articles.
+    </p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/2111.00396">[1] Efficiently Modeling Long Sequences with Structured State Spaces</a><br />
+      (Gu, A., Goel, K. &amp; R&eacute;, C., ICLR, 2022; S4, and the convolution form this page checks against the recurrence)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/2312.00752">[2] Mamba: Linear-Time Sequence Modeling with Selective State Spaces</a><br />
+      (Gu, A. &amp; Dao, T., 2023; making the dynamics depend on the input, and the selective copying task the fourth table uses)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/2008.07669">[3] HiPPO: Recurrent Memory with Optimal Polynomial Projections</a><br />
+      (Gu, A., Dao, T., Ermon, S., Rudra, A. &amp; R&eacute;, C., NeurIPS, 2020; where the structured initialisation comes from and why it is not arbitrary)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/2303.06349">[4] Resurrecting Recurrent Neural Networks for Long Sequences</a><br />
+      (Orvieto, A. et al., ICML, 2023; that most of the benefit is the linearity and the initialisation rather than the specific structure)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/2011.04006">[5] Long Range Arena: A Benchmark for Efficient Transformers</a><br />
+      (Tay, Y. et al., ICLR, 2021; the benchmark that made the long-sequence gap measurable in the first place)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>
