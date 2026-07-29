@@ -46,6 +46,7 @@ TRAP = SIZE * 2 + 2             # el centro, que paga mal
 STEP_COST = -0.05
 GOAL_REWARD = 1.0
 TRAP_REWARD = -1.0
+EPISODES = 600                  # el presupuesto de todos los entrenamientos
 
 
 def cached(name, fn):
@@ -211,7 +212,7 @@ def stage_gradient():
             "policy": r(pi, 5), "J": r(float(V[START]), 5)}
 
 
-def train_pg(seed, episodes=600, batch=8, lr=0.5, baseline=True, clip=None,
+def train_pg(seed, episodes=EPISODES, batch=8, lr=0.5, baseline=True, clip=None,
              entropy=0.0, epochs=1, record_every=10):
     """Un entrenamiento entero. `clip` activa el recorte de PPO sobre varias
     pasadas del mismo lote, que es la única razón por la que el recorte existe:
@@ -336,6 +337,9 @@ def main():
     tr = cached("training", stage_training)
     print("4/4 el premio a la entropía")
     ent = cached("entropy", stage_entropy)
+    for d in tr.values():
+        d["episodes"] = EPISODES
+    ent["episodes"] = EPISODES
 
     data = {"meta": {"seed": SEED, "size": SIZE, "gamma": GAMMA,
                      "states": N_STATES, "actions": N_ACTIONS,

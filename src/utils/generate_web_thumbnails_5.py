@@ -318,6 +318,34 @@ def thumb_dqn():
     write("dqn", body)
 
 
+# ---------------------------------------------------------------------------
+def thumb_policy_gradient():
+    """Las dos curvas de error contra el gradiente exacto, con y sin linea base."""
+    accent = "#647032"
+    d = load("policy-gradient", "pg")
+    G = d["gradient"]
+    rows = {k: [r_ for r_ in G["rows"] if r_["kind"] == k] for k in ("plain", "baseline")}
+    for a, b in zip(rows["plain"], rows["baseline"]):
+        assert b["error"] < a["error"], f"la linea base no gana en {a['episodes']} episodios"
+    eps = [r_["episodes"] for r_ in rows["plain"]]
+    errs = [r_["error"] for r_ in rows["plain"]] + [r_["error"] for r_ in rows["baseline"]]
+    pad, top, bot = 34, 40, 52
+    lx = lambda e: round(pad + (math.log(e) / math.log(eps[-1])) * (W - 2 * pad))
+    lo, hi = math.log(min(errs) * 0.8), math.log(max(errs) * 1.25)
+    ly = lambda v: round(top + (hi - math.log(v)) / (hi - lo) * (H - top - bot))
+    ref = ly(G["exact_norm"])
+    body = (f'  <line x1="{pad}" y1="{ref}" x2="{W - pad}" y2="{ref}" stroke="{GREY}" '
+            f'stroke-width="2" stroke-dasharray="7 6" />\n')
+    for kind, colour, width in (("plain", GREY, 5), ("baseline", accent, 6)):
+        pts = " ".join(f"{lx(r_['episodes'])},{ly(r_['error'])}" for r_ in rows[kind])
+        body += (f'  <polyline points="{pts}" fill="none" stroke="{colour}" '
+                 f'stroke-width="{width}" stroke-linejoin="round" />\n')
+        dots = "".join(f'<circle cx="{lx(r_["episodes"])}" cy="{ly(r_["error"])}" r="7" />'
+                       for r_ in rows[kind][::2])
+        body += f'  <g fill="{colour}">{dots}</g>\n'
+    return write("policy-gradient", body)
+
+
 THUMBS = {
     "linear-programming": thumb_linear_programming,
     "genetic-algorithms": thumb_genetic_algorithms,
@@ -326,6 +354,7 @@ THUMBS = {
     "thompson-ucb": thumb_thompson_ucb,
     "q-learning": thumb_q_learning,
     "dqn": thumb_dqn,
+    "policy-gradient": thumb_policy_gradient,
 }
 
 
