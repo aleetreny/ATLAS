@@ -30,8 +30,11 @@ export function initLiveWidget(data) {
     btns.push(b);
   });
 
+  /* the three keys used to sit inside the plot at the top left, with no
+     background, and the arcs and points ran straight through them: a legend
+     goes in the margin, where nothing is ever drawn */
   const chart = makeChart('#live-chart', {
-    width: 640, height: 420, margin: { top: 40, right: 30, bottom: 56, left: 62 }, clip: true,
+    width: 640, height: 420, margin: { top: 68, right: 30, bottom: 56, left: 62 }, clip: true,
   });
   const { g, plot, w, h, clear } = chart;
 
@@ -88,14 +91,18 @@ export function initLiveWidget(data) {
     drawAxes(g, x, y, w, h, { xTicks: 5, yTicks: 5, xFmt: d3.format('.2f'), yFmt: d3.format('.2f') });
     axisLabels(g, w, h, { x: 'real part', y: 'imaginary part' });
     g.append('text').attr('class', 'chart-note')
-      .attr('x', w / 2).attr('y', -22).attr('text-anchor', 'middle').style('font-size', '12px')
+      .attr('x', w / 2).attr('text-anchor', 'middle').style('font-size', '12px')
+      .attr('y', -48)
       .text(`${rows.length} triples of "${rel.relation.replace(/_/g, ' ')}", in the first complex dimension`);
-    [['hollow: where the head starts', 'var(--squidink)'],
-      ['filled: where the turn lands it', 'var(--primary)'],
-      ['dark: where the tail actually is', 'var(--anchor)']].forEach(([txt, colour], i) => {
+    let cursor = 2;
+    [['the head', 'var(--squidink)', false], ['after the turn', 'var(--primary)', true],
+      ['the tail', 'var(--anchor)', true]].forEach(([txt, colour, solid]) => {
+      g.append('circle').attr('cx', cursor + 5).attr('cy', -21).attr('r', 4.5)
+        .attr('fill', solid ? colour : 'none')
+        .attr('stroke', colour).attr('stroke-width', 1.4);
       g.append('text').attr('class', 'chart-note')
-        .attr('x', 4).attr('y', 14 + i * 13).style('font-size', '10.5px').style('fill', colour)
-        .text(txt);
+        .attr('x', cursor + 15).attr('y', -17).style('font-size', '11px').text(txt);
+      cursor += 34 + txt.length * 6.6;
     });
 
     const fitted = (rel.angle * 180 / Math.PI).toFixed(0);

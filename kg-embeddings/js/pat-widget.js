@@ -85,10 +85,24 @@ export function initPatWidget(data) {
         + 'nothing, and here it still trails the other two, which is a fact about this fit and not '
         + 'about the scoring function.'} `
     + `On the hierarchy, which has a direction, DistMult `
-    + `${dDrops ? 'drops to' : 'scores'} <span class="value">${hier.d.toFixed(3)}</span> against `
-    + `<span class="value">${hier.t.toFixed(3)}</span> and `
-    + `<span class="value">${hier.r.toFixed(3)}</span>, because \\(\\langle h, r, t\\rangle\\) is `
-    + `the same number with the ends swapped and it cannot prefer one order. And on the composition `
+    + `${dDrops
+      ? `falls from that <span class="value">${sym.d.toFixed(3)}</span> to `
+        + `<span class="value">${hier.d.toFixed(3)}</span>`
+      : `scores <span class="value">${hier.d.toFixed(3)}</span>`}, `
+    + `because \\(\\langle h, r, t\\rangle\\) is the same number with the ends swapped and it `
+    /* the comparison that carries the claim is DistMult against ITSELF on the
+       two columns, not against the other two models: on this run it sits above
+       TransE on the hierarchy as well, and quoting the three side by side made
+       the sentence read as if it came last */
+    + `cannot prefer one order. `
+    + `${hier.d > Math.min(hier.t, hier.r)
+      ? `It is not last in that column, mind: TransE manages `
+        + `<span class="value">${hier.t.toFixed(3)}</span> and RotatE `
+        + `<span class="value">${hier.r.toFixed(3)}</span>, so being able to represent a direction `
+        + `is not the same as finding it at this budget. `
+      : `TransE reaches <span class="value">${hier.t.toFixed(3)}</span> and RotatE `
+        + `<span class="value">${hier.r.toFixed(3)}</span>, both above it. `}`
+    + `And on the composition `
     + `the two movement models do <span class="value">${comp.t.toFixed(3)}</span> and `
     + `<span class="value">${comp.r.toFixed(3)}</span>`
     + `${compFree

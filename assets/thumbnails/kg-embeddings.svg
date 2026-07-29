@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <rect width="400" height="300" fill="#f1f3f3" />
+  <!-- una relacion como giro en el plano complejo: la cabeza gira y tiene -->
+  <!-- que caer sobre la cola, y una relacion simetrica solo puede girar -->
+  <!-- media vuelta o nada -->
+  <circle cx="200" cy="150" r="92" fill="none" stroke="#d4dada" stroke-width="2" />
+  <line x1="90" y1="150" x2="310" y2="150" stroke="#232f3e" stroke-width="1.2" opacity="0.5" />
+  <line x1="200" y1="40" x2="200" y2="260" stroke="#232f3e" stroke-width="1.2" opacity="0.5" />
+  <circle cx="114" cy="119" r="7" fill="#232f3e" />
+  <circle cx="240" cy="67" r="9" fill="#725f9e" />
+  <path d="M 127 123 L 128 120 L 129 117 L 131 114 L 132 111 L 134 109 L 136 106 L 138 103 L 140 101 L 142 98 L 144 96 L 146 94 L 149 91 L 151 89 L 154 87 L 156 85 L 159 84 L 162 82 L 165 80 L 168 79 L 171 78 L 174 77 L 177 75 L 180 75 L 183 74 L 186 73 L 190 73 L 193 72 L 196 72 L 199 72 L 203 72 L 206 72 L 209 73 L 212 73 L 216 74 L 219 74 L 222 75 L 225 76 L 228 77 L 231 79 L 234 80" fill="none" stroke="#725f9e" stroke-width="2.5" stroke-dasharray="5 4" />
+  <circle cx="286" cy="181" r="7" fill="#df2a5d" opacity="0.85" />
+</svg>

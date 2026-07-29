@@ -2,7 +2,8 @@
 const IDS = ['intro-1', 'intro-2', 'intro-3', 'live-intro', 'sym-intro', 'sym-math', 'sym-note',
   'pat-intro', 'pat-note', 'proto-intro', 'proto-note', 'verdict-intro',
   'v-transe', 'v-transe-warn', 'v-rotate', 'v-rotate-warn', 'v-distmult', 'v-distmult-warn',
-  'v-proto', 'v-proto-warn', 'closing-1', 'closing-2', 'closing-3', 'ref-note'];
+  'v-proto', 'v-proto-warn', 'closing-1', 'closing-1b', 'closing-2', 'closing-3',
+  'ref-note'];
 
 function set(id, html) {
   const node = document.querySelector(`#${id}`);
@@ -94,11 +95,23 @@ export function initProse(data) {
         + `turns without being told they exist.`
       : `RotatE's rotations do not separate the two groups here (${rSym.toFixed(3)} against `
         + `${rAnti.toFixed(3)}), which is worth saying plainly.`} `
-    + `And the ranking follows the expressiveness: on ${n0(M.eval_triples)} test facts scored `
-    + `against all ${n0(M.entities)} entities, ${NAME[best]} leads with a mean reciprocal rank of `
+    + `On ${n0(M.eval_triples)} test facts scored against all ${n0(M.entities)} entities, `
+    + `${NAME[best]} leads with a mean reciprocal rank of `
     + `<span class="bold">${W[best].eval.mrr.toFixed(4)}</span>, against `
     + `${['transe', 'rotate', 'distmult'].filter((k) => k !== best)
-      .map((k) => `${W[k].eval.mrr.toFixed(4)} for ${NAME[k]}`).join(' and ')}.`);
+      .map((k) => `${W[k].eval.mrr.toFixed(4)} for ${NAME[k]}`).join(' and ')}. `
+    /* the tidy version of this sentence is "the ranking follows the
+       expressiveness", and on this run it does not: the model that cannot
+       represent a direction at all finishes above the one that can. Saying so
+       is the whole reason the page ranks them. */
+    + `${W.distmult.eval.mrr > W.transe.eval.mrr
+      ? `And that ordering is worth stopping on, because the middle of it is not where a reading `
+        + `of the scoring functions would put it. DistMult scores a triple and its reverse `
+        + `identically, so on a graph where <span class="bold">${pc(1 - R.filter((r) => r.symmetry > 0.5).reduce((a, r) => a + r.n, 0) / R.reduce((a, r) => a + r.n, 0), 0)}</span> `
+        + `of the facts belong to a relation that is not symmetric it is representing something it `
+        + `provably cannot represent, and it still finishes above TransE. Expressiveness bounds what `
+        + `a model can say; it does not order what a fit of this size will find.`
+      : 'And the ranking follows the expressiveness, with the least expressive of the three last.'}`);
 
   set('pat-intro',
     `WN18RR mixes its patterns: ${nice(biggest.name)} is the biggest relation with `
@@ -108,6 +121,12 @@ export function initProse(data) {
     + `pair of inverses, a composition of two steps, and a hierarchy where many entities share one `
     + `parent.`);
 
+  /* This section was written expecting the identities to hold and reporting how
+     tightly. They do not hold, and that turned out to be the better half of the
+     article, so the paragraph now says why the two predictions behave
+     differently instead of grading them on the same scale. */
+  const compHolds = comp && comp.parent_plus_parent < 0.25;
+  const invHolds = comp && comp.inverse < 0.25;
   set('pat-note',
     `${comp
       ? `The composition is worth doing as algebra rather than as a metric. If a grandparent is a `
@@ -115,10 +134,26 @@ export function initProse(data) {
         + `fitted ones miss that by <span class="bold">${pc(comp.parent_plus_parent)}</span> of the `
         + `vector's own length. The inverse pair ought to satisfy \\(r_{child} = -r_{parent}\\), and `
         + `they miss by <span class="bold">${pc(comp.inverse)}</span>. `
+        + `${compHolds && invHolds
+          ? 'Both identities are there in the parameters, on a graph where each pattern was '
+            + 'written in by hand.'
+          : `Neither identity is there, and that is the most useful measurement on this page, `
+            + `because two paragraphs ago the other prediction landed exactly. The difference is `
+            + `not how hard the two are; it is what kind of statement each one is. A symmetric `
+            + `relation <span class="bold">forces</span> \\(r\\) towards zero: every step of `
+            + `gradient descent on a mirrored fact pushes it there and there is nowhere else to `
+            + `go, so the optimiser arrives whether or not it is trying to. Composition only `
+            + `<span class="bold">permits</span> \\(r_{gp} = 2 r_{p}\\): it is one of the many `
+            + `ways to fit the grandparent facts, it costs nothing extra to ignore, and a fit this `
+            + `size does not go looking for it. A proof about what a model can represent is not a `
+            + `promise about what a finite run will find, and the two halves of this page are what `
+            + `that distinction looks like measured.`} `
         + `${comp.norm_mirror < comp.norm_parent
-          ? `And the symmetric relation's vector came out ${(comp.norm_parent / Math.max(comp.norm_mirror, 1e-9)).toFixed(1)} `
-            + `times shorter than the hierarchy's, which is the same collapse as on the real graph, `
-            + `on a relation whose symmetry was written by hand.`
+          ? `The symmetric relation's vector did come out `
+            + `${(comp.norm_parent / Math.max(comp.norm_mirror, 1e-9)).toFixed(2)} times shorter `
+            + `than the hierarchy's here, in the same direction as the real graph and nothing like `
+            + `as far: ${(tAnti / Math.max(tSym, 1e-9)).toFixed(1)} times there, on relations `
+            + `nobody wrote by hand.`
           : `The symmetric relation's vector did not collapse here, which is the one place this `
             + `written graph disagrees with the real one.`}`
       : 'The composition check could not be computed on this run.'}`);
@@ -144,20 +179,37 @@ export function initProse(data) {
     `Four rows, and the first three are decided by what your relations are rather than by which `
     + `paper is newest.`);
 
-  set('v-transe', `Hierarchies and chains for free: composition is addition, and the fitted `
-    + `vectors satisfy it to ${comp ? pc(comp.parent_plus_parent) : 'the measured tolerance'}.`);
+  /* parent_plus_parent is the MISS, not the fit, so "satisfy it to 12%" said
+     the opposite of the number it printed */
+  set('v-transe', `${compHolds
+    ? `Hierarchies and chains for free: composition is addition, and on the written graph the `
+      + `fitted \\(r_{gp}\\) misses \\(2 r_{p}\\) by only ${pc(comp.parent_plus_parent)}.`
+    : `The cheapest model here, and the one whose failure is legible: a chain of two relations is `
+      + `a sum of two vectors, so it <span class="bold">can</span> compose. On this budget it did `
+      + `not (the fitted \\(r_{gp}\\) misses \\(2 r_{p}\\) by `
+      + `${comp ? pc(comp.parent_plus_parent) : 'more than the identity allows'}), which is a `
+      + `statement about the run and not about the family.`}`);
   set('v-transe-warn', `A symmetric relation forces its vector to zero, and on the real graph the `
-    + `symmetric ones came out ${(tAnti / Math.max(tSym, 1e-9)).toFixed(1)} times shorter.`);
+    + `${tSym < tAnti
+      ? `symmetric ones came out ${(tAnti / Math.max(tSym, 1e-9)).toFixed(1)} times shorter.`
+      : 'symmetric ones did not come out shorter at this budget, which is reported rather than '
+        + 'tuned away: the proof is about the minimum, not about where a short run stops.'}`);
 
   set('v-rotate', `MRR ${W.rotate.eval.mrr.toFixed(4)} on WN18RR at ${M.dim} dimensions, and `
     + `symmetry costs it nothing: a half turn is its own inverse.`);
   set('v-rotate-warn', `Twice the parameters per relation are not the price; the price is that a `
     + `rotation cannot change a length, so it cannot express a relation that should.`);
 
-  set('v-distmult', `MRR ${W.distmult.eval.mrr.toFixed(4)}, and on a purely symmetric relation it `
-    + `is the right model rather than a weaker one (${P.models.distmult.per_pattern.mirror.mrr.toFixed(3)} on the written one).`);
+  const dMirror = P.models.distmult.per_pattern.mirror.mrr;
+  const dHier = P.models.distmult.per_pattern.parent.mrr;
+  set('v-distmult', `MRR ${W.distmult.eval.mrr.toFixed(4)} over all eleven relations, and `
+    + `${dMirror > dHier
+      ? `on a purely symmetric relation it is the right model rather than a weaker one `
+        + `(${dMirror.toFixed(3)} on the written one).`
+      : `${dMirror.toFixed(3)} on the written symmetric relation, which is the column its `
+        + 'scoring function was supposed to own.'}`);
   set('v-distmult-warn', `It scores a triple and its reverse identically, so on the hierarchy it `
-    + `drops to ${P.models.distmult.per_pattern.parent.mrr.toFixed(3)}. That is a definition, not a `
+    + `${dHier < dMirror ? 'drops to' : 'sits at'} ${dHier.toFixed(3)}. That is a definition, not a `
     + `training failure.`);
 
   set('v-proto', `Filtered ranking against all ${n0(M.entities)} entities, which is the only `
@@ -170,8 +222,26 @@ export function initProse(data) {
     `The lesson of this section is unusual for this atlas, because it is a lesson about proofs `
     + `rather than about measurements. Almost everywhere else, the way to find out what a model can `
     + `do is to run it. Here, one line of algebra on the scoring function tells you in advance that `
-    + `a whole class of facts cannot be represented, and the run only confirms where the optimiser `
-    + `was always going to end up: at a relation vector of zero, or at a rotation of half a turn.`);
+    + `a whole class of facts cannot be represented, and the run goes and finds the parameters the `
+    + `line was about: a relation vector ${tSym.toFixed(2)} long where the others average `
+    + `${tAnti.toFixed(2)}, a rotation ${rSym.toFixed(3)} away from being its own inverse where the `
+    + `others sit at ${rAnti.toFixed(2)}.`);
+
+  set('closing-1b',
+    `${compHolds && invHolds
+      ? 'And the identities of the written graph came out the same way, which is the tidy version '
+        + 'of this story.'
+      : `But the other half of the page is the correction to that, and it is worth more than the `
+        + `confirmation. On the written graph, where composition and inversion were put in by hand `
+        + `and could have been read off the vectors just as easily, neither identity appeared. `
+        + `Both kinds of statement are proofs about the same scoring function; only one of them is `
+        + `a proof about where the optimiser ends up. Symmetry is a `
+        + `<span class="bold">constraint</span>, so gradient descent has nowhere else to go and `
+        + `arrives without being asked. Composition is a <span class="bold">capability</span>, so `
+        + `it is available and free to ignore, and a run of this size ignores it. The useful `
+        + `question to ask of an expressiveness result is therefore not "is it true" but "does it `
+        + `forbid something or merely allow something", because only the first kind survives `
+        + `contact with a finite budget.`}`);
 
   set('closing-2',
     `That closes the sixth branch of this atlas. The five articles of it share one move, which is `

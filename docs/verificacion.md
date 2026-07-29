@@ -448,7 +448,31 @@ lanzado con `run_in_background`, que además avisa al terminar. Y encadenar los
 generadores con un script `sh` suelto en `/tmp` es lo que evita tenerlos dos a
 la vez sobre cuatro núcleos, que es la trampa 63.
 
-## Trampa 33: el arnés de barrido del módulo 6
+## Trampa 33: un `head -1` sobre `ps` puede declarar muerto a un proceso vivo
+
+Comprobando si el generador de grafos de conocimiento seguía corriendo:
+
+```
+ps -eo pcpu,etime,cmd | grep "[p]ython -u" | grep "$PAT" | head -1
+```
+
+La línea que salió fue la del **shell** que lo había lanzado, porque su línea de
+comandos contiene el nombre del generador entero y ordena antes. El `head -1` se
+comió la del proceso de verdad, que estaba justo debajo al 99,9% de CPU. La
+conclusión fue "se ha muerto sin traza", y la reacción, relanzarlo: dos
+generadores del mismo artículo compartiendo el directorio de caché, que es la
+trampa 23 otra vez y esta vez me la hice yo solo.
+
+Dos reglas, y la segunda importa más que la primera:
+
+- **Nunca `head -1` sobre la salida de `ps` cuando se busca un proceso**, porque
+  el shell que lo lanzó también encaja. Filtrar por lo que solo tiene el
+  proceso (`-C python`, o `grep "python -u src/utils/"`) y mirar la lista entera.
+- **Una muerte silenciosa, sin traza y sin OOM, casi nunca es una muerte.**
+  Antes de relanzar nada largo: `dmesg | tail`, `free -m`, y `ps` **sin
+  recortar**. Un generador que lleva una hora no se relanza por una corazonada.
+
+## Trampa 34: el arnés de barrido del módulo 6
 
 `audit.mjs`, un fichero, cinco artículos, dos anchuras. Para cada uno: carga en
 el puerto frío, recoge errores y avisos de consola, recorre la página entera

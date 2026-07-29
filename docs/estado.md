@@ -151,10 +151,23 @@ Lo que hay que saber de cada uno:
   malentendido. El GCN saca 81,3%. El mando de homofilia dice cuándo esta
   familia entera es la idea equivocada, y la atención de GAT resulta ser, en
   este grafo, el 1/grado que ya estaba ahí gratis.
-- **83** convierte dos teoremas en predicciones sobre parámetros entrenados: una
-  relación simétrica obliga a TransE a poner su vector a cero y a RotatE a un
-  giro de media vuelta, y las dos cosas se miden contra lo simétrica que es cada
-  relación de WN18RR en los datos.
+- **83** convierte dos teoremas en predicciones sobre parámetros entrenados y
+  luego se corrige a sí mismo, que es lo mejor que tiene. Las dos predicciones
+  de simetría salen **clavadas** sobre WN18RR: las cuatro relaciones simétricas
+  acaban con vectores de TransE de norma media **3,25** contra **11,28** en las
+  siete que no lo son, **sin solape** entre los dos grupos (la más larga de las
+  simétricas es 3,55 y la más corta de las otras 5,85), y las rotaciones de
+  RotatE quedan a **0,022** de ser su propia inversa contra 0,744. Pero la
+  predicción de composición, sobre un grafo escrito a mano con el patrón puesto
+  a propósito, **no aparece**: r_gp falla a 2·r_p por el 133% de su longitud.
+  De ahí sale la tesis que la página acabó teniendo: una demostración de
+  expresividad que **prohíbe** algo (la simetría no deja al optimizador otro
+  sitio al que ir) se cumple sola, y una que solo **permite** algo (componer es
+  una de las muchas formas de ajustar esos hechos) no se cumple sin que nadie
+  la busque. El orden de los tres modelos dice lo mismo por otro lado: RotatE
+  0,3365, **DistMult 0,1853** y TransE 0,1494, o sea que el que no puede
+  representar una dirección queda por encima del que sí, en un grafo que es
+  antisimétrico en el 63% de sus hechos.
 
 **El módulo 7 entero (artículos 60 a 67), publicado de una vez.** Las tres
 secciones cerradas y los ocho chips encendidos: 7.1 causalidad (60 a 63), 7.2
