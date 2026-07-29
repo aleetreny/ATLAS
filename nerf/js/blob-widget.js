@@ -34,7 +34,9 @@ export function initBlobWidget(data, scene, cloud) {
   slider.max = String(KS.length - 1);
   slider.value = String(KS.length - 1);
 
-  const state = { az: data.cameras.inside[0].az, el: data.cameras.inside[0].el, kIdx: KS.length - 1, fill: true };
+  /* Same quarter-turn opening as the field widget, and for the same reason:
+     the shortcut button must have somewhere to go. */
+  const state = { az: data.cameras.inside[0].az + 40, el: data.cameras.inside[0].el, kIdx: KS.length - 1, fill: true };
 
   const drawOutlines = (proj, mask) => {
     const size = 200;

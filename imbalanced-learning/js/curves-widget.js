@@ -27,7 +27,7 @@ export function initCurvesWidget(data) {
     drawAxes(P.g, x, y, P.w, P.h, { xTicks: 4, yTicks: 4 });
     axisLabels(P.g, P.w, P.h, { x: xl, y: yl });
     P.g.append('text').attr('class', 'chart-annotation')
-      .attr('x', P.w / 2).attr('y', -16).attr('text-anchor', 'middle').style('font-size', '0.6rem')
+      .attr('x', P.w / 2).attr('y', -16).attr('text-anchor', 'middle').style('font-size', '0.7rem')
       .text(titleText);
     return { ...P, x, y };
   }
@@ -41,7 +41,7 @@ export function initCurvesWidget(data) {
   P.g.append('line').attr('x1', P.x(0)).attr('y1', P.y(c.base_rate)).attr('x2', P.x(1)).attr('y2', P.y(c.base_rate))
     .attr('stroke', 'var(--stone)').attr('stroke-width', 1.4).attr('stroke-dasharray', '5 4');
   P.g.append('text').attr('class', 'chart-annotation').attr('x', P.x(0.98)).attr('y', P.y(c.base_rate) - 6)
-    .attr('text-anchor', 'end').style('font-size', '0.52rem').style('text-transform', 'none')
+    .attr('text-anchor', 'end').style('font-size', '0.66rem').style('text-transform', 'none')
     .text(`chance precision, ${c.base_rate.toFixed(2)}`);
 
   const rocLine = d3.line().x((d) => R.x(d[0])).y((d) => R.y(d[1]));

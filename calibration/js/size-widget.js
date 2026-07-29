@@ -26,7 +26,7 @@ export function initSizeWidget(data) {
   g.append('line').attr('x1', 0).attr('x2', w).attr('y1', y(raw)).attr('y2', y(raw))
     .attr('stroke', 'var(--cosmos)').attr('stroke-width', 1.4).attr('stroke-dasharray', '5 4');
   g.append('text').attr('class', 'chart-annotation').attr('x', w - 4).attr('y', y(raw) - 6)
-    .attr('text-anchor', 'end').style('font-size', '0.54rem').style('text-transform', 'none')
+    .attr('text-anchor', 'end').style('font-size', '0.66rem').style('text-transform', 'none')
     .attr('fill', 'var(--cosmos)').text(`no repair at all, ${raw.toFixed(4)}`);
 
   const series = [

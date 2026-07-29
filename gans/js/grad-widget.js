@@ -96,8 +96,9 @@ export function initDisjointWidget(data) {
   draw('js', 'var(--cosmos)', null, 'Jensen-Shannon');
 
   const state = { i: rows.length - 3 };
+  /* 44px of left margin clamped the rotated axis label onto the 0.5 tick */
   const pic = makeChart('#disjoint-pic', {
-    width: 300, height: 400, margin: { top: 40, right: 20, bottom: 56, left: 44 },
+    width: 300, height: 400, margin: { top: 40, right: 20, bottom: 56, left: 58 },
   });
   const px = d3.scaleLinear().domain([-0.4, 2.4]).range([0, pic.w]);
   const py = d3.scaleLinear().domain([-0.1, 1.1]).range([pic.h, 0]);

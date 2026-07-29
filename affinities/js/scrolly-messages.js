@@ -26,8 +26,11 @@ export function initScrollyMessages(data) {
     preference: pref, damping: 0.9, snapshots: SHOTS, trace: true,
   });
 
+  /* Three bands live in the top margin (title, subtitle, legend); at 44px the
+     legend's row collided with a centred title long enough to reach the left
+     edge, so each band gets its own 14 to 16px lane. */
   const { g, w, h } = makeChart('#messages-chart', {
-    width: 640, height: 470, margin: { top: 44, right: 26, bottom: 46, left: 52 },
+    width: 640, height: 470, margin: { top: 60, right: 26, bottom: 46, left: 52 },
   });
   const x = d3.scaleLinear().domain(d3.extent(pts, (p) => p[0])).nice().range([0, w]);
   const y = d3.scaleLinear().domain(d3.extent(pts, (p) => p[1])).nice().range([h, 0]);
@@ -39,10 +42,10 @@ export function initScrollyMessages(data) {
   const exG = g.append('g');
   const markG = g.append('g');
   const title = g.append('text').attr('class', 'chart-annotation')
-    .attr('x', w / 2).attr('y', -22).attr('text-anchor', 'middle').style('font-size', '0.66rem');
+    .attr('x', w / 2).attr('y', -44).attr('text-anchor', 'middle').style('font-size', '0.66rem');
   const sub = g.append('text').attr('class', 'chart-annotation')
-    .attr('x', w / 2).attr('y', -6).attr('text-anchor', 'middle').style('font-size', '0.6rem');
-  const key = legend(g, [], { x0: 4, y0: -34, gap: 150 });
+    .attr('x', w / 2).attr('y', -28).attr('text-anchor', 'middle').style('font-size', '0.6rem');
+  const key = legend(g, [], { x0: 4, y0: -10, gap: 150 });
 
   /* The point whose messages get drawn: the one that ends up an exemplar with
      the most members, so the arrows are about a decision that matters. */
@@ -93,7 +96,7 @@ export function initScrollyMessages(data) {
       drawPoints(dotG, pts, null, x, y, { r: 5 });
       key.remove();
       legend(g, [{ colour: 'var(--squidink)', shape: 'dot', label: 'candidate exemplar' }],
-        { x0: 4, y0: -34, gap: 150 });
+        { x0: 4, y0: -10, gap: 150 });
       title.text(`${n} points, ${n * n} similarities, and ${n} candidates`);
       sub.text('no k anywhere: every point is applying for the job');
     },
@@ -115,7 +118,7 @@ export function initScrollyMessages(data) {
       sub.text(`its best candidate gets r = ${f2(top[0].v)}, the eighth gets ${f2(top[7].v)}`);
       key.remove();
       legend(g, [{ colour: 'var(--primary)', shape: 'line', label: 'r(i,k), thicker is stronger' }],
-        { x0: 4, y0: -34, gap: 150 });
+        { x0: 4, y0: -10, gap: 150 });
     },
     2: () => {
       clear();
@@ -134,7 +137,7 @@ export function initScrollyMessages(data) {
       sub.text(`it is offering itself at a = ${f2(shot.A[focus * n + focus])} to its own account`);
       key.remove();
       legend(g, [{ colour: 'var(--aqua)', shape: 'line', label: 'a(i,k), thicker is closer to zero' }],
-        { x0: 4, y0: -34, gap: 190 });
+        { x0: 4, y0: -10, gap: 190 });
     },
     3: () => {
       clear();
@@ -148,7 +151,7 @@ export function initScrollyMessages(data) {
       sub.text(`the count settles at ${run.exemplars.length}, and the run stops when it holds still`);
       key.remove();
       legend(g, [{ colour: 'var(--primary)', shape: 'ring', label: 'r(k,k) + a(k,k) > 0' }],
-        { x0: 4, y0: -34, gap: 150 });
+        { x0: 4, y0: -10, gap: 150 });
     },
     4: () => {
       clear();
@@ -167,7 +170,7 @@ export function initScrollyMessages(data) {
       sub.text('rings are exemplars, and every one of them is one of the points');
       key.remove();
       legend(g, [{ colour: 'var(--squidink)', shape: 'ring', label: 'exemplars' }],
-        { x0: 4, y0: -34, gap: 150 });
+        { x0: 4, y0: -10, gap: 150 });
     },
   };
   const s = scrolly('#messages-scrolly .step', handlers);

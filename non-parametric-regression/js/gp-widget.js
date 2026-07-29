@@ -137,5 +137,14 @@ export function initGpWidget() {
   }
 
   relabel();
+  /* Open with the seven sampled points rather than an empty canvas: with no
+     observations the prior band is flat and the length-scale slider moves
+     nothing, and the paragraph beside this widget talks about the band
+     narrowing at an observation. Clear still empties it. Same seeded rand as
+     the button, so every reader opens on the same seven. */
+  for (let i = 0; i < 7; i++) {
+    const xv = 0.6 + rand() * 8.8;
+    obs.push({ x: xv, y: TRUTH(xv) + (rand() - 0.5) * 0.5 });
+  }
   render();
 }

@@ -38,7 +38,7 @@ export function initKdistWidget(data) {
     .attr('fill', 'transparent');
   const lineLabel = L.g.append('text').attr('class', 'chart-annotation')
     .attr('x', 6).attr('text-anchor', 'start')
-    .style('font-size', '0.6rem').style('text-transform', 'none').attr('fill', 'var(--cosmos)');
+    .style('font-size', '0.7rem').style('text-transform', 'none').attr('fill', 'var(--cosmos)');
 
   /* Right: the moons under the dragged epsilon. */
   const R = makeChart(right, { width: 360, height: 360, margin: { top: 26, right: 16, bottom: 46, left: 44 } });
@@ -48,7 +48,7 @@ export function initKdistWidget(data) {
   drawAxes(R.g, rx, ry, R.w, R.h, { xTicks: 4, yTicks: 4 });
   const dotG = R.g.append('g');
   const rTitle = R.g.append('text').attr('class', 'chart-annotation')
-    .attr('x', R.w / 2).attr('y', -10).attr('text-anchor', 'middle').style('font-size', '0.6rem');
+    .attr('x', R.w / 2).attr('y', -10).attr('text-anchor', 'middle').style('font-size', '0.7rem');
 
   const readout = document.querySelector('#kd-readout');
   let eps = 0.45;
@@ -59,7 +59,7 @@ export function initKdistWidget(data) {
     const r = dbscan(pts, eps, K + 1);
     const a = ari(r.labels, ds.true_labels);
     drawLabelled(dotG, pts, r.labels, r.role, rx, ry, { r: 2.8 });
-    rTitle.text(`${r.nClusters} clusters, ${r.nNoise} noise, ARI ${a.toFixed(3)}`);
+    rTitle.text(`${r.nClusters} cluster${r.nClusters === 1 ? '' : 's'}, ${r.nNoise} noise, ARI ${a.toFixed(3)}`);
 
     const below = dists.filter((d) => d <= eps).length;
     readout.innerHTML =

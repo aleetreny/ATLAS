@@ -253,9 +253,10 @@
     </p>
     <br />
     <p class="body-text" id="encoding-intro">Measured below.</p>
-    <div style="text-align: center; margin: 1.2rem 0">
-      \( \gamma(x) = \big(x,\ \sin(2^{0}\pi x),\ \cos(2^{0}\pi x),\ \ldots,\ \sin(2^{L-1}\pi x),\ \cos(2^{L-1}\pi x)\big) \)
-    </div>
+    <!-- display mode, not an inline formula in a centred div: only
+         .katex-display scrolls inside itself, and on a phone this line is
+         wider than the column and was dragging the whole document sideways -->
+    $$ \gamma(x) = \big(x,\ \sin(2^{0}\pi x),\ \cos(2^{0}\pi x),\ \ldots,\ \sin(2^{L-1}\pi x),\ \cos(2^{L-1}\pi x)\big) $$
     <p class="body-text">
       The left panel is the reason, and it needs no training to see: how far
       apart two points are <span class="bold">in the encoding</span>, as a

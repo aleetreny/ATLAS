@@ -63,7 +63,9 @@ export function initCondWidget(data) {
         .attr('y1', y(target)).attr('y2', y(target))
         .attr('stroke', 'var(--anchor)').attr('stroke-width', 1.8)
         .attr('stroke-dasharray', '5 4');
-      annotate(g, 4, y(target) - 8, `asked for ${pc(target, 0)}`, { anchor: 'start' })
+      /* Same lane rule as the models chart, but this margin already holds the
+         two group chips on the left: the line's name takes the right end. */
+      annotate(g, w - 4, -16, `dashed line: asked for ${pc(target, 0)}`, { anchor: 'end' })
         .style('font-size', '11.5px');
     }
     C.rows.forEach((row) => {

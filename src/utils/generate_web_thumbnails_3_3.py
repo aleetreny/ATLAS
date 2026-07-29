@@ -104,7 +104,7 @@ if d:
 # chart with everything stripped but the crossing.
 d = load("latent-diffusion", "latent.json")
 if d:
-    ACC = "#995e45"
+    ACC = "#5c5aa3"
     T = d["trade"]
     lines = head()
     lines.append("  <!-- the ceiling against what the diffusion reaches -->")

@@ -576,3 +576,46 @@ sesenta pasos) y tarda medio minuto. Dos cosas nuevas respecto al del 4.1: el
 barrido de `<select>` (el explorador de vecinos tiene sesenta libros) y el
 chequeo de scroll horizontal del documento, que es el que cazó la tabla de
 títulos a 375px.
+
+## Trampa 39: el arnés de la revisión general (2026-07-29), y sus cuatro falsos positivos nuevos
+
+El barrido de las 91 páginas más la portada, a 1440 y a 375, con el mismo
+`audit.mjs` de siempre, empezó reportando decenas de solapes y de controles
+muertos en artículos publicados y limpios. Las cuatro causas eran del arnés:
+
+- **El encogido de cajas antes del SAT se hace por eje, en el marco local de
+  la caja, no radialmente hacia el centro.** 2,5px en diagonal apenas encogen
+  el eje corto de una caja ancha (0,2px en una de 200x14), y dos líneas de
+  leyenda limpias salían como solape en media docena de artículos.
+- **Una etiqueta partida en líneas (tspans) se mide línea a línea**, o la caja
+  del conjunto cubre el ancho completo y "solapa" sin que ningún glifo se
+  toque; y los pares de líneas del mismo `<text>` no se comparan entre sí.
+- **El hash de "control muerto" se toma del contenedor del widget entero**
+  (`.interactive-container`, `.interactive-full`), nunca del div inmediato del
+  control: el gráfico que un botón cambia suele ser hermano de su fila de
+  controles, y con el div inmediato todos los botones de vista salen muertos.
+- **Los sliders se barren antes que los botones, o se reproduce el estado que
+  importa antes de barrerlos.** El barrido de botones deja cada widget en el
+  último estado pulsado (trampa 27), y en esa vista un slider puede
+  legítimamente no redibujar: los tres de `annealing-swarm/` salieron muertos
+  sin estarlo.
+
+Con el arnés corregido, la mitad de los hallazgos que quedaron eran reales y
+la otra mitad avisos informativos (los 37 artículos anteriores a la convención
+de `__atlasCheck`, que no exponen guardias y no tienen por qué).
+
+Y dos clases más que el triaje separó a mano, para el siguiente barrido:
+
+- **El settle por estado tiene que superar la transición más larga de la
+  página, igual que el settle de carga.** El barrido usaba 90ms por paso de
+  slider y 500ms por botón, y una escala animada a 180-650ms deja ticks a
+  mitad de vuelo: los "300 fuera por 5.721px" de `outliers/`, el eje entero de
+  `distances/` en un gamma concreto, y los "40%" de `deep-learning-tables/`
+  eran todos eso. Se reproducen en frío con 1.200ms antes de tocar nada: de
+  unos veinte hallazgos geométricos en estados de control, la mitad se
+  esfumó así. Un recorte de miles de píxeles es siempre una transición.
+- **Un reset en el estado inicial y la celda ya seleccionada salen como
+  botones muertos, y no lo están.** "back to low, middle, high", "Reset" y
+  "cell 18 of 64" no cambian nada porque el estado ya es ese; pulsados tras
+  cambiar el estado, los tres funcionan. Antes de tocar un botón "muerto",
+  reproducir el estado en el que un lector lo pulsaría (trampa 27).

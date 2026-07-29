@@ -60,8 +60,11 @@ export function initDepthWidget(data) {
       const ax2 = g.append('g').attr('class', 'axis y2').attr('transform', `translate(${w},0)`)
         .call(d3.axisRight(y2).ticks(4, '~e'));
       ax2.selectAll('text').style('fill', 'var(--anchor)');
+      /* in the right margin this label ran into the rotated name of the
+         second axis; the region above the curve's last point is always free */
       g.append('text').attr('class', 'chart-note')
-        .attr('x', w + 6).attr('y', y(rows[rows.length - 1].acc) + 3.5)
+        .attr('x', x(rows[rows.length - 1].layers)).attr('y', y(rows[rows.length - 1].acc) - 12)
+        .attr('text-anchor', 'end')
         .style('font-size', '11px').style('fill', 'var(--primary)').text('accuracy');
       g.append('text').attr('class', 'chart-note')
         .attr('transform', `translate(${w + 62},${h / 2}) rotate(-90)`)

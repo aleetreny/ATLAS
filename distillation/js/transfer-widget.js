@@ -82,7 +82,24 @@ export function initTransferWidget(data) {
 
     const small = rows[0];
     const big = rows[rows.length - 1];
-    const closes = rows.find((r) => r.transfer - r.scratch <= r.transfer_sd + r.scratch_sd);
+    /* The catch-up sentence assumes transfer leads at small n, and on this
+       pair it never does; and a signed gap compared against a spread lets any
+       large negative difference pass as "within spread". Both directions are
+       measured, with the absolute value where the claim is about closeness. */
+    const noise = (r) => r.transfer_sd + r.scratch_sd;
+    const scratchNeverBehind = rows.every((r) => r.scratch >= r.transfer - noise(r));
+    const closes = rows.find((r) => r.transfer - r.scratch <= noise(r));
+    const scratchLine = scratchNeverBehind
+      ? `Training a small network from scratch is never behind the frozen encoder here: `
+        + (Math.abs(small.transfer - small.scratch) <= noise(small)
+          ? `within seed spread of it at ${small.n} rows, `
+          : `${(small.scratch - small.transfer).toFixed(4)} ahead at ${small.n} rows, `)
+        + `and ${(big.scratch - big.transfer).toFixed(4)} ahead by ${big.n}.`
+      : (closes
+        ? `Training from scratch catches up at ${closes.n} rows, where the two are within `
+          + `their own seed spread of each other.`
+        : `Training from scratch has not caught up by ${big.n} rows: it is still `
+          + `${(big.transfer - big.scratch).toFixed(4)} behind.`);
     readout.innerHTML = `<table class="gen-table"><thead><tr><th>rows</th>`
       + `<th>pixels</th><th>never trained</th><th>shuffled labels</th><th>frozen encoder</th>`
       + `<th>fine tuned</th><th>this task</th></tr></thead><tbody>`
@@ -101,11 +118,7 @@ export function initTransferWidget(data) {
       + `training bought and the rest is what the projection bought. Every cell carries the `
       + `spread over seeds, because at ${small.n} rows it is large enough that a table `
       + `without it would be reporting noise as a result. `
-      + (closes
-        ? `Training from scratch catches up at ${closes.n} rows, where the two are within `
-          + `their own seed spread of each other.`
-        : `Training from scratch has not caught up by ${big.n} rows: it is still `
-          + `${(big.transfer - big.scratch).toFixed(4)} behind.`)
+      + scratchLine
       + `</div>`;
   }
 

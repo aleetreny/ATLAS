@@ -3,7 +3,7 @@
  * state comes from the measured grid, so what is on screen is exactly what
  * scikit-learn produced.
  */
-import { drawGrid, drawAxes, axisLabels, makeChart } from '../../assets/js/chart.js';
+import { drawGrid, drawAxes, axisLabels, makeChart, wrapLabel } from '../../assets/js/chart.js';
 import { scrolly } from '../../assets/js/scrolly.js';
 import { ols1d } from './svrkit.js';
 
@@ -28,6 +28,12 @@ export function initScrollyTube(data) {
   const dotG = g.append('g');
   const caption = g.append('text').attr('class', 'chart-annotation')
     .attr('x', w / 2).attr('y', -14).attr('text-anchor', 'middle').style('font-size', '0.66rem');
+  /* the longest step caption overflowed the canvas by a few pixels; it wraps
+     by measure and climbs a lane when it takes two lines */
+  const setCaption = (t) => {
+    const lines = wrapLabel(caption, t, w - 8);
+    caption.attr('y', lines > 1 ? -25 : -14);
+  };
 
   const olsCurve = ols1d(xr, yr)(grid);
   const at = (eps, C) => data.svr_grid.find((r) => r.eps === eps && r.C === C);
@@ -54,27 +60,27 @@ export function initScrollyTube(data) {
   const states = {
     0: () => {
       draw(olsCurve, null, null);
-      caption.text('the banana, third appearance: a straight line still is not it');
+      setCaption('the banana, third appearance: a straight line still is not it');
     },
     1: () => {
       const r = at(2.0, 10.0);
       draw(r.curve, 2.0, null);
-      caption.text('the tube: within 2 mpg of the curve, an error costs exactly nothing');
+      setCaption('the tube: within 2 mpg of the curve, an error costs exactly nothing');
     },
     2: () => {
       const r = at(2.0, 10.0);
       draw(r.curve, 2.0, new Set(r.sv));
-      caption.text(`only ${r.n_sv} cars touch or leave the tube: they alone hold the curve up`);
+      setCaption(`only ${r.n_sv} cars touch or leave the tube: they alone hold the curve up`);
     },
     3: () => {
       const r = at(0.5, 10.0);
       draw(r.curve, 0.5, new Set(r.sv));
-      caption.text(`squeeze to 0.5 mpg and ${r.n_sv} of 294 are back on the payroll`);
+      setCaption(`squeeze to 0.5 mpg and ${r.n_sv} of 294 are back on the payroll`);
     },
     4: () => {
       const r = at(3.0, 10.0);
       draw(r.curve, 3.0, new Set(r.sv));
-      caption.text(`eps 3, C 10: ${r.n_sv} support vectors and the best test RMSE of the sweep, ${r.rmse_test}`);
+      setCaption(`eps 3, C 10: ${r.n_sv} support vectors and the best test RMSE of the sweep, ${r.rmse_test}`);
     },
   };
 

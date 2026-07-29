@@ -40,8 +40,10 @@ export function initDialWidget(data) {
 
   const R = makeChart(right, { width: 360, height: 340, margin: { top: 24, right: 14, bottom: 40, left: 20 } });
   const histG = R.g.append('g');
+  /* two 360-unit panels share the row on a phone, so 0.58rem rendered at
+     4.3px; 0.7rem stays above the floor, and the shorter title fits it */
   const rTitle = R.g.append('text').attr('class', 'chart-annotation')
-    .attr('x', R.w / 2).attr('y', -8).attr('text-anchor', 'middle').style('font-size', '0.58rem');
+    .attr('x', R.w / 2).attr('y', -8).attr('text-anchor', 'middle').style('font-size', '0.7rem');
 
   const slider = document.querySelector('#angle-slider');
   const readout = document.querySelector('#angle-readout');
@@ -99,7 +101,7 @@ export function initDialWidget(data) {
     histG.selectAll('line.cut').data([1]).join('line').attr('class', 'cut')
       .attr('x1', cutX).attr('x2', cutX).attr('y1', 0).attr('y2', R.h)
       .attr('stroke', 'var(--squidink)').attr('stroke-width', 1.6).attr('stroke-dasharray', '6 4');
-    rTitle.text(`projection at ${deg} degrees, most charitable cut included`);
+    rTitle.text(`at ${deg}°, most charitable cut`);
 
     const ceiling = data.best_line.acc_test;
     readout.innerHTML =

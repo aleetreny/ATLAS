@@ -125,9 +125,12 @@ export function initShiftWidget(data) {
     const sxs = d3.scaleLinear().domain(d3.extent(bwGrid)).range([0, stair.w]);
     const maxModes = d3.max(S.sweep, (r) => r.modes);
     const sys = d3.scaleLog().domain([1, Math.max(2, maxModes)]).range([stair.h, 0]);
-    drawGrid(stair.g, sxs, sys, stair.w, stair.h, { xTicks: 6, yTicks: 4 });
+    /* a log axis ignores a tick count and on the unequal data it printed 70
+       and 100 touching; decades and their triples, cut to the domain */
+    const yVals = [1, 3, 10, 30, 100, 300].filter((v) => v <= Math.max(2, maxModes));
+    drawGrid(stair.g, sxs, sys, stair.w, stair.h, { xTicks: 6, yValues: yVals });
     drawAxes(stair.g, sxs, sys, stair.w, stair.h, {
-      xTicks: 6, yTicks: 4, yFmt: d3.format('d'),
+      xTicks: 6, yValues: yVals, yFmt: d3.format('d'),
     });
     axisLabels(stair.g, stair.w, stair.h, { x: 'bandwidth', y: 'modes found' });
     stair.g.selectAll('path.stair').data([S.sweep]).join('path').attr('class', 'stair')

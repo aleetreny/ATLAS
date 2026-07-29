@@ -81,8 +81,13 @@ export function initProse(data) {
         + `getting worse the whole way down; only its most obvious symptom turns around.`
       : `here it stays in one piece at every selectivity tested, which is the case where that `
         + `third way works and is worth knowing as much as the failure would be.`)
-    + ` And with the real filter rather than a random one, the worst category leaves the `
-    + `subgraph in ${worstCat.pieces} pieces at ${pct(worstCat.selectivity)} selectivity.`);
+    + ` And with the real filter rather than a random one, the tightest category `
+    + (worstCat.pieces === 1
+      ? `still leaves the subgraph in one piece at ${pct(worstCat.selectivity)} selectivity, where `
+        + `the random filter above already stood at ${tight.pieces}: the rows that pass a real `
+        + `condition sit together, which is what the opening paragraph said makes filtering hard `
+        + `for a different reason.`
+      : `leaves the subgraph in ${worstCat.pieces} pieces at ${pct(worstCat.selectivity)} selectivity.`));
 
   set('churn-intro',
     `The second assumption is that the collection sits still. A graph index cannot really `

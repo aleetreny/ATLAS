@@ -31,8 +31,10 @@ export function initTrapWidget(data) {
   drawGrid(L.g, lx, ly, L.w, L.h, { xTicks: 4, yTicks: 4 });
   drawAxes(L.g, lx, ly, L.w, L.h, { xTicks: 4, yTicks: 4 });
   const dotG = L.g.append('g');
+  /* two side-by-side panels halve the render scale on a phone: 0.7rem keeps
+     the title above the 5px floor, and the short form keeps it inside 360 */
   const lTitle = L.g.append('text').attr('class', 'chart-annotation')
-    .attr('x', L.w / 2).attr('y', -10).attr('text-anchor', 'middle').style('font-size', '0.58rem');
+    .attr('x', L.w / 2).attr('y', -10).attr('text-anchor', 'middle').style('font-size', '0.7rem');
 
   const R = makeChart(right, { width: 360, height: 360, margin: { top: 26, right: 16, bottom: 46, left: 50 } });
   const sx = d3.scaleLinear().domain(d3.extent(sweep, (s) => s.eps)).range([0, R.w]);
@@ -58,14 +60,14 @@ export function initTrapWidget(data) {
   }
   R.g.append('text').attr('class', 'chart-annotation')
     .attr('x', sx((sepRegions[0][0] + sepRegions[0][1]) / 2)).attr('y', 14)
-    .attr('text-anchor', 'middle').style('font-size', '0.54rem').style('text-transform', 'none')
+    .attr('text-anchor', 'middle').style('font-size', '0.66rem').style('text-transform', 'none')
     .attr('fill', 'var(--primary)').text('tight pair still separate');
 
   R.g.append('path').attr('fill', 'none').attr('stroke', 'var(--cosmos)').attr('stroke-width', 3)
     .attr('d', d3.line().x((s) => sx(s.eps)).y((s) => sy(s.recovered))(sweep));
   R.g.append('text').attr('class', 'chart-annotation')
     .attr('x', sx(sweep[sweep.length - 1].eps)).attr('y', sy(sweep[sweep.length - 1].recovered) - 8)
-    .attr('text-anchor', 'end').style('font-size', '0.54rem').style('text-transform', 'none')
+    .attr('text-anchor', 'end').style('font-size', '0.66rem').style('text-transform', 'none')
     .attr('fill', 'var(--cosmos)').text('diffuse cluster held together');
 
   const marker = R.g.append('line').attr('y1', 0).attr('y2', R.h)
@@ -103,7 +105,7 @@ export function initTrapWidget(data) {
       const r = dbscan(pts, eps, 5);
       const a = ari(r.labels, ds.true_labels);
       drawLabelled(dotG, pts, r.labels, r.role, lx, ly, { r: 2.8 });
-      lTitle.text(`DBSCAN eps ${eps.toFixed(2)}: ${r.nClusters} clusters, ${r.nNoise} noise`);
+      lTitle.text(`eps ${eps.toFixed(2)}: ${r.nClusters} cluster${r.nClusters === 1 ? '' : 's'}, ${r.nNoise} noise`);
       const row = sweep.reduce((p, s) => (Math.abs(s.eps - eps) < Math.abs(p.eps - eps) ? s : p));
       readout.innerHTML =
         `<table class="den-table">
@@ -127,7 +129,7 @@ export function initTrapWidget(data) {
     } else {
       const hv = hdb[state.mcs];
       drawLabelled(dotG, pts, hv.labels, null, lx, ly, { r: 2.8 });
-      lTitle.text(`HDBSCAN, min cluster size ${state.mcs}: ${hv.n_clusters} clusters, ${hv.n_noise} noise`);
+      lTitle.text(`min size ${state.mcs}: ${hv.n_clusters} cluster${hv.n_clusters === 1 ? '' : 's'}, ${hv.n_noise} noise`);
       readout.innerHTML =
         `<table class="den-table">
            <tr><td>tight pair separate</td><td><span class="value">${hv.separated ? 'yes' : 'NO'}</span></td>

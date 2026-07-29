@@ -35,6 +35,12 @@
       font-size: 12px;
       width: 100%;
     }
+    /* nowrap cells make the widest row the table's width; without a scrolling
+       container the whole document pans sideways on a phone */
+    #analogy-chart,
+    #neighbours-chart {
+      overflow-x: auto;
+    }
     .nb-table th,
     .an-table th {
       font-family: var(--font-heavy);

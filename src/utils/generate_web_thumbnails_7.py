@@ -27,7 +27,7 @@ INK = "#232f3e"
 
 ACCENT = {
     "confounding": "#202c47",
-    "propensity": "#5c2938",
+    "propensity": "#52231f",
     "instruments": "#056605",
     "do-calculus": "#643c85",
     "conformal": "#945b43",

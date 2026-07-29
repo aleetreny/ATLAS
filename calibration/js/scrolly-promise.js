@@ -6,7 +6,7 @@
  * become one number. Everything drawn from the real reliability bins in the
  * generator's output; nothing is a sketch.
  */
-import { drawGrid, drawAxes, axisLabels, makeChart } from '../../assets/js/chart.js';
+import { drawGrid, drawAxes, axisLabels, makeChart, wrapLabel } from '../../assets/js/chart.js';
 import { scrolly } from '../../assets/js/scrolly.js';
 import { drawDiagonal, drawReliability } from './calkit.js';
 
@@ -35,6 +35,12 @@ export function initScrollyPromise(data) {
   };
   const caption = g.append('text').attr('class', 'chart-annotation')
     .attr('x', w / 2).attr('y', -14).attr('text-anchor', 'middle').style('font-size', '0.66rem');
+  /* Two of the five captions are longer than the canvas; they wrap by measure
+     and climb a lane so the second line stays inside the top margin. */
+  const setCaption = (t) => {
+    const lines = wrapLabel(caption, t, w - 8);
+    caption.attr('y', lines > 1 ? -25 : -14);
+  };
 
   /* The claim distribution as thin bars along the x-axis (log height,
    * because bin one holds a hundred thousand cells and bin ten holds
@@ -81,23 +87,23 @@ export function initScrollyPromise(data) {
   const states = {
     0: () => {
       bars(true); rel(false); diag(false); gaps(false);
-      caption.text(`the SMOTE model claims a probability for each of the ${nTest.toLocaleString('en-US')} test cells (bar height is log count)`);
+      setCaption(`the SMOTE model claims a probability for each of the ${nTest.toLocaleString('en-US')} test cells (bar height is log count)`);
     },
     1: () => {
       bars(true); rel(true); diag(false); gaps(false);
-      caption.text('each bin: the average claim, against how often the tree was really there');
+      setCaption('each bin: the average claim, against how often the tree was really there');
     },
     2: () => {
       bars(false); rel(true); diag(true); gaps(false);
-      caption.text('an honest model would sit on the diagonal');
+      setCaption('an honest model would sit on the diagonal');
     },
     3: () => {
       bars(false); rel(true); diag(true); gaps(true);
-      caption.text('every dashed gap is a broken promise, weighted by how many cells heard it');
+      setCaption('every dashed gap is a broken promise, weighted by how many cells heard it');
     },
     4: () => {
       bars(false); rel(true); diag(true); gaps(true);
-      caption.text(`expected calibration error: ${ece.toFixed(4)}, the population-weighted mean of the gaps`);
+      setCaption(`expected calibration error: ${ece.toFixed(4)}, the population-weighted mean of the gaps`);
     },
   };
 

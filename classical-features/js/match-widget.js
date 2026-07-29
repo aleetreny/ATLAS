@@ -128,9 +128,11 @@ export async function initMatchWidget(data, base) {
       drawGrid(chart.g, x, y, chart.w, chart.h, { xTicks: 5, yTicks: 5 });
       drawAxes(chart.g, x, y, chart.w, chart.h, { xTicks: 5, yTicks: 5 });
       axisLabels(chart.g, chart.w, chart.h, { x: isRot ? 'rotation, degrees' : 'scale factor' });
+      /* two 340-unit panels sit side by side on a phone, so the render scale
+         halves: 0.56rem fell to 4.4px there, 0.68rem stays above the floor */
       chart.g.append('text').attr('class', 'chart-annotation')
         .attr('x', chart.w / 2).attr('y', -12).attr('text-anchor', 'middle')
-        .style('font-size', '0.56rem').style('text-transform', 'none')
+        .style('font-size', '0.68rem').style('text-transform', 'none')
         .text(title);
 
       for (const key of ['sift', 'orb', 'patch']) {

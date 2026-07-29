@@ -15,6 +15,10 @@ const IDS = [
   'ref-note',
 ];
 
+/* The sweep harness reads this list to demand that every one of these ids
+   ends up saying something other than the placeholder the HTML ships. */
+export const PROSE_IDS = IDS;
+
 function set(id, html) {
   const node = document.querySelector(`#${id}`);
   if (node) node.innerHTML = html;

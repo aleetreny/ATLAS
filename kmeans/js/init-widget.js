@@ -113,8 +113,10 @@ export function initInitWidget(data) {
         .attr('stroke', 'var(--squidink)').attr('stroke-width', 0.6)
         .attr('opacity', 0.75);
       drawCenters(centreG, t.centers, x, y);
+      /* chart-annotation fits about 60 characters in this canvas; the
+         distance-squared mechanism is already spelled out in the readout */
       title.text(wts
-        ? `centre ${t.centers.length + 1}: each point's size is its chance of being picked (distance² from the nearest centre)`
+        ? `centre ${t.centers.length + 1}: a point's size is its chance of being picked`
         : 'three centres chosen, one from each cluster, no luck required');
     };
 

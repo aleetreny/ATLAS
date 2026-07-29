@@ -2,49 +2,49 @@
   <rect width="400" height="300" fill="#f1f3f3" />
   <!-- la distribucion del score en tratados y no tratados: se solapan -->
   <!-- en todo el rango, que es lo que el metodo necesita -->
-  <rect x="14" y="150" width="16" height="0" fill="#5c2938" opacity="0.9"/>
+  <rect x="14" y="150" width="16" height="0" fill="#52231f" opacity="0.9"/>
   <rect x="14" y="150" width="16" height="92" fill="#ff9900" opacity="0.9"/>
-  <rect x="31" y="150" width="16" height="0" fill="#5c2938" opacity="0.9"/>
+  <rect x="31" y="150" width="16" height="0" fill="#52231f" opacity="0.9"/>
   <rect x="31" y="150" width="16" height="126" fill="#ff9900" opacity="0.9"/>
-  <rect x="48" y="126" width="16" height="24" fill="#5c2938" opacity="0.9"/>
+  <rect x="48" y="126" width="16" height="24" fill="#52231f" opacity="0.9"/>
   <rect x="48" y="150" width="16" height="117" fill="#ff9900" opacity="0.9"/>
-  <rect x="65" y="126" width="16" height="24" fill="#5c2938" opacity="0.9"/>
+  <rect x="65" y="126" width="16" height="24" fill="#52231f" opacity="0.9"/>
   <rect x="65" y="150" width="16" height="97" fill="#ff9900" opacity="0.9"/>
-  <rect x="82" y="140" width="16" height="10" fill="#5c2938" opacity="0.9"/>
+  <rect x="82" y="140" width="16" height="10" fill="#52231f" opacity="0.9"/>
   <rect x="82" y="150" width="16" height="102" fill="#ff9900" opacity="0.9"/>
-  <rect x="99" y="111" width="16" height="39" fill="#5c2938" opacity="0.9"/>
+  <rect x="99" y="111" width="16" height="39" fill="#52231f" opacity="0.9"/>
   <rect x="99" y="150" width="16" height="131" fill="#ff9900" opacity="0.9"/>
-  <rect x="115" y="92" width="16" height="58" fill="#5c2938" opacity="0.9"/>
+  <rect x="115" y="92" width="16" height="58" fill="#52231f" opacity="0.9"/>
   <rect x="115" y="150" width="16" height="87" fill="#ff9900" opacity="0.9"/>
-  <rect x="132" y="92" width="16" height="58" fill="#5c2938" opacity="0.9"/>
+  <rect x="132" y="92" width="16" height="58" fill="#52231f" opacity="0.9"/>
   <rect x="132" y="150" width="16" height="87" fill="#ff9900" opacity="0.9"/>
-  <rect x="149" y="121" width="16" height="29" fill="#5c2938" opacity="0.9"/>
+  <rect x="149" y="121" width="16" height="29" fill="#52231f" opacity="0.9"/>
   <rect x="149" y="150" width="16" height="92" fill="#ff9900" opacity="0.9"/>
-  <rect x="166" y="82" width="16" height="68" fill="#5c2938" opacity="0.9"/>
+  <rect x="166" y="82" width="16" height="68" fill="#52231f" opacity="0.9"/>
   <rect x="166" y="150" width="16" height="63" fill="#ff9900" opacity="0.9"/>
-  <rect x="183" y="101" width="16" height="49" fill="#5c2938" opacity="0.9"/>
+  <rect x="183" y="101" width="16" height="49" fill="#52231f" opacity="0.9"/>
   <rect x="183" y="150" width="16" height="53" fill="#ff9900" opacity="0.9"/>
-  <rect x="200" y="77" width="16" height="73" fill="#5c2938" opacity="0.9"/>
+  <rect x="200" y="77" width="16" height="73" fill="#52231f" opacity="0.9"/>
   <rect x="200" y="150" width="16" height="49" fill="#ff9900" opacity="0.9"/>
-  <rect x="217" y="67" width="16" height="83" fill="#5c2938" opacity="0.9"/>
+  <rect x="217" y="67" width="16" height="83" fill="#52231f" opacity="0.9"/>
   <rect x="217" y="150" width="16" height="53" fill="#ff9900" opacity="0.9"/>
-  <rect x="234" y="63" width="16" height="87" fill="#5c2938" opacity="0.9"/>
+  <rect x="234" y="63" width="16" height="87" fill="#52231f" opacity="0.9"/>
   <rect x="234" y="150" width="16" height="29" fill="#ff9900" opacity="0.9"/>
-  <rect x="251" y="53" width="16" height="97" fill="#5c2938" opacity="0.9"/>
+  <rect x="251" y="53" width="16" height="97" fill="#52231f" opacity="0.9"/>
   <rect x="251" y="150" width="16" height="83" fill="#ff9900" opacity="0.9"/>
-  <rect x="268" y="58" width="16" height="92" fill="#5c2938" opacity="0.9"/>
+  <rect x="268" y="58" width="16" height="92" fill="#52231f" opacity="0.9"/>
   <rect x="268" y="150" width="16" height="68" fill="#ff9900" opacity="0.9"/>
-  <rect x="285" y="53" width="16" height="97" fill="#5c2938" opacity="0.9"/>
+  <rect x="285" y="53" width="16" height="97" fill="#52231f" opacity="0.9"/>
   <rect x="285" y="150" width="16" height="34" fill="#ff9900" opacity="0.9"/>
-  <rect x="301" y="24" width="16" height="126" fill="#5c2938" opacity="0.9"/>
+  <rect x="301" y="24" width="16" height="126" fill="#52231f" opacity="0.9"/>
   <rect x="301" y="150" width="16" height="19" fill="#ff9900" opacity="0.9"/>
-  <rect x="318" y="48" width="16" height="102" fill="#5c2938" opacity="0.9"/>
+  <rect x="318" y="48" width="16" height="102" fill="#52231f" opacity="0.9"/>
   <rect x="318" y="150" width="16" height="29" fill="#ff9900" opacity="0.9"/>
-  <rect x="335" y="38" width="16" height="112" fill="#5c2938" opacity="0.9"/>
+  <rect x="335" y="38" width="16" height="112" fill="#52231f" opacity="0.9"/>
   <rect x="335" y="150" width="16" height="19" fill="#ff9900" opacity="0.9"/>
-  <rect x="352" y="14" width="16" height="136" fill="#5c2938" opacity="0.9"/>
+  <rect x="352" y="14" width="16" height="136" fill="#52231f" opacity="0.9"/>
   <rect x="352" y="150" width="16" height="0" fill="#ff9900" opacity="0.9"/>
-  <rect x="369" y="33" width="16" height="117" fill="#5c2938" opacity="0.9"/>
+  <rect x="369" y="33" width="16" height="117" fill="#52231f" opacity="0.9"/>
   <rect x="369" y="150" width="16" height="0" fill="#ff9900" opacity="0.9"/>
   <path d="M14,150 L386,150" stroke="#232f3e" stroke-width="1.2" fill="none"/>
 </svg>

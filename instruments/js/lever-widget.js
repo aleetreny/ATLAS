@@ -138,6 +138,13 @@ export function initLeverWidget(data) {
         + `above.</p>`;
   }
 
-  slider.addEventListener('input', (e) => { i = +e.target.value; render(); });
+  /* The strength dial only exists in the sweep view; dragged from either
+     scatter view it moved nothing but its own label, which reads as a dead
+     control. Touching it now brings the view it drives. */
+  slider.addEventListener('input', (e) => {
+    i = +e.target.value;
+    if (view !== 'sweep') view = 'sweep';
+    render();
+  });
   render();
 }

@@ -35,6 +35,23 @@ async function boot() {
   safely('additive model', () => initNamWidget(data));
   safely('junk columns', () => initJunkWidget(data));
   safely('sparse attention', () => initAttentionWidget(data));
+
+  /* The same handles every other article exposes, so a sweep can re-run the
+     check in any state. This page predates the prose-from-JSON convention
+     (its numbers were written into the HTML from the measured file), so what
+     it can promise is that no readout carries an undefined or a NaN. */
+  window.__atlasCheck = (loud = false) => {
+    const problems = [];
+    document.querySelectorAll('p.body-text, .widget-readout, .atlas-table td').forEach((el) => {
+      const t = el.textContent;
+      if (/undefined|\bNaN\b|\$\{/.test(t)) {
+        problems.push(`bad text in ${el.id || el.className}: ${t.slice(0, 80)}`);
+      }
+    });
+    if (loud) console.info(`[tables] text check: ${problems.length === 0 ? 'clean' : problems.join(' | ')}`);
+    return problems;
+  };
+  window.__atlasProseIds = [];
 }
 
 if (document.readyState === 'loading') {

@@ -7,12 +7,12 @@
     <circle cx="266" cy="154" r="4" fill="#232f3e" />
     <circle cx="366" cy="232" r="4" fill="#232f3e" />
   <text x="366" y="248" text-anchor="end" font-family="monospace" font-size="12" fill="#232f3e">what the decoder allows</text>
-  <polyline points="66,70 166,110 266,148 366,186" fill="none" stroke="#995e45" stroke-width="2.4" />
-    <circle cx="66" cy="70" r="4" fill="#995e45" />
-    <circle cx="166" cy="110" r="4" fill="#995e45" />
-    <circle cx="266" cy="148" r="4" fill="#995e45" />
-    <circle cx="366" cy="186" r="4" fill="#995e45" />
-  <text x="366" y="176" text-anchor="end" font-family="monospace" font-size="12" fill="#995e45">what the diffusion reaches</text>
+  <polyline points="66,70 166,110 266,148 366,186" fill="none" stroke="#5c5aa3" stroke-width="2.4" />
+    <circle cx="66" cy="70" r="4" fill="#5c5aa3" />
+    <circle cx="166" cy="110" r="4" fill="#5c5aa3" />
+    <circle cx="266" cy="148" r="4" fill="#5c5aa3" />
+    <circle cx="366" cy="186" r="4" fill="#5c5aa3" />
+  <text x="366" y="176" text-anchor="end" font-family="monospace" font-size="12" fill="#5c5aa3">what the diffusion reaches</text>
   <text x="66" y="252" text-anchor="middle" font-family="monospace" font-size="12" fill="#232f3e">2</text>
   <text x="166" y="252" text-anchor="middle" font-family="monospace" font-size="12" fill="#232f3e">4</text>
   <text x="266" y="252" text-anchor="middle" font-family="monospace" font-size="12" fill="#232f3e">8</text>

@@ -275,7 +275,20 @@ export function initWindowsWidget(data) {
   sSlider.addEventListener('input', () => { state.nS = +sSlider.value; labelControls(); render(); });
   aSlider.addEventListener('input', () => { state.nA = +aSlider.value; labelControls(); render(); });
   stSlider.addEventListener('input', () => { state.strideIdx = +stSlider.value; labelControls(); render(); });
-  kSlider.addEventListener('input', () => { state.k = +kSlider.value; labelControls(); render(); });
+  /* k only draws in the shapes view; dragged from the bill view it moved
+     nothing but its own label, which reads as a dead control. Touching it
+     now brings the view it drives, buttons included. */
+  kSlider.addEventListener('input', () => {
+    state.k = +kSlider.value;
+    if (state.view !== 'shapes') {
+      state.view = 'shapes';
+      viewBtns.forEach((n, j) => {
+        n.className = `atlas-btn${views[j][0] === 'shapes' ? '' : ' ghost'}`;
+      });
+    }
+    labelControls();
+    render();
+  });
 
   labelControls();
   render();

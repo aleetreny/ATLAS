@@ -82,9 +82,9 @@ Este repositorio empezó como notebooks de ML y se está convirtiendo en una web
 | 56 | What a Sound Looks Like (espectrograma vivo con la ventana como mando, resolución contra la verdad conocida, invertir con y sin fase para escuchar, MFCC contra el tono) | `spectrograms/` | `#5c0e1d` |
 | 57 | One Sample at a Time (campo receptivo exacto contra el periodo del tono, la ley mu escuchable, el modelo alimentado con su propia salida, CTC contra un decodificador que no para) | `wavenet/` | `#5c3e29` |
 | 58 | A Thousand Easy Problems (el campo del score verdadero contra el aprendido, la cadena inversa corriendo en vivo con el presupuesto de pasos, el término del prior que se asume cero) | `ddpm/` | `#674599` |
-| 59 | The Ceiling You Cannot See (viajes de ida y vuelta calculados en la página, las dos escaleras sobre los mismos ejes, el techo contra lo que la difusión alcanza) | `latent-diffusion/` | `#995e45` |
+| 59 | The Ceiling You Cannot See (viajes de ida y vuelta calculados en la página, las dos escaleras sobre los mismos ejes, el techo contra lo que la difusión alcanza) | `latent-diffusion/` | `#5c5aa3` |
 | 60 | The Arrow You Cannot See (la reversión de Simpson apareciendo al encender el confusor, el sesgo en forma cerrada contra el medido, un proxy ruidoso barrido, dos mundos indistinguibles) | `confounding/` | `#202c47` |
-| 61 | One Number Instead of Twelve (siete estimadores contra una verdad conocida, el balance de una puntuación deliberadamente equivocada, la doble robustez en dos por dos, el recorte de un solo lado) | `propensity/` | `#5c2938` |
+| 61 | One Number Instead of Twelve (siete estimadores contra una verdad conocida, el balance de una puntuación deliberadamente equivocada, la doble robustez en dos por dos, el recorte de un solo lado) | `propensity/` | `#52231f` |
 | 62 | A Lever With No Other Reach (el sesgo de MCO en forma cerrada, el barrido de fuerza del instrumento, la exclusión violada en rejilla, el intervalo entero de betas factibles, LATE contra ATE) | `instruments/` | `#056605` |
 | 63 | Which Boxes to Tick (el criterio de puerta trasera sobre un grafo exacto, 3.000 grafos aleatorios, la fórmula de puerta delantera, y un bosque causal que pasa de 2,2179 a 0,0373 al centrar) | `do-calculus/` | `#643c85` |
 | 64 | Ninety Per Cent, Guaranteed (la cobertura exacta contra su Beta, cuatro modelos con el mismo envoltorio, Mondrian y CQR, LAC contra APS con y sin aleatorizar) | `conformal/` | `#945b43` |
@@ -314,13 +314,16 @@ porque un atributo de presentación pierde contra cualquier regla CSS y **todas 
 leyendas de color del sitio se estaban dibujando en gris tinta**; `makeChart`
 devuelve ahora un `clear()` que vacía el lienzo sin desconectar el grupo
 recortado; y se subieron a 0,72rem los textos de `deep-learning-tables/` que a
-375px caían por debajo del suelo de 5px. Queda pendiente, y no es de este
-módulo: `detection/`, `deep-learning-tables/`, `ddpm/` y `latent-diffusion/` no
-exportan `window.__atlasCheck` ni `window.__atlasProseIds`. Los dos primeros son
-anteriores a la convención; los dos últimos sí corren sus guardias al cargar
-pero no los dejan accesibles desde fuera, y sin eso el arnés no puede
-dispararlos en cada estado de cada control (punto 58 de `verificacion.md`). Son
-dos líneas al final de su `main.js`.
+375px caían por debajo del suelo de 5px. El pendiente que dejó este párrafo se
+cerró en la revisión general de 2026-07-29: `ddpm/` y `latent-diffusion/`
+exponen ahora sus guardias como `window.__atlasCheck` y su lista de ids como
+`window.__atlasProseIds`, y `detection/` y `deep-learning-tables/`, que son
+anteriores a la convención de guardias numéricos, exponen al menos el barrido
+de texto compuesto (nada de undefined ni NaN en prosa, readouts ni tablas) y
+la lista de ids que su prosa compone (vacía en `deep-learning-tables/`, cuyas
+cifras van escritas en el HTML desde el JSON medido).
+
+**El sitio entero pasó una revisión general el 2026-07-29**, con los 91 artículos terminados: barrido en navegador de las 92 páginas (91 más la portada) a 1440px y 375px con el arnés de siempre (cada botón, cada paso de cada slider, cada select, cada paso de scrolly), más el volcado de la prosa renderizada de las 91 páginas leída con la lente de contenido, más los barridos estáticos (rayas, mojibake, head, enlaces, aria). Lo que salió y se arregló, en corto: dos parejas de acentos indistinguibles (dE 1,7 y 1,9; `latent-diffusion/` pasó a `#5c5aa3` y `propensity/` a `#52231f`, miniaturas regeneradas); la portada pasó a **tres tarjetas por fila en escritorio y dos en móvil** (antes dos y una), con la tipografía de tarjeta reescalada en `landing.css`; un `$k$` con dólar suelto en `arima/` que se publicaba en bruto; la rama de "catches up" de `distillation/` presumía el orden de los brazos (receta); una fila "undefined" a propósito en `genetic-algorithms/`; una rama sin caso singular en `vector-db/` ("in 1 pieces"); etiquetas apiladas por un `attr('class')` doble en `convnext/`; dos mandos que solo vivían en una vista (`detection/`, `instruments/`) y dos widgets que abrían encima de su propio atajo (`nerf/`) o vacíos (`non-parametric-regression/`, el proceso gaussiano abre ahora con siete puntos); una docena de recortes y solapes de etiquetas (`kmeans/`, `affinities/`, `calibration/`, `conformal/`, `kda/`, `dbscan/`, `hierarchical/`, `flows/`, `gnn/`, `gans/`, `neighbours/`, `svr-kernel-ridge/`, `distances/`); una fórmula inline que arrastraba el documento en móvil (`nerf/`) y una tabla sin contenedor de scroll (`embeddings/`); y las fuentes por debajo del suelo de 5px a 375px en ocho artículos. Además, el repo se dejó presentable: README reescrito a la realidad actual (el viejo decía "twenty-one articles"), y fuera `instructions.md`, `datasets.md` y `.agent/`, que eran reliquias de la era de notebooks y contradecían a CLAUDE.md. Los fallos nuevos están anotados en la receta y en verificación, con la trampa 39 (los falsos positivos nuevos del arnés) incluida.
 
 Los artículos 1 a 6 pasaron una **revisión completa** (commit `5e4852b`, 2026-07-25): auditoría estática en paralelo más un barrido en navegador de cada control, cada paso de scrolly y cada etiqueta a 1425px y 375px. 73 hallazgos aplicados. Todas las páginas tienen ahora `canonical` + Open Graph, los 20 sliders tienen `aria-label`, y cada cierre enlaza al siguiente artículo.
 

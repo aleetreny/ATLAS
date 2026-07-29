@@ -3,7 +3,7 @@
  * and the kernel discriminant separating them cleanly. Scatter above,
  * projection histogram below, in one chart.
  */
-import { drawGrid, drawAxes, makeChart } from '../../assets/js/chart.js';
+import { drawGrid, drawAxes, makeChart, wrapLabel } from '../../assets/js/chart.js';
 import { scrolly } from '../../assets/js/scrolly.js';
 import { kdaScores, project, bestCut, histo } from './kdakit.js';
 
@@ -33,6 +33,12 @@ export function initScrollyAngle(data) {
   const histG = g.append('g').attr('transform', `translate(0,${hy0})`);
   const caption = g.append('text').attr('class', 'chart-annotation')
     .attr('x', w / 2).attr('y', -14).attr('text-anchor', 'middle').style('font-size', '0.64rem');
+  /* three of the step captions are longer than the canvas; they wrap by
+     measure and climb a lane so the second line stays inside the margin */
+  const setCaption = (t) => {
+    const lines = wrapLabel(caption, t, w - 8);
+    caption.attr('y', lines > 1 ? -25 : -14);
+  };
   g.append('text').attr('class', 'chart-annotation')
     .attr('x', w / 2).attr('y', hy0 - 10).attr('text-anchor', 'middle')
     .style('font-size', '0.54rem').text('the projection, seen in 1-D');
@@ -102,30 +108,30 @@ export function initScrollyAngle(data) {
   const states = {
     0: () => {
       dots(false); drawHist(null, false); arrow(0, false); field(0, false);
-      caption.text('the moons again, labels restored: 210 training points, two classes');
+      setCaption('the moons again, labels restored: 210 training points, two classes');
     },
     1: () => {
       dots(false); arrow(ldaTheta, true); field(0, false);
       const z = project(X, ldaTheta);
       drawHist(z, true);
-      caption.text(`LDA's direction: project everything onto the line, and the classes pile into each other`);
+      setCaption(`LDA's direction: project everything onto the line, and the classes pile into each other`);
     },
     2: () => {
       dots(false); arrow(data.best_line.theta, true); field(0, false);
       drawHist(project(X, data.best_line.theta), true);
-      caption.text(`the BEST of 721 angles ever measured here: ${data.best_line.acc_test} test accuracy, the linear ceiling`);
+      setCaption(`the BEST of 721 angles ever measured here: ${data.best_line.acc_test} test accuracy, the linear ceiling`);
     },
     3: () => {
       dots(false); arrow(0, false); field(0, false);
       const kr = data.kda.find((r) => r.gamma === 0.3);
       drawHist(Array.from(kdaScores(X, X, kr.alpha, 0.3)), true);
-      caption.text('the kernel direction: the same projection idea, taken in feature space, separates them');
+      setCaption('the kernel direction: the same projection idea, taken in feature space, separates them');
     },
     4: () => {
       dots(false); arrow(0, false); field(0.3, true);
       const kr = data.kda.find((r) => r.gamma === 0.3);
       drawHist(Array.from(kdaScores(X, X, kr.alpha, 0.3)), true);
-      caption.text(`seen back in 2-D, that direction is a curved boundary: test accuracy ${kr.acc_test}`);
+      setCaption(`seen back in 2-D, that direction is a curved boundary: test accuracy ${kr.acc_test}`);
     },
   };
 

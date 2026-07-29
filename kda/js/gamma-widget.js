@@ -30,8 +30,10 @@ export function initGammaWidget(data) {
 
   const R = makeChart(right, { width: 360, height: 340, margin: { top: 24, right: 14, bottom: 40, left: 20 } });
   const histG = R.g.append('g');
+  /* same lane as the dial widget: side-by-side panels halve the render scale
+     on a phone, so the title needs 0.7rem and a short form to fit */
   const rTitle = R.g.append('text').attr('class', 'chart-annotation')
-    .attr('x', R.w / 2).attr('y', -8).attr('text-anchor', 'middle').style('font-size', '0.58rem');
+    .attr('x', R.w / 2).attr('y', -8).attr('text-anchor', 'middle').style('font-size', '0.7rem');
 
   const slider = document.querySelector('#gam-slider');
   const readout = document.querySelector('#gam-readout');
@@ -78,7 +80,7 @@ export function initGammaWidget(data) {
       .attr('x', (v, i) => hx(i) + 1).attr('width', bw - 2)
       .attr('y', (v) => hyy(v)).attr('height', (v) => R.h - hyy(v))
       .attr('fill', C1).attr('opacity', 0.62);
-    rTitle.text('the kernel projection of the training points');
+    rTitle.text('the kernel projection');
 
     readout.innerHTML =
       `<table class="kda-table">

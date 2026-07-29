@@ -132,7 +132,9 @@ export function initHoleWidget(data, flow) {
       const vals = rows.map((r) => r.cond_max);
       const y = d3.scaleLinear().domain([0, Math.max(...vals) * 1.15]).range([h, 0]);
       drawGrid(g, x, y, w, h, { xValues: depths, yTicks: 5 });
-      drawAxes(g, x, y, w, h, { xValues: depths, yTicks: 5 });
+      /* ten-digit tick labels ("20,000,000") ran under the rotated axis
+         label; the ~s form ("20M") keeps them inside the margin */
+      drawAxes(g, x, y, w, h, { xValues: depths, yTicks: 5, yFmt: d3.format('~s') });
       /* a rotated label is as long as the panel is tall, and this panel has
          234 pixels of drawing height: the longer sentence was cut at the top.
          Where the stretch is measured is said in the table below. */

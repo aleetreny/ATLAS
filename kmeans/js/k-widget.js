@@ -44,11 +44,11 @@ export function initKWidget(data) {
   const lastRow = rows[rows.length - 1];
   R.g.append('text').attr('class', 'chart-annotation').attr('x', kx(lastRow.k))
     .attr('y', iy(lastRow.inertia) - 9).attr('text-anchor', 'end')
-    .style('font-size', '0.56rem').style('text-transform', 'none')
+    .style('font-size', '0.7rem').style('text-transform', 'none')
     .attr('fill', 'var(--squidink)').attr('opacity', 0.7).text('inertia');
   R.g.append('text').attr('class', 'chart-annotation').attr('x', kx(lastRow.k))
     .attr('y', sy(lastRow.silhouette) - 9).attr('text-anchor', 'end')
-    .style('font-size', '0.56rem').style('text-transform', 'none')
+    .style('font-size', '0.7rem').style('text-transform', 'none')
     .attr('fill', 'var(--primary)').text('silhouette');
   const marker = R.g.append('line').attr('y1', 0).attr('y2', R.h)
     .attr('stroke', 'var(--squidink)').attr('stroke-width', 1.6).attr('stroke-dasharray', '5 4');

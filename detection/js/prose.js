@@ -16,6 +16,16 @@ function set(id, html) {
   if (node) node.innerHTML = html;
 }
 
+/* The sweep harness reads this list to demand that every one of these ids
+   ends up saying something other than the placeholder the HTML ships. */
+export const PROSE_IDS = [
+  'dataset-note', 'iou-note', 'protocol-note', 'windows-note', 'equivalence-note',
+  'sliding-note', 'grid-note', 'grid-table-body', 'loss-note', 'arms-note',
+  'detector-note', 'confidence-note', 'twostage-note', 'failures-note',
+  'limits-note', 'runtime-note', 'verdict-anchors', 'verdict-stride',
+  'verdict-nms', 'closing-note',
+];
+
 export function initProse(data, det) {
   const d = data.dataset;
   const W = data.windows;

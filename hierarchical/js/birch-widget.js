@@ -17,8 +17,12 @@ export function initBirchWidget(data) {
   const x = d3.scaleLog().domain([rows[0].n * 0.8, big.n * 1.3]).range([0, w]);
   const allT = [...rows.map((r) => r.agg_seconds), ...rows.map((r) => r.birch_seconds), big.birch_seconds];
   const y = d3.scaleLog().domain([Math.max(d3.min(allT) * 0.6, 0.005), d3.max(allT) * 1.5]).range([h, 0]);
-  drawGrid(g, x, y, w, h, { xTicks: 5, yTicks: 5 });
-  drawAxes(g, x, y, w, h, { xTicks: 5, yTicks: 5, xFmt: d3.format('~s'), yFmt: d3.format('~g') });
+  /* a log axis given a tick count printed 9 and 10 on top of each other;
+     decades cut to the domain, on grid and axis alike */
+  const yVals = [0.01, 0.03, 0.1, 0.3, 1, 3, 10, 30, 100]
+    .filter((v) => v >= y.domain()[0] && v <= y.domain()[1]);
+  drawGrid(g, x, y, w, h, { xTicks: 5, yValues: yVals });
+  drawAxes(g, x, y, w, h, { xTicks: 5, yValues: yVals, xFmt: d3.format('~s'), yFmt: d3.format('~g') });
   axisLabels(g, w, h, { x: 'points clustered (log)', y: 'fit seconds (log)' });
 
   const line = (acc) => d3.line().x((r) => x(r.n)).y((r) => y(acc(r)));

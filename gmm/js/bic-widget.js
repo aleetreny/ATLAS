@@ -40,10 +40,10 @@ export function initBicWidget(data) {
   R.g.append('path').attr('fill', 'none').attr('stroke', 'var(--stone)').attr('stroke-width', 3).attr('d', la(rows));
   R.g.append('text').attr('class', 'chart-annotation').attr('x', kx(rows[rows.length - 1].k))
     .attr('y', cy(rows[rows.length - 1].bic) - 10).attr('text-anchor', 'end')
-    .style('font-size', '0.56rem').style('text-transform', 'none').attr('fill', 'var(--primary)').text('BIC');
+    .style('font-size', '0.7rem').style('text-transform', 'none').attr('fill', 'var(--primary)').text('BIC');
   R.g.append('text').attr('class', 'chart-annotation').attr('x', kx(rows[rows.length - 1].k))
     .attr('y', cy(rows[rows.length - 1].aic) + 16).attr('text-anchor', 'end')
-    .style('font-size', '0.56rem').style('text-transform', 'none').attr('fill', 'var(--squidink)').attr('opacity', 0.6).text('AIC');
+    .style('font-size', '0.7rem').style('text-transform', 'none').attr('fill', 'var(--squidink)').attr('opacity', 0.6).text('AIC');
   const marker = R.g.append('line').attr('y1', 0).attr('y2', R.h)
     .attr('stroke', 'var(--squidink)').attr('stroke-width', 1.6).attr('stroke-dasharray', '5 4');
   const dotB = R.g.append('circle').attr('r', 4.5).attr('fill', 'var(--primary)').attr('stroke', 'white').attr('stroke-width', 1.4);

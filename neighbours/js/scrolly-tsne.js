@@ -114,15 +114,19 @@ export function initScrollyTsne(data, computed) {
       body.append('path').datum(pts).attr('fill', 'none')
         .attr('stroke', 'var(--primary)').attr('stroke-width', 2.6)
         .attr('d', d3.line().x((t) => x(t)).y((t) => y(1 / (1 + t * t))));
+      /* anchored at the right edge and measured: the fixed x = w - 304 start
+         pushed the longer label 86px past the canvas */
       [['var(--anchor)', 'a gaussian, which is what the data end uses'],
         ['var(--primary)', 'a t with one degree of freedom, which is what the map uses']]
         .forEach(([c, t], i) => {
-          body.append('line').attr('x1', w - 330).attr('x2', w - 310)
-            .attr('y1', 18 + i * 18).attr('y2', 18 + i * 18)
-            .attr('stroke', c).attr('stroke-width', 2.6);
-          body.append('text').attr('x', w - 304).attr('y', 22 + i * 18)
+          const tx = body.append('text').attr('x', w - 8).attr('y', 22 + i * 18)
+            .attr('text-anchor', 'end')
             .style('font-size', '11.5px').style('font-family', 'var(--font-mono)')
             .attr('fill', 'var(--squidink)').text(t);
+          const len = tx.node().getComputedTextLength();
+          body.append('line').attr('x1', w - 8 - len - 26).attr('x2', w - 8 - len - 6)
+            .attr('y1', 18 + i * 18).attr('y2', 18 + i * 18)
+            .attr('stroke', c).attr('stroke-width', 2.6);
         });
       wrapLabel(title, 'the map is allowed a heavier tail than the data', w - 8);
       wrapLabel(caption, 'at a distance of 4 the t gives 0.059 where the gaussian gives 0.000335, '

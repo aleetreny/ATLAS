@@ -130,7 +130,10 @@ export function initDialsWidget(data) {
         <tr><td>generations</td>
             ${rows.map((d) => `<td>${d.median === null ? 'never' : d.median}</td>`).join('')}</tr>
         <tr><td>predicted</td>
-            ${rows.map((d) => `<td>${d.predicted === null ? 'undefined' : d.predicted}</td>`).join('')}</tr>
+            ${/* log(P)/log(k) diverges at k = 1, which is the formula agreeing
+                 with the measured row: takeover never happens. The word
+                 "undefined" here read as a broken template. */''}
+            ${rows.map((d) => `<td>${d.predicted === null ? 'never' : d.predicted}</td>`).join('')}</tr>
         <tr><td>best lost</td>
             ${rows.map((d) => `<td>${d.best_lost} of ${d.of}</td>`).join('')}</tr>
       </table>

@@ -39,8 +39,10 @@ export function initDecompWidget(data) {
   g.append('text').attr('class', 'chart-annotation').attr('x', mid + 10).attr('y', -26)
     .attr('text-anchor', 'start').style('font-size', '0.6rem').attr('fill', 'var(--primary)')
     .text('resolution prize (knowledge)');
+  /* 0.5rem rendered at 3.9px on a phone (700 viewBox at 335px); 0.66rem keeps
+     it above the site's 5px floor and still fits the 480-unit inner width */
   g.append('text').attr('class', 'chart-annotation').attr('x', mid).attr('y', -12)
-    .attr('text-anchor', 'middle').style('font-size', '0.5rem').style('text-transform', 'none')
+    .attr('text-anchor', 'middle').style('font-size', '0.66rem').style('text-transform', 'none')
     .text('Brier = uncertainty + penalty - prize');
 
   for (const r of rows) {

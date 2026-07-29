@@ -11,7 +11,7 @@ import { initCeilingWidget } from './ceiling-widget.js';
 import { initLadderWidget } from './ladder-widget.js';
 import { initTradeWidget } from './trade-widget.js';
 import { initLiveWidget } from './live-widget.js';
-import { initProse } from './prose.js';
+import { initProse, PROSE_IDS } from './prose.js';
 import { makeLatent } from './latentkit.js';
 
 function renderMath() {
@@ -127,6 +127,11 @@ async function boot() {
   const guards = () => safely('guards', () => runGuards(data, kit));
   if ('requestIdleCallback' in window) requestIdleCallback(guards, { timeout: 5000 });
   else setTimeout(guards, 1000);
+
+  /* The same handles every other article exposes, so a sweep can re-run the
+     guards in any state instead of only reading what they logged on load. */
+  window.__atlasCheck = () => { runGuards(data, kit); return []; };
+  window.__atlasProseIds = PROSE_IDS;
 }
 
 if (document.readyState === 'loading') {

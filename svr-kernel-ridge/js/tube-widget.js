@@ -80,9 +80,9 @@ export function initTubeWidget(data) {
         sv: R.g.append('path').attr('fill', 'none').attr('stroke', 'var(--cosmos)').attr('stroke-width', 3),
         rm: R.g.append('path').attr('fill', 'none').attr('stroke', 'var(--squidink)').attr('stroke-width', 2)
           .attr('stroke-dasharray', '5 4').attr('opacity', 0.7),
-        labSv: R.g.append('text').attr('class', 'chart-annotation').style('font-size', '0.54rem')
+        labSv: R.g.append('text').attr('class', 'chart-annotation').style('font-size', '0.7rem')
           .style('text-transform', 'none').attr('fill', 'var(--cosmos)').attr('text-anchor', 'end').text('support vectors'),
-        labRm: R.g.append('text').attr('class', 'chart-annotation').style('font-size', '0.54rem')
+        labRm: R.g.append('text').attr('class', 'chart-annotation').style('font-size', '0.7rem')
           .style('text-transform', 'none').attr('fill', 'var(--squidink)').attr('text-anchor', 'end').text('test RMSE'),
       };
       marker = R.g.append('circle').attr('r', 5).attr('fill', 'var(--cosmos)')

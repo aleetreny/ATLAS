@@ -83,19 +83,23 @@ export function initDigitsWidget(data, solved) {
               : d3.interpolateRgb('#7e22ce', '#ffffff')(v))
             .attr('stroke', 'var(--stone)').attr('stroke-width', 0.5);
           if (i !== j) {
+            /* 8.5px rendered at 4.1px on a phone (700 viewBox at 335px);
+               10.5px clears the 5px floor and still fits the 29-unit cell */
             body.append('text').attr('x', x0 + cell * j + cell / 2)
               .attr('y', y0 + cell * i + cell / 2 + 3).attr('text-anchor', 'middle')
-              .style('font-size', '8.5px').style('font-family', 'var(--font-mono)')
+              .style('font-size', '10.5px').style('font-family', 'var(--font-mono)')
               .attr('fill', v < 0.45 ? 'white' : 'var(--squidink)')
               .text(v.toFixed(2));
           }
         }
       }
-      body.append('text').attr('x', w / 2).attr('y', y0 + cell * m + 26)
+      /* one line measured 745 units against 612 of canvas and clipped both
+         ends; it wraps by measure into the bottom margin */
+      const foot = body.append('text').attr('x', w / 2).attr('y', y0 + cell * m + 22)
         .attr('text-anchor', 'middle').style('font-size', '11.5px')
-        .style('font-family', 'var(--font-mono)').attr('fill', 'var(--squidink)')
-        .text(`0 would be identical, 1 is the furthest pair; ${G.never_confused} `
-          + 'of the 45 pairs were never confused at all and sit at the maximum');
+        .style('font-family', 'var(--font-mono)').attr('fill', 'var(--squidink)');
+      wrapLabel(foot, `0 would be identical, 1 is the furthest pair; ${G.never_confused} `
+        + 'of the 45 pairs were never confused at all and sit at the maximum', w - 8, { lineHeight: 14 });
       wrapLabel(title, 'how far apart two digits are, from how often a classifier swaps them', w - 8);
     } else {
       const Z = state.view === 'classical' ? solved.classical : solved.nonmetric;

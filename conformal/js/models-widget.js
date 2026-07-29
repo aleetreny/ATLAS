@@ -60,7 +60,10 @@ export function initModelsWidget(data) {
         .attr('y1', y(target)).attr('y2', y(target))
         .attr('stroke', 'var(--anchor)').attr('stroke-width', 1.8)
         .attr('stroke-dasharray', '5 4');
-      annotate(g, 4, y(target) - 8, `asked for ${pc(target, 0)}`, { anchor: 'start' })
+      /* Every dot sits on the promised line (that is the theorem), so a label
+         hugging the line collides with the first value; it lives in the top
+         margin, naming the line instead of touching it. */
+      annotate(g, 4, -10, `dashed line: asked for ${pc(target, 0)}`, { anchor: 'start' })
         .style('font-size', '11.5px');
     }
     MO.rows.forEach((row) => {

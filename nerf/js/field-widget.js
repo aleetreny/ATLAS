@@ -38,8 +38,10 @@ export function initFieldWidget(data, scene, field) {
   resSlider.max = String(RES_CHOICES.length - 1);
   stepSlider.max = String(STEP_CHOICES.length - 1);
 
+  /* Open a quarter turn away from the held-out camera: opening exactly on it
+     left the "go to a held-out camera" shortcut with nothing to do. */
   const state = {
-    az: data.cameras.inside[0].az, el: data.cameras.inside[0].el,
+    az: data.cameras.inside[0].az + 40, el: data.cameras.inside[0].el,
     resIdx: 1, stepIdx: 2, skip: true, importance: false, view: 'colour',
   };
   /* the depth ramp is fixed to the scene box, not to the frame, or the two

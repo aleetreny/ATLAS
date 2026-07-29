@@ -7,7 +7,7 @@
  * that is visible the moment you move the channel slider and watch the number
  * stop moving. Then the measured wall clock disagrees with all of it.
  */
-import { makeChart, drawAxes, drawGrid, axisLabels } from '../../assets/js/chart.js';
+import { makeChart, drawAxes, drawGrid, axisLabels, spread } from '../../assets/js/chart.js';
 
 export function initSeparableWidget(data) {
   const kEl = document.querySelector('#sep-k');
@@ -26,7 +26,9 @@ export function initSeparableWidget(data) {
   const y = d3.scaleLinear().domain([0, 1]).range([h, 0]);
   drawGrid(g, x, y, w, h, { xTicks: 5, yTicks: 5 });
   drawAxes(g, x, y, w, h, { xTicks: 5, yTicks: 5, xFmt: d3.format('d'), yFmt: d3.format('.0%') });
-  axisLabels(g, w, h, { x: 'channels in and out', y: 'separable cost, as a share of dense' });
+  /* a rotated label budgets against the panel height (340 here), and the long
+     form measured 322px: it clipped at the top by a few pixels */
+  axisLabels(g, w, h, { x: 'channels in and out', y: 'share of the dense cost' });
 
   const curves = g.append('g');
   const marker = g.append('circle').attr('r', 6).attr('fill', 'var(--primary)');
@@ -50,16 +52,22 @@ export function initSeparableWidget(data) {
       .attr('stroke-width', (d) => (d.kk === k ? 2.6 : 1.4))
       .attr('d', (d) => d3.line().x((c) => x(c)).y((c) => y(ratio(d.kk, c)))(d.pts));
 
+    /* One class only: a second .attr('class') used to overwrite 'klab', so
+       every redraw appended four fresh labels on top of the old ones. And the
+       three big-kernel curves end within 5px of each other at the right edge,
+       so the labels go through spread() before they are placed. */
+    const labelRows = spread(
+      [3, 5, 7, 9].map((kk) => ({ kk, y: y(ratio(kk, CH[CH.length - 1])) + 4 })), 13,
+    );
     curves.selectAll('.klab')
-      .data([3, 5, 7, 9])
+      .data(labelRows, (d) => d.kk)
       .join('text')
       .attr('class', 'klab')
       .attr('x', w + 8)
-      .attr('y', (kk) => y(ratio(kk, CH[CH.length - 1])) + 4)
-      .attr('class', 'annotation')
+      .attr('y', (d) => d.y)
       .style('font-size', '11px')
-      .style('fill', (kk) => (kk === k ? 'var(--primary)' : '#8a94a6'))
-      .text((kk) => `${kk}×${kk}, floor 1/${kk * kk}`);
+      .style('fill', (d) => (d.kk === k ? 'var(--primary)' : '#8a94a6'))
+      .text((d) => `${d.kk}×${d.kk}, floor 1/${d.kk * d.kk}`);
 
     marker.attr('cx', x(C)).attr('cy', y(ratio(k, C)));
 
