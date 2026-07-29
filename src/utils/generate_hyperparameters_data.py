@@ -254,7 +254,7 @@ def search_compare(cv, test, seeds, budgets):
             w = int(np.argmax(cv[ii, jj]))
             rc.append(float(cv[ii[w], jj[w]]))
             rt.append(float(test[ii[w], jj[w]]))
-        rows.append(dict(budget=len(pts), asked=b,
+        rows.append(dict(budget=len(pts),
                          grid_cv=grid_cv, grid_test=grid_test,
                          rand_cv=float(np.mean(rc)), rand_test=float(np.mean(rt)),
                          rand_test_sd=float(np.std(rt)),
@@ -355,19 +355,25 @@ def _erf(x):
     return sign * y
 
 
-def _hits(traces, target):
+def _hits(traces, target, first=1):
     """Evaluaciones hasta alcanzar el objetivo, y cuántas tiradas no llegan.
 
     El valor final de una búsqueda es una medida ciega cuando casi cualquier
     tirada acaba cerca del óptimo: lo que separa a dos buscadores es en cuántas
     evaluaciones llegan, y eso hay que contarlo con las que no llegan aparte, o
     la media es una media sobre tiradas censuradas.
+
+    `first` es cuántas evaluaciones ha gastado ya la traza en su primera
+    entrada, y es imprescindible: la del proceso gaussiano empieza **después**
+    de sus cinco puntos iniciales al azar, así que contando posiciones de array
+    salía una mediana de 1 evaluación contra 5 del sorteo ciego, que es una
+    ventaja de cinco evaluaciones regalada por el índice de una lista.
     """
     n, done = [], 0
     for tr in traces:
         w = np.where(np.array(tr) >= target)[0]
         if len(w):
-            n.append(int(w[0]) + 1)
+            n.append(int(w[0]) + first)
             done += 1
     return dict(median=float(np.median(n)) if n else None,
                 mean=float(np.mean(n)) if n else None,
@@ -389,7 +395,7 @@ def stage_gp(cv, test, floor_sd):
         arms[tag] = dict(trace=np.mean(traces, 0).tolist(),
                          test=float(np.mean(tests)), test_sd=float(np.std(tests)),
                          cv=float(np.mean(cvs)), noise=float(noise),
-                         hits=_hits(traces, target))
+                         hits=_hits(traces, target, first=GP_INIT))
     rand_tr, rand_te, rand_cv = [], [], []
     for s in range(GP_SEEDS):
         rng = np.random.default_rng(SEED + 5000 + s)
@@ -446,8 +452,7 @@ def stage_halving(X, y, Xte, yte, surf):
         rows.append(dict(frac=f, n=int(len(y) * f),
                          spearman=float(_spearman(scores[fi], full)),
                          top1_kept=bool(int(np.argmax(scores[fi])) == int(np.argmax(full))),
-                         top_half_kept=float(_overlap(scores[fi], full, len(cfgs) // 2)),
-                         mean=float(scores[fi].mean())))
+                         top_half_kept=float(_overlap(scores[fi], full, len(cfgs) // 2))))
     # el ahorro exacto de halving, contado en filas por candidato
     survivors, cost_halving = list(range(len(cfgs))), 0
     for fi, f in enumerate(fracs):
@@ -504,9 +509,7 @@ def stage_curse(cv, cv2, test, trials=4000):
     honest = float((flat_cv - flat_te).mean())
     return dict(rows=rows, trials=trials, honest_gap=honest,
                 honest_selection=float((flat_cv - flat_2).mean()),
-                pair_sd=float((flat_cv - flat_2).std()),
-                best_cv=float(flat_cv.max()), best_test=float(flat_te.max()),
-                oracle=float(flat_te[int(np.argmax(flat_cv))]))
+                pair_sd=float((flat_cv - flat_2).std()))
 
 
 def main():
@@ -538,7 +541,7 @@ def main():
     forest["test"] = ftest.tolist()
 
     print("  4/6 el proceso gaussiano")
-    gp = cached("gp2", lambda: stage_gp(cv, test, floor["cv_sd"]))
+    gp = cached("gp3", lambda: stage_gp(cv, test, floor["cv_sd"]))
 
     print("  5/6 detenerse pronto")
     halving = cached("halving", lambda: stage_halving(Xtr, ytr, Xte, yte, surf))
@@ -585,13 +588,12 @@ def main():
         compare=dict(svm=[{k: r(v) for k, v in row.items()} for row in svm_rows],
                      forest=[{k: r(v) for k, v in row.items()} for row in forest_rows],
                      flattened=[{k: r(v) for k, v in row.items()} for row in flat_rows],
-                     flat_importance=r(flat_imp),
-                     flat_note="the same 961 measured scores with the C axis "
-                               "replaced by its own column maximum, so that axis "
-                               "moves nothing and the other keeps its shape"),
+                     flat_importance=r(flat_imp)),
         gp=dict(budget=gp["budget"], init=gp["init"], seeds=gp["seeds"],
-                best_cv=r(gp["best_cv"]), best_test=r(gp["best_test"]),
-                oracle_test=r(gp["oracle_test"]),
+                best_cv=r(gp["best_cv"]),
+                oracle_test=r(gp["oracle_test"]), target=r(gp["target"]),
+                near_optimal=r(gp["near_optimal"]),
+                expected_draws=r(gp["expected_draws"]),
                 arms={k: {kk: (r(vv) if kk != "trace" else r(vv, 5))
                           for kk, vv in v.items()} for k, v in gp["arms"].items()}),
         halving=dict(fracs=r(halving["fracs"], 3), configs=halving["configs"],
@@ -603,8 +605,8 @@ def main():
                      cost_halving=r(halving["cost_halving"]),
                      cost_full=r(halving["cost_full"]), saving=r(halving["saving"])),
         curse=dict(trials=curse["trials"], honest_gap=r(curse["honest_gap"]),
-                   best_cv=r(curse["best_cv"]), best_test=r(curse["best_test"]),
-                   oracle=r(curse["oracle"]),
+                   honest_selection=r(curse["honest_selection"]),
+                   pair_sd=r(curse["pair_sd"]),
                    rows=[{k: r(v) for k, v in row.items()} for row in curse["rows"]]),
     )
     path = OUT / "hyperparameters.json"

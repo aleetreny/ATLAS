@@ -124,7 +124,11 @@ export function initBayesWidget(data) {
       + `<span class="bold">${(G.near_optimal * 100).toFixed(1)}%</span> of the cells are `
       + `already within one fold to fold wobble of the best, so a blind draw expects to `
       + `hit one in ${G.expected_draws.toFixed(1)} tries. There is very little for a `
-      + `smarter search to win.</div>`;
+      + `smarter search to win: a search that always found the best cell by cross `
+      + `validation would land on ${G.oracle_test.toFixed(4)} held out, `
+      + `${gpBest > G.oracle_test ? 'below' : 'above'} what these two reach, because the `
+      + `cell with the best cross validated score is not the cell with the best held out `
+      + `one.</div>`;
   }
 
   render();

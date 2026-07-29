@@ -23,7 +23,11 @@ export function initSearchWidget(data) {
     svm: { rows: C.svm, size: data.surface.cv.length, name: 'the kernel machine',
       importance: data.surface.importance },
     forest: { rows: C.forest, size: data.forest.cv.length, name: 'the forest',
-      importance: data.forest.importance },
+      importance: data.forest.importance,
+      axes: [`depth ${data.forest.depth[0]} to `
+        + `${data.forest.depth[data.forest.depth.length - 1]}`,
+      `${data.forest.feats[0]} to `
+        + `${data.forest.feats[data.forest.feats.length - 1]} columns per split`] },
     flattened: { rows: C.flattened, size: data.surface.cv.length,
       name: 'one axis switched off', importance: C.flat_importance },
   };
@@ -115,7 +119,16 @@ export function initSearchWidget(data) {
           + `${diff > 0 ? 'the random draw' : 'the lattice'}.`)
       + ` Switching one dial off matters more than switching method: on this surface the `
       + `first dial moves the best reachable score by ${S.importance.axis0.toFixed(3)} and `
-      + `the second by ${S.importance.axis1.toFixed(3)}.</div>`;
+      + `the second by ${S.importance.axis1.toFixed(3)}`
+      + (S.axes ? ` (${S.axes.join(' and ')})` : '')
+      + `. On the score that chose them, which is the one a search actually sees, the `
+      + `lattice reads ${row.grid_cv.toFixed(4)} and the average random draw reads `
+      + `${row.rand_cv.toFixed(4)}: `
+      + (row.rand_cv > row.grid_cv
+        ? `the random draw looks better there than it turns out to be, which is the `
+          + `winner's curse of the last section showing up in a comparison.`
+        : `the two agree about as well there as they do on the held out rows.`)
+      + `</div>`;
   }
 
   sync();

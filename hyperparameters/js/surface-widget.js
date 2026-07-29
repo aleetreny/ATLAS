@@ -129,8 +129,10 @@ export function initSurfaceWidget(data) {
       + `${(bestCv - cv).toFixed(4)} below it, `
       + (near
         ? `which is inside the ${F.cv_sd.toFixed(4)} that the same cell moves when the `
-          + `folds are drawn again: this configuration and the winner are the same `
-          + `configuration as far as this measurement can say.`
+          + `folds are drawn again (over ${F.repeats} redraws of one probed cell the score `
+          + `ran from ${F.rows[0].cv_lo.toFixed(4)} to ${F.rows[0].cv_hi.toFixed(4)}): this `
+          + `configuration and the winner are the same configuration as far as this `
+          + `measurement can say.`
         : `against a fold to fold wobble of ${F.cv_sd.toFixed(4)}, so the difference `
           + `is real.`)
       + ` Click any cell to move the ring.</div>`;

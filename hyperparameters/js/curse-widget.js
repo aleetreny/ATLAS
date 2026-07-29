@@ -98,9 +98,14 @@ export function initCurseWidget(data) {
       + `<span class="bold">${wide.selection >= 0 ? '+' : ''}${wide.selection.toFixed(4)}</span>, `
       + `is the winner's curse with nothing else mixed in: it is the part of the winning `
       + `score that was luck in the fold draw. At ${mid.b} configurations it is `
-      + `${mid.selection >= 0 ? '+' : ''}${mid.selection.toFixed(4)}. `
+      + `${mid.selection >= 0 ? '+' : ''}${mid.selection.toFixed(4)}. Taken over all the `
+      + `cells rather than over the winners it averages `
+      + `${C.honest_selection >= 0 ? '+' : ''}${C.honest_selection.toFixed(4)}, which is `
+      + `what it should be, with a spread of ${C.pair_sd.toFixed(4)} cell to cell: the `
+      + `selection is not adding noise, it is picking the top of it. `
       + `Against the held out set the same pick shows `
-      + `${wide.gap >= 0 ? '+' : ''}${wide.gap.toFixed(4)}, `
+      + `${wide.gap >= 0 ? '+' : ''}${wide.gap.toFixed(4)} with a spread of `
+      + `${wide.gap_sd.toFixed(4)} over the ${C.trials.toLocaleString('en-US')} draws, `
       + (wide.gap < 0
         ? `which has the opposite sign, because cross validation trains on fewer rows than `
           + `the final fit and that makes it pessimistic by `

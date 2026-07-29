@@ -103,7 +103,9 @@ export function initHalvingWidget(data) {
       + `${H.rows.map((r) => r.n).join(', ')} training rows. At the cheapest budget the `
       + `order already agrees with the expensive one to a rank correlation of `
       + `<span class="bold">${cheap.spearman.toFixed(3)}</span>, and `
-      + `${(cheap.top_half_kept * 100).toFixed(0)}% of the top half survives. `
+      + `${(cheap.top_half_kept * 100).toFixed(0)}% of the top half survives; the eventual `
+      + `winner is already top of the list at `
+      + `${H.rows.filter((r) => r.top1_kept).length} of the ${H.rows.length} budgets. `
       + `Halving spends the equivalent of ${H.cost_halving.toFixed(0)} full evaluations `
       + `instead of ${H.cost_full.toFixed(0)}, a factor of ${H.saving.toFixed(2)}, and `
       + (same
