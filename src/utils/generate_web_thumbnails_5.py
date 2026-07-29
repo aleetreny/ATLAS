@@ -117,9 +117,45 @@ def thumb_genetic_algorithms():
     write("genetic-algorithms", body)
 
 
+# ---------------------------------------------------------------------------
+def thumb_annealing_swarm():
+    """El anillo de energias con las visitas de la cadena que enfria debajo."""
+    accent = "#994573"
+    d = load("annealing-swarm", "anneal")
+    e = d["boltzmann"]["energy"]
+    path = d["reference"]["path"]
+    n = len(e)
+    counts = [0] * n
+    for s in path:
+        counts[s] += 1
+    top = max(counts)
+    pad, base = 26, 262
+    sx = (W - 2 * pad) / (n - 1)
+    hi = max(e)
+    ey = lambda v: round(base - 132 * (v / hi) - 66)
+    curve = " ".join(f"{round(pad + i * sx)},{ey(v)}" for i, v in enumerate(e))
+    bars = "".join(
+        f'<rect x="{round(pad + i * sx - sx * 0.42)}" '
+        f'y="{round(base - 84 * (c / top))}" width="{max(2, round(sx * 0.84))}" '
+        f'height="{round(84 * (c / top))}" />'
+        for i, c in enumerate(counts) if c)
+    # La miniatura existe para ensenar que la cadena se concentra donde la
+    # energia es baja: si eso deja de ser verdad, la imagen deja de decirlo.
+    low = sorted(range(n), key=lambda i: e[i])[: n // 4]
+    share = sum(counts[i] for i in low) / sum(counts)
+    assert share > 0.5, f"la cadena solo pasa el {share:.0%} en el cuarto mas bajo"
+    body = (f'  <g fill="{accent}" fill-opacity="0.3">{bars}</g>\n'
+            f'  <polyline points="{curve}" fill="none" stroke="{accent}" '
+            f'stroke-width="3" />\n'
+            f'  <line x1="{pad}" y1="{base}" x2="{W - pad}" y2="{base}" '
+            f'stroke="{GREY}" stroke-width="1.5" />\n')
+    write("annealing-swarm", body)
+
+
 THUMBS = {
     "linear-programming": thumb_linear_programming,
     "genetic-algorithms": thumb_genetic_algorithms,
+    "annealing-swarm": thumb_annealing_swarm,
 }
 
 
