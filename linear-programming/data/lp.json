@@ -1,0 +1,675 @@
+{
+ "meta": {
+  "seed": 58,
+  "solver": "HiGHS",
+  "scipy": "1.17.1",
+  "note": "every count on this page is a count, not a clock: pivots, nodes and vertices are the same on any machine"
+ },
+ "polytope": {
+  "rows": [
+   {
+    "a": [
+     6.0,
+     4.0
+    ],
+    "b": 24.0,
+    "name": "lathe hours"
+   },
+   {
+    "a": [
+     1.0,
+     2.0
+    ],
+    "b": 6.0,
+    "name": "press hours"
+   },
+   {
+    "a": [
+     -1.0,
+     1.0
+    ],
+    "b": 1.0,
+    "name": "mix rule"
+   },
+   {
+    "a": [
+     0.0,
+     1.0
+    ],
+    "b": 2.0,
+    "name": "steel, tonnes"
+   }
+  ],
+  "profit": [
+   5.0,
+   4.0
+  ],
+  "vertices": [
+   {
+    "x": -0.0,
+    "y": 1.0,
+    "value": 4.0,
+    "active": [
+     2,
+     4
+    ]
+   },
+   {
+    "x": -0.0,
+    "y": -0.0,
+    "value": 0.0,
+    "active": [
+     4,
+     5
+    ]
+   },
+   {
+    "x": 4.0,
+    "y": -0.0,
+    "value": 20.0,
+    "active": [
+     0,
+     5
+    ]
+   },
+   {
+    "x": 3.0,
+    "y": 1.5,
+    "value": 21.0,
+    "active": [
+     0,
+     1
+    ]
+   },
+   {
+    "x": 2.0,
+    "y": 2.0,
+    "value": 18.0,
+    "active": [
+     1,
+     3
+    ]
+   },
+   {
+    "x": 1.0,
+    "y": 2.0,
+    "value": 13.0,
+    "active": [
+     2,
+     3
+    ]
+   }
+  ],
+  "pairs": 15,
+  "singular": 1,
+  "feasible_hits": 6,
+  "n_vertices": 6,
+  "best_index": 3,
+  "solver_x": [
+   3.0,
+   1.5
+  ],
+  "solver_value": 21.0,
+  "solver_iterations": 2,
+  "solver_matches_corner": true
+ },
+ "corner": {
+  "instances": 1000,
+  "unbounded": 0,
+  "worst_gap": 0.0,
+  "ties": 0,
+  "mean_vertices": 3.57,
+  "max_vertices": 5
+ },
+ "dial": {
+  "steps": 720,
+  "distinct_owners": 6,
+  "owner": [
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   2,
+   2,
+   2,
+   2,
+   2,
+   2,
+   2,
+   2,
+   2,
+   2,
+   2,
+   2,
+   2,
+   2,
+   3,
+   3,
+   3,
+   3,
+   3,
+   3,
+   3,
+   3,
+   3,
+   3,
+   3,
+   3,
+   3,
+   3,
+   3,
+   3,
+   3,
+   3,
+   3,
+   3,
+   3,
+   3,
+   4,
+   4,
+   4,
+   4,
+   4,
+   4,
+   4,
+   4,
+   4,
+   4,
+   4,
+   4,
+   4,
+   4,
+   4,
+   4,
+   4,
+   4,
+   4,
+   4,
+   4,
+   4,
+   4,
+   5,
+   5,
+   5,
+   5,
+   5,
+   5,
+   5,
+   5,
+   5,
+   5,
+   5,
+   5,
+   5,
+   5,
+   5,
+   5,
+   5,
+   5,
+   5,
+   5,
+   5,
+   5,
+   5,
+   5,
+   5,
+   5,
+   5,
+   5,
+   5,
+   5,
+   5,
+   5,
+   5,
+   5,
+   5,
+   5,
+   5,
+   5,
+   5,
+   5,
+   5,
+   5,
+   5,
+   5,
+   5,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1
+  ],
+  "owner_stride": 4,
+  "switch_angles": [
+   33.690067526,
+   63.434948823,
+   90.0,
+   135.0,
+   180.0,
+   270.0
+  ],
+  "predicted_angles": [
+   33.690068,
+   63.434949,
+   90.0,
+   135.0,
+   180.0,
+   270.0
+  ],
+  "worst_switch_error_deg": 0.0,
+  "resolution_deg": 0.5,
+  "tie_angle": 33.690068,
+  "tie_gap": 1e-12
+ },
+ "simplex": {
+  "path": [
+   {
+    "x": 0.0,
+    "y": 0.0,
+    "value": 0.0
+   },
+   {
+    "x": 4.0,
+    "y": 0.0,
+    "value": 20.0
+   },
+   {
+    "x": 3.0,
+    "y": 1.5,
+    "value": 21.0
+   }
+  ],
+  "pivots": 2,
+  "value": 21.0,
+  "value_highs": 21.0,
+  "agrees_with_highs": true,
+  "n_vertices": 6,
+  "random": {
+   "instances": 200,
+   "dims": 4,
+   "constraints": 10,
+   "mean_pivots": 2.15,
+   "max_pivots": 5,
+   "mean_vertices": 10.47,
+   "max_vertices": 20,
+   "ratio": 4.86
+  },
+  "klee_minty": [
+   {
+    "n": 2,
+    "vertices": 4,
+    "dantzig": 3,
+    "bland": 3,
+    "highs": 1,
+    "highs_presolve": 0,
+    "predicted": 3,
+    "value": 100.0,
+    "highs_value": 100.0,
+    "agree": true
+   },
+   {
+    "n": 3,
+    "vertices": 8,
+    "dantzig": 7,
+    "bland": 5,
+    "highs": 1,
+    "highs_presolve": 0,
+    "predicted": 7,
+    "value": 10000.0,
+    "highs_value": 10000.0,
+    "agree": true
+   },
+   {
+    "n": 4,
+    "vertices": 16,
+    "dantzig": 15,
+    "bland": 9,
+    "highs": 1,
+    "highs_presolve": 0,
+    "predicted": 15,
+    "value": 1000000.0,
+    "highs_value": 1000000.0,
+    "agree": true
+   },
+   {
+    "n": 5,
+    "vertices": 32,
+    "dantzig": 31,
+    "bland": 15,
+    "highs": 3,
+    "highs_presolve": 0,
+    "predicted": 31,
+    "value": 100000000.0,
+    "highs_value": 100000000.0,
+    "agree": true
+   },
+   {
+    "n": 6,
+    "vertices": 64,
+    "dantzig": 63,
+    "bland": 25,
+    "highs": 3,
+    "highs_presolve": 0,
+    "predicted": 63,
+    "value": 10000000000.0,
+    "highs_value": 10000000000.0,
+    "agree": true
+   },
+   {
+    "n": 7,
+    "vertices": 128,
+    "dantzig": 127,
+    "bland": 41,
+    "highs": 1,
+    "highs_presolve": 0,
+    "predicted": 127,
+    "value": 1000000000000.0,
+    "highs_value": 1000000000000.0,
+    "agree": true
+   },
+   {
+    "n": 8,
+    "vertices": 256,
+    "dantzig": 255,
+    "bland": 67,
+    "highs": 1,
+    "highs_presolve": 0,
+    "predicted": 255,
+    "value": 100000000000000.0,
+    "highs_value": 100000000000000.0,
+    "agree": true
+   }
+  ]
+ },
+ "duals": {
+  "rows": [
+   {
+    "name": "lathe hours",
+    "b": 24.0,
+    "shadow": 0.75,
+    "finite_difference": 0.75,
+    "gap": 2e-09,
+    "slack": 0.0,
+    "valid_up_to": 12.0,
+    "predicted_at_beyond": 35.25,
+    "actual_at_beyond": 30.0,
+    "beyond": 19.0
+   },
+   {
+    "name": "press hours",
+    "b": 6.0,
+    "shadow": 0.5,
+    "finite_difference": 0.5,
+    "gap": 1e-09,
+    "slack": 0.0,
+    "valid_up_to": 0.667,
+    "predicted_at_beyond": 22.0,
+    "actual_at_beyond": 21.3333,
+    "beyond": 2.0
+   },
+   {
+    "name": "mix rule",
+    "b": 1.0,
+    "shadow": 0.0,
+    "finite_difference": 0.0,
+    "gap": 0.0,
+    "slack": 2.5,
+    "valid_up_to": 64.0,
+    "predicted_at_beyond": 21.0,
+    "actual_at_beyond": 21.0,
+    "beyond": 97.0
+   },
+   {
+    "name": "steel, tonnes",
+    "b": 2.0,
+    "shadow": 0.0,
+    "finite_difference": 0.0,
+    "gap": 0.0,
+    "slack": 0.5,
+    "valid_up_to": 64.0,
+    "predicted_at_beyond": 21.0,
+    "actual_at_beyond": 21.0,
+    "beyond": 97.0
+   }
+  ],
+  "objective": 21.0,
+  "dual_objective": 21.0,
+  "duality_gap": 0.0,
+  "worst_shadow_gap": 2e-09
+ },
+ "integers": {
+  "knapsack": {
+   "instances": 300,
+   "n_items": 30,
+   "mean_gap": 0.00392,
+   "max_gap": 0.01027,
+   "mean_rounded_loss": 0.02817,
+   "max_rounded_loss": 0.10092,
+   "rounded_optimal": 28,
+   "integral_relaxations": 15,
+   "integral_of": 300
+  },
+  "nodes": [
+   {
+    "n": 10,
+    "brute_force": 1024,
+    "with_bound": 297,
+    "without_bound": 1234,
+    "saving": 4.1,
+    "instances": 12
+   },
+   {
+    "n": 14,
+    "brute_force": 16384,
+    "with_bound": 933,
+    "without_bound": 18682,
+    "saving": 20.0,
+    "instances": 12
+   },
+   {
+    "n": 18,
+    "brute_force": 262144,
+    "with_bound": 2127,
+    "without_bound": 308676,
+    "saving": 145.1,
+    "instances": 12
+   },
+   {
+    "n": 22,
+    "brute_force": 4194304,
+    "with_bound": 4423,
+    "without_bound": null,
+    "saving": null,
+    "instances": 12
+   },
+   {
+    "n": 26,
+    "brute_force": 67108864,
+    "with_bound": 8868,
+    "without_bound": null,
+    "saving": null,
+    "instances": 12
+   },
+   {
+    "n": 30,
+    "brute_force": 1073741824,
+    "with_bound": 12685,
+    "without_bound": null,
+    "saving": null,
+    "instances": 12
+   }
+  ],
+  "assignment": {
+   "instances": 400,
+   "size": 6,
+   "integral": 400,
+   "worst_distance_to_integer": 0.0
+  },
+  "cycles": [
+   {
+    "n": 3,
+    "lp": 1.5,
+    "ip": 2.0,
+    "ratio": 1.3333,
+    "all_half": true
+   },
+   {
+    "n": 5,
+    "lp": 2.5,
+    "ip": 3.0,
+    "ratio": 1.2,
+    "all_half": true
+   },
+   {
+    "n": 7,
+    "lp": 3.5,
+    "ip": 4.0,
+    "ratio": 1.1429,
+    "all_half": true
+   },
+   {
+    "n": 9,
+    "lp": 4.5,
+    "ip": 5.0,
+    "ratio": 1.1111,
+    "all_half": true
+   }
+  ]
+ },
+ "demo": {
+  "n": 12,
+  "weights": [
+   13,
+   20,
+   19,
+   13,
+   8,
+   5,
+   4,
+   9,
+   13,
+   19,
+   20,
+   5
+  ],
+  "values": [
+   19,
+   24,
+   16,
+   9,
+   8,
+   6,
+   5,
+   7,
+   19,
+   22,
+   22,
+   7
+  ],
+  "capacity": 66.0,
+  "order": [
+   0,
+   8,
+   11,
+   6,
+   1,
+   5,
+   9,
+   10,
+   4,
+   2,
+   7,
+   3
+  ],
+  "lp_bound": 86.947,
+  "lp_x": [
+   1.0,
+   1.0,
+   0.0,
+   0.0,
+   0.0,
+   1.0,
+   1.0,
+   0.0,
+   1.0,
+   0.315789,
+   0.0,
+   1.0
+  ],
+  "optimum": 84.0,
+  "milp_optimum": 84.0,
+  "milp_nodes": 1,
+  "bb_nodes": 425,
+  "bb_nodes_no_bound": 3977,
+  "brute_force": 4096,
+  "gap": 0.03509,
+  "agrees": true
+ }
+}

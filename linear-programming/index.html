@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Where the Answer Has to Be | ATLAS</title>
+  <meta name="description" content="A visual, interactive introduction to linear programming and mixed integer programming: every corner of a polytope enumerated by brute force, an objective dial that makes the optimum jump between them, the simplex walk drawn edge by edge, the cube where the textbook pivot rule visits every corner, shadow prices checked against re-solving, and what asking for whole numbers costs." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/linear-programming/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="Where the Answer Has to Be | ATLAS" />
+  <meta property="og:description" content="A visual, interactive introduction to linear programming and mixed integer programming: every corner of a polytope enumerated by brute force, an objective dial that makes the optimum jump between them, the simplex walk drawn edge by edge, shadow prices checked against re-solving, and what asking for whole numbers costs." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/linear-programming/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Where the Answer Has to Be | ATLAS" />
+  <meta name="twitter:description" content="A visual, interactive introduction to linear programming and mixed integer programming: every corner of a polytope enumerated by brute force, an objective dial that makes the optimum jump between them, the simplex walk drawn edge by edge, shadow prices checked against re-solving, and what asking for whole numbers costs." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    :root {
+      --primary: #674599;
+      --secondary: #52377a;
+    }
+    .narrow-widget {
+      max-width: 880px;
+    }
+    .gen-table {
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      margin-top: 0.4rem;
+      width: 100%;
+    }
+    .gen-table th,
+    .gen-table td {
+      padding: 4px 10px 4px 0;
+      text-align: left;
+      font-weight: 400;
+      white-space: nowrap;
+    }
+    .gen-table th {
+      font-family: var(--font-heavy);
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .gen-table td:first-child,
+    .gen-table th:first-child {
+      opacity: 0.75;
+    }
+    .gen-table td:last-child,
+    .gen-table th:last-child {
+      white-space: normal;
+    }
+    .gen-note {
+      margin-top: 0.6rem;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+    .slider-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+      margin: 0.2rem 0 0.6rem;
+      font-family: var(--font-mono);
+      font-size: 13px;
+    }
+    .slider-row input[type="range"] {
+      width: 240px;
+      accent-color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <section id="intro">
+    <h1 id="intro-hed">Where the Answer Has to Be</h1>
+    <h1 id="intro-sub">A straight objective over a flat-sided region cannot have its best point in the middle of anything. That turns a search over infinitely many plans into a search over a finite list of corners, and then the whole subject is about a list nobody can afford to read</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 5.1 · Optimization · Linear Programming and MILP</span>
+  </section>
+
+  <br />
+
+  <section>
+    <p class="body-text">
+      Every article of this atlas so far has fitted something: a line, a tree, a
+      network, a distribution. This module changes the question. Nothing here is
+      estimated from data, because the answer is not uncertain; it is unknown,
+      which is a different problem. A workshop knows exactly how many hours its
+      lathe has. What it does not know is what to build with them.
+    </p>
+    <br />
+    <p class="body-text" id="opening-note"></p>
+  </section>
+
+  <section>
+    <h1 class="body-header">Two Products and Four Limits</h1>
+    <p class="body-text" id="setup-intro"></p>
+    <p class="body-text">
+      $$ \max_{x,\,y \ \ge\  0} \ 5x + 4y \quad \text{subject to} \quad
+         6x + 4y \le 24, \quad x + 2y \le 6, \quad -x + y \le 1, \quad y \le 2 $$
+    </p>
+    <p class="body-text" id="setup-note"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="dial-widget">
+    <div class="slider-row">
+      <label for="dial-angle">objective direction</label>
+      <input type="range" id="dial-angle" min="0" max="359" step="1" value="38"
+             aria-label="direction of the objective, in degrees" />
+      <span class="slider-label"><span class="value" id="dial-angle-label"></span></span>
+      <button class="atlas-btn ghost" id="dial-profit">back to the real profits</button>
+    </div>
+    <div id="dial-chart"></div>
+    <div class="widget-readout" id="dial-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="dial-note"></p>
+    <br />
+    <p class="body-text" id="corner-claim"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">The Walk Along the Edges</h1>
+    <p class="body-text" id="scrolly-intro"></p>
+  </section>
+
+  <section id="simplex-scrolly" class="scrolly">
+    <div class="scrolly-container">
+      <div class="steps-container">
+        <div class="step" data-index="0">
+          <div class="step-content">
+            <h3>Start Where Nothing Is Built</h3>
+            <p id="scrolly-step-0"></p>
+          </div>
+        </div>
+        <div class="step" data-index="1">
+          <div class="step-content">
+            <h3>Follow the Steepest Edge</h3>
+            <p id="scrolly-step-1"></p>
+          </div>
+        </div>
+        <div class="step" data-index="2">
+          <div class="step-content">
+            <h3>And Again, Until No Edge Climbs</h3>
+            <p id="scrolly-step-2"></p>
+          </div>
+        </div>
+        <div class="step" data-index="3">
+          <div class="step-content">
+            <h3>The Corners It Never Looked At</h3>
+            <p id="scrolly-step-3"></p>
+          </div>
+        </div>
+        <div class="step-spacer"></div>
+      </div>
+      <div class="charts-container">
+        <div class="chart-wrap" id="simplex-chart"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="body-text" id="simplex-note"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="km-widget">
+    <div class="controls-row" id="km-controls" role="group" aria-label="which pivot rule"></div>
+    <div id="km-chart"></div>
+    <div class="widget-readout" id="km-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="km-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">What One More Hour Is Worth</h1>
+    <p class="body-text" id="dual-intro"></p>
+    <p class="body-text">
+      $$ \min_{u \ \ge\  0} \ b^{\top} u \quad \text{subject to} \quad A^{\top} u \ \ge\  c $$
+    </p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="dual-widget">
+    <div class="controls-row" id="dual-controls" role="group" aria-label="which constraint to loosen"></div>
+    <div class="slider-row">
+      <label for="dual-delta">extra on the right hand side</label>
+      <input type="range" id="dual-delta" min="-40" max="80" step="1" value="0"
+             aria-label="how much to add to the right hand side of the chosen constraint" />
+      <span class="slider-label"><span class="value" id="dual-delta-label"></span></span>
+    </div>
+    <div id="dual-chart"></div>
+    <div class="widget-readout" id="dual-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="dual-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">And Then They Have To Be Whole</h1>
+    <p class="body-text" id="int-intro"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="bb-widget">
+    <div class="controls-row" id="bb-controls" role="group" aria-label="whether to use the bound"></div>
+    <div class="slider-row">
+      <label for="bb-node">nodes opened</label>
+      <input type="range" id="bb-node" min="1" max="60" step="1" value="12"
+             aria-label="how many nodes of the search tree to open" />
+      <span class="slider-label"><span class="value" id="bb-node-label"></span></span>
+    </div>
+    <div id="bb-chart"></div>
+    <div class="widget-readout" id="bb-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="bb-note"></p>
+  </section>
+
+  <section>
+    <h1 class="body-header">When Rounding Is Safe</h1>
+    <p class="body-text" id="round-intro"></p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Family</th>
+          <th>Relaxations that came out whole</th>
+          <th>What the relaxation is worth</th>
+          <th>Why</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">Assignment</span></td>
+          <td id="round-assign-n"></td>
+          <td id="round-assign-val"></td>
+          <td id="round-assign-why"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">Knapsack</span></td>
+          <td id="round-knap-n"></td>
+          <td id="round-knap-val"></td>
+          <td id="round-knap-why"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">Cover an odd cycle</span></td>
+          <td id="round-cycle-n"></td>
+          <td id="round-cycle-val"></td>
+          <td id="round-cycle-why"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="round-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text" id="verdict-intro"></p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>What you have</th>
+          <th>Reach for</th>
+          <th>Why</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">A linear objective and linear limits</span></td>
+          <td>A simplex or interior point solver</td>
+          <td id="verdict-lp"></td>
+          <td id="verdict-lp-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">A price for a resource</span></td>
+          <td>The dual, not a re-run</td>
+          <td id="verdict-dual"></td>
+          <td id="verdict-dual-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">Decisions that are yes or no</span></td>
+          <td>Branch and bound</td>
+          <td id="verdict-mip"></td>
+          <td id="verdict-mip-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">A matching, a flow, an assignment</span></td>
+          <td>Just the relaxation</td>
+          <td id="verdict-tu"></td>
+          <td id="verdict-tu-warn"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="closing-note"></p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! Every corner, pivot and node on this page is recomputed
+      in the browser and checked against the file the generator wrote, and the
+      counts are counts rather than clocks, so they are the same number on any
+      machine. Everything was measured by
+      <code>src/utils/generate_lp_data.py</code>.
+    </p>
+  </section>
+
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text" id="resources-note"></p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://doi.org/10.1515/9781400884179">[1] Linear Programming and Extensions</a><br />
+      (Dantzig, G. B., 1963; the simplex method, and the rule that this page pushes off a cliff)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://doi.org/10.1016/B978-0-12-358350-5.50015-9">[2] How Good Is the Simplex Algorithm?</a><br />
+      (Klee, V. and Minty, G. J., 1972; the deformed cube whose every corner the steepest rule visits, reproduced here to the pivot)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://doi.org/10.1007/BF02579150">[3] A New Polynomial-Time Algorithm for Linear Programming</a><br />
+      (Karmarkar, N., 1984; the interior point method, which crosses the polytope instead of walking its edges)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://doi.org/10.2307/1910129">[4] An Automatic Method of Solving Discrete Programming Problems</a><br />
+      (Land, A. H. and Doig, A. G., 1960; branch and bound, counted here in nodes with the bound switched on and off)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://doi.org/10.1002/nav.3800020109">[5] The Hungarian Method for the Assignment Problem</a><br />
+      (Kuhn, H. W., 1955; the structure that makes a relaxation come out whole on its own)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://ergo-code.github.io/HiGHS/">[6] HiGHS</a><br />
+      (Huangfu, Q. and Hall, J. A. J.; the open solver behind <code>scipy.optimize.linprog</code> and <code>milp</code>, which every number here is checked against)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>
