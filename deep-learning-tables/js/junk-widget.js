@@ -94,7 +94,7 @@ export function initJunkWidget(data) {
       .attr('x', w + 12)
       .attr('y', y(pts[pts.length - 1].value) + 4)
       .attr('fill', s.colour)
-      .style('font-size', '0.62rem')
+      .style('font-size', '0.72rem')
       .style('text-transform', 'none')
       .text(s.label);
   });

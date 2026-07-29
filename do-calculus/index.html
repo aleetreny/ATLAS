@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ask The Graph | ATLAS</title>
+  <meta name="description" content="On a model small enough to compute exactly, every possible adjustment set is enumerated and checked against the true interventional distribution, the front door recovers an effect with the confounder unmeasured, and heterogeneous effects are scored against a tau that was written down." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/do-calculus/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="Ask The Graph | ATLAS" />
+  <meta property="og:description" content="Three articles decided what to adjust for by hand. This one enumerates every possible answer and checks them all against exact arithmetic." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/do-calculus/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Ask The Graph | ATLAS" />
+  <meta name="twitter:description" content="Three articles decided what to adjust for by hand. This one enumerates every possible answer and checks them all against exact arithmetic." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    /* Per-article theme. Everything else inherits from these two. */
+    :root {
+      --primary: #643c85;
+      --secondary: #50306a;
+    }
+  </style>
+</head>
+<body>
+  <!-- ======================= chrome ======================= -->
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <!-- ======================= hero ======================= -->
+  <section id="intro">
+    <h1 id="intro-hed">Ask The Graph</h1>
+    <h1 id="intro-sub">Three articles chose what to control for by hand. On a model small enough to compute exactly, every possible choice can be enumerated and checked, and then the harder question is who the treatment helps</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 7.1 &middot; Causal Inference &middot; Ask The Graph</span>
+  </section>
+
+  <br />
+
+  <!-- ======================= introduction ======================= -->
+  <section>
+    <p class="body-text" id="intro-byhand">
+      Every method in this branch so far has needed somebody to decide what to
+      adjust for.
+    </p>
+    <br />
+    <p class="body-text" id="intro-exact">
+      Make the model small enough and that stops being a matter of opinion.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= every adjustment set ======================= -->
+  <section>
+    <h1 class="body-header">Sixteen Answers, Two Of Them Right</h1>
+    <p class="body-text" id="sets-intro">
+      Here is a graph with six binary variables in it.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="sets-widget">
+    <div class="controls-row" style="justify-content: center" id="sets-views"></div>
+    <div id="sets-chart"></div>
+    <div class="widget-readout" id="sets-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="sets-note">
+      The graphical criterion and the arithmetic agree on every one of the
+      sixteen.
+    </p>
+    <br />
+    <p class="body-text" id="sets-random">
+      One graph is an example. The habit is worth measuring.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the three rules ======================= -->
+  <section>
+    <h1 class="body-header">Rules That Either Hold Or Do Not</h1>
+    <p class="body-text" id="rules-intro">
+      The criterion above is a special case of three rules for rewriting
+      expressions that contain an intervention.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table" id="rules-table">
+      <thead>
+        <tr>
+          <th>Rule</th>
+          <th>Case</th>
+          <th>Its condition</th>
+          <th>Difference between the two sides</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="rules-note">
+      Those residuals are the point of the table.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the front door ======================= -->
+  <section>
+    <h1 class="body-header">A Confounder Nobody Measured</h1>
+    <p class="body-text" id="front-intro">
+      The instrument article gave up on the confounder and reached outside the
+      system for a lever. There is another way out, and it needs nothing from
+      outside.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="front-widget">
+    <div class="controls-row" style="justify-content: center" id="front-views"></div>
+    <div id="front-chart"></div>
+    <div class="widget-readout" id="front-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="front-note">
+      Nothing about that is a trick of the numbers.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= heterogeneity ======================= -->
+  <section>
+    <h1 class="body-header">Not How Much, But For Whom</h1>
+    <p class="body-text" id="het-intro">
+      Everything up to here has estimated one number for a whole population.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="het-widget">
+    <div class="controls-row" style="justify-content: center" id="het-views"></div>
+    <div id="het-chart"></div>
+    <div class="widget-readout" id="het-readout"></div>
+  </div>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table" id="het-table">
+      <thead>
+        <tr>
+          <th>Method</th>
+          <th>Error against the true effect</th>
+          <th>Spread between seeds</th>
+          <th>Correlation with the truth</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="het-centre">
+      The two rows that matter are the two causal forests.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= verdict ======================= -->
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text">
+      What the graph decides, what it cannot decide, and what changes when the
+      question stops being about an average.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Question</th>
+          <th>How it gets answered</th>
+          <th>Measured here</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">What do I adjust for?</span></td>
+          <td>A graphical criterion, checked against exact arithmetic</td>
+          <td id="v-sets">Measured above.</td>
+          <td id="v-sets-watch">Adjusting for everything available is a different rule, and it is not the same one.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">What if there is no valid set?</span></td>
+          <td>Two steps through a mediator instead of one step around</td>
+          <td id="v-front">Measured above.</td>
+          <td id="v-front-watch">It needs its own assumptions, and they are as untestable as the others.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Who does it help?</span></td>
+          <td>A forest that splits on the effect rather than on the outcome</td>
+          <td id="v-het">Measured above.</td>
+          <td id="v-het-watch">Without residualising first, the same forest inherits the confounding.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Is any of this testable?</span></td>
+          <td>The graph is an input; the arithmetic on top of it is not in doubt</td>
+          <td id="v-test">Measured above.</td>
+          <td id="v-test-watch">Everything on this page is exact given the graph, and the graph is still a claim about the world.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="closing-1">
+      This article can compute things the other three could only assume.
+    </p>
+    <br />
+    <p class="body-text" id="closing-2">
+      That is the end of this branch, and the beginning of the next question.
+    </p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! Everything above was measured rather than cited: the
+      interventional distribution is computed by deleting a factor from the
+      product and summing over every assignment, so it is arithmetic and not
+      simulation; every subset of the observed variables is enumerated and
+      scored against it; the backdoor criterion is implemented as a search over
+      the graph and compared with that list; and the heterogeneous effects are
+      scored against a function that was written before any data existed, from
+      <code>src/utils/generate_docalculus_data.py</code>.
+    </p>
+  </section>
+
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text" id="ref-note">
+      Everything discrete on this page is exact.
+    </p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://academic.oup.com/biomet/article/82/4/669/251647">[1] Causal Diagrams for Empirical Research</a><br />
+      (Pearl, J., Biometrika, 1995; the three rules, the backdoor and front door criteria, and the truncated factorisation the first section computes)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://bayes.cs.ucla.edu/BOOK-2K/">[2] Causality: Models, Reasoning and Inference</a><br />
+      (Pearl, J., Cambridge University Press, 2009; the book-length version, including the completeness results that say when no formula exists at all)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://www.pnas.org/doi/10.1073/pnas.1510489113">[3] Recursive Partitioning for Heterogeneous Causal Effects</a><br />
+      (Athey, S. &amp; Imbens, G., PNAS, 2016; the honest causal tree, and the reason a split criterion on effects is not a split criterion on outcomes)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://www.tandfonline.com/doi/full/10.1080/01621459.2017.1319839">[4] Estimation and Inference of Heterogeneous Treatment Effects using Random Forests</a><br />
+      (Wager, S. &amp; Athey, S., JASA, 2018; the forest, and the local centring that the measurement in the last section is about)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://academic.oup.com/ectj/article/21/1/C1/5056401">[5] Double/Debiased Machine Learning for Treatment and Structural Parameters</a><br />
+      (Chernozhukov, V. et al., Econometrics Journal, 2018; residualising both sides with cross-fitting, which is what the R-learner arm does)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>

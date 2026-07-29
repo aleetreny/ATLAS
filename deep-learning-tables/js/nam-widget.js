@@ -222,7 +222,7 @@ export function initNamWidget(data) {
 
     wg.selectAll('text.blabel')
       .data(bars, (b) => b.label)
-      .join((e) => e.append('text').attr('class', 'blabel chart-annotation').style('font-size', '0.58rem').style('text-transform', 'none'))
+      .join((e) => e.append('text').attr('class', 'blabel chart-annotation').style('font-size', '0.72rem').style('text-transform', 'none'))
       .attr('y', (b) => y(b.label) + y.bandwidth() / 2 + 3.5)
       .transition()
       .duration(320)
@@ -242,7 +242,7 @@ export function initNamWidget(data) {
       .attr('y2', wh);
     wg.selectAll('text.truthlab')
       .data([s.price])
-      .join((e) => e.append('text').attr('class', 'truthlab chart-annotation').attr('text-anchor', 'middle').style('font-size', '0.58rem'))
+      .join((e) => e.append('text').attr('class', 'truthlab chart-annotation').attr('text-anchor', 'middle').style('font-size', '0.72rem'))
       .attr('y', -14)
       .transition()
       .duration(320)

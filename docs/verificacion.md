@@ -192,3 +192,117 @@ se encuentra a sí mismo y el bucle es infinito. Se encadena con `;` en un solo
 `sh -c`, o se busca el patrón con `pgrep -f "python3 -u src/utils/generate_..."`,
 que no coincide con el shell que espera.
 
+
+## Trampa 21: `--next` solo ve lo que tu último `git fetch` trajo
+
+El reparto de acentos mira las ramas sin mergear leyendo `refs/remotes/origin`,
+y eso es exactamente tan fresco como el último fetch. Trabajando con
+`git fetch origin main`, que es lo prudente para el merge, las ramas de las
+otras sesiones se quedan congeladas en la foto del clon: `--next` daba
+**libres** los tres acentos que la rama de GANs llevaba puestos
+(`#3f6212`, `#831843`, `#134e4a`), y con esa lista se habrían escrito cuatro
+artículos para chocar en el push. Con `git fetch origin` a secas, los detecta.
+
+La regla: **antes de `--next` o `--reparte`, un `git fetch origin` completo**,
+no el de una rama. El fallo es silencioso por construcción: la función devuelve
+vacío cuando no encuentra nada y cuando no hay nada que encontrar, y esos dos
+casos se leen igual en pantalla.
+
+Y el corolario: **reclama el color el primer día**. Un `index.html` de una
+línea con el `--primary` puesto, empujado a la rama, hace que las demás
+sesiones te vean. Una carpeta sin `js/main.js` no cuenta como artículo
+publicado para el guardia, así que el marcador no rompe nada mientras el
+artículo se escribe.
+
+## Sobre el dE de la reserva, que no es lo que parece
+
+El comentario de `RESERVA` en `check_publication.py` dice que el peor de los
+catorce colores nuevos está a dE 15,5 del vecino más cercano, y es fácil leer
+eso como una garantía sobre el sitio entero. No lo es: es la distancia entre
+**los colores de la reserva entre sí**. Contra lo ya publicado el sitio corre
+mucho más justo, y medirlo lo deja claro: mínimo 4,0 (`manifolds` contra
+`vq-vae`), p25 7,4, mediana 10,1. La familia entera del 3.2 vive entre 4,0 y
+5,3. Así que un acento nuevo a dE 7 de uno publicado no es un fallo del
+reparto, es el estándar de facto de la casa, y no hay que rehacer el barrido
+por eso.
+
+## Trampa 22: reclamar el color pronto no gana la carrera, solo la empata
+
+La trampa 21 recomendaba empujar un `index.html` de una línea con el
+`--primary` puesto para que las otras sesiones te vieran. Se hizo, y el acento
+`#164e63` **colisionó igual**: mientras el marcador esperaba en la rama, otra
+sesión publicó `tf-idf/` con ese mismo color. Un reclamo solo es visible para
+quien mira, y quien ya había elegido antes de que tú empujaras no vuelve a
+mirar.
+
+Así que el reclamo temprano sigue mereciendo la pena (reduce la ventana), pero
+**no es una reserva**, y el plan tiene que contar con perder el color:
+
+- el acento va en **un solo sitio por artículo** (`:root` del `index.html`) y
+  todo lo demás lo lee de ahí con `var(--primary)`;
+- cuando no se puede (un `rgba()` en un canvas, una rampa de color, el
+  generador de la miniatura), esos sitios se anotan, porque cambiar el acento
+  al mergear significa tocarlos todos. En el 58 eran cinco: dos widgets con
+  `rgba()` literales, dos rampas de densidad y la miniatura;
+- y el cambio se hace **al resolver el merge**, que es cuando el guardia ya
+  sabe qué está libre de verdad.
+
+La comprobación que lo caza es la del guardia (`el acento X lo usan dos
+artículos`), y llega en el sitio correcto: antes de publicar, no después.
+## Trampa 23: dos generadores del mismo artículo a la vez
+
+Un `sh -c` encadenado se lanzó dos veces por descuido y salieron dos procesos
+corriendo `generate_bayesnets_data.py` en paralelo, los dos redirigiendo a
+`/tmp/bayes.log` con `>` y los dos escribiendo el mismo directorio de caché.
+El log queda ilegible (cada proceso mantiene su propio desplazamiento sobre un
+fichero que el otro truncó) y las dos tiradas compiten por la CPU haciendo el
+mismo trabajo. Antes de relanzar algo largo:
+
+```
+ps -eo pid,etime,cmd | grep "[g]enerate_<tema>_data"
+```
+
+Y si hay que matar, **por PID**, nunca `pkill -f` (trampa 30): `pkill -f` se
+llevó por delante el shell padre y con él dos cadenas de generación que no
+tenían nada que ver con el patrón buscado.
+
+## Trampa 24: un `NaN` en el JSON deja la página muda, no rota
+
+`json.dumps` escribe el literal `NaN` sin protestar, y eso no es JSON válido.
+El navegador lanza al parsear, la promesa del `fetch` revienta, y como todo el
+arranque vive dentro de ese `then`, la página se queda **sin prosa numérica y
+sin guardia**: se ve entera, con los textos de relleno del HTML, y no hay un
+solo error en el sitio donde está el fallo. Lo caza el barrido de prosa (los
+identificadores de `PROSE_IDS` siguen diciendo lo que decía el HTML) y lo evita
+`allow_nan=False` en todos los `json.dumps`, que convierte el fallo silencioso
+del navegador en una excepción del generador.
+
+## Trampa 25: el desbordamiento se mide con `scrollWidth`, no sumando hijos
+
+La primera versión del guardia de filas de controles sumaba el ancho de los
+hijos y lo comparaba con el de la fila. Daba 13 hallazgos sobre dos artículos
+publicados y limpios, porque una fila con `flex-wrap` reparte en varias líneas
+y la suma no significa nada. Lo que hay que mirar es `scrollWidth >
+clientWidth` en la fila, y aparte el scroll horizontal del documento entero.
+
+## Trampa 26: un guardia bien programado y mal planteado
+
+Tres guardias de este módulo dispararon sobre datos correctos, y en los tres
+casos el arreglo era el enunciado y no el número:
+
+- "la cuadratura tiene que coincidir con las cadenas de Metropolis a 0,01"
+  daba 0,12, y el peor desacuerdo caía justo en el hueco entre datos, donde la
+  desviación predictiva vale 0,61 y las cuatro cadenas se separan entre ellas
+  0,19. Lo que se puede exigir es coincidencia donde hay datos, y que la
+  cuadratura caiga dentro de la banda entre cadenas.
+- "mi ablación por cabeza tiene que coincidir con la publicada" disparaba en
+  cinco cabezas de ocho, porque aquí se mide sobre las 95 etiquetas del
+  fichero de ejemplo y allí sobre 5.734 frases de test. El desacuerdo era el
+  resultado del artículo.
+- un guardia a 1e-6 sobre una suma de diez valores exportados con seis
+  decimales dispara siempre: el suelo de esa comparación es 5e-6. La tolerancia
+  se calcula con los decimales que se escribieron.
+
+Antes de tocar el dato, comprobar que el guardia pide algo que el experimento
+puede dar.
+

@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Whose Fault Is This Number | ATLAS</title>
+  <meta name="description" content="Shapley values computed exactly by enumerating every coalition, checked against a model whose attributions are known in closed form, with the two versions of SHAP disagreeing about a column the model barely uses and LIME changing its answer with its kernel width." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/attribution/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="Whose Fault Is This Number | ATLAS" />
+  <meta property="og:description" content="An attribution is the most cited output in the field and almost never checked. Here are two ways to build an answer key for one." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/attribution/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Whose Fault Is This Number | ATLAS" />
+  <meta name="twitter:description" content="An attribution is the most cited output in the field and almost never checked. Here are two ways to build an answer key for one." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    /* Per-article theme. Everything else inherits from these two. */
+    :root {
+      --primary: #473a04;
+      --secondary: #392e03;
+    }
+  </style>
+</head>
+<body>
+  <!-- ======================= chrome ======================= -->
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <!-- ======================= hero ======================= -->
+  <section id="intro">
+    <h1 id="intro-hed">Whose Fault Is This Number</h1>
+    <h1 id="intro-sub">An attribution is the most quoted output in the field and almost the only one nobody checks, because there seems to be nothing to check it against. There is, twice</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 7.3 &middot; Explainable AI &middot; Whose Fault Is This Number</span>
+  </section>
+
+  <br />
+
+  <!-- ======================= introduction ======================= -->
+  <section>
+    <p class="body-text" id="intro-nokey">
+      A model returns a number and somebody asks why.
+    </p>
+    <br />
+    <p class="body-text" id="intro-keys">
+      Two answer keys can be built, and they are built differently on purpose.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= exact ======================= -->
+  <section>
+    <h1 class="body-header">One Thousand And Twenty Four Coalitions</h1>
+    <p class="body-text" id="exact-intro">
+      The definition of a Shapley value is a sum over every subset of the
+      columns.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="exact-widget">
+    <div class="controls-row">
+      <span class="slider-label">bottle: <span class="value" id="exact-row-label">1</span></span>
+      <input type="range" class="atlas-range" id="exact-row" aria-label="which held out bottle to explain" min="0" max="11" step="1" value="0" />
+    </div>
+    <div class="controls-row" style="justify-content: center" id="exact-views"></div>
+    <div id="exact-chart"></div>
+    <div class="widget-readout" id="exact-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="exact-note">
+      Two identities hold on every instance, and both are checked in the page.
+    </p>
+    <br />
+    <p class="body-text" id="exact-interaction">
+      That answer key only exists because the model was additive.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the approximation ======================= -->
+  <section>
+    <h1 class="body-header">What The Sampling Costs</h1>
+    <p class="body-text" id="kernel-intro">
+      Nobody enumerates a thousand coalitions for a model with forty columns,
+      because a thousand becomes a trillion.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="kernel-widget">
+    <div id="kernel-chart"></div>
+    <div class="widget-readout" id="kernel-readout"></div>
+  </div>
+
+  <hr />
+
+  <!-- ======================= two shaps ======================= -->
+  <section>
+    <h1 class="body-header">Two Answers, Both Called SHAP</h1>
+    <p class="body-text" id="two-intro">
+      There is a decision hidden in the definition that the name does not
+      mention, and it changes the answer.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="two-widget">
+    <div class="controls-row" style="justify-content: center" id="two-views"></div>
+    <div id="two-chart"></div>
+    <div class="widget-readout" id="two-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="two-note">
+      Neither of the two is wrong. They answer different questions.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= LIME ======================= -->
+  <section>
+    <h1 class="body-header">The Other One Is Not The Same Thing</h1>
+    <p class="body-text" id="lime-intro">
+      LIME gets quoted in the same breath as SHAP and does something else
+      entirely.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="lime-widget">
+    <div class="controls-row">
+      <span class="slider-label">how local is local: <span class="value" id="lime-width-label">1.0</span></span>
+      <input type="range" class="atlas-range" id="lime-width" aria-label="kernel width for the local surrogate" min="0" max="5" step="1" value="2" />
+    </div>
+    <div id="lime-chart"></div>
+    <div class="widget-readout" id="lime-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="lime-note">
+      The width is not a display setting.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= two models ======================= -->
+  <section>
+    <h1 class="body-header">Two Models That Agree On Everything But This</h1>
+    <p class="body-text" id="models-intro">
+      One last comparison, and it is the one that decides how much weight an
+      explanation can carry.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= verdict ======================= -->
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text">
+      What is exact here, what is approximate, and what is a choice nobody
+      reports.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Claim</th>
+          <th>Status</th>
+          <th>Measured here</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">The attributions add up</span></td>
+          <td>Exact, by construction</td>
+          <td id="v-eff">Measured above.</td>
+          <td id="v-eff-watch">Adding up is a property of the definition, not evidence that the numbers mean anything.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">The values are the right ones</span></td>
+          <td>Exact when enumerated, approximate when sampled</td>
+          <td id="v-exact">Measured above.</td>
+          <td id="v-exact-watch">The default sample sizes leave visible error on the smaller attributions.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">SHAP has an answer</span></td>
+          <td>It has two, and they differ</td>
+          <td id="v-two">Measured above.</td>
+          <td id="v-two-watch">Which one a library computes is rarely stated and changes who gets the credit.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">The explanation is the model's</span></td>
+          <td>Partly. It is also the method's</td>
+          <td id="v-lime">Measured above.</td>
+          <td id="v-lime-watch">Two equally accurate models explain the same prediction differently.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="closing-1">
+      Everything on this page is about a model with ten columns and a
+      prediction that is a single number.
+    </p>
+    <br />
+    <p class="body-text" id="closing-2">
+      Which is the harder half of the same question.
+    </p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! Everything above was measured rather than cited: the
+      Shapley values are computed by enumerating all one thousand and twenty
+      four coalitions rather than sampled, the additive model's closed form
+      gives an answer key that the enumeration has to reproduce exactly, the
+      two value functions are both evaluated in closed form so their
+      disagreement has no sampling noise in it, and the bottles are the same
+      ones five other articles of this atlas have used, from
+      <code>src/utils/generate_attribution_data.py</code>.
+    </p>
+  </section>
+
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text" id="ref-note">
+      The dataset is the one this atlas keeps returning to.
+    </p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://www.rand.org/pubs/papers/P0295.html">[1] A Value for n-Person Games</a><br />
+      (Shapley, L. S., 1953; the axioms, and the unique allocation that satisfies them, which is what the first section enumerates)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://papers.nips.cc/paper/2017/hash/8a20a8621978632d76c43dfd28b67767-Abstract.html">[2] A Unified Approach to Interpreting Model Predictions</a><br />
+      (Lundberg, S. M. &amp; Lee, S., NeurIPS, 2017; SHAP, the kernel estimator measured in the second section, and the additive framing)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1905.04610">[3] The Many Shapley Values for Model Explanation</a><br />
+      (Sundararajan, M. &amp; Najmi, A., ICML, 2020; the interventional and conditional value functions, and why the choice is not a detail)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://dl.acm.org/doi/10.1145/2939672.2939778">[4] Why Should I Trust You? Explaining the Predictions of Any Classifier</a><br />
+      (Ribeiro, M. T., Singh, S. &amp; Guestrin, C., KDD, 2016; LIME, including the locality kernel the fourth section sweeps)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1811.10154">[5] Stop Explaining Black Box Machine Learning Models for High Stakes Decisions</a><br />
+      (Rudin, C., Nature Machine Intelligence, 2019; the argument the last section is a measurement of)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>

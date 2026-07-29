@@ -43,7 +43,7 @@ def write(name, body, cap_kb=10):
 # ---------------------------------------------------------------------------
 def thumb_linear_programming():
     """El politopo, sus esquinas, y la esquina que gana."""
-    accent = "#674599"
+    accent = "#591c5c"
     d = load("linear-programming", "lp")
     verts = d["polytope"]["vertices"]
     best = d["polytope"]["best_index"]
@@ -80,7 +80,7 @@ def thumb_linear_programming():
 # ---------------------------------------------------------------------------
 def thumb_genetic_algorithms():
     """La poblacion final de la tirada de referencia, como bits."""
-    accent = "#995e45"
+    accent = "#456b99"
     d = load("genetic-algorithms", "ga")
     rows = d["reference"]["final_population"][:10]
     bits = d["meta"]["bits"]
@@ -121,7 +121,7 @@ def thumb_genetic_algorithms():
 # ---------------------------------------------------------------------------
 def thumb_annealing_swarm():
     """El anillo de energias con las visitas de la cadena que enfria debajo."""
-    accent = "#994573"
+    accent = "#142a85"
     d = load("annealing-swarm", "anneal")
     e = d["boltzmann"]["energy"]
     path = d["reference"]["path"]
@@ -156,7 +156,7 @@ def thumb_annealing_swarm():
 # ---------------------------------------------------------------------------
 def thumb_bandits():
     """Las curvas de arrepentimiento de las cinco politicas."""
-    accent = "#5c293b"
+    accent = "#0e2d5c"
     d = load("bandits", "bandits")
     P = d["policies"]
     stride = P["greedy"]["stride"]
@@ -246,7 +246,7 @@ def thumb_thompson_ucb():
 # ---------------------------------------------------------------------------
 def thumb_q_learning():
     """El acantilado con los dos caminos aprendidos."""
-    accent = "#392270"
+    accent = "#99171d"
     d = load("q-learning", "qlearn")
     T = d["truth"]
     rows, cols = T["rows"], T["cols"]
@@ -280,7 +280,7 @@ def thumb_q_learning():
 # ---------------------------------------------------------------------------
 def thumb_dqn():
     """El acantilado sombreado con lo que la red se cree, y su camino."""
-    accent = "#6a3270"
+    accent = "#5c540e"
     d = load("dqn", "dqn")
     M = d["meta"]
     rows, cols = M["rows"], M["cols"]

@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <rect width="400" height="300" fill="#f1f3f3" />
+  <!-- the truth at four noise levels, and what is left of it -->
+  <rect x="14" y="81" width="84" height="84" fill="#ffffff" stroke="#c9d1d6" stroke-width="1" />
+    <circle cx="56.0" cy="123.0" r="18.3" fill="none" stroke="#674599" stroke-width="2.9" opacity="0.85" />
+    <ellipse cx="32.7" cy="99.7" rx="3.2" ry="3.2" fill="#674599" opacity="0.59" transform="rotate(0 32.7 99.7)" />
+    <ellipse cx="79.3" cy="146.3" rx="5.7" ry="1.6" fill="#674599" opacity="0.59" transform="rotate(-35 79.3 146.3)" />
+  <text x="56" y="71" text-anchor="middle" font-family="monospace" font-size="12" fill="#232f3e">t=0</text>
+  <text x="56" y="181" text-anchor="middle" font-family="monospace" font-size="11" fill="#232f3e" opacity="0.75">3.74822</text>
+  <rect x="110" y="81" width="84" height="84" fill="#ffffff" stroke="#c9d1d6" stroke-width="1" />
+    <circle cx="152.0" cy="123.0" r="17.3" fill="none" stroke="#674599" stroke-width="6.5" opacity="0.85" />
+    <ellipse cx="130.0" cy="101.0" rx="4.2" ry="4.2" fill="#674599" opacity="0.59" transform="rotate(0 130.0 101.0)" />
+    <ellipse cx="174.0" cy="145.0" rx="6.1" ry="3.3" fill="#674599" opacity="0.59" transform="rotate(-35 174.0 145.0)" />
+  <text x="152" y="71" text-anchor="middle" font-family="monospace" font-size="12" fill="#232f3e">t=100</text>
+  <text x="152" y="181" text-anchor="middle" font-family="monospace" font-size="11" fill="#232f3e" opacity="0.75">2.71313</text>
+  <rect x="206" y="81" width="84" height="84" fill="#ffffff" stroke="#c9d1d6" stroke-width="1" />
+    <circle cx="248.0" cy="123.0" r="8.0" fill="none" stroke="#674599" stroke-width="16.4" opacity="0.85" />
+    <ellipse cx="237.8" cy="112.8" rx="8.3" ry="8.3" fill="#674599" opacity="0.59" transform="rotate(0 237.8 112.8)" />
+    <ellipse cx="258.2" cy="133.2" rx="8.6" ry="8.2" fill="#674599" opacity="0.59" transform="rotate(-35 258.2 133.2)" />
+  <text x="248" y="71" text-anchor="middle" font-family="monospace" font-size="12" fill="#232f3e">t=400</text>
+  <text x="248" y="181" text-anchor="middle" font-family="monospace" font-size="11" fill="#232f3e" opacity="0.75">0.24051</text>
+  <rect x="302" y="81" width="84" height="84" fill="#ffffff" stroke="#c9d1d6" stroke-width="1" />
+    <circle cx="344.0" cy="123.0" r="0.1" fill="none" stroke="#674599" stroke-width="18.3" opacity="0.85" />
+    <ellipse cx="343.9" cy="122.9" rx="9.1" ry="9.1" fill="#674599" opacity="0.59" transform="rotate(0 343.9 122.9)" />
+    <ellipse cx="344.1" cy="123.1" rx="9.1" ry="9.1" fill="#674599" opacity="0.59" transform="rotate(-35 344.1 123.1)" />
+  <text x="344" y="71" text-anchor="middle" font-family="monospace" font-size="12" fill="#232f3e">t=999</text>
+  <text x="344" y="181" text-anchor="middle" font-family="monospace" font-size="11" fill="#232f3e" opacity="0.75">0.0</text>
+  <text x="200" y="209" text-anchor="middle" font-family="monospace" font-size="12" fill="#232f3e">nats from a standard normal, exactly</text>
+</svg>

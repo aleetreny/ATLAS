@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
   <rect width="400" height="300" fill="#f1f3f3" />
-  <polygon points="46,150 46,260 354,260 277,95 200,40 123,40" fill="#674599" fill-opacity="0.16" stroke="#674599" stroke-width="2.5" />
+  <polygon points="46,150 46,260 354,260 277,95 200,40 123,40" fill="#591c5c" fill-opacity="0.16" stroke="#591c5c" stroke-width="2.5" />
   <polyline points="198,26 356,164" fill="none" stroke="#8e9aa6" stroke-width="2.5" stroke-dasharray="9 6" />
-  <g fill="#f1f3f3" stroke="#674599" stroke-width="2.5"><circle cx="46" cy="150" r="7" /><circle cx="46" cy="260" r="7" /><circle cx="354" cy="260" r="7" /><circle cx="200" cy="40" r="7" /><circle cx="123" cy="40" r="7" /></g>
-  <circle cx="277" cy="95" r="11" fill="#674599" />
+  <g fill="#f1f3f3" stroke="#591c5c" stroke-width="2.5"><circle cx="46" cy="150" r="7" /><circle cx="46" cy="260" r="7" /><circle cx="354" cy="260" r="7" /><circle cx="200" cy="40" r="7" /><circle cx="123" cy="40" r="7" /></g>
+  <circle cx="277" cy="95" r="11" fill="#591c5c" />
 </svg>

@@ -169,7 +169,10 @@ export function initProse(data) {
     + `<a href="../policy-gradient/">A policy gradient</a> is what you do when there is no `
     + `maximum you can take. And the strongest game playing systems built so far are all three `
     + `at once: a learnt value to end the play out early, a learnt policy to say where to look `
-    + `first, and this tree in the middle deciding where the next simulation goes.`);
+    + `first, and this tree in the middle deciding where the next simulation goes. `
+    + `<a href="../confounding/">The next module</a> goes back to the question underneath all of `
+    + `it, which every article in this branch was allowed to take for granted because it had a `
+    + `simulator: how anybody knows that doing something caused anything at all.`);
 
   set('resources-note',
     `Everything was measured by <code>src/utils/generate_mcts_data.py</code> with seed `

@@ -30,7 +30,26 @@ export function makeChart(container, { width = 640, height = 460, margin = { top
       .attr('x', -2).attr('y', -2).attr('width', w + 4).attr('height', h + 4);
     plot = g.append('g').attr('clip-path', `url(#${id})`);
   }
-  return { svg, g, plot, w, h, margin, width, height };
+
+  /* Vaciar el lienzo entre re-dibujados, sin tirar el grupo recortado.
+   *
+   * `g.selectAll('*').remove()` es lo que escribe todo el mundo y con `clip`
+   * es un fallo silencioso de los caros: `plot` es hijo de `g`, así que esa
+   * línea lo DESCONECTA del documento, los `plot.append(...)` que vienen
+   * después siguen funcionando sobre un nodo huérfano, y el gráfico sale con
+   * sus ejes, su rejilla y sus etiquetas y **sin un solo dato**. Ninguna
+   * auditoría numérica lo caza porque los nodos existen; se ve en una captura.
+   * Pasó en los cuatro widgets del artículo de redes bayesianas a la vez.
+   *
+   * El orden se conserva: la rejilla se inserta como primer hijo, el grupo
+   * recortado queda en medio y los ejes se dibujan encima. */
+  const clear = () => {
+    const keep = plot.node();
+    g.selectAll('*').filter(function filterKeep() { return this !== keep; }).remove();
+    plot.selectAll('*').remove();
+  };
+
+  return { svg, g, plot, w, h, margin, width, height, clear };
 }
 
 /* `.ticks(n)` is a hint, and a log scale feels free to ignore it: a domain

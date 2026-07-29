@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <rect width="400" height="300" fill="#f1f3f3" />
+  <!-- todos los efectos compatibles con la misma matriz de covarianzas, -->
+  <!-- con lo que el estimador contesta marcado dentro -->
+  <rect x="75" y="110" width="250" height="80" fill="#056605" opacity="0.20"/>
+  <path d="M75,110 L75,190" stroke="#056605" stroke-width="3" fill="none"/>
+  <path d="M325,110 L325,190" stroke="#056605" stroke-width="3" fill="none"/>
+  <path d="M98,76 L98,224" stroke="#df2a5d" stroke-width="3" stroke-dasharray="7 5" fill="none"/>
+  <path d="M30,236 L370,236" stroke="#232f3e" stroke-width="1.2" opacity="0.5" fill="none"/>
+</svg>

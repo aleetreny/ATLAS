@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <rect width="400" height="300" fill="#f1f3f3" />
+  <!-- la cascada de una prediccion: cada barra es el valor de Shapley -->
+  <!-- exacto de una columna, y las diez suman el hueco entero -->
+  <rect x="140" y="24" width="240" height="22" fill="#df2a5d" opacity="0.9"/>
+  <rect x="20" y="50" width="120" height="22" fill="#df2a5d" opacity="0.9"/>
+  <rect x="20" y="75" width="80" height="22" fill="#473a04" opacity="0.9"/>
+  <rect x="100" y="101" width="43" height="22" fill="#473a04" opacity="0.9"/>
+  <rect x="143" y="126" width="28" height="22" fill="#473a04" opacity="0.9"/>
+  <rect x="171" y="152" width="13" height="22" fill="#473a04" opacity="0.9"/>
+  <rect x="171" y="178" width="12" height="22" fill="#df2a5d" opacity="0.9"/>
+  <rect x="171" y="203" width="8" height="22" fill="#473a04" opacity="0.9"/>
+  <rect x="180" y="229" width="4" height="22" fill="#473a04" opacity="0.9"/>
+  <rect x="184" y="254" width="4" height="22" fill="#473a04" opacity="0.9"/>
+  <path d="M380,16 L380,286" stroke="#232f3e" stroke-width="2" stroke-dasharray="6 4" fill="none"/>
+  <path d="M188,16 L188,286" stroke="#df2a5d" stroke-width="2" stroke-dasharray="6 4" fill="none"/>
+</svg>

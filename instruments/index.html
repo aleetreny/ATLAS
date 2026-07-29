@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>A Lever From Outside | ATLAS</title>
+  <meta name="description" content="Instrumental variables measured against a known effect: the bias of least squares in closed form, an estimator with no mean at all when the lever is weak, a leak that scales as one over the lever, and the interval of effects the data cannot tell apart." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/instruments/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="A Lever From Outside | ATLAS" />
+  <meta property="og:description" content="What to do when nobody wrote the confounder down: push the treatment from outside and read what moves." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/instruments/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="A Lever From Outside | ATLAS" />
+  <meta name="twitter:description" content="What to do when nobody wrote the confounder down: push the treatment from outside and read what moves." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    /* Per-article theme. Everything else inherits from these two. */
+    :root {
+      --primary: #056605;
+      --secondary: #045204;
+    }
+  </style>
+</head>
+<body>
+  <!-- ======================= chrome ======================= -->
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <!-- ======================= hero ======================= -->
+  <section id="intro">
+    <h1 id="intro-hed">A Lever From Outside</h1>
+    <h1 id="intro-sub">When nobody wrote the confounder down there is still one way through, and everything about it depends on an assumption that no amount of data can check</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 7.1 &middot; Causal Inference &middot; A Lever From Outside</span>
+  </section>
+
+  <br />
+
+  <!-- ======================= introduction ======================= -->
+  <section>
+    <p class="body-text" id="intro-gap">
+      The two previous articles share an assumption that neither of them can
+      defend.
+    </p>
+    <br />
+    <p class="body-text" id="intro-lever">
+      There is one way out, and it is older than either of them.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the lever works ======================= -->
+  <section>
+    <h1 class="body-header">Two Ratios And A Division</h1>
+    <p class="body-text" id="lever-intro">
+      The estimator is a fraction, and both halves of it are things anybody can
+      compute.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="lever-widget">
+    <div class="controls-row">
+      <span class="slider-label">how hard the lever pushes: <span class="value" id="lever-label">0.80</span></span>
+      <input type="range" class="atlas-range" id="lever-slider" aria-label="how strongly the instrument moves the treatment" min="0" max="8" step="1" value="2" />
+    </div>
+    <div class="controls-row" style="justify-content: center" id="lever-views"></div>
+    <div id="lever-chart"></div>
+    <div class="widget-readout" id="lever-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="lever-note">
+      With a lever this strong the estimator does what it promises.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= weak levers ======================= -->
+  <section>
+    <h1 class="body-header">An Estimator With No Mean</h1>
+    <p class="body-text" id="weak-intro">
+      A weak instrument is usually described as a noisier version of a good
+      one. It is not that.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="weak-widget">
+    <div class="controls-row" style="justify-content: center" id="weak-views"></div>
+    <div id="weak-chart"></div>
+    <div class="widget-readout" id="weak-readout"></div>
+  </div>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table" id="seeds-table">
+      <thead>
+        <tr>
+          <th>Seed</th>
+          <th>Mean of 400 estimates</th>
+          <th>Median of the same 400</th>
+          <th>Largest estimate seen</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="weak-verdict">
+      Those two columns are the same four hundred numbers, summarised twice.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the leak ======================= -->
+  <section>
+    <h1 class="body-header">A Leak Divided By The Lever</h1>
+    <p class="body-text" id="leak-intro">
+      The assumption that makes this work says the instrument touches the
+      outcome only through the treatment.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="leak-widget">
+    <div class="controls-row" style="justify-content: center" id="leak-views"></div>
+    <div id="leak-chart"></div>
+    <div class="widget-readout" id="leak-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="leak-note">
+      The two weaknesses multiply rather than add.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= untestable ======================= -->
+  <section>
+    <h1 class="body-header">The Interval The Data Cannot Narrow</h1>
+    <p class="body-text" id="worlds-intro">
+      The obvious response is to test the assumption.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="worlds-widget">
+    <div class="controls-row" style="justify-content: center" id="worlds-views"></div>
+    <div id="worlds-chart"></div>
+    <div class="widget-readout" id="worlds-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="worlds-note">
+      Nothing above is a limitation of the estimator.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= LATE ======================= -->
+  <section>
+    <h1 class="body-header">Whose Effect Is It</h1>
+    <p class="body-text" id="late-intro">
+      Suppose everything holds: the lever is strong and the assumption is true.
+      There is still one thing left to be careful about.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="late-widget">
+    <div class="controls-row" style="justify-content: center" id="late-views"></div>
+    <div id="late-chart"></div>
+    <div class="widget-readout" id="late-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="late-note">
+      The number that comes out is not wrong. It is about a subset of the
+      population, and which subset is not observable.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= verdict ======================= -->
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text">
+      What an instrument buys, what it costs, and which of the two is
+      checkable.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Requirement</th>
+          <th>What it does</th>
+          <th>Measured here</th>
+          <th>Can the data check it?</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">Relevance</span></td>
+          <td>The instrument has to move the treatment</td>
+          <td id="v-strength">Measured above.</td>
+          <td id="v-strength-check">Yes, and this is the one everybody reports.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Exclusion</span></td>
+          <td>It must not touch the outcome any other way</td>
+          <td id="v-exclusion">Measured above.</td>
+          <td id="v-exclusion-check">No, not with one instrument.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Independence</span></td>
+          <td>Nothing hidden may cause both the instrument and the outcome</td>
+          <td id="v-independence">Measured above.</td>
+          <td id="v-independence-check">No, and it is the same kind of claim the first article ended on.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Monotonicity</span></td>
+          <td>Nobody does the opposite of what the lever pushes them to</td>
+          <td id="v-monotone">Measured above.</td>
+          <td id="v-monotone-check">No, and without it the answer is not an average of anything.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="closing-1">
+      Three articles in, the pattern is hard to miss.
+    </p>
+    <br />
+    <p class="body-text" id="closing-2">
+      Which raises the question this branch has been circling since the first
+      page.
+    </p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! Everything above was measured rather than cited: the
+      world is written out so that the effect is a parameter, the bias of least
+      squares is compared against its closed form, the weak instrument section
+      reports the mean and the median of the same estimates side by side
+      because one of them does not exist, and the set of effects compatible with
+      the data was found by sweeping until the implied noise variance went
+      negative, from
+      <code>src/utils/generate_instruments_data.py</code>.
+    </p>
+  </section>
+
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text" id="ref-note">
+      The world is linear and Gaussian on purpose.
+    </p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://www.tandfonline.com/doi/abs/10.1080/01621459.1996.10476902">[1] Identification of Causal Effects Using Instrumental Variables</a><br />
+      (Angrist, J. D., Imbens, G. W. &amp; Rubin, D. B., JASA, 1996; compliance types, monotonicity, and the result that the ratio estimates the compliers' effect)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://www.tandfonline.com/doi/abs/10.1080/01621459.1995.10476535">[2] Problems with Instrumental Variables Estimation when the Correlation Between the Instruments and the Endogenous Explanatory Variable is Weak</a><br />
+      (Bound, J., Jaeger, D. A. &amp; Baker, R. M., JASA, 1995; the weak instrument problem and the bias towards least squares)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://www.jstor.org/stable/2171753">[3] Instrumental Variables Regression with Weak Instruments</a><br />
+      (Staiger, D. &amp; Stock, J. H., Econometrica, 1997; where the first stage F of ten comes from, and what it does and does not promise)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://www.aeaweb.org/articles?id=10.1257/jep.15.4.69">[4] Instrumental Variables and the Search for Identification</a><br />
+      (Angrist, J. D. &amp; Krueger, A. B., Journal of Economic Perspectives, 2001; the practitioner's account of choosing instruments and defending exclusion)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://academic.oup.com/ije/article/45/6/1866/2617174">[5] A Brief Introduction to Mendelian Randomisation</a><br />
+      (Davey Smith, G. &amp; Ebrahim, S., and the modern literature it started; the setting where a weak instrument and a small leak are both routine)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>

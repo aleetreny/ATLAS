@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Where It Looked | ATLAS</title>
+  <meta name="description" content="Saliency maps scored against exact pixel masks rather than admired: six methods and two controls on a detector this atlas already published, the weight randomisation sanity check, and attention maps measured against head importance that was established by ablation." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/saliency/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="Where It Looked | ATLAS" />
+  <meta property="og:description" content="This article trains nothing. It explains two models this atlas already published, and it can score the explanations because it also has the exact masks." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/saliency/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Where It Looked | ATLAS" />
+  <meta name="twitter:description" content="This article trains nothing. It explains two models this atlas already published, and it can score the explanations because it also has the exact masks." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    /* Per-article theme. Everything else inherits from these two. */
+    :root {
+      --primary: #853c6f;
+      --secondary: #6a3059;
+    }
+  </style>
+</head>
+<body>
+  <!-- ======================= chrome ======================= -->
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <!-- ======================= hero ======================= -->
+  <section id="intro">
+    <h1 id="intro-hed">Where It Looked</h1>
+    <h1 id="intro-sub">Saliency maps are almost always shown and almost never scored. This one has the exact mask of every object, so the pictures can be marked instead of admired</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 7.3 &middot; Explainable AI &middot; Where It Looked</span>
+  </section>
+
+  <br />
+
+  <!-- ======================= introduction ======================= -->
+  <section>
+    <p class="body-text" id="intro-nothing">
+      This article trains nothing.
+    </p>
+    <br />
+    <p class="body-text" id="intro-key">
+      And it borrows a third thing, which is what makes the rest possible.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the scoreboard ======================= -->
+  <section>
+    <h1 class="body-header">Six Maps And Two Controls</h1>
+    <p class="body-text" id="score-intro">
+      Every method here produces a picture of the same size as the input, and
+      brighter is supposed to mean more responsible.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="score-widget">
+    <div class="controls-row" style="justify-content: center" id="score-views"></div>
+    <div id="score-chart"></div>
+    <div class="widget-readout" id="score-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="score-note">
+      The two controls are the reason to keep reading.
+    </p>
+    <br />
+    <p class="body-text" id="score-depth">
+      Grad-CAM has a parameter that nobody reports, which is where in the
+      network it is computed.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= sanity ======================= -->
+  <section>
+    <h1 class="body-header">The Test That Changes The Ranking</h1>
+    <p class="body-text" id="sanity-intro">
+      There is a check that costs nothing and that a saliency map has to pass
+      before its score means anything.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="sanity-widget">
+    <div id="sanity-chart"></div>
+    <div class="widget-readout" id="sanity-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="sanity-verdict">
+      Put the two tables side by side and the ranking inverts.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= attention ======================= -->
+  <section>
+    <h1 class="body-header">The Other Picture Everybody Shows</h1>
+    <p class="body-text" id="att-intro">
+      In language models the picture is not a heatmap over pixels but a matrix
+      of attention weights.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="att-widget">
+    <div class="controls-row" style="justify-content: center" id="att-views"></div>
+    <div id="att-chart"></div>
+    <div class="widget-readout" id="att-readout"></div>
+  </div>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table" id="att-table">
+      <thead>
+        <tr>
+          <th>Head</th>
+          <th>Ablation, over the whole test set</th>
+          <th>Ablation, over eight sentences</th>
+          <th>Entropy of its map</th>
+          <th>Weight on the previous word</th>
+          <th>Its largest weight</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="att-note">
+      The head you would pick by looking at the pictures is the head that
+      matters.
+    </p>
+    <br />
+    <p class="body-text" id="att-small">
+      There is a second reading of that table, and it is the one this page
+      nearly published.
+    </p>
+    <br />
+    <p class="body-text" id="att-adv">
+      And underneath the resolution question there is a harder limit.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= verdict ======================= -->
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text">
+      What each picture is evidence of, once there is something to score it
+      against.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Method</th>
+          <th>Finds the object</th>
+          <th>Depends on the model</th>
+          <th>What that combination means</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">Gradient, and gradient times input</span></td>
+          <td id="v-grad">Measured above.</td>
+          <td id="v-grad-dep">Measured above.</td>
+          <td id="v-grad-note">A high score on an edge detector is a fact about the dataset.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Grad-CAM</span></td>
+          <td id="v-cam">Measured above.</td>
+          <td id="v-cam-dep">Measured above.</td>
+          <td id="v-cam-note">It scores lower and it is the one that is looking at the model.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Occlusion</span></td>
+          <td id="v-occ">Measured above.</td>
+          <td id="v-occ-dep">Measured above.</td>
+          <td id="v-occ-note">The expensive one, and the only one whose definition mentions the prediction.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Attention weights</span></td>
+          <td id="v-att">Measured above.</td>
+          <td id="v-att-dep">Measured above.</td>
+          <td id="v-att-note">A picture of where information moved, not of what mattered.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="closing-1">
+      The through line of this module is one question asked four times.
+    </p>
+    <br />
+    <p class="body-text" id="closing-2">
+      That closes the seventh branch of this atlas.
+    </p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! Everything above was measured rather than cited: the
+      detector and the encoder are the ones the detection and attention
+      articles published, rebuilt here in numpy and checked against the boxes
+      and the accuracy those articles reported before anything else runs; the
+      scenes are rebuilt from the same seeds and asserted pixel by pixel
+      against the published sprite; and the masks are exact because the scenes
+      were composited by a program that recorded which object won each pixel,
+      from <code>src/utils/generate_saliency_data.py</code>.
+    </p>
+  </section>
+
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text" id="ref-note">
+      Nothing on this page was trained for it.
+    </p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1610.02391">[1] Grad-CAM: Visual Explanations from Deep Networks via Gradient-based Localization</a><br />
+      (Selvaraju, R. R. et al., ICCV, 2017; the method, and the class activation map it generalises)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1810.03292">[2] Sanity Checks for Saliency Maps</a><br />
+      (Adebayo, J. et al., NeurIPS, 2018; the randomisation test in the third section, and the result it is a reproduction of)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1311.2901">[3] Visualizing and Understanding Convolutional Networks</a><br />
+      (Zeiler, M. D. &amp; Fergus, R., ECCV, 2014; occlusion, which is still the baseline everything else is trying to approximate cheaply)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1902.10186">[4] Attention is not Explanation</a><br />
+      (Jain, S. &amp; Wallace, B. E., NAACL, 2019; the adversarial attention experiment the last section measures)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1908.04626">[5] Attention is not not Explanation</a><br />
+      (Wiegreffe, S. &amp; Pinter, Y., EMNLP, 2019; the reply, and the reason the last section reports a correlation rather than a verdict)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <rect width="400" height="300" fill="#f1f3f3" />
+  <!-- los dieciseis conjuntos de ajuste posibles ordenados por error, -->
+  <!-- y los dos que cumplen el criterio en cero -->
+  <rect x="18" y="274" width="21" height="2" fill="#643c85" opacity="0.95"/>
+  <rect x="41" y="274" width="21" height="2" fill="#643c85" opacity="0.95"/>
+  <rect x="64" y="242" width="21" height="32" fill="#df2a5d" opacity="0.55"/>
+  <rect x="86" y="242" width="21" height="32" fill="#df2a5d" opacity="0.55"/>
+  <rect x="109" y="165" width="21" height="109" fill="#df2a5d" opacity="0.55"/>
+  <rect x="132" y="165" width="21" height="109" fill="#df2a5d" opacity="0.55"/>
+  <rect x="154" y="150" width="21" height="124" fill="#df2a5d" opacity="0.55"/>
+  <rect x="177" y="150" width="21" height="124" fill="#df2a5d" opacity="0.55"/>
+  <rect x="200" y="126" width="21" height="148" fill="#df2a5d" opacity="0.55"/>
+  <rect x="223" y="103" width="21" height="171" fill="#df2a5d" opacity="0.55"/>
+  <rect x="246" y="99" width="21" height="175" fill="#df2a5d" opacity="0.55"/>
+  <rect x="268" y="81" width="21" height="193" fill="#df2a5d" opacity="0.55"/>
+  <rect x="291" y="53" width="21" height="221" fill="#df2a5d" opacity="0.55"/>
+  <rect x="314" y="39" width="21" height="235" fill="#df2a5d" opacity="0.55"/>
+  <rect x="336" y="37" width="21" height="237" fill="#df2a5d" opacity="0.55"/>
+  <rect x="359" y="26" width="21" height="248" fill="#df2a5d" opacity="0.55"/>
+  <path d="M18,274 L382,274" stroke="#232f3e" stroke-width="1.2" fill="none"/>
+</svg>
