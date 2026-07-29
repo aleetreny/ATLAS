@@ -372,3 +372,28 @@ vale para cualquier cosa derivada que la página vuelva a calcular: la matriz de
 proyección con la que se dibujan las trayectorias también va en el probe,
 porque una sombra viva y una sombra guardada en marcos distintos parecen un
 resultado y son un artefacto.
+
+## Trampa 29: la red de salida puede estar cerrada y la web desplegada no se ve
+
+La política de red de una sesión en la nube puede prohibir HTTPS hacia
+`aleetreny.github.io`: `curl` devuelve `000` y el proxy responde `403` al
+CONNECT (se comprueba con `curl -sS "$HTTPS_PROXY/__agentproxy/status"`, que
+lista los rechazos recientes). Eso no es un fallo del despliegue y no se
+arregla desactivando la verificación TLS ni quitando el proxy.
+
+Lo que sí se puede comprobar desde dentro, y basta:
+
+- **Que lo empujado es lo que se cree.** `git ls-remote origin main` para el
+  sha, y `git ls-tree -r origin/main --name-only` para que estén el `index.html`
+  del artículo, su `data/*.json`, cada `js/*.js`, la miniatura y el `.nojekyll`.
+  `git cat-file -s origin/main:<ruta>` da el tamaño de un fichero remoto sin
+  bajarlo.
+- **Que Pages construyó.** Las herramientas de GitHub sí pasan por su propio
+  canal: el run `pages build and deployment` sobre el sha empujado tiene que
+  salir `completed / success`, igual que el workflow `publicacion` del propio
+  repositorio.
+
+Y el barrido de navegador de verdad ya se hizo antes de empujar, contra el
+puerto frío local, que es la comprobación que de verdad mira la página. Lo que
+falta cuando la red está cerrada es solo la última confirmación de que el CDN
+sirve lo mismo que el repositorio.
