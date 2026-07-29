@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Knowing What You Do Not Know | ATLAS</title>
+  <meta name="description" content="A visual, interactive introduction to UCB and Thompson sampling: the confidence bound checked for how often it is actually wrong, the posterior checked for how often the truth is inside it, regret slopes fitted against the exact Lai and Robbins constant for these machines, and what happens to both when the machines change halfway through." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/thompson-ucb/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="Knowing What You Do Not Know | ATLAS" />
+  <meta property="og:description" content="A visual, interactive introduction to UCB and Thompson sampling: the confidence bound checked for how often it is actually wrong, the posterior checked for how often the truth is inside it, regret slopes fitted against the exact Lai and Robbins constant for these machines, and what happens to both when the machines change halfway through." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/thompson-ucb/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Knowing What You Do Not Know | ATLAS" />
+  <meta name="twitter:description" content="A visual, interactive introduction to UCB and Thompson sampling: the confidence bound checked for how often it is actually wrong, the posterior checked for how often the truth is inside it, regret slopes fitted against the exact Lai and Robbins constant for these machines, and what happens to both when the machines change halfway through." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    :root {
+      --primary: #994591;
+      --secondary: #7a3774;
+    }
+    .narrow-widget {
+      max-width: 880px;
+    }
+    .gen-table {
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      margin-top: 0.4rem;
+      width: 100%;
+    }
+    .gen-table th,
+    .gen-table td {
+      padding: 4px 10px 4px 0;
+      text-align: left;
+      font-weight: 400;
+      white-space: nowrap;
+    }
+    .gen-table th {
+      font-family: var(--font-heavy);
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .gen-table td:first-child,
+    .gen-table th:first-child {
+      opacity: 0.75;
+    }
+    .gen-table td:last-child,
+    .gen-table th:last-child {
+      white-space: normal;
+    }
+    .gen-note {
+      margin-top: 0.6rem;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+    .slider-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+      margin: 0.2rem 0 0.6rem;
+      font-family: var(--font-mono);
+      font-size: 13px;
+    }
+    .slider-row input[type="range"] {
+      width: 200px;
+      accent-color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <section id="intro">
+    <h1 id="intro-hed">Knowing What You Do Not Know</h1>
+    <h1 id="intro-sub">Every policy in the last article explored blindly, at random or on a timetable set in advance. Two ideas fix that by keeping track of how sure each estimate is, and both of them can be caught in the act</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 5.2 · Bandits · Thompson Sampling and UCB</span>
+  </section>
+
+  <br />
+
+  <section>
+    <p class="body-text">
+      <a href="../bandits/">The previous article</a> ended on the same complaint
+      three times: every constant it needed depended on the gap between the
+      machines, and the gap is the thing nobody knows. The way out is not a
+      better constant. It is for the policy to know which of its own numbers it
+      should not trust yet.
+    </p>
+    <br />
+    <p class="body-text" id="opening-note"></p>
+  </section>
+
+  <section>
+    <h1 class="body-header">Two Ways to Say "Not Sure"</h1>
+    <p class="body-text" id="idea-intro"></p>
+    <p class="body-text">
+      $$ \text{index}_a = \hat{\mu}_a + \sqrt{\frac{c \ln t}{n_a}}
+         \qquad\text{against}\qquad
+         \tilde{\mu}_a \sim \text{Beta}(1 + s_a,\ 1 + n_a - s_a) $$
+    </p>
+    <p class="body-text" id="idea-note"></p>
+  </section>
+
+  <section id="belief-scrolly" class="scrolly">
+    <div class="scrolly-container">
+      <div class="steps-container">
+        <div class="step" data-index="0">
+          <div class="step-content">
+            <h3>Ten Pulls: Everything Is Possible</h3>
+            <p id="scrolly-step-0"></p>
+          </div>
+        </div>
+        <div class="step" data-index="1">
+          <div class="step-content">
+            <h3>Forty: The Bad Ones Fall Away</h3>
+            <p id="scrolly-step-1"></p>
+          </div>
+        </div>
+        <div class="step" data-index="2">
+          <div class="step-content">
+            <h3>Two Hundred: One Contender Left</h3>
+            <p id="scrolly-step-2"></p>
+          </div>
+        </div>
+        <div class="step" data-index="3">
+          <div class="step-content">
+            <h3>A Thousand: Still Checking</h3>
+            <p id="scrolly-step-3"></p>
+          </div>
+        </div>
+        <div class="step-spacer"></div>
+      </div>
+      <div class="charts-container">
+        <div class="chart-wrap" id="belief-chart"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="body-text" id="scrolly-note"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="regret-widget">
+    <div class="controls-row" id="regret-controls" role="group" aria-label="which policy"></div>
+    <div id="regret-chart"></div>
+    <div class="widget-readout" id="regret-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="regret-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">Is the Uncertainty Honest</h1>
+    <p class="body-text" id="honest-intro"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="honest-widget">
+    <div class="controls-row" id="honest-controls" role="group" aria-label="which check"></div>
+    <div id="honest-chart"></div>
+    <div class="widget-readout" id="honest-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="honest-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">When the Machines Change</h1>
+    <p class="body-text" id="drift-intro"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="drift-widget">
+    <div class="controls-row" id="drift-controls" role="group" aria-label="which policy"></div>
+    <div id="drift-chart"></div>
+    <div class="widget-readout" id="drift-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="drift-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text" id="verdict-intro"></p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>What you have</th>
+          <th>Reach for</th>
+          <th>Why</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">A stationary problem and a long run</span></td>
+          <td>Thompson sampling</td>
+          <td id="verdict-ts"></td>
+          <td id="verdict-ts-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">A need to explain every choice</span></td>
+          <td>An upper confidence bound</td>
+          <td id="verdict-ucb"></td>
+          <td id="verdict-ucb-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">A world that changes</span></td>
+          <td>A window, on either of them</td>
+          <td id="verdict-drift"></td>
+          <td id="verdict-drift-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">A constant from a proof</span></td>
+          <td>The proof, then a sweep</td>
+          <td id="verdict-const"></td>
+          <td id="verdict-const-warn"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="closing-note"></p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! The machines are the five
+      <a href="../bandits/">the previous article</a> used, read from its own
+      file, so the two sets of regrets are directly comparable. Everything was
+      measured by <code>src/utils/generate_ucb_data.py</code>, and the page
+      recomputes the confidence bound, the posterior and the Lai and Robbins
+      constant from the counts rather than reading them.
+    </p>
+  </section>
+
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text" id="resources-note"></p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://doi.org/10.1023/A:1013689704352">[1] Finite-time Analysis of the Multiarmed Bandit Problem</a><br />
+      (Auer, P., Cesa-Bianchi, N. and Fischer, P., 2002; UCB1 and the constant this page sweeps past)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://doi.org/10.1093/biomet/25.3-4.285">[2] On the Likelihood That One Unknown Probability Exceeds Another</a><br />
+      (Thompson, W. R., 1933; the rule that samples from its own posterior, twenty years before the problem had a name)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://proceedings.neurips.cc/paper/2011/hash/e53a0a2978c28872a4505bdb51db06dc-Abstract.html">[3] An Empirical Evaluation of Thompson Sampling</a><br />
+      (Chapelle, O. and Li, L., 2011; the paper that made people look at it again, and whose result this page reproduces)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://doi.org/10.1016/0196-8858(85)90002-8">[4] Asymptotically Efficient Adaptive Allocation Rules</a><br />
+      (Lai, T. L. and Robbins, H., 1985; the constant that the slopes here are divided by)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://doi.org/10.1007/978-3-642-24412-4_16">[5] On Upper-Confidence Bound Policies for Switching Bandit Problems</a><br />
+      (Garivier, A. and Moulines, E., 2011; the sliding window measured in the last panel)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>

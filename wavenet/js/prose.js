@@ -259,11 +259,10 @@ export function initProse(data) {
     + `representation to ask in, and how do you know your evaluation is not measuring itself. `
     + `What is left of the map is what happens when the thing arriving in order is a `
     + `<span class="bold">decision</span> rather than an observation, and the next value depends `
-    + `on what you do about it. The branch that asks that question first has to fix a smaller `
-    + `one, which is how anybody knows a decision caused anything at all: `
-    + `<a href="../confounding/">the first article of module 7</a> starts with a table where `
-    + `every group goes one way and the total goes the other. After that, `
-    + `<a href="../">the rest of the atlas</a>.`);
+    + `on what you do about it. That is where the next module starts, and its first article `
+    + `(<a href="../linear-programming/">where the answer has to be</a>) begins at the far end of `
+    + `that idea, with a problem whose rules are known exactly and whose answer still has to be `
+    + `searched for.`);
 
   set('resources-note',
     `Audio is synthesised at ${n0(M.sr)} samples a second from the source and filter of the `

@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>The Right Way to Go Downhill | ATLAS</title>
+  <meta name="description" content="A visual, interactive introduction to simulated annealing and particle swarm optimisation: the Metropolis rule checked against the Boltzmann distribution it is supposed to sample, six cooling schedules on the same forty cities as the previous article, a swarm against two searchers that are not swarms, and the stability boundary of its two coefficients measured." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/annealing-swarm/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="The Right Way to Go Downhill | ATLAS" />
+  <meta property="og:description" content="A visual, interactive introduction to simulated annealing and particle swarm optimisation: the Metropolis rule checked against the Boltzmann distribution it is supposed to sample, six cooling schedules on the same forty cities as the previous article, and the stability boundary of a swarm measured." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/annealing-swarm/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="The Right Way to Go Downhill | ATLAS" />
+  <meta name="twitter:description" content="A visual, interactive introduction to simulated annealing and particle swarm optimisation: the Metropolis rule checked against the Boltzmann distribution it is supposed to sample, six cooling schedules on the same forty cities as the previous article, and the stability boundary of a swarm measured." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    :root {
+      --primary: #142a85;
+      --secondary: #10226a;
+    }
+    .narrow-widget {
+      max-width: 880px;
+    }
+    .gen-table {
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      margin-top: 0.4rem;
+      width: 100%;
+    }
+    .gen-table th,
+    .gen-table td {
+      padding: 4px 10px 4px 0;
+      text-align: left;
+      font-weight: 400;
+      white-space: nowrap;
+    }
+    .gen-table th {
+      font-family: var(--font-heavy);
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .gen-table td:first-child,
+    .gen-table th:first-child {
+      opacity: 0.75;
+    }
+    .gen-table td:last-child,
+    .gen-table th:last-child {
+      white-space: normal;
+    }
+    .gen-note {
+      margin-top: 0.6rem;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+    .slider-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+      margin: 0.2rem 0 0.6rem;
+      font-family: var(--font-mono);
+      font-size: 13px;
+    }
+    .slider-row input[type="range"] {
+      width: 200px;
+      accent-color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <section id="intro">
+    <h1 id="intro-hed">The Right Way to Go Downhill</h1>
+    <h1 id="intro-sub">Two methods named after things that are not algorithms, a cooling metal and a flock of birds. Underneath each metaphor is one exact statement, and both of them can be checked rather than admired</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 5.1 · Optimization · Simulated Annealing and PSO</span>
+  </section>
+
+  <br />
+
+  <section>
+    <p class="body-text">
+      <a href="../genetic-algorithms/">The previous article</a> kept a whole
+      population alive and spent its budget on mixing them. This one keeps a
+      single point, and spends its budget on being willing to move in the wrong
+      direction. That sounds like a worse idea and it comes with a theorem.
+    </p>
+    <br />
+    <p class="body-text" id="opening-note"></p>
+  </section>
+
+  <section>
+    <h1 class="body-header">A Rule for Accepting a Worse Answer</h1>
+    <p class="body-text" id="rule-intro"></p>
+    <p class="body-text">
+      $$ \Pr[\text{accept}] = \min\!\left(1,\ e^{-\Delta E / T}\right)
+         \qquad \pi(x) \ \propto\ e^{-E(x)/T} $$
+    </p>
+    <p class="body-text" id="rule-note"></p>
+  </section>
+
+  <section id="metropolis-scrolly" class="scrolly">
+    <div class="scrolly-container">
+      <div class="steps-container">
+        <div class="step" data-index="0">
+          <div class="step-content">
+            <h3>A Landscape You Can Add Up</h3>
+            <p id="scrolly-step-0"></p>
+          </div>
+        </div>
+        <div class="step" data-index="1">
+          <div class="step-content">
+            <h3>Hot: It Wanders</h3>
+            <p id="scrolly-step-1"></p>
+          </div>
+        </div>
+        <div class="step" data-index="2">
+          <div class="step-content">
+            <h3>Cold: It Falls In and Stays</h3>
+            <p id="scrolly-step-2"></p>
+          </div>
+        </div>
+        <div class="step" data-index="3">
+          <div class="step-content">
+            <h3>Cooling Is the Whole Method</h3>
+            <p id="scrolly-step-3"></p>
+          </div>
+        </div>
+        <div class="step-spacer"></div>
+      </div>
+      <div class="charts-container">
+        <div class="chart-wrap" id="metropolis-chart"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="body-text" id="scrolly-note"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="boltzmann-widget">
+    <div class="controls-row" id="boltzmann-controls" role="group" aria-label="which view"></div>
+    <div class="slider-row">
+      <label for="boltz-t">temperature</label>
+      <input type="range" id="boltz-t" min="0" max="4" step="1" value="2"
+             aria-label="the temperature of the chain" />
+      <span class="slider-label"><span class="value" id="boltz-t-label"></span></span>
+      <label for="boltz-steps">chain length</label>
+      <input type="range" id="boltz-steps" min="0" max="5" step="1" value="3"
+             aria-label="how many steps the chain takes" />
+      <span class="slider-label"><span class="value" id="boltz-steps-label"></span></span>
+    </div>
+    <div id="boltzmann-chart"></div>
+    <div class="widget-readout" id="boltzmann-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="boltzmann-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">Six Ways to Cool, Forty Cities</h1>
+    <p class="body-text" id="schedule-intro"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="schedule-widget">
+    <div class="controls-row" id="schedule-controls" role="group" aria-label="which schedule"></div>
+    <div id="schedule-chart"></div>
+    <div class="widget-readout" id="schedule-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="schedule-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">A Cloud Instead of a Point</h1>
+    <p class="body-text" id="swarm-intro"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="swarm-widget">
+    <div class="controls-row" id="swarm-controls" role="group" aria-label="which view"></div>
+    <div class="slider-row">
+      <label for="swarm-step">iteration</label>
+      <input type="range" id="swarm-step" min="0" max="59" step="1" value="0"
+             aria-label="which iteration of the swarm to draw" />
+      <span class="slider-label"><span class="value" id="swarm-step-label"></span></span>
+    </div>
+    <div id="swarm-chart"></div>
+    <div class="widget-readout" id="swarm-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="swarm-note"></p>
+  </section>
+
+  <div class="interactive-full narrow-widget" id="stability-widget">
+    <div id="stability-chart"></div>
+    <div class="widget-readout" id="stability-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="stability-note"></p>
+  </section>
+
+  <hr />
+
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text" id="verdict-intro"></p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>What you have</th>
+          <th>Reach for</th>
+          <th>Why</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">A good local move and a rugged landscape</span></td>
+          <td>Annealing</td>
+          <td id="verdict-sa"></td>
+          <td id="verdict-sa-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">A continuous function with many dents</span></td>
+          <td>A swarm</td>
+          <td id="verdict-pso"></td>
+          <td id="verdict-pso-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">A narrow curved valley</span></td>
+          <td>A local search</td>
+          <td id="verdict-valley"></td>
+          <td id="verdict-valley-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">A schedule to choose</span></td>
+          <td>Anything that cools</td>
+          <td id="verdict-schedule"></td>
+          <td id="verdict-schedule-warn"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="closing-note"></p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! The ring landscape, the Metropolis walk and its random
+      number generator exist twice, once in
+      <code>src/utils/generate_annealing_data.py</code> and once in
+      <code>js/sakit.js</code>, and the page reproduces the reference chain step
+      for step on load. The forty cities are the ones
+      <a href="../genetic-algorithms/">the previous article</a> used, read from
+      its own file rather than generated again.
+    </p>
+  </section>
+
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text" id="resources-note"></p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://doi.org/10.1063/1.1699114">[1] Equation of State Calculations by Fast Computing Machines</a><br />
+      (Metropolis, N. et al., 1953; the acceptance rule, and the distribution it samples, both checked on this page)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://doi.org/10.1126/science.220.4598.671">[2] Optimization by Simulated Annealing</a><br />
+      (Kirkpatrick, S., Gelatt, C. D. and Vecchi, M. P., 1983; the idea of cooling a search, and the travelling salesman as its example)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://doi.org/10.1109/TPAMI.1984.4767596">[3] Stochastic Relaxation, Gibbs Distributions and the Bayesian Restoration of Images</a><br />
+      (Geman, S. and Geman, D., 1984; the logarithmic schedule that comes with a convergence proof, measured here at a real budget)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://doi.org/10.1109/ICNN.1995.488968">[4] Particle Swarm Optimization</a><br />
+      (Kennedy, J. and Eberhart, R., 1995; the original swarm)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://doi.org/10.1109/4235.985692">[5] The Particle Swarm: Explosion, Stability and Convergence</a><br />
+      (Clerc, M. and Kennedy, J., 2002; where the coefficients everybody copies come from)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://doi.org/10.1007/s11721-007-0002-0">[6] Mean and Variance of the Sampling Distribution of Particle Swarm Optimizers</a><br />
+      (Poli, R., 2009; the stability boundary this page sweeps and then finds a caveat in)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>

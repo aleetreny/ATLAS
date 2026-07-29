@@ -306,11 +306,40 @@ casos el arreglo era el enunciado y no el número:
 Antes de tocar el dato, comprobar que el guardia pide algo que el experimento
 puede dar.
 
+## Lo que enseñó el módulo 5 (artículos 69 a 77)
+
+- **Un error de sintaxis en un widget se manifiesta como prosa sin componer.**
+  Una comilla mal escapada en un módulo dejó 52 hallazgos en el arnés: cincuenta
+  eran ids de prosa vacíos y KaTeX sin renderizar, y el único que importaba era
+  `pageerror: Unexpected identifier`. Los módulos ES fallan en bloque, así que
+  ante una lista larga de `prose-stale` se mira primero la consola, y `node
+  --check` sobre cada fichero cuesta un segundo.
+- **El escape a mano de un scrolly se pisa con el observador.** Disparar
+  `atlas:activate` sobre el paso 3 y hacer la captura enseñaba el paso 0,
+  porque el `IntersectionObserver` se despierta después de cargar y reclama el
+  paso que cubre la banda. Para mirar un paso de verdad hay que hacer
+  `scrollIntoView({block: 'center'})` y dejar que dispare el observador.
+- **Un servidor de pruebas se muere y el arnés miente distinto.** Un
+  `ERR_CONNECTION_REFUSED` a mitad de una tanda de capturas no es un fallo de
+  la página. Antes de creerse un resultado raro, comprobar que el puerto sigue
+  vivo.
+- **Una comprobación cara cabe en el navegador si se pone solo en la pasada
+  profunda.** Resolver el conecta cuatro del 77 desde la posición dibujada son
+  258.989 nodos y unos 900 ms en JavaScript: demasiado para la carga, perfecto
+  para `__atlasCheck(true)`. Es la comprobación más fuerte de toda la tanda,
+  porque reconstruye en otro lenguaje el patrón contra el que se puntúa la
+  página entera.
+- **Dos implementaciones del mismo estimador son un guardia mejor que una
+  tolerancia.** El navegador del 76 promedia 4.000 estimaciones con su propio
+  generador de números aleatorios y saca coseno 0,99246 contra el 0,99111 que
+  midió numpy: dos lenguajes, dos generadores, el mismo resultado. Y un solo
+  episodio da coseno -0,168, así que el umbral de 0,95 dispararía de verdad si
+  el estimador estuviera mal.
 
 ## Trampa 27: un control desactivado a propósito sale como DEAD CONTROL
 
 El barrido pone cada slider en cada posición y avisa si el estado no se mueve.
-El artículo 69 tiene un brazo (el estudiante destilado) que por construcción se
+El artículo 78 tiene un brazo (el estudiante destilado) que por construcción se
 evalúa una sola vez, así que su slider se apaga y el arnés lo reporta, aunque
 esté bien. Dos cosas que aprender de ahí:
 
@@ -331,7 +360,7 @@ antes de creerle o descartarlo hay que reproducir el estado que importa.
 ## Trampa 28: un `probe` de una pasada no valida un bucle
 
 Las páginas de este sitio comprueban sus pesos contra un probe del generador
-antes de dibujar nada, y hasta el 69 ese probe era siempre "esta entrada da
+antes de dibujar nada, y hasta el 78 ese probe era siempre "esta entrada da
 esta salida". Un muestreador que **camina** tiene tres decisiones más que viven
 fuera de las capas: el tamaño de paso, los tiempos a los que se le pregunta al
 campo y el sentido de la marcha. Se pueden equivocar las tres con los pesos

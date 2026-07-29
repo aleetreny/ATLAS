@@ -92,11 +92,23 @@ Este repositorio empezó como notebooks de ML y se está convirtiendo en una web
 | 66 | Credit, Exactly (los 1.024 conjuntos enumerados contra la forma cerrada de un modelo aditivo, KernelSHAP muestreado, las dos funciones de valor, y LIME con el ancho como mando) | `attribution/` | `#473a04` |
 | 67 | Where It Looked (seis mapas y dos controles puntuados contra la máscara exacta, Grad-CAM por profundidad, el test de aleatorización de Adebayo, y la atención contra la importancia medida) | `saliency/` | `#853c6f` |
 | 68 | Do As You Are Told (los diez dígitos pedidos a cuatro ajustes del dial, obediencia contra realismo sobre los mismos ejes, dos etiquetas quitadas del entrenamiento) | `controlnet/` | `#994573` |
-| 69 | Straight to the Point (las trayectorias dibujadas y su desviación medida, reflow sobre los pares del propio modelo, calidad contra presupuesto de pasos, y qué diferencias sobreviven a repetir el sorteo) | `consistency/` | `#5c293b` |
+| 69 | Where the Answer Has to Be (todas las esquinas enumeradas, dial del objetivo, el cubo de Klee y Minty a 2^n - 1 pivotes, precios sombra con su rango, ramificacion y acotacion contada en nodos) | `linear-programming/` | `#591c5c` |
+| 70 | Breeding an Answer (cinco buscadores en cuatro paisajes con optimo conocido, la hipotesis de los bloques falsada barajando posiciones, presion de seleccion medida, viajante contra 2-opt) | `genetic-algorithms/` | `#456b99` |
+| 71 | The Right Way to Go Downhill (Metropolis contra la Boltzmann exacta con la pendiente del muestreo medida, seis horarios sobre las mismas 40 ciudades del 59, enjambre contra dos controles, region de estabilidad barrida) | `annealing-swarm/` | `#142a85` |
+| 72 | What It Costs to Find Out (cinco politicas sobre 4.000 tiradas, epsilon barrido, la formula de explorar y comprometerse contra el barrido, la forma del arrepentimiento ajustada) | `bandits/` | `#0e2d5c` |
+| 73 | Knowing What You Do Not Know (cobertura de la cota contada, calibracion de la posterior medida, pendientes contra la constante exacta de Lai y Robbins, maquinas que cambian) | `thompson-ucb/` | `#994591` |
+| 74 | A World That Remembers (acantilado resuelto exacto por iteracion de valor, SARSA contra Q-learning en lo que cobran y en lo que dejan, epsilon a cero los iguala, sesgo del maximo con doble tabla) | `q-learning/` | `#856314` |
+| 75 | When the Table Does Not Fit (tabla contra recta contra red sobre el mismo acantilado exacto, las dos muletas ablacionadas con suelo de ruido, lo que la red se cree contra lo que cobra) | `dqn/` | `#5c540e` |
+| 76 | Pushing the Policy Itself (gradiente exacto por algebra lineal, error y coseno del estimador barriendo episodios, linea base contra nada, reuso y recorte medidos uno a uno, premio a la entropia barrido) | `policy-gradient/` | `#647032` |
+| 77 | Thinking Before Moving (conecta cuatro de 4x5 resuelto entero, acierto de la busqueda barriendo simulaciones, la constante barrida contra su suelo de ruido, tiradas listas que no compran nada, contra minimax a igual numero de nodos, y el error de un plan dentro de un modelo aprendido) | `mcts/` | `#99171d` |
+| 78 | Straight to the Point (las trayectorias dibujadas y su desviación medida, reflow sobre los pares del propio modelo, calidad contra presupuesto de pasos, y qué diferencias sobreviven a repetir el sorteo) | `consistency/` | `#5c293b` |
 **El módulo 7 entero (artículos 60 a 67), publicado de una vez.** Las tres
 secciones cerradas y los ocho chips encendidos: 7.1 causalidad (60 a 63), 7.2
 incertidumbre (64 y 65), 7.3 explicabilidad (66 y 67), encadenados en ese orden
-y enganchados desde el cierre del 57 (wavenet). Lo que hay que saber de cada uno:
+y encadenados en ese orden. La cadena de lectura del 57 (wavenet) ya no entra
+aquí directamente: entre medias va el módulo 5 entero (69 a 77), que es la
+tarjeta siguiente en la portada, y es el 77 (mcts) el que enlaza al 60. Lo que
+hay que saber de cada uno:
 
 - **60** mide el sesgo de confusión en forma cerrada (razón de Mills) y lo
   compara con el simulado; el mundo de colisión y dos mundos Markov
@@ -156,6 +168,82 @@ Los artículos 1 a 6 pasaron una **revisión completa** (commit `5e4852b`, 2026-
 Dos de esos hallazgos eran errores numéricos publicados: `polyFit` del artículo 1 formaba `X'X` (grado 9 daba r² test 0.681 en vez de 0.649, invirtiendo la moraleja) y el lasso del artículo 2 no convergía por debajo de λ=1e-3. Ver [la receta de un artículo](receta-de-articulo.md).
 
 **Los módulos 1 y 2 están cerrados enteros: siete ramas, ni un chip apagado en ninguna. La sección 1 completa (21 artículos: 1.1, 1.2 y 1.3, esta última con el 32) y la sección 2 completa (14 artículos: 2.1 con seis y ocho chips cerrado por el 31, 2.2 con cinco artículos y cinco chips cerrado por el 30, 2.3 con dos artículos y tres chips cerrado por el 34, y 2.4 con uno y un chip, el 35). El módulo 3 ya tiene dos secciones: la 3.2 (artículos 36 a 40, el camino de la verosimilitud) y la 3.1 (artículos 41 a 43, el adversarial), encadenada y en ese orden (gans -> stylegan -> translation) y enlazada desde el cierre del 35 (baskets), que es el último de la sección 2 en orden de lectura. Lo que queda del módulo 3 es la 3.3, la difusión, adonde apunta el cierre del 40 (glow), que es el último del módulo en orden de lectura; el cierre del 43 (translation) enlaza al 36 (vae), que es el puente de 3.1 a 3.2. Cuidado con dos recuentos que es fácil equivocar: el módulo 2.2 son cinco artículos (25, 27, 28, 29, 30), no seis, porque el 26 y el 31 son de 2.1; y el 26 aparece entre medias por cronología, no por taxonomía. El 21 cumplió la promesa del 20 (ReLU gana a tanh con profundidad: 89,37/83,77 a 20 capas) y desmintió midiendo el tópico del gradiente que se desvanece (crece 1.271×). El 23 cerró el arco que abrió el 19: un clasificador de ventanas sobre un recorte y el mismo en una pasada convolucional dan el mismo número exacto. El 24 corre sobre los lienzos del 23. El 32 cierra el 1.3 dejando la imagen plana: la escena está escrita en forma cerrada, así que la verdad de referencia no es una anotación sino la función, y la cadena de cierres 23 -> 24 -> 32 está enganchada. El 2.2 va encadenado directions -> distances -> manifolds -> neighbours -> autoencoders, y el 2.1 kmeans -> gmm -> dbscan -> hierarchical -> assumptions -> affinities. La cadena de la sección 2 termina ahora en autoencoders -> outliers -> isolation -> baskets, que es la que exige la regla 7 del guardia, y el 2.3 se lee como un solo argumento: el 33 mide el defecto (el patrón se estima de la muestra que contiene al sospechoso) y el 34 mide las cuatro salidas, cerrando el bucle sobre las mismas ocho botellas plantadas.**
+
+**El módulo 5 entero (artículos 69 a 77), publicado de una vez.** Las tres
+secciones cerradas y los nueve chips encendidos: 5.1 optimización (69 a 71),
+5.2 bandidos (72 y 73), 5.3 aprendizaje por refuerzo (74 a 77), encadenados en
+ese orden, enganchados desde el cierre del 57 (wavenet) y saliendo al 60
+(confounding). Es la rama donde el dato deja de venir dado y **lo genera la
+propia decisión**, así que casi todos los artículos traen su verdad de
+referencia calculada y no anotada: un politopo enumerado, un paisaje con óptimo
+conocido, una cadena con su distribución exacta, un acantilado resuelto por
+iteración de valor, un gradiente resuelto por álgebra lineal y un juego
+resuelto entero. Lo que hay que saber de cada uno:
+
+- **69** (`linear-programming/`) enumera **todas** las esquinas del politopo y
+  las puntúa, así que el símplex se compara contra la respuesta y no contra otro
+  solver. El cubo de Klee y Minty sale exacto: la regla de Dantzig gasta
+  2^n - 1 pivotes en n = 2..8, y HiGHS reportaba **0 iteraciones** hasta que se
+  midió con `presolve: False`, que es lo que hay que hacer para medir un
+  algoritmo y no un preprocesador. Los precios sombra cuadran con el reajuste
+  real a 2e-09 y van con su rango de validez. Ramificación y acotación: 425
+  nodos con cota contra 3.977 sin ella contra 4.096 subconjuntos.
+- **70** (`genetic-algorithms/`) **falsa la hipótesis de los bloques** en vez de
+  citarla: el cruce de un punto resuelve 29 de 30 trampas contiguas y **0 de 30**
+  con las mismas trampas y los bits barajados, mientras el brazo de solo mutación
+  no se mueve (9 de 30 en los dos). Y el control que evita el artículo triunfal:
+  en onemax un escalador simple gana con 40 evaluaciones contra 4.800.
+- **71** (`annealing-swarm/`) mide el muestreo, no la anécdota: la distancia a la
+  Boltzmann exacta baja con pendiente -0,5793 contra el -0,5 de la teoría, y la
+  aceptación medida (0,4678) solo cuadra con la predicha (0,4675) **pesando cada
+  arista por la probabilidad estacionaria de su origen**; el promedio sin pesar
+  da 0,383 y es la cantidad equivocada. Los seis horarios corren sobre las
+  **mismas 40 ciudades** del 70, leídas de su JSON. La frontera de estabilidad
+  del enjambre, 24(1-w²)/(7-5w), acierta 30 de 35 celdas y las 5 que fallan caen
+  justo al otro lado de la curva.
+- **72** (`bandits/`) es el arrepentimiento contado sobre 4.000 tiradas por
+  política. La codicia pura acaba creyendo la máquina equivocada en 2.382 de
+  4.000, y ahí ya no hay nada que la saque. La fórmula de explorar y
+  comprometerse elige un m de 2,2 a 8 veces más largo que el mejor del barrido,
+  y cuesta de 1,3 a 6,7 veces el arrepentimiento.
+- **73** (`thompson-ucb/`) usa **las mismas cinco máquinas** del 72. Thompson
+  74,25 contra 292,33 de UCB; la cota de UCB no se equivoca ni una vez (0,0000%
+  contra el 0,62% que se permite), que es exactamente por qué es cara. La
+  constante 2,0 que se demuestra contra la 0,25 que basta. Y la vuelta: con las
+  máquinas cambiando a mitad, Thompson gasta 290,56 en la segunda mitad contra
+  110,30 de UCB, y una ventana lo arregla. El caso dibujado se eligió **entre 40
+  semillas por ser el más cercano a la mediana**, porque la primera que salió no
+  representaba nada.
+- **74** (`q-learning/`) resuelve el acantilado exacto (16 barridos, delta 0) y
+  con eso separa lo que las dos reglas cobran de lo que las dos aprenden: SARSA
+  -26,09 contra -51,93 mientras juegan, y -17,15 contra -13,0 en lo que dejan
+  aprendido, con epsilon a cero igualándolas en 20 de 20. El sesgo del máximo:
+  11,83% contra 6,75% con doble tabla, sobre un suelo del 5%.
+- **75** (`dqn/`) cambia la tabla por una función sobre el **mismo** acantilado:
+  la tabla llega en 400 episodios, la recta no llega nunca, la red llega en 2.500
+  y solo en 2 de 5 semillas. La ablación 2x2 con suelo de ruido dice cuál de las
+  dos muletas importa. Y el sesgo de sobreestimación **solo significa algo con
+  los dos protocolos igualados**: medir lo que la red se cree descontado contra
+  lo que cobra sin descontar inventaba un sesgo de 3,27 que no existía.
+- **76** (`policy-gradient/`) es el gradiente **exacto** por álgebra lineal, y
+  todo lo demás medido contra él: un episodio deja el estimador a 1,27493 de un
+  vector cuya longitud entera es 0,12559, con coseno 0,03827. La línea base
+  alcanza en 64 episodios la precisión que sin ella no llega ni con 256. De los
+  cuatro entrenamientos el único salto es reusar el lote (de -0,48272 a 0,16017
+  contra un techo de 0,19353); el recorte cuesta 0,00795 y corta el peor
+  movimiento de 0,031318 a 0,008943 tocando el 2,4% de las muestras. El premio a
+  la entropía **solo resta** en este mundo, y la página explica por qué en vez de
+  generalizarlo.
+- **77** (`mcts/`) resuelve conecta cuatro de 4x5 entero (3.945.711 pares de
+  posición y turno, tablas con tres columnas de apertura que la aguantan) y
+  puntúa la búsqueda contra eso: de 51,3% con 8 simulaciones a 76,0% con 2.048.
+  El resultado en contra del guion: la tirada con conocimiento **no compra
+  nada** (1,5 puntos contra un suelo de 2,2 medido con seis semillas), y el
+  barrido de una sola semilla la enseña perdiendo por 8,7 puntos y ganando por
+  2,0 según dónde se mire. La constante 1,4 del libro saca lo mismo que apagar
+  la exploración. Contra minimax al mismo número de nodos, 75% contra 54%. Y el
+  modelo aprendido: el error a un paso no se mueve porque ya está en el ruido del
+  mundo, mientras el de imaginar 40 pasos cae 61 veces.
 
 **Artículo 43** (`translation/`) cierra el módulo 3.1 y es el primero del sitio
 que **muestrea la condicional entera** en vez de razonar sobre ella: 128 renders
@@ -409,7 +497,7 @@ El experimento que separa obedecer de saber: un segundo modelo entrenado sobre 1
 
 Nota de método que el artículo dice en voz alta: la obediencia se puntúa con la etiqueta del juez, nunca con su confianza, porque la confianza es la medida que el 38 demostró que mide tinta. El guardia lo vuelve a confirmar aquí (correlación 0,7185).
 
-Cifras del 69 (`consistency/`): cierra el módulo 3.3 sobre el mismo autoencoder del 59 y del 68, probado otra vez con su viaje de ida y vuelta (3,377185e-03 contra 3,377e-03 publicado). Tres brazos con **la misma arquitectura y el mismo presupuesto de cómputo**, 44.000 pasos de gradiente cada uno, que no es lo mismo que las mismas épocas: reflow y destilación ven 20.000 pares inventados contra los 1.400 códigos reales del primero, así que a igualdad de épocas habrían tenido 14 veces más pasos y la mejora habría sido del cómputo. Las épocas se derivan (4.000, 280 y 1.100), no se eligen.
+Cifras del 78 (`consistency/`): cierra el módulo 3.3 sobre el mismo autoencoder del 59 y del 68, probado otra vez con su viaje de ida y vuelta (3,377185e-03 contra 3,377e-03 publicado). Tres brazos con **la misma arquitectura y el mismo presupuesto de cómputo**, 44.000 pasos de gradiente cada uno, que no es lo mismo que las mismas épocas: reflow y destilación ven 20.000 pares inventados contra los 1.400 códigos reales del primero, así que a igualdad de épocas habrían tenido 14 veces más pasos y la mejora habría sido del cómputo. Las épocas se derivan (4.000, 280 y 1.100), no se eligen.
 
 **El resultado que va contra el guion, primero.** El flujo rectificado entrenado como toca **no tiene trayectorias rectas**: se desvían 0,39017 de su propia longitud respecto de la cuerda que une sus extremos, y un solo paso aterriza al **213,7% del viaje** de donde aterrizan cien. O sea, más lejos de la respuesta correcta que el punto de partida. El objetivo de entrenamiento son líneas rectas y el campo que sale de entrenar con ellas no lo es, porque con pares independientes muchas rectas pasan por el mismo punto en direcciones distintas y la red aprende su promedio.
 
