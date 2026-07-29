@@ -632,45 +632,49 @@ for mode in ("ancestral", "deterministic"):
           f"and {TRUTH_HOLE_SHARE:.3e} for the truth")
 
 
-# ================================================== F. the digits, for the page
-banner("F. a denoiser small enough to run in the browser")
+
+
+# ============================================ F. the same thing on 196 pixels
+banner("F. the wall: what pixel space costs at 14 by 14")
 X_DIG, Y_DIG, TR, TE = digits14()
 J = judge()
 print(f"  the module's shared judge: {J['accuracy'] * 100:.2f}% on the held out digits and "
       f"{J['real_confidence']:.4f} confident on them")
 
 DIG_STEPS = 200
-DBETA, DABAR = schedule("cosine", DIG_STEPS)
-DHID = 192
+_, DABAR = schedule("cosine", DIG_STEPS)
 
 
 class PixelScore(nn.Module):
-    def __init__(self, dim, hid=DHID):
+    def __init__(self, dim, hid, depth):
         super().__init__()
-        self.net = nn.Sequential(nn.Linear(dim + 16, hid), nn.SiLU(),
-                                 nn.Linear(hid, hid), nn.SiLU(),
-                                 nn.Linear(hid, dim))
+        layers = [nn.Linear(dim + 32, hid), nn.SiLU()]
+        for _ in range(depth - 1):
+            layers += [nn.Linear(hid, hid), nn.SiLU()]
+        layers += [nn.Linear(hid, dim)]
+        self.net = nn.Sequential(*layers)
 
     @staticmethod
     def embed(t):
-        f = torch.exp(torch.linspace(0.0, 6.0, 8, device=t.device))
-        a = t[:, None].float() / DIG_STEPS * f[None, :]
+        f = torch.exp(torch.linspace(0.0, float(np.log(200.0)), 16, device=t.device))
+        a = t[:, None].float() / DIG_STEPS * f[None, :] * np.pi
         return torch.cat([torch.sin(a), torch.cos(a)], 1)
 
     def forward(self, x, t):
         return self.net(torch.cat([x, self.embed(t)], 1))
 
 
-def train_pixels(seed=SEED_MAIN, epochs=600):
+def train_pixels(hid, depth, epochs, seed=SEED_MAIN):
     def build():
         threads()
         torch.manual_seed(seed)
         g = torch.Generator().manual_seed(seed)
-        Xt = torch.tensor(X_DIG[TR] * 2.0 - 1.0, dtype=torch.float32)   # to [-1, 1]
+        Xt = torch.tensor(X_DIG[TR] * 2.0 - 1.0, dtype=torch.float32)
         abt = torch.tensor(DABAR, dtype=torch.float32)
-        net = PixelScore(Xt.shape[1])
+        net = PixelScore(Xt.shape[1], hid, depth)
         opt = torch.optim.Adam(net.parameters(), lr=2e-3)
         sch = torch.optim.lr_scheduler.CosineAnnealingLR(opt, epochs)
+        last = 0.0
         for _ in range(epochs):
             perm = torch.randperm(len(Xt), generator=g)
             for s in range(0, len(Xt), 128):
@@ -683,23 +687,30 @@ def train_pixels(seed=SEED_MAIN, epochs=600):
                 loss = ((net(xt, t) - eps) ** 2).mean()
                 loss.backward()
                 opt.step()
+                last = float(loss.detach())
             sch.step()
-        return {"W": [p.detach().numpy().copy() for p in net.parameters()],
-                "loss": float(loss)}
+        return {"W": [p.detach().numpy().copy() for p in net.parameters()], "loss": last}
 
-    out = cached(f"ddpm-pix-cos{DIG_STEPS}-s{seed}-h{DHID}-e{epochs}-v1", build)
-    net = PixelScore(X_DIG.shape[1])
+    out = cached(f"ddpm-pix-cos{DIG_STEPS}-s{seed}-h{hid}-d{depth}-e{epochs}-v2", build)
+    net = PixelScore(X_DIG.shape[1], hid, depth)
     with torch.no_grad():
         for p, w in zip(net.parameters(), out["W"]):
             p.copy_(torch.tensor(w))
-    return net, out
+    return net, out, sum(p.numel() for p in net.parameters())
 
 
-PNET, PMETA = train_pixels()
-print(f"  trained: final batch loss {PMETA['loss']:.5f}")
+def sample_pixels(net, n, steps_used, seed):
+    """The reverse process on pixels, with the one correction that a clamp
+    forces.
 
-
-def sample_pixels(n, steps_used, seed, mode="deterministic"):
+    Clamping the predicted clean image to the range a picture can have is
+    standard and necessary. What is NOT optional is recomputing the noise from
+    the clamped image: the update is built on the identity
+    x_t = sqrt(a) x0 + sqrt(1-a) eps, so keeping the old eps after changing x0
+    breaks it, and the chain leaves the data manifold on the first step and
+    never comes back. Measured: without this, 200 steps return grey mush with a
+    mean pixel of 0.48 against 0.13 for a real digit.
+    """
     idx = np.linspace(DIG_STEPS - 1, 0, steps_used).round().astype(int)
     g = torch.Generator().manual_seed(seed)
     x = torch.randn(n, X_DIG.shape[1], generator=g)
@@ -707,16 +718,10 @@ def sample_pixels(n, steps_used, seed, mode="deterministic"):
         for j, t in enumerate(idx):
             a_t = float(DABAR[t])
             a_prev = float(DABAR[idx[j + 1]]) if j + 1 < len(idx) else 1.0
-            tt = torch.full((n,), int(t), dtype=torch.long)
-            eps = PNET(x, tt)
+            eps = net(x, torch.full((n,), int(t), dtype=torch.long))
             x0 = ((x - np.sqrt(1 - a_t) * eps) / np.sqrt(a_t)).clamp(-1, 1)
-            if mode == "ancestral" and a_prev < 1.0:
-                var = (1 - a_prev) / (1 - a_t) * (1 - a_t / a_prev)
-                mean = (np.sqrt(a_prev) * (1 - a_t / a_prev) / (1 - a_t) * x0
-                        + np.sqrt(a_t / a_prev) * (1 - a_prev) / (1 - a_t) * x)
-                x = mean + np.sqrt(max(var, 0.0)) * torch.randn(x.shape, generator=g)
-            else:
-                x = np.sqrt(a_prev) * x0 + np.sqrt(max(1 - a_prev, 0.0)) * eps
+            eps = (x - np.sqrt(a_t) * x0) / np.sqrt(max(1 - a_t, 1e-12))
+            x = np.sqrt(a_prev) * x0 + np.sqrt(max(1 - a_prev, 0.0)) * eps
     return ((x.numpy() + 1.0) / 2.0).clip(0, 1)
 
 
@@ -727,53 +732,93 @@ PFLOOR = real_vs_real_floor(REALPIX, PGAMMA, splits=5, n=250, seed=17)
 print(f"  the pixel floor, real against real: two sample {PFLOOR['mmd2']} "
       f"(largest {PFLOOR['mmd2_max']}), separable at {PFLOOR['c2st']}")
 
-PIX_STEPS = [2, 5, 10, 25, 50, 200]
-pix_rows, pools = [], []
-for k in PIX_STEPS:
-    S = sample_pixels(250, k, 3131)
+LADDER = [(192, 2, 600), (384, 3, 2000), (512, 3, 4000)]
+ladder_rows, pools, nets = [], [], {}
+for hid, depth, ep in LADDER:
+    net, meta, npar = train_pixels(hid, depth, ep)
+    S = sample_pixels(net, 250, 100, 7)
     m = rbf_mmd2(S, REALPIX[:500], PGAMMA)
     c = c2st(S, REALPIX[:250], seed=2)
-    pix_rows.append({"steps": k, "mmd2": sci(m), "c2st": rnd(c, 4),
-                     "resolves": bool(abs(m) > PFLOOR["mmd2_max"])})
-    pools.append((f"{k} steps", S))
-    print(f"  {k:>3} steps: two sample {m:+.3e}, separable at {c:.4f}")
+    key = f"{npar // 1000}k"
+    ladder_rows.append({"hidden": hid, "depth": depth, "epochs": ep, "params": npar,
+                        "kb_half": rnd(npar * 2 / 1024, 1), "loss": rnd(meta["loss"], 4),
+                        "mmd2": sci(m), "c2st": rnd(c, 4), "ink": sci(float(S.mean())),
+                        "resolves": bool(abs(m) > PFLOOR["mmd2_max"])})
+    pools.append((key, S))
+    nets[npar] = (net, S)
+    print(f"  {npar:>7,} weights ({npar * 2 / 1024:6.1f} kB in float16), {ep:>4} epochs: "
+          f"two sample {m:+.4f}, separable at {c:.4f}, mean pixel {S.mean():.4f}")
 
-# The judge travels with its confound, so the confound is re-tested here rather
-# than assumed to have stayed in the article that found it.
+REAL_INK = float(REALPIX.mean())
+print(f"  a real held out digit has mean pixel {REAL_INK:.4f}")
 INK = judge_ink_check(pools, REALPIX, J)
-print(f"\n  the ink guard on the shared judge: confidence correlates {INK['corr']} with ink "
-      f"across these pools, real digits sit at {INK['real_ink']}")
-print(f"  -> {'CONFOUNDED: no ranking by the judge may be published here' if INK['confounded'] else 'not confounded: the judge may be read as a ranking'}")
+print(f"\n  the ink guard on the shared judge: confidence correlates {INK['corr']} with ink; "
+      f"{'CONFOUNDED' if INK['confounded'] else 'not confounded'}")
+
+BIG = max(nets)
+best_row = max(ladder_rows, key=lambda r: r["params"])
+print(f"\n  The toy on this page runs from {sum(p.numel() for p in NET.parameters()):,} weights. "
+      f"Reaching {best_row['mmd2']} on 196 pixels took {BIG:,}, which is "
+      f"{BIG / sum(p.numel() for p in NET.parameters()):,.0f} times as many and "
+      f"{best_row['kb_half']} kB: too much to ship in a page, and that is the measurement, "
+      f"not an excuse. It is also the argument for doing the diffusion somewhere smaller.")
+
+# What the page shows instead of weights: the pictures themselves, which cost
+# 196 numbers each rather than three quarters of a million.
+STRIP = 24
+show = nets[BIG][1][:STRIP]
+strip_b64, strip_v = export_flat(show.ravel().tolist())
+real_b64, real_v = export_flat(REALPIX[:STRIP].ravel().tolist())
+print(f"  the page ships {STRIP} samples and {STRIP} real digits as pixels: "
+      f"{len(strip_v) + len(real_v):,} numbers, {(len(strip_b64) + len(real_b64)) / 1024:.0f} kB")
 
 
 # ============================================================== G. the scoreboard
 banner("G. the module, side by side, on the same density")
+import json as _json
+
 board = {"ceiling": rnd(CEILING, 6)}
-for name, path, keys in (
-        ("vae", "vae/data/vae.json", ("toy_bound", "toy_exact", "toy_kl")),
-        ("flows", "flows/data/flows.json", ("toy_exact", "toy_kl", "hole")),
-        ("ebm", "ebm/data/ebm.json", ("kl",))):
-    f = REPO / path
-    if not f.exists():
-        continue
-    import json as _json
-    d = _json.loads(f.read_text("utf-8"))
-    b = d.get("board", {})
-    src = b.get(name.replace("flows", "flow"), b.get(name, b))
-    board[name] = {k: src.get(k) for k in keys if isinstance(src, dict) and k in src}
-    print(f"  {path}: {board[name]}")
+fj = REPO / "flows" / "data" / "flows.json"
+if fj.exists():
+    fb = _json.loads(fj.read_text("utf-8")).get("board", {})
+    for k in ("flow", "vae", "ebm", "truth_hole"):
+        if k in fb:
+            board[k] = fb[k]
+            print(f"  from the flows article: {k} = {fb[k]}")
+
+# This article's own row is a different SHAPE, and that is the point rather than
+# an omission. A flow reports an exact log density because a change of variables
+# is an identity; a variational autoencoder reports a bound it can name the gap
+# of; a diffusion sampler reports neither, because there is no closed form for
+# the density its reverse chain induces. What it has instead is samples, so the
+# only honest column it can fill is the sample one, read against a floor.
+board["ddpm"] = {
+    "exact": None,
+    "why_no_exact": "the reverse chain has no closed form density, so this article cannot put "
+                    "a number in the column the flow filled exactly and the autoencoder "
+                    "bounded; what it has is samples",
+    "mmd2_best": min((r["mmd2"] for r in steps_rows), key=abs),
+    "floor": FLOOR["mmd2_max"],
+    "enter_deterministic": enter_det, "enter_ancestral": enter_anc,
+    "hole": hole_rows[0]["share"] if hole_rows else None,
+    "hole_deterministic": hole_rows[1]["share"] if len(hole_rows) > 1 else None,
+}
+print(f"  this article: no exact density (the reverse chain has none), sample statistic "
+      f"{board['ddpm']['mmd2_best']} against a floor of {board['ddpm']['floor']}")
 
 payload = {
     "meta": {"seed": SEED_MAIN, "seeds": SEEDS, "threads": THREADS,
              "torch": torch.__version__, "steps": STEPS, "grid": GRID,
              "hidden": HID, "epochs": EPOCHS, "n_train": N_TRAIN,
+             "toy_params": int(sum(p.numel() for p in NET.parameters())),
              "ceiling": rnd(CEILING, 6), "show_ts": SHOW_TS, "track": TRACK,
-             "digit_steps": DIG_STEPS, "digit_hidden": DHID,
+             "digit_steps": DIG_STEPS, "digit_side": 14, "strip": STRIP,
+             "real_ink": rnd(REAL_INK, 4),
              "judge_accuracy": rnd(J["accuracy"], 4),
              "judge_confidence": rnd(J["real_confidence"], 4),
-             "note": "q(x_t) is the truth scaled and blurred, so every number on this page that "
-                     "calls itself exact is a closed form or a quadrature on a box sized for "
-                     "that noise level, never a sample average"},
+             "note": "q(x_t) is the truth scaled and blurred, so every number here that calls "
+                     "itself exact is a closed form or a quadrature on a box sized for that "
+                     "noise level, never an average over samples"},
     "quadrature": quad,
     "guards": {"rows": guard_rows, "worst_mass": sci(worst_mass),
                "worst_interp": sci(worst_interp),
@@ -789,8 +834,10 @@ payload = {
     "sampling": {"rows": steps_rows, "floor": FLOOR, "gamma": sci(GAMMA),
                  "enter_ancestral": enter_anc, "enter_deterministic": enter_det,
                  "hole": hole_rows},
-    "pixels": {"rows": pix_rows, "floor": PFLOOR, "gamma": sci(PGAMMA),
-               "steps": PIX_STEPS, "ink": INK},
+    "pixels": {"ladder": ladder_rows, "floor": PFLOOR, "gamma": sci(PGAMMA),
+               "ink": INK, "real_ink": rnd(REAL_INK, 4),
+               "biggest": BIG, "toy_params": int(sum(p.numel() for p in NET.parameters())),
+               "samples_b64": strip_b64, "real_b64": real_b64},
     "board": board,
 }
 write_json(OUT / "ddpm.json", payload)
