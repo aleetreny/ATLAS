@@ -172,8 +172,8 @@ export function initProse(data) {
 
   set('ref-note',
     `Everything on this page comes from `
-    + `<span class="mono">src/utils/generate_annsearch_data.py</span> and the indexes in `
-    + `<span class="mono">src/utils/annkit.py</span>, seed ${M.seed}. The collection is `
+    + `<span class="mono">src/<wbr>utils/<wbr>generate_<wbr>annsearch_<wbr>data.py</span> and the indexes in `
+    + `<span class="mono">src/<wbr>utils/<wbr>annkit.py</span>, seed ${M.seed}. The collection is `
     + `${n0(I.n)} single label Reuters newswires as ${M.dims} columns from a singular value `
     + `decomposition of their weighted counts, with ${I.queries} held out as queries and `
     + `${M.k} neighbours asked for. The graph uses ${M.M} neighbours per node and a `

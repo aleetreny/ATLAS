@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <rect width="400" height="300" fill="#f1f3f3" />
+  <!-- el sesgo del mejor de b tuberias, una curva por tabla: -->
+  <!-- cuanto mas se busca, mas exagera la puntuacion que gana -->
+  <path d="M22,182 L378,182" fill="none" stroke="#232f3e" stroke-width="1.2" opacity="0.5" stroke-dasharray="4 4"/>
+  <path d="M28,225 L69,144 L110,117 L152,102 L193,86 L234,63 L275,42 L317,28 L358,23 L378,22" fill="none" stroke="#48522d" stroke-width="2.6" opacity="1.0"/>
+  <path d="M28,272 L69,256 L110,233 L152,215 L193,193 L234,171 L275,153 L317,139 L358,123 L378,115" fill="none" stroke="#003181" stroke-width="2.6" opacity="1.0"/>
+  <path d="M28,172 L69,158 L110,147 L152,142 L193,140 L234,138 L275,136 L317,133 L358,133 L378,133" fill="none" stroke="#df2a5d" stroke-width="2.6" opacity="1.0"/>
+  <path d="M28,238 L69,229 L110,228 L152,226 L193,227 L234,231 L275,235 L317,238 L358,245 L378,249" fill="none" stroke="#007faa" stroke-width="2.6" opacity="1.0"/>
+</svg>

@@ -546,7 +546,7 @@ export function initProse(game, ring, images) {
     + `measure which factor each layer moves.`);
 
   set('resources-note',
-    `Every figure on this page comes from <code>src/utils/generate_gan_data.py</code>: the `
+    `Every figure on this page comes from <code>src/<wbr>utils/<wbr>generate_<wbr>gan_<wbr>data.py</code>: the `
     + `divergences are trapezoid integrals on a grid of ${n0(game.meta.grid.n)} points from `
     + `${game.meta.grid.x0} to ${game.meta.grid.x1}, recomputed in this tab and checked against `
     + `the generator's own values; the disjoint supports experiment trains each network for `

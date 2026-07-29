@@ -186,8 +186,8 @@ export function initProse(data) {
 
   set('ref-note',
     `Everything on this page comes from `
-    + `<span class="mono">src/utils/generate_vectordb_data.py</span>, with the indexes in `
-    + `<span class="mono">src/utils/annkit.py</span>, seed ${M.seed}. The collection is `
+    + `<span class="mono">src/<wbr>utils/<wbr>generate_<wbr>vectordb_<wbr>data.py</span>, with the indexes in `
+    + `<span class="mono">src/<wbr>utils/<wbr>annkit.py</span>, seed ${M.seed}. The collection is `
     + `${n0(F.n)} single label Reuters newswires as ${M.dims} columns, ${M.queries} queries, `
     + `${M.k} results asked for, a graph with ${M.M} neighbours per node searched at width `
     + `${M.ef}. Filters are applied at fixed selectivities and also by the documents' own `

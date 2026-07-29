@@ -251,7 +251,7 @@ export function initProse(data) {
 
   set('ref-note',
     `Everything on this page comes from `
-    + `<span class="mono">src/utils/generate_hyperparameters_data.py</span>, seed `
+    + `<span class="mono">src/<wbr>utils/<wbr>generate_<wbr>hyperparameters_<wbr>data.py</span>, seed `
     + `${M.seed}. The surface is ${M.grid} by ${M.grid} values of log2 C and log2 gamma for a `
     + `radial basis kernel machine on ${n0(M.n_train)} of the ${n0(M.n_train + M.n_test)} `
     + `digits, ${M.features} columns and ${M.classes} classes, scored by ${M.repeats} repeats `

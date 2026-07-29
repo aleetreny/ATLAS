@@ -54,8 +54,8 @@ export function initBleuWidget(data) {
           .attr('text-anchor', 'middle').style('font-size', '10.5px')
           .text(r.corpus.toFixed(3));
         layer.append('text').attr('class', 'chart-note')
-          .attr('transform', `translate(${x(r.kind) + x.bandwidth() / 2},${h + 8}) rotate(40)`)
-          .style('font-size', '10.5px').text(r.kind);
+          .attr('transform', `translate(${x(r.kind) + x.bandwidth() / 2},${h + 8}) rotate(-40)`)
+          .attr('text-anchor', 'end').style('font-size', '10.5px').text(r.kind);
       });
       layer.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', -34)
         .style('font-size', '11px').attr('fill', 'var(--cosmos)')
@@ -95,8 +95,8 @@ export function initBleuWidget(data) {
           .attr('x', x(r.scheme) + x.bandwidth() / 2).attr('y', y(r.bleu) - 8)
           .attr('text-anchor', 'middle').style('font-size', '11.5px').text(r.bleu.toFixed(4));
         layer.append('text').attr('class', 'chart-note')
-          .attr('transform', `translate(${x(r.scheme) + x.bandwidth() / 2},${h + 8}) rotate(24)`)
-          .style('font-size', '10.5px').text(r.scheme);
+          .attr('transform', `translate(${x(r.scheme) + x.bandwidth() / 2},${h + 8}) rotate(-24)`)
+          .attr('text-anchor', 'end').style('font-size', '10.5px').text(r.scheme);
       });
     }
 

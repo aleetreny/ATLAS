@@ -196,8 +196,8 @@ export function initProse(data) {
 
   set('ref-note',
     `Everything on this page comes from `
-    + `<span class="mono">src/utils/generate_lora_data.py</span> and the numpy kit in `
-    + `<span class="mono">src/utils/tinynet.py</span>, seed ${M.seed}. The base is `
+    + `<span class="mono">src/<wbr>utils/<wbr>generate_<wbr>lora_<wbr>data.py</span> and the numpy kit in `
+    + `<span class="mono">src/<wbr>utils/<wbr>tinynet.py</span>, seed ${M.seed}. The base is `
     + `${M.hidden.join(' and ')} hidden units trained on ${n0(M.source_n)} MNIST rows; every `
     + `adaptation uses the same ${n0(M.target_n)} Fashion-MNIST rows and ${M.epochs} epochs `
     + `of Adam, and every point is ${M.seeds} seeds. Ranks ${M.ranks.join(', ')}, alphas `

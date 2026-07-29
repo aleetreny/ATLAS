@@ -652,7 +652,7 @@ export function initProse(data) {
     + `nothing; the only interesting number is the one from where nobody stood.`);
 
   set('resources-note',
-    `Data: a scene defined in closed form in <code>src/utils/generate_nerf_data.py</code>, photographed `
+    `Data: a scene defined in closed form in <code>src/<wbr>utils/<wbr>generate_<wbr>nerf_<wbr>data.py</code>, photographed `
     + `at ${n0(M.gt_steps)} quadrature steps and rounded to bytes. ${M.n_train} training cameras, `
     + `${M.n_inside} held out inside the photographed band and ${M.n_outside} outside it. The field is `
     + `${n0(N.params)} weights trained for ${n0(M.iters)} Adam steps on batches of ${n0(M.batch)} rays at `

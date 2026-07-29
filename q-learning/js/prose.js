@@ -159,7 +159,7 @@ export function initProse(data) {
     + `assumed the table.`);
 
   set('resources-note',
-    `Everything was measured by <code>src/utils/generate_qlearning_data.py</code> with seed `
+    `Everything was measured by <code>src/<wbr>utils/<wbr>generate_<wbr>qlearning_<wbr>data.py</code> with seed `
     + `${M.seed}. The world is the cliff walk of Sutton and Barto: ${T.rows} by ${T.cols}, `
     + `deterministic, minus one a step and minus a hundred into the drop. Value iteration runs to `
     + `a change below 1e-12. Both learners get ${n0(M.episodes)} episodes, step size ${M.alpha}, `

@@ -41,6 +41,17 @@ export function initDistilWidget(data) {
     'student ceiling': 'var(--smile)',
     'soft T=4 plus unlabelled': 'var(--aqua)',
   };
+  /* Los nombres largos girados 40 grados cuelgan por debajo del lienzo: "soft
+     T=4 plus unlabelled" son 144 unidades de texto, que a 40 grados son 93 de
+     alto en un margen inferior de 96. El eje lleva la version corta y el
+     readout el nombre entero. */
+  const SHORT = {
+    'hard labels': 'hard labels',
+    'teacher argmax': 'teacher argmax',
+    'scrambled wrong classes': 'scrambled',
+    'student ceiling': 'ceiling',
+    'soft T=4 plus unlabelled': 'T=4, unlabelled',
+  };
   const soft = (k) => k.startsWith('soft T=') && !k.includes('unlabelled');
   const bestSoft = Object.entries(D.arms).filter(([k]) => soft(k))
     .reduce((a, b) => (b[1].mean > a[1].mean ? b : a));
@@ -70,8 +81,8 @@ export function initDistilWidget(data) {
         .attr('y1', y(a.mean - a.sd)).attr('y2', y(a.mean + a.sd))
         .attr('stroke', 'var(--squidink)').attr('stroke-width', 1.3);
       layer.append('text').attr('class', 'chart-note')
-        .attr('transform', `translate(${x(n) + x.bandwidth() / 2},${h + 8}) rotate(40)`)
-        .style('font-size', '10.5px').text(n);
+        .attr('transform', `translate(${x(n) + x.bandwidth() / 2},${h + 8}) rotate(-40)`)
+        .attr('text-anchor', 'end').style('font-size', '10.5px').text(SHORT[n] || n);
     });
 
     const hard = D.arms['hard labels'];

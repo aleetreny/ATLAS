@@ -176,7 +176,7 @@ export function initProse(data) {
 
   set('ref-note',
     `Everything on this page comes from `
-    + `<span class="mono">src/utils/generate_crossval_data.py</span>, seed ${M.seed}. The `
+    + `<span class="mono">src/<wbr>utils/<wbr>generate_<wbr>crossval_<wbr>data.py</span>, seed ${M.seed}. The `
     + `simulated section is ${n0(M.truth_sets)} independent datasets of ${M.truth_n} rows and `
     + `${M.truth_d} columns from a logistic process, with the risk of each fitted model `
     + `computed on ${n0(M.pop)} fresh rows rather than estimated. The leakage section is `

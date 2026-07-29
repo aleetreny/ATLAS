@@ -187,7 +187,7 @@ export function initProse(data) {
 
   set('ref-note',
     `Everything on this page comes from `
-    + `<span class="mono">src/utils/generate_metrics_data.py</span>, seed ${M.seed}. The `
+    + `<span class="mono">src/<wbr>utils/<wbr>generate_<wbr>metrics_<wbr>data.py</span>, seed ${M.seed}. The `
     + `classifiers run on a singular value decomposition of the same weighted counts the `
     + `<a href="../tf-idf/">TF-IDF article</a> measured, ${M.dims} dimensions over `
     + `${n0(M.vocab)} terms and ${n0(M.docs)} single label newswires. The area is computed `

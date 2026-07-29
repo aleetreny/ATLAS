@@ -170,7 +170,7 @@ export function initProse(data) {
     + `of its own uncertainty, in two different ways, and gets within reach of that floor.`);
 
   set('resources-note',
-    `Everything was measured by <code>src/utils/generate_bandits_data.py</code> with seed `
+    `Everything was measured by <code>src/<wbr>utils/<wbr>generate_<wbr>bandits_<wbr>data.py</code> with seed `
     + `${M.seed}: ${n0(M.runs)} runs of ${n0(M.horizon)} pulls for the five policy comparison, `
     + `1,500 runs per point for the sweeps, and 1,000 for the horizon fits. The machines pay one `
     + `or nothing with probabilities ${M.arms.join(', ')}. Regret is the exact quantity, computed `

@@ -27,8 +27,14 @@ export function initProse(data) {
   const small = FW.rows[0];
   const big = FW.rows[FW.rows.length - 1];
   const bsmall = BW.rows[0];
-  const learned = small.transfer - small.random;
-  const projection = small.random - small.pixels;
+  const bbig = BW.rows[BW.rows.length - 1];
+  /* Lo que el entrenamiento del origen compra sobre la MISMA arquitectura sin
+     entrenar, y lo que el cuello de botella cuesta sobre no tenerlo. Se miden
+     por separado porque salieron con signos distintos, que no era el guion. */
+  const learned = big.transfer - big.random;
+  const bottleneck = big.transfer - big.pixels;
+  const beatsPixels = FW.rows.filter((r) => r.transfer > r.pixels).length;
+  const beatsRandom = FW.rows.filter((r) => r.transfer > r.random).length;
   const softNames = Object.keys(D.arms).filter(
     (k) => k.startsWith('soft T=') && !k.includes('unlabelled'));
   const bestSoft = softNames.reduce((a, b) => (D.arms[b].mean > D.arms[a].mean ? b : a));
@@ -42,8 +48,9 @@ export function initProse(data) {
   const shapeMatters = best.mean - scr.mean > shapeFloor;
   const distilGain = best.mean - hard.mean;
   const distilReal = distilGain > hard.sd + best.sd;
-  const unlabGain = unlab.mean - best.mean;
-  const unlabReal = unlabGain > unlab.sd + best.sd;
+  const soft4 = D.arms['soft T=4'];
+  const unlabGain = unlab.mean - soft4.mean;
+  const unlabReal = unlabGain > unlab.sd + soft4.sd;
 
   set('opening-note',
     `Everything here runs on two tables of ${28 * 28} pixel images with ten classes each, `
@@ -59,27 +66,36 @@ export function initProse(data) {
   set('transfer-intro',
     `The experiment is the standard one. Train an encoder on the first task, freeze it, and `
     + `fit a linear head on n labelled rows of the second, sweeping n from ${small.n} to `
-    + `${n0(big.n)}. Against raw pixels it wins comfortably at every n, which is the result `
-    + `everybody publishes and which does not distinguish between three completely `
-    + `different explanations.`);
+    + `${n0(big.n)}. The comparison it is usually reported against is raw pixels into the `
+    + `same head, and a win there is taken to mean the encoder learned something worth `
+    + `carrying. That comparison cannot distinguish between three different explanations, `
+    + `which is why this page runs four controls; and here it does not even go the way it is `
+    + `supposed to.`);
 
   set('transfer-note',
-    `So there are four controls rather than one. The <span class="bold">untrained</span> arm `
-    + `is the same architecture with the weights it was initialised with, frozen: whatever it `
-    + `reaches is what a random projection into ${M.hidden[M.hidden.length - 1]} dimensions `
-    + `buys, with no learning in it at all. The <span class="bold">shuffled</span> arm was `
-    + `trained to convergence on the first task with the labels dealt at random, so it has `
-    + `had exactly as much optimiser applied as the transferred one and has learned nothing `
-    + `about anything; it reached ${f4(FW.shuffled_train)} on its own scrambled training set, `
-    + `which is memorisation and not structure. The <span class="bold">oracle</span> arm is `
-    + `an encoder trained on the destination task itself, which is the ceiling. At `
-    + `${small.n} labelled rows the transferred encoder is ${f4(small.transfer)} against `
-    + `${f4(small.random)} untrained and ${f4(small.pixels)} for raw pixels: `
-    + `<span class="bold">${f4(projection)} of the gap over pixels is the projection and `
-    + `${f4(learned)} is the learning</span>. And the direction matters: going the other way, `
-    + `clothes to digits, the same comparison at ${bsmall.n} rows is ${f4(bsmall.transfer)} `
-    + `against ${f4(bsmall.random)} untrained, a difference of `
-    + `${f4(bsmall.transfer - bsmall.random)}.`);
+    `So there are four controls rather than one, and on this pair of tasks they are what `
+    + `saves the section, because <span class="bold">the transferred encoder loses to the raw `
+    + `pixels at ${FW.rows.length - beatsPixels} of the ${FW.rows.length} sample sizes</span>. `
+    + `At ${n0(big.n)} labelled rows it scores ${f4(big.transfer)} against ${f4(big.pixels)} `
+    + `for feeding the ${28 * 28} pixels straight to the same linear head. Transfer here is `
+    + `negative, and the controls say which of the two obvious explanations is right. `
+    + `The <span class="bold">untrained</span> arm is the same architecture with the weights `
+    + `it was initialised with, frozen, and it scores ${f4(big.random)}: so the source `
+    + `training is worth ${signed(learned)} over not having happened, and the encoder as a `
+    + `whole still costs ${signed(bottleneck)} against not having one. `
+    + `<span class="bold">The bottleneck loses more than the training adds.</span> `
+    + `The <span class="bold">shuffled</span> arm, trained to convergence on the source task `
+    + `with the labels dealt at random, reached ${f4(FW.shuffled_train)} on its own scrambled `
+    + `training set, which is memorisation rather than structure, and its features score `
+    + `${f4(big.shuffled)}: below the honest encoder, as it should be. And the `
+    + `<span class="bold">oracle</span>, an encoder of exactly the same shape trained on the `
+    + `destination task itself, reaches ${f4(big.oracle)}, comfortably above the pixels. That `
+    + `is the sentence the whole section is for: the ${M.hidden[M.hidden.length - 1]} unit `
+    + `bottleneck is not the problem, because a bottleneck filled with the right features `
+    + `wins easily. What fails is the assumption that digits and clothing are close enough `
+    + `for one to furnish the other. Going the other way is the same story with different `
+    + `numbers: at ${n0(bbig.n)} rows, ${f4(bbig.transfer)} transferred against `
+    + `${f4(bbig.pixels)} for the pixels and ${f4(bbig.random)} untrained.`);
 
   set('freeze-intro',
     `A frozen encoder is one end of a dial. The other is fine tuning everything, and in `
@@ -131,12 +147,12 @@ export function initProse(data) {
     + `something that was measured on purpose to be uninteresting.`);
 
   set('verdict-frozen',
-    `At ${small.n} rows, ${f4(small.transfer)} against ${f4(small.pixels)} for raw pixels; `
-    + `by ${n0(big.n)} rows, ${f4(big.transfer)} against ${f4(big.pixels)}.`);
+    `${f4(big.transfer)} at ${n0(big.n)} rows against ${f4(big.pixels)} for the raw pixels `
+    + `and ${f4(big.oracle)} for an encoder of the same shape trained on this task.`);
   set('verdict-frozen-warn',
-    `An untrained encoder of the same shape already reaches ${f4(small.random)} at `
-    + `${small.n} rows, so ${(projection / (small.transfer - small.pixels) * 100).toFixed(0)}% `
-    + `of the advantage over pixels is the projection and not the training.`);
+    `It beat the pixels at ${beatsPixels} of ${FW.rows.length} sample sizes and beat an `
+    + `untrained encoder of the same shape at ${beatsRandom}. The source training is worth `
+    + `${signed(learned)}; the bottleneck costs ${signed(bottleneck)}.`);
   set('verdict-tune',
     `Thawing everything reaches ${f4(FZ.rows[FZ.rows.length - 1].mean)} at ${FZ.n} rows `
     + `against ${f4(FZ.rows[0].mean)} for the head alone.`);
@@ -163,24 +179,24 @@ export function initProse(data) {
   set('verdict-unlab-warn',
     unlabReal
       ? `${signed(unlabGain)} over the same recipe without them, larger than the `
-        + `${f4(unlab.sd + best.sd)} of seed spread. This is the part of distillation that `
+        + `${f4(unlab.sd + soft4.sd)} of seed spread. This is the part of distillation that `
         + `has no equivalent in training on labels.`
       : `${signed(unlabGain)} over the same recipe without them, inside the `
-        + `${f4(unlab.sd + best.sd)} of seed spread, so here the extra rows did not pay.`);
+        + `${f4(unlab.sd + soft4.sd)} of seed spread, so here the extra rows did not pay.`);
 
   set('closing-1',
-    `Both halves of this page came out the same way, and it is worth naming the pattern `
-    + `rather than the two results. In each case the headline comparison was comfortably `
-    + `won, and in each case a control built to be boring took most of the win away: `
-    + `${f4(projection)} of the transfer advantage at ${small.n} rows belongs to an `
-    + `untrained projection, and `
-    + (shapeMatters
-      ? `the scrambled teacher is ${f4(best.mean - scr.mean)} behind the real one, which is `
-        + `the part of distillation the story is actually about.`
-      : `a teacher whose wrong classes have been shuffled teaches just as well as the real `
-        + `one. Neither method is in doubt. What is in doubt is the mechanism each is `
-        + `usually explained by, and mechanisms are what you need if you want to know when `
-        + `something will stop working.`));
+    `Both halves of this page went against the draft, in the same direction and for related `
+    + `reasons. Transfer between these two tasks is <span class="bold">negative</span>: the `
+    + `encoder costs ${signed(bottleneck)} against feeding the pixels straight in, even `
+    + `though the source training is worth ${signed(learned)} against not having happened, `
+    + `and the oracle arm proves the bottleneck itself is fine. And distillation from a `
+    + `teacher ${(D.teacher_params / D.student_params).toFixed(0)} times larger is worth `
+    + `${signed(distilGain)} over training on the labels directly, which the seed spread `
+    + `cannot separate from nothing. Neither method is broken. What both results say is that `
+    + `these methods buy something specific: transfer buys features when the source task is `
+    + `related, and distillation buys supervision when the student is short of it. The `
+    + `student here is ${f4(hard.mean)} against a ceiling of ${f4(ceiling.mean)}, so it is `
+    + `not short of anything, and MNIST is not what Fashion-MNIST needed.`);
 
   set('closing-2',
     `The freezing sweep leaves the question this module has been circling since the first `
@@ -192,8 +208,8 @@ export function initProse(data) {
 
   set('ref-note',
     `Everything on this page comes from `
-    + `<span class="mono">src/utils/generate_distillation_data.py</span> and the small numpy `
-    + `network kit in <span class="mono">src/utils/tinynet.py</span>, seed ${M.seed}. `
+    + `<span class="mono">src/<wbr>utils/<wbr>generate_<wbr>distillation_<wbr>data.py</span> and the small numpy `
+    + `network kit in <span class="mono">src/<wbr>utils/<wbr>tinynet.py</span>, seed ${M.seed}. `
     + `Encoders are ${M.hidden.join(' and ')} hidden units trained for ${M.source_epochs} `
     + `epochs on ${n0(M.source_n)} rows of the source task; probes are logistic regressions `
     + `on the frozen features; fine tuning and training from scratch are ${M.tune_epochs} `

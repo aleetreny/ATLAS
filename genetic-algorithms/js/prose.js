@@ -227,7 +227,7 @@ export function initProse(data) {
     + `probability of that written down and measured against what actually gets accepted.`);
 
   set('resources-note',
-    `Everything was measured by <code>src/utils/generate_ga_data.py</code> with seed ${M.seed}, `
+    `Everything was measured by <code>src/<wbr>utils/<wbr>generate_<wbr>ga_<wbr>data.py</code> with seed ${M.seed}, `
     + `${M.seeds} seeds per cell, a budget of ${n0(M.budget)} fitness evaluations, chromosomes of `
     + `${M.bits} bits in blocks of ${M.block}, populations of ${M.pop}, contests of `
     + `${R.config.tour} and a mutation rate of one in ${M.bits}. The travelling salesman is `

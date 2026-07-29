@@ -197,7 +197,7 @@ export function initProse(data) {
   set('p-signoff',
     `Thanks for reading! Every convolution on this page runs in its JavaScript, and the trained `
     + `weights, accuracies and reference feature maps come from `
-    + `<code>src/utils/generate_lenet_data.py</code>, which trains every network here from scratch `
+    + `<code>src/<wbr>utils/<wbr>generate_<wbr>lenet_<wbr>data.py</code>, which trains every network here from scratch `
     + `with seed ${v.seed}, ${v.epochs} epochs and batches of ${v.batch}. The two training times in `
     + `the table above, ${cnn.seconds.toFixed(1)} s and ${mlp.seconds.toFixed(1)} s, are wall clock on `
     + `one laptop CPU: the ${word(slower)}-to-one ratio between them is the part that would survive on `

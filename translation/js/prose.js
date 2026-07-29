@@ -297,7 +297,7 @@ export function initProse(data) {
     + `left behind, weight for weight, and puts a distribution on its code on purpose.`);
 
   set('resources-note',
-    `Every figure on this page comes from <code>src/utils/generate_translation_data.py</code>: `
+    `Every figure on this page comes from <code>src/<wbr>utils/<wbr>generate_<wbr>translation_<wbr>data.py</code>: `
     + `${n0(M.n_train)} scene pairs at ${M.res} by ${M.res} with ${n0(M.n_test)} held out, five `
     + `paired arms at ${n0(M.steps)} steps and batch ${M.batch} on ${word(M.seeds.length)} seeds `
     + `each with \\(\\lambda = ${M.lam}\\), and ${word(M.cycle_seeds.length)} unpaired runs at `

@@ -166,7 +166,7 @@ export function initProse(data) {
     + `uncertainty, with a world that remembers.`);
 
   set('resources-note',
-    `Everything was measured by <code>src/utils/generate_ucb_data.py</code> with seed ${M.seed}: `
+    `Everything was measured by <code>src/<wbr>utils/<wbr>generate_<wbr>ucb_<wbr>data.py</code> with seed ${M.seed}: `
     + `${n0(M.runs)} runs of ${n0(M.horizon)} pulls for the regret comparison, ${n0(C.runs)} runs `
     + `of ${C.horizon} for the coverage count, ${K.runs} runs for the calibration check, and 600 `
     + `runs of ${n0(D.horizon)} for the swap. The machines pay one or nothing with probabilities `

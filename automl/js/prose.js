@@ -214,7 +214,7 @@ export function initProse(data) {
 
   set('ref-note',
     `Everything on this page comes from `
-    + `<span class="mono">src/utils/generate_automl_data.py</span>, seed ${M.seed}. The `
+    + `<span class="mono">src/<wbr>utils/<wbr>generate_<wbr>automl_<wbr>data.py</span>, seed ${M.seed}. The `
     + `catalogue is ${M.scalers.join(', ')} crossed with ${M.reducers.join(', ')} crossed `
     + `with ${M.weights.join(', ')} crossed with ${M.models.length} model settings, `
     + `${n0(M.configs)} pipelines, each scored by ${M.folds} fold stratified cross `
