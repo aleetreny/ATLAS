@@ -141,7 +141,23 @@ export function initTimeWidget(data) {
       + `the features and rows on either side of a cut share observations, so forward `
       + `chaining reports ${noGap.mae.toFixed(3)} with no gap and `
       + `${bigGap.mae.toFixed(3)} once ${bigGap.embargo} months are dropped either side, `
-      + `a factor of ${(bigGap.mae / noGap.mae).toFixed(1)}.</div>`;
+      + `a factor of ${(bigGap.mae / noGap.mae).toFixed(1)}. `
+      + (() => {
+        /* the sweep is not monotone and the reason is worth a sentence: past a
+           point the gap is deleting training rows faster than it is deleting
+           leakage, so the curve comes back down and a reader who only saw the
+           two ends would take the wrong lesson from it */
+        const peak = E.reduce((a, b) => (b.mae > a.mae ? b : a));
+        return peak.embargo !== bigGap.embargo
+          ? `The sweep is not a ramp: the pessimism peaks at ${peak.embargo} months with `
+            + `${peak.mae.toFixed(3)} and then falls back, because past that point the gap `
+            + `is throwing away more training rows than leakage. The honest reading is that `
+            + `the gap has to be at least as wide as the feature, ${T.ma} months here, and `
+            + `that wider is not automatically safer.`
+          : `The sweep rises all the way, so on this series the widest gap tested is also `
+            + `the most pessimistic one.`;
+      })()
+      + `</div>`;
   }
 
   render();

@@ -35,6 +35,9 @@ export function initProse(data) {
   const emb = TM.embargo;
   const noGap = emb[0];
   const bigGap = emb[emb.length - 1];
+  /* the widest gap is not the most pessimistic one: past a point the embargo is
+     deleting training rows faster than it deletes leakage, so the curve turns */
+  const worstGap = emb.reduce((a, b) => (b.mae > a.mae ? b : a));
   const groupGap = G.by_row - G.by_group;
   const groupFloor = G.by_row_sd + G.by_group_sd;
   const groupReal = Math.abs(groupGap) > groupFloor;
@@ -128,8 +131,12 @@ export function initProse(data) {
     + `${f3(Math.abs(shuf.mae - rand.mae))} of the optimistic one. And then the part that `
     + `survives doing it properly. Put a ${TM.ma} month rolling mean in the features and rows `
     + `on either side of a cut share observations even though no future row is used to `
-    + `predict a past one: forward chaining reports ${f3(noGap.mae)} with the cut flush and `
-    + `${f3(bigGap.mae)} once ${bigGap.embargo} months are dropped either side of it.`);
+    + `predict a past one: forward chaining reports ${f3(noGap.mae)} with the cut flush, `
+    + `${f3(worstGap.mae)} at its most pessimistic, with ${worstGap.embargo} months dropped `
+    + `either side, and ${f3(bigGap.mae)} at the widest gap tested, ${bigGap.embargo}. The `
+    + `sweep turns because a gap deletes leakage and training rows at the same time, so the `
+    + `rule that comes out of it is a floor and not a maximum: at least as wide as the `
+    + `feature, which is ${TM.ma} months here.`);
 
   set('group-intro',
     `The fourth is the one nobody can see in their own data, because the groups are not a `
@@ -162,8 +169,8 @@ export function initProse(data) {
     `${f3(rand.mae)} parts per million against ${f3(fwd.mae)} when the model is only allowed `
     + `the past.`);
   set('verdict-time-fix',
-    `Forward chaining, plus a gap if any feature spans several rows: ${bigGap.embargo} months `
-    + `of gap moved this one from ${f3(noGap.mae)} to ${f3(bigGap.mae)}.`);
+    `Forward chaining, plus a gap at least as wide as the widest feature: ${TM.ma} months `
+    + `here, which moved this one from ${f3(noGap.mae)} to ${f3(worstGap.mae)} at worst.`);
   set('verdict-group',
     groupReal
       ? `${f4(G.by_row)} by row against ${f4(G.by_group)} by group, `

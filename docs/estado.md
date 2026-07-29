@@ -110,6 +110,82 @@ Este repositorio empezó como notebooks de ML y se está convirtiendo en una web
 | 84 | One Number for a Model (el área como recuento de pares, las 176.851 matrices de confusión enumeradas, cuatro métricas con cuatro umbrales, y BLEU sobre perturbaciones controladas) | `metrics/` | `#5c3257` |
 | 85 | Close Enough, Faster (la concentración de las distancias con la dimensión intrínseca medida, tres índices contra la búsqueda exhaustiva contando distancias, y la jerarquía del grafo ablada) | `ann-search/` | `#3e6d70` |
 | 86 | Where the Vectors Live (el subgrafo que el filtro parte en trozos, el recall con marcas de borrado, palabras contra direcciones fusionadas por rango, y los bytes por vector con su rescate) | `vector-db/` | `#854960` |
+**El módulo 8 entero (artículos 79 a 86), publicado de una vez.** Las tres
+secciones cerradas y los ocho chips encendidos: 8.1 tuning (79 a 82), 8.2
+evaluación (83 y 84), 8.3 búsqueda vectorial (85 y 86). Es el único módulo
+transversal del sitio, así que casi nada de lo que necesita se fabricó aquí:
+la serie de CO2 sale del 51 con su digest afirmado antes de correr, los
+vectores de palabras del 41 (en float16 y base64, decodificados, no releídos),
+las noticias de Reuters del 42, y las tarjetas enlazan hacia atrás a
+`imbalanced-learning/`, `calibration/`, `pretraining/`, `convnext/`,
+`attention/`, `neighbours/` y `kmeans/` en vez de reexplicar. Lo que hay que
+saber de cada uno:
+
+- **79** enumera las 961 celdas de una superficie de dos mandos y las puntúa
+  **dos veces**, con semillas de pliegue distintas, que es lo que separa la
+  maldición del ganador (−0,0004 con dispersión 0,0029, o sea nada) del sesgo
+  del tamaño de entrenamiento. El resultado que reescribió el artículo: sobre
+  esta superficie, rejilla y azar caen dentro del suelo de ruido, así que la
+  explicación del mecanismo se demuestra sobre una superficie de eje muerto
+  construida **con las mismas 961 cifras medidas**. Y el proceso gaussiano
+  empata con el sorteo ciego en la mediana (5 evaluaciones las dos): su ventaja
+  está en la cola, 6,78 de media contra 7,03 y llegar al objetivo el 100% de
+  las veces contra el 99,2%. Con el 14,2% de celdas en la meseta, un sorteo
+  ciego acierta en 7,1 tiradas.
+- **80** enumera las 360 tuberías del catálogo sobre cuatro tablas. Dos cosas
+  que no se publican: la selección voraz del conjunto **no es monótona** (baja
+  en 5 de 25 pasos sobre Reuters, y se publica el descenso en vez de esconderlo
+  con un guardia que afirmaba lo contrario), y la validación anidada **no elige
+  la misma tubería en cada pliegue exterior**, lo cual cambia lo que su 0,9663
+  significa. 5.403 ajustes para una cifra honesta.
+- **81** mide la transferencia con cuatro controles, y sale que **los píxeles
+  crudos ganan al codificador transferido en las nueve tallas**. Los controles
+  dicen por qué: la misma arquitectura sin entrenar y la entrenada con
+  etiquetas barajadas quedan por debajo, y el oráculo (misma forma, entrenado
+  en la tarea de destino) gana a los tres, así que el cuello de botella no es
+  el problema. En destilación, el control fuerte: barajar la masa **entre** las
+  clases equivocadas conserva ganador, confianza y entropía exactamente (el
+  guardia lo comprueba a 5e-6) y cuesta **0,0173** contra el mejor brazo blando,
+  con un suelo de dispersión entre semillas de 0,0051: la forma de las clases
+  equivocadas hace trabajo medible, y este es el control que lo demuestra sin
+  quitar dos cosas a la vez.
+- **82** dibuja el espectro del cambio contra **una matriz al azar de la misma
+  norma de Frobenius**, que es lo único que hace que "rango bajo" signifique
+  algo, y calcula el techo de cada rango truncando el cambio real. El
+  adaptador de rango 8 saca 0,8092 y el truncamiento del cambio real 0,8074:
+  **el adaptador gana al truncamiento**, que no es un techo sino otra pregunta.
+  Y lo que la medida desmiente: el cambio del ajuste fino **no es pequeño**,
+  su norma es el 70,0% de la matriz a la que se suma. Alpha compensada no sale
+  plana, y las dos ramas se cruzan exactamente en alpha = rango.
+- **83** tiene una **verdad**: los datos salen de un proceso escrito, así que
+  el riesgo se calcula sobre 200.000 filas frescas en vez de estimarse. Con
+  eso, el sesgo de k a la vista (−0,0092 en k=2, −0,0006 en k=10) y la barra de
+  error subestimada por 1,67 en k=2. La fuga por preprocesado da **0,8776 de
+  exactitud sobre cien filas de ruido puro con etiquetas a cara o cruz**, y
+  hecho bien 0,5034. Reuters tiene 14.264 parejas casi idénticas que meten
+  2.934 de sus 7.690 noticias en un grupo con otra.
+- **84** enumera **las 176.851 matrices de confusión** de cien casos. Cuatro
+  métricas discrepan sobre qué modelo es mejor en 50 de 180 comparaciones, y
+  el área bajo la curva se calcula por dos rutas que tienen que cuadrar: por
+  trapecios y contando parejas (identidad de Mann y Whitney).
+- **85** mide la concentración de las distancias con la **dimensión intrínseca
+  estimada** y no supuesta: las noticias tienen 64 columnas y 5,6 dimensiones
+  intrínsecas, con un contraste de 7,63 contra 0,711 del ruido de la misma
+  anchura. Los tres índices se comparan **contando distancias y nunca
+  segundos**, y la ablación del grafo dice que la poda de aristas vale más que
+  la jerarquía, que es lo contrario del orden que sugiere el nombre del
+  algoritmo: a la anchura media de búsqueda, quitar la poda cuesta 0,1620 de
+  recall y quitar las capas cuesta −0,0005, o sea nada. A la anchura más
+  estrecha las capas sí valen algo (0,0055) y la poda sigue valiendo cuarenta
+  veces más (0,2055), que es la forma honesta de decirlo: la jerarquía compra
+  velocidad de convergencia, no alcance.
+- **86** cuenta las **componentes conexas** del subgrafo que deja cada filtro,
+  que es la razón mecánica de que filtrar dentro de un grafo no funcione: un
+  paseo no cruza a otra componente. Al 5% de selectividad el trozo mayor tiene
+  el 12% de las filas supervivientes. Y el recuento de trozos **no es
+  monótono** (sube a 135 y baja a 50), porque 60 filas no se parten en más de
+  60 trozos: lo monótono es la fracción alcanzable, que es la cifra que importa.
+
 **El módulo 7 entero (artículos 60 a 67), publicado de una vez.** Las tres
 secciones cerradas y los ocho chips encendidos: 7.1 causalidad (60 a 63), 7.2
 incertidumbre (64 y 65), 7.3 explicabilidad (66 y 67), encadenados en ese orden.
@@ -398,16 +474,30 @@ inicialización, mismo Adam): las trayectorias de 200 pasos coinciden a 4,9e-9.
 
 **Y con los artículos 36 a 40, el módulo 3.2 entero.** Los cinco están encadenados entre ellos (vae -> vq-vae -> ebm -> flows -> glow), el primero recoge la promesa que dejó abierta el cierre del 30 (abre tomando la red de ese artículo, peso a peso de su propio fichero de datos, y muestreándola) y el último desemboca en el 3.3 por la difusión. De la sección 3 quedan 3.1 y 3.3.
 
-**Dónde está el mapa ahora mismo**: secciones 1 y 2 cerradas enteras, de la 3 el 3.1 y el 3.2, y
-la **sección 4 entera** (4.1, 4.2 y 4.3, artículos 44 a 57), que es lo último publicado y salió de
-dos sesiones a la vez. Los huecos abiertos son, por tamaño: el **3.3** (difusión, al que apunta el
-cierre del 40) y las secciones 5 a 8 sin empezar, que es ya la mayor parte de lo que queda.
-La cadena de lectura de la sección 4 va `glow/` -> `tf-idf/` -> ... -> `state-space/` ->
-`arima/` -> ... -> `wavenet/`, y termina hoy en `wavenet/`, que devuelve a la portada. El enganche
-entre los dos bloques lo puso esta sesión al mergear: el cierre del 50 (`state-space/`) ya
-anunciaba "series temporales y audio" sin enlazar a nada, y ahora enlaza al 51 (`arima/`). Es
-justo la comprobación que hace el guardia, y la que hay que rehacer cuando se inserte cualquier
-artículo nuevo en medio de la sección.
+**Dónde está el mapa ahora mismo**: **siete de los ocho módulos cerrados
+enteros**. Están completos el 1 (inferencia supervisada), el 2 (estructura sin
+etiquetas), el 3 con sus tres ramas incluida la difusión, el 4 (lenguaje,
+series y sonido), el 5 (decidir y buscar), el 7 (causalidad, incertidumbre y
+explicabilidad) y ahora el 8 (tuning, evaluación y búsqueda vectorial), que es
+lo último publicado y salió de una sesión sola. Queda **un solo hueco**: el
+módulo 6, relacional, con sus cinco chips apagados (6.1 recomendadores y 6.2
+redes sobre grafos). 86 artículos, 90 chips vivos de 95.
+
+El 8 es el módulo transversal y su cadena de lectura lo enseña: entra desde el
+67 (`saliency/`, final del módulo 7), recorre `hyperparameters/` ->
+`automl/` -> `distillation/` -> `lora/` -> `crossval/` -> `metrics/` ->
+`ann-search/` -> `vector-db/`, y ahí termina la lectura del sitio. Sus enlaces
+hacia atrás son el motivo de que el módulo se pudiera escribir sin fabricar
+casi nada, y son la parte que hay que rehacer si alguien mueve un artículo de
+sitio: la regla 7 del guardia comprueba que cada tarjeta enlaza a la siguiente,
+pero no comprueba los enlaces laterales, que aquí son una docena.
+
+Quien cierre el 6 hereda dos cosas. El cierre del 86 (`vector-db/`) devuelve a
+la portada, así que si el 6 se coloca detrás habrá que reengancharlo; y los
+recomendadores tienen ya medido en el sitio casi todo lo que necesitan, porque
+`ann-search/` y `vector-db/` son la infraestructura de recuperación de un
+recomendador de dos torres, con el recall, los bytes por vector y el coste en
+distancias ya publicados.
 
 
 **Módulos 4.2 y 4.3 completos (artículos 51 a 57)**: siete artículos que estrenan la sección 4 por
