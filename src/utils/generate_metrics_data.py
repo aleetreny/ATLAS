@@ -530,9 +530,6 @@ def stage_bleu():
                          sentence_mean=float(np.mean(sent)),
                          precisions=[num[i] / den[i] if den[i] else 0.0
                                      for i in range(4)],
-                         length=float(np.mean([len(perturb(kind, ref,
-                                                           np.random.default_rng(SEED)))
-                                               for ref in refs[:50]])),
                          word_overlap=float(np.mean(cov))))
     # la penalización por brevedad, en forma cerrada contra lo medido
     bp_rows = []
