@@ -335,8 +335,16 @@ def stage_approx(x, y, xs, exact):
     # linea y usa el mismo gradiente analitico que el MAP:
     #   d/dmu   = E[ grad log p ]
     #   d/dsigma = E[ grad log p * eps ] + 1/sigma
+    # Con Adam y no con paso fijo. El gradiente de este ELBO lleva un 1/sigma^2
+    # con sigma = 0,25 dentro, asi que sus componentes llegan a varios cientos y
+    # cualquier paso fijo que sirva al principio explota en cuanto la posterior
+    # se estrecha: la version anterior salia NaN con un aviso de desbordamiento.
+    # Adam normaliza por la escala del propio gradiente y eso deja de importar.
     mu = th_map + rng.standard_normal(3) * 0.1
     rho = np.full(3, -2.0)
+    m_mu, v_mu = np.zeros(3), np.zeros(3)
+    m_rho, v_rho = np.zeros(3), np.zeros(3)
+    b1, b2, eps_adam = 0.9, 0.999, 1e-8
     for step in range(8000):
         sd = np.log1p(np.exp(rho))
         eps = rng.standard_normal((128, 3))
@@ -349,10 +357,19 @@ def stage_approx(x, y, xs, exact):
         gv = np.sum(res * z, axis=1)
         grad = -(np.stack([gw, gb, gv], axis=1) / SIGMA ** 2 + th / PRIOR ** 2)
         gmu = grad.mean(0)
-        gsd = (grad * eps).mean(0) + 1.0 / sd
-        lr = 0.02
-        mu = mu + lr * gmu
-        rho = rho + lr * gsd * (1 / (1 + np.exp(-rho)))
+        grho = ((grad * eps).mean(0) + 1.0 / sd) * (1 / (1 + np.exp(-rho)))
+        tstep = step + 1
+        for name, gvec in (("mu", gmu), ("rho", grho)):
+            if name == "mu":
+                m_mu[:] = b1 * m_mu + (1 - b1) * gvec
+                v_mu[:] = b2 * v_mu + (1 - b2) * gvec ** 2
+                mu = mu + 0.02 * (m_mu / (1 - b1 ** tstep)) / (
+                    np.sqrt(v_mu / (1 - b2 ** tstep)) + eps_adam)
+            else:
+                m_rho[:] = b1 * m_rho + (1 - b1) * gvec
+                v_rho[:] = b2 * v_rho + (1 - b2) * gvec ** 2
+                rho = rho + 0.02 * (m_rho / (1 - b1 ** tstep)) / (
+                    np.sqrt(v_rho / (1 - b2 ** tstep)) + eps_adam)
         rho = np.clip(rho, -8, 2)
     sd = np.log1p(np.exp(rho))
     S = mu + sd * rng.standard_normal((4000, 3))
@@ -502,6 +519,9 @@ def main():
         "el muestreador no le gana a un punto único, y entonces no hay artículo"
     assert by["bootstrap"]["sd_ratio_in"] > 5 * by["ensemble"]["sd_ratio_in"], \
         "los dos conjuntos dan la misma dispersión, y la comparación no enseña nada"
+    for row in rows:
+        assert np.isfinite(row["tv_all"]) and np.isfinite(row["sd_ratio_in"]), \
+            f"la aproximación {row['key']} devuelve valores no finitos"
 
     data = dict(
         meta=dict(seed=SEED, sigma=SIGMA, prior=PRIOR, grid=GRID, lim=LIM,

@@ -683,8 +683,11 @@ def stage_attention():
     demo_acc = ok / tot
 
     # La importancia medida por ablación, aquí y en el fichero del 48.
-    published = {(row["layer"], row["head"]): row["delta"] for row in d["ablation"]["rows"]} \
-        if isinstance(d["ablation"]["rows"][0], dict) else None
+    # El artículo 48 publica la caída de exactitud como `drop`, positiva. Lo
+    # que se mide aquí es la misma cantidad con el signo de una diferencia, así
+    # que se guarda tal cual y se compara en valor absoluto.
+    published = {(row["layer"], row["head"]): row["drop"]
+                 for row in d["ablation"]["rows"]}
     mine = {}
     for L in range(enc.layers):
         for hd in range(enc.heads):
