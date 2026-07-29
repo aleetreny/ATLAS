@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ninety Percent Of What | ATLAS</title>
+  <meta name="description" content="Conformal prediction measured rather than quoted: coverage that matches its closed form to six decimals, the same guarantee for a good model and a useless one, the gap between marginal and conditional coverage, and what happens on a real series when exchangeability fails." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/conformal/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="Ninety Percent Of What | ATLAS" />
+  <meta property="og:description" content="An interval with a guarantee that holds for any model in finite samples, and a careful look at what the guarantee is about." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/conformal/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Ninety Percent Of What | ATLAS" />
+  <meta name="twitter:description" content="An interval with a guarantee that holds for any model in finite samples, and a careful look at what the guarantee is about." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    /* Per-article theme. Everything else inherits from these two. */
+    :root {
+      --primary: #945b43;
+      --secondary: #764936;
+    }
+  </style>
+</head>
+<body>
+  <!-- ======================= chrome ======================= -->
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <!-- ======================= hero ======================= -->
+  <section id="intro">
+    <h1 id="intro-hed">Ninety Percent Of What</h1>
+    <h1 id="intro-sub">An interval with a guarantee that holds for any model, in finite samples, under one assumption, and a careful reading of exactly what is being guaranteed</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 7.2 &middot; Uncertainty &middot; Ninety Percent Of What</span>
+  </section>
+
+  <br />
+
+  <!-- ======================= introduction ======================= -->
+  <section>
+    <p class="body-text" id="intro-point">
+      Almost every number this atlas has published is an average.
+    </p>
+    <br />
+    <p class="body-text" id="intro-recipe">
+      The recipe is three lines long and it does not care what the model is.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= exact coverage ======================= -->
+  <section>
+    <h1 class="body-header">Not About Ninety, Exactly Ninety</h1>
+    <p class="body-text" id="exact-intro">
+      The guarantee is not asymptotic and it is not approximate.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="exact-widget">
+    <div class="controls-row">
+      <span class="slider-label">calibration points: <span class="value" id="exact-n-label">100</span></span>
+      <input type="range" class="atlas-range" id="exact-n" aria-label="how many calibration points" min="0" max="5" step="1" value="2" />
+    </div>
+    <div class="controls-row" style="justify-content: center" id="exact-views"></div>
+    <div id="exact-chart"></div>
+    <div class="widget-readout" id="exact-readout"></div>
+  </div>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table" id="exact-table">
+      <thead>
+        <tr>
+          <th>Calibration points</th>
+          <th>Rank used</th>
+          <th>Formula</th>
+          <th>Measured</th>
+          <th>Spread between calibration sets</th>
+          <th>Below the target</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="exact-note">
+      The last two columns are the ones that change how the guarantee should be
+      read.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= any model ======================= -->
+  <section>
+    <h1 class="body-header">The Same Guarantee For A Useless Model</h1>
+    <p class="body-text" id="models-intro">
+      Nothing in the recipe mentioned the model.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="models-widget">
+    <div class="controls-row" style="justify-content: center" id="models-views"></div>
+    <div id="models-chart"></div>
+    <div class="widget-readout" id="models-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="models-note">
+      Validity is free. Width is what the model is for.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= conditional ======================= -->
+  <section>
+    <h1 class="body-header">Ninety Percent Of Whom</h1>
+    <p class="body-text" id="cond-intro">
+      Here is the part that decides whether any of this is useful in practice.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="cond-widget">
+    <div class="controls-row" style="justify-content: center" id="cond-views"></div>
+    <div id="cond-chart"></div>
+    <div class="widget-readout" id="cond-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="cond-note">
+      Two repairs, and they buy different things.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= exchangeability ======================= -->
+  <section>
+    <h1 class="body-header">The One Assumption</h1>
+    <p class="body-text" id="exch-intro">
+      Everything above needs one thing, and it is not normality, independence or
+      a correct model.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="exch-widget">
+    <div class="controls-row" style="justify-content: center" id="exch-views"></div>
+    <div id="exch-chart"></div>
+    <div class="widget-readout" id="exch-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="exch-note">
+      The control is what makes that a measurement rather than an anecdote.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= sets ======================= -->
+  <section>
+    <h1 class="body-header">When The Prediction Is A Set</h1>
+    <p class="body-text" id="sets-intro">
+      In classification the same recipe produces a set of labels instead of an
+      interval.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="sets-widget">
+    <div class="controls-row">
+      <span class="slider-label">confidence: <span class="value" id="sets-alpha-label">90%</span></span>
+      <input type="range" class="atlas-range" id="sets-alpha" aria-label="confidence level for the prediction sets" min="0" max="4" step="1" value="2" />
+    </div>
+    <div id="sets-chart"></div>
+    <div class="widget-readout" id="sets-readout"></div>
+  </div>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table" id="sets-table">
+      <thead>
+        <tr>
+          <th>Score</th>
+          <th>Coverage</th>
+          <th>Average set size</th>
+          <th>Worst class</th>
+          <th>Empty sets</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="sets-note">
+      The middle row is the one worth keeping.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= verdict ======================= -->
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text">
+      What the guarantee covers, what it does not, and what each repair costs.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Claim</th>
+          <th>Status</th>
+          <th>Measured here</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">Works for any model</span></td>
+          <td>True, and not approximately</td>
+          <td id="v-any">Measured above.</td>
+          <td id="v-any-watch">A bad model gives valid intervals that are too wide to act on.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Exact in finite samples</span></td>
+          <td>True, with a formula</td>
+          <td id="v-exact">Measured above.</td>
+          <td id="v-exact-watch">It is exact on average over calibration sets, and yours is one draw.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Ninety percent coverage</span></td>
+          <td>True marginally, false for any group you care about</td>
+          <td id="v-cond">Measured above.</td>
+          <td id="v-cond-watch">The average hides a group above and a group below.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Assumption free</span></td>
+          <td>False</td>
+          <td id="v-exch">Measured above.</td>
+          <td id="v-exch-watch">Exchangeability is one assumption, and time series break it by construction.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="closing-1">
+      This article is the odd one out in this module so far.
+    </p>
+    <br />
+    <p class="body-text" id="closing-2">
+      What it does not give is the shape of the uncertainty.
+    </p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! Everything above was measured rather than cited: the
+      coverage figures come from twenty thousand calibration sets whose
+      conditional coverage is computed in closed form rather than estimated, so
+      the comparison against the formula has no sampling noise in it; the
+      exchangeability section runs on the same monthly series the ARIMA article
+      published, asserted by digest before anything else happens; and the
+      shuffled arm uses the same rows and the same model so that the only thing
+      that changed is the order, from
+      <code>src/utils/generate_conformal_data.py</code>.
+    </p>
+  </section>
+
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text" id="ref-note">
+      The split is the simplest version of conformal prediction.
+    </p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://link.springer.com/book/10.1007/b106715">[1] Algorithmic Learning in a Random World</a><br />
+      (Vovk, V., Gammerman, A. &amp; Shafer, G., Springer, 2005; the original framework, and the exchangeability argument the whole guarantee rests on)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://www.tandfonline.com/doi/abs/10.1198/016214506000000672">[2] Distribution-Free Predictive Inference for Regression</a><br />
+      (Lei, J. et al., JASA, 2018; split conformal in the form used here, including the finite sample upper bound)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1905.03222">[3] Conformalized Quantile Regression</a><br />
+      (Romano, Y., Patterson, E. &amp; Cand&egrave;s, E., NeurIPS, 2019; the adaptive interval measured in the third section)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/2006.02544">[4] Classification with Valid and Adaptive Coverage</a><br />
+      (Romano, Y., Sesia, M. &amp; Cand&egrave;s, E., NeurIPS, 2020; adaptive prediction sets and the randomisation that makes their coverage exact)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/2107.07511">[5] A Gentle Introduction to Conformal Prediction and Distribution-Free Uncertainty Quantification</a><br />
+      (Angelopoulos, A. N. &amp; Bates, S., 2021; the practitioner's tour, including group conditional coverage)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>

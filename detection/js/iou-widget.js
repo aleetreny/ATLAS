@@ -227,16 +227,26 @@ export function initIouWidget(data) {
     }
 
     labels.selectAll('*').remove();
-    labels.append('text').attr('x', a[0] * K).attr('y', a[1] * K - 6)
+    const truthY = a[1] * K - 6;
+    const truthLab = labels.append('text').attr('x', a[0] * K).attr('y', truthY)
       .attr('font-family', 'IBM Plex Mono, monospace').attr('font-size', 12)
       .attr('fill', 'var(--squidink)').text('truth');
     /* Under the box unless there is no room under the box: a prediction dragged
        to the bottom edge would otherwise take its label off the canvas, where
        it is cut off rather than merely hidden. */
     const below = b[3] * K + 15;
+    const predX = Math.min(b[0] * K, FIELD * K - 150);
+    let predY = below > FIELD * K - 4 ? Math.max(12, b[1] * K - 6) : below;
+    /* And once it has flipped above, it can land on "truth", which is also
+       above its own box. Push it clear, upward if there is room and downward
+       if there is not, measuring the width that is actually there. */
+    const truthW = truthLab.node().getComputedTextLength();
+    const overlapsX = predX < a[0] * K + truthW && a[0] * K < predX + 150;
+    if (overlapsX && Math.abs(predY - truthY) < 14) {
+      predY = truthY - 15 >= 12 ? truthY - 15 : truthY + 15;
+    }
     labels.append('text')
-      .attr('x', Math.min(b[0] * K, FIELD * K - 150))
-      .attr('y', below > FIELD * K - 4 ? Math.max(12, b[1] * K - 6) : below)
+      .attr('x', predX).attr('y', predY)
       .attr('font-family', 'IBM Plex Mono, monospace').attr('font-size', 12)
       .attr('fill', 'var(--cosmos)').text('prediction (drag me)');
 

@@ -1492,19 +1492,173 @@
           boxes to explanations. Asking "why?" and "what if?".
         </p>
       </div>
+
+      <div class="articles-container">
+        <!-- card: confounding -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./confounding/';" style="cursor: pointer">
+            <img src="assets/thumbnails/confounding.svg"
+                 alt="The Arrow You Cannot See article image: two groups whose lines both slope up while the line through all the points slopes down." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">The Arrow You Cannot See</h2>
+            <p class="article-description">
+              Every group in the table goes one way and the table goes the other.
+              Watch the reversal appear as a third variable is switched on, then
+              try to tell two worlds apart using only the data they produce.
+            </p>
+            <button class="content-button">
+              <a href="./confounding/">Dive In</a>
+            </button>
+          </div>
+        </div>
+        <!-- card: propensity -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./propensity/';" style="cursor: pointer">
+            <img src="assets/thumbnails/propensity.svg"
+                 alt="One Number Instead of Twelve article image: two overlapping distributions of a propensity score, one per treatment arm." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">One Number Instead of Twelve</h2>
+            <p class="article-description">
+              A theorem says one number can stand in for every covariate at once.
+              Seven estimators are run against a known answer, a deliberately
+              wrong score is used to show what balance actually proves, and the
+              overlap is trimmed until the question changes.
+            </p>
+            <button class="content-button">
+              <a href="./propensity/">Dive In</a>
+            </button>
+          </div>
+        </div>
+        <!-- card: instruments -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./instruments/';" style="cursor: pointer">
+            <img src="assets/thumbnails/instruments.svg"
+                 alt="A Lever With No Other Reach article image: the bias of least squares falling toward zero as an instrument gets stronger." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">A Lever With No Other Reach</h2>
+            <p class="article-description">
+              When the confounder cannot be measured at all, a good instrument
+              still recovers the effect. Here is what makes one good, what a weak
+              one costs, and why an assumption no data can test can be checked
+              anyway by finding every world that fits.
+            </p>
+            <button class="content-button">
+              <a href="./instruments/">Dive In</a>
+            </button>
+          </div>
+        </div>
+        <!-- card: do-calculus -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./do-calculus/';" style="cursor: pointer">
+            <img src="assets/thumbnails/do-calculus.svg"
+                 alt="Which Boxes to Tick article image: a small directed graph with the nodes of a valid adjustment set filled in." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Which Boxes to Tick</h2>
+            <p class="article-description">
+              Adjusting for everything is the most common way to get a causal
+              answer wrong. A graph decides which sets are valid, the rules are
+              applied by hand to a case with no valid set at all, and then a
+              forest is asked who the effect is largest for.
+            </p>
+            <button class="content-button">
+              <a href="./do-calculus/">Dive In</a>
+            </button>
+          </div>
+        </div>
+        <!-- card: conformal -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./conformal/';" style="cursor: pointer">
+            <img src="assets/thumbnails/conformal.svg"
+                 alt="Ninety Per Cent, Guaranteed article image: the histogram of realised coverage sitting on its exact Beta distribution." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Ninety Per Cent, Guaranteed</h2>
+            <p class="article-description">
+              One sorted list of residuals turns any model into intervals that
+              cover what they promise, with no assumption about the model at all.
+              The guarantee is exact, it is checked here against its own
+              distribution, and it is weaker than it sounds.
+            </p>
+            <button class="content-button">
+              <a href="./conformal/">Dive In</a>
+            </button>
+          </div>
+        </div>
+        <!-- card: bayesian-nets -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./bayesian-nets/';" style="cursor: pointer">
+            <img src="assets/thumbnails/bayesian-nets.svg"
+                 alt="The Posterior You Can Actually Draw article image: a predictive band that widens across the gap between two clusters of data." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">The Posterior You Can Actually Draw</h2>
+            <p class="article-description">
+              A network small enough that its exact posterior can be computed by
+              brute force, so every approximation people use in practice can be
+              marked against the right answer instead of against each other.
+            </p>
+            <button class="content-button">
+              <a href="./bayesian-nets/">Dive In</a>
+            </button>
+          </div>
+        </div>
+        <!-- card: attribution -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./attribution/';" style="cursor: pointer">
+            <img src="assets/thumbnails/attribution.svg"
+                 alt="Credit, Exactly article image: a waterfall of attributions closing the gap between the average prediction and one instance." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Credit, Exactly</h2>
+            <p class="article-description">
+              Ten columns, every one of the coalitions enumerated, and a model
+              whose true attributions are known in closed form. So the picture
+              everybody publishes can be checked against the answer rather than
+              admired, and the two things called SHAP can be told apart.
+            </p>
+            <button class="content-button">
+              <a href="./attribution/">Dive In</a>
+            </button>
+          </div>
+        </div>
+        <!-- card: saliency -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./saliency/';" style="cursor: pointer">
+            <img src="assets/thumbnails/saliency.svg"
+                 alt="Where It Looked article image: six saliency methods and two controls scored against the exact mask, as a ranked bar chart." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Where It Looked</h2>
+            <p class="article-description">
+              Saliency maps are almost always shown and almost never scored. This
+              page has the exact mask of every object, so the pictures get marked,
+              and one of the two controls that explain nothing lands in the middle
+              of the methods.
+            </p>
+            <button class="content-button">
+              <a href="./saliency/">Dive In</a>
+            </button>
+          </div>
+        </div>
+      </div>
+
       <details class="roadmap">
         <summary>Full branch map: 7. Scientific Intelligence</summary>
         <div class="branch">
           <h4>7.1 Causal Inference &nbsp;·&nbsp; 7.2 Uncertainty &nbsp;·&nbsp; 7.3 Explainable AI</h4>
           <div class="chips">
-            <span class="chip">Confounders · Simpson's Paradox</span>
-            <span class="chip">Propensity Scores</span>
-            <span class="chip">Instrumental Variables</span>
-            <span class="chip">Do-Calculus · Causal Forests</span>
-            <span class="chip">Conformal Prediction</span>
-            <span class="chip">Bayesian Neural Nets</span>
-            <span class="chip">SHAP · LIME</span>
-            <span class="chip">Grad-CAM · Attention Viz</span>
+            <span class="chip live"><a href="./confounding/">Confounders · Simpson's Paradox</a></span>
+            <span class="chip live"><a href="./propensity/">Propensity Scores</a></span>
+            <span class="chip live"><a href="./instruments/">Instrumental Variables</a></span>
+            <span class="chip live"><a href="./do-calculus/">Do-Calculus · Causal Forests</a></span>
+            <span class="chip live"><a href="./conformal/">Conformal Prediction</a></span>
+            <span class="chip live"><a href="./bayesian-nets/">Bayesian Neural Nets</a></span>
+            <span class="chip live"><a href="./attribution/">SHAP · LIME</a></span>
+            <span class="chip live"><a href="./saliency/">Grad-CAM · Attention Viz</a></span>
           </div>
         </div>
       </details>

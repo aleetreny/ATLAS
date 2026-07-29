@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <rect width="400" height="300" fill="#f1f3f3" />
+  <!-- cuanto acierta cada mapa el objeto de verdad, con los dos -->
+  <!-- controles (la entrada sola y el ruido) en otro color -->
+  <rect x="18" y="54" width="55" height="216" fill="#853c6f" opacity="0.95"/>
+  <rect x="79" y="56" width="55" height="214" fill="#853c6f" opacity="0.95"/>
+  <rect x="139" y="73" width="55" height="197" fill="#853c6f" opacity="0.95"/>
+  <rect x="200" y="148" width="55" height="122" fill="#853c6f" opacity="0.95"/>
+  <rect x="261" y="176" width="55" height="94" fill="#df2a5d" opacity="0.6"/>
+  <rect x="321" y="242" width="55" height="28" fill="#df2a5d" opacity="0.6"/>
+  <path d="M18,270 L382,270" stroke="#232f3e" stroke-width="1.2" fill="none"/>
+</svg>

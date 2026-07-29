@@ -83,7 +83,72 @@ Este repositorio empezó como notebooks de ML y se está convirtiendo en una web
 | 57 | One Sample at a Time (campo receptivo exacto contra el periodo del tono, la ley mu escuchable, el modelo alimentado con su propia salida, CTC contra un decodificador que no para) | `wavenet/` | `#5c3e29` |
 | 58 | A Thousand Easy Problems (el campo del score verdadero contra el aprendido, la cadena inversa corriendo en vivo con el presupuesto de pasos, el término del prior que se asume cero) | `ddpm/` | `#674599` |
 | 59 | The Ceiling You Cannot See (viajes de ida y vuelta calculados en la página, las dos escaleras sobre los mismos ejes, el techo contra lo que la difusión alcanza) | `latent-diffusion/` | `#995e45` |
-| 60 | Do As You Are Told (los diez dígitos pedidos a cuatro ajustes del dial, obediencia contra realismo sobre los mismos ejes, dos etiquetas quitadas del entrenamiento) | `controlnet/` | `#994573` |
+| 60 | The Arrow You Cannot See (la reversión de Simpson apareciendo al encender el confusor, el sesgo en forma cerrada contra el medido, un proxy ruidoso barrido, dos mundos indistinguibles) | `confounding/` | `#202c47` |
+| 61 | One Number Instead of Twelve (siete estimadores contra una verdad conocida, el balance de una puntuación deliberadamente equivocada, la doble robustez en dos por dos, el recorte de un solo lado) | `propensity/` | `#5c2938` |
+| 62 | A Lever With No Other Reach (el sesgo de MCO en forma cerrada, el barrido de fuerza del instrumento, la exclusión violada en rejilla, el intervalo entero de betas factibles, LATE contra ATE) | `instruments/` | `#056605` |
+| 63 | Which Boxes to Tick (el criterio de puerta trasera sobre un grafo exacto, 3.000 grafos aleatorios, la fórmula de puerta delantera, y un bosque causal que pasa de 2,2179 a 0,0373 al centrar) | `do-calculus/` | `#643c85` |
+| 64 | Ninety Per Cent, Guaranteed (la cobertura exacta contra su Beta, cuatro modelos con el mismo envoltorio, Mondrian y CQR, LAC contra APS con y sin aleatorizar) | `conformal/` | `#945b43` |
+| 65 | The Posterior You Can Actually Draw (la posterior exacta por cuadratura sobre 14 millones de pesos, cuatro cadenas que solo discrepan en el hueco, seis aproximaciones puntuadas, y el prior barrido) | `bayesian-nets/` | `#381a66` |
+| 66 | Credit, Exactly (los 1.024 conjuntos enumerados contra la forma cerrada de un modelo aditivo, KernelSHAP muestreado, las dos funciones de valor, y LIME con el ancho como mando) | `attribution/` | `#473a04` |
+| 67 | Where It Looked (seis mapas y dos controles puntuados contra la máscara exacta, Grad-CAM por profundidad, el test de aleatorización de Adebayo, y la atención contra la importancia medida) | `saliency/` | `#853c6f` |
+| 68 | Do As You Are Told (los diez dígitos pedidos a cuatro ajustes del dial, obediencia contra realismo sobre los mismos ejes, dos etiquetas quitadas del entrenamiento) | `controlnet/` | `#994573` |
+**El módulo 7 entero (artículos 60 a 67), publicado de una vez.** Las tres
+secciones cerradas y los ocho chips encendidos: 7.1 causalidad (60 a 63), 7.2
+incertidumbre (64 y 65), 7.3 explicabilidad (66 y 67), encadenados en ese orden
+y enganchados desde el cierre del 57 (wavenet). Lo que hay que saber de cada uno:
+
+- **60** mide el sesgo de confusión en forma cerrada (razón de Mills) y lo
+  compara con el simulado; el mundo de colisión y dos mundos Markov
+  equivalentes se resuelven algebraicamente. La reversión de Simpson sobre el
+  vino se encontró buscando, con un control por permutación.
+- **61** enfrenta siete estimadores a una verdad conocida sobre 240 repeticiones.
+  El resultado que reescribió la sección: **recortar por los dos lados no mueve
+  un estimando simétrico** (1,9978 a 1,9991), así que hay además un recorte de un
+  solo lado, donde sí se mueve (1,6477 al 20%).
+- **62** publica el **intervalo entero de betas compatibles** con los momentos
+  observados, [1,2755, 3,7245], barriendo hasta donde la varianza del ruido deja
+  de ser positiva. La primera versión llevaba un `max(...,0)` que dejaba pasar un
+  mundo imposible.
+- **63** tiene el mejor número del módulo: el bosque causal sin centrar da 2,2179
+  de error contra 0,4548 de responder la media, y **con centrado local y
+  validación cruzada baja a 0,0373**, un factor 59. No era ajuste de
+  hiperparámetros: una diferencia de medias dentro de una hoja sigue confundida.
+- **64** comprueba la cobertura contra su distribución exacta Beta(k, n+1-k), sin
+  ruido de muestreo, y reutiliza el CO2 del artículo de series con un digest que
+  lo asegura.
+- **65** calcula la posterior **exacta** de una red de tres pesos por cuadratura
+  sobre 13.997.521 puntos, y con eso puntúa seis aproximaciones. Dos resultados
+  contra el guion: la incertidumbre **no** crece al alejarse de los datos (1,01
+  veces; una tanh satura), crece en el hueco (9,11 veces); y un conjunto de ocho
+  redes sobre los mismos datos da **exactamente la misma función** que un solo
+  ajuste, así que su dispersión es 0,000. El prior es invisible donde hay datos
+  y multiplica por 4,9 la dispersión en el hueco.
+- **66** enumera los 1.024 conjuntos de diez columnas y los contrasta con la
+  forma cerrada de un modelo aditivo ajustado por backfitting, que es la
+  comprobación que la eficiencia no da: una atribución equivocada cuyos errores
+  se cancelen pasa la cascada y falla aquí.
+- **67** no entrena nada: reconstruye en numpy el detector del 23 (cajas
+  idénticas a 0,0000 px) y el codificador del 48, y los explica. Seis mapas y
+  **dos controles**, uno de los cuales (la imagen de entrada, sin modelo) puntúa
+  0,390 y adelanta al gradiente en solape. Y la atención: contra la ablación que
+  el 48 publicó sobre sus 5.734 frases de test, lo picudo del mapa correlaciona
+  **exactamente 0,000** con la importancia; medido sobre las ocho frases de
+  ejemplo del fichero, +0,715. La página publica las dos y explica por qué.
+
+Tres arreglos de este módulo tocan páginas ya publicadas y conviene saberlo:
+`assets/styles/global.css` ya no fija `fill` ni `stroke` en `.chart-note` y
+`.chart-annotation` con una regla de clase, sino con `svg text.chart-note:not([fill])`,
+porque un atributo de presentación pierde contra cualquier regla CSS y **todas las
+leyendas de color del sitio se estaban dibujando en gris tinta**; `makeChart`
+devuelve ahora un `clear()` que vacía el lienzo sin desconectar el grupo
+recortado; y se subieron a 0,72rem los textos de `deep-learning-tables/` que a
+375px caían por debajo del suelo de 5px. Queda pendiente, y no es de este
+módulo: `detection/`, `deep-learning-tables/`, `ddpm/` y `latent-diffusion/` no
+exportan `window.__atlasCheck` ni `window.__atlasProseIds`. Los dos primeros son
+anteriores a la convención; los dos últimos sí corren sus guardias al cargar
+pero no los dejan accesibles desde fuera, y sin eso el arnés no puede
+dispararlos en cada estado de cada control (punto 58 de `verificacion.md`). Son
+dos líneas al final de su `main.js`.
 
 Los artículos 1 a 6 pasaron una **revisión completa** (commit `5e4852b`, 2026-07-25): auditoría estática en paralelo más un barrido en navegador de cada control, cada paso de scrolly y cada etiqueta a 1425px y 375px. 73 hallazgos aplicados. Todas las páginas tienen ahora `canonical` + Open Graph, los 20 sliders tienen `aria-label`, y cada cierre enlaza al siguiente artículo.
 
@@ -337,7 +402,7 @@ Cifras del 58 (`ddpm/`): el proceso directo es cerrado sobre la densidad de dos 
 
 El muestreo entra en el suelo (medido partiendo muestras reales en dos: 9,282e-04) desde **25 pasos** con el muestreador determinista y **50** con el ancestral, de un horario de 1.000, y "desde ahí" se comprueba contra todos los presupuestos mayores, no contra el primero que cumple. Y la escalera de píxeles es el argumento del artículo siguiente: 118.852 pesos dan MMD² +0,2364, 459.076 dan +0,0296 y 743.108 dan +0,0128 con C2ST 0,7160, mientras el proceso de dos dimensiones de la misma página corre con **9.666 pesos**. Setenta y siete veces más red, 1.451 kB en float16, y aún fuera del suelo: por eso la página envía 48 imágenes (24 kB) en vez de pesos, y por eso el paso siguiente es hacer la difusión en un espacio más pequeño.
 
-Cifras del 60 (`controlnet/`): guiado sin clasificador sobre el mismo autoencoder del 59, probado reproduciendo su viaje de ida y vuelta publicado (3,377134e-03 contra 3,377e-03). **Las dos cosas que se quieren no tienen su máximo en el mismo sitio**: la obediencia (la ETIQUETA del juez contra la pedida, sobre 500 peticiones) va de 13,2% a escala 0, que es casi el azar, a **95,2% a escala 2**; el realismo es mejor a **escala 1** (3,131e-03) y a partir de ahí empeora hasta 1,651e-02 a escala 8, cinco veces peor. Y un número que conviene mirar dos veces: a escala 2 el modelo produce el dígito pedido el 95,2% de las veces mientras el mismo juez acierta solo el **89,5%** en dígitos reales. Obedecer mejor que la realidad no es ganarle: es dibujar el dígito de manual, y la variedad lo confirma (2,7884 contra 3,7678 de los reales).
+Cifras del 68 (`controlnet/`): guiado sin clasificador sobre el mismo autoencoder del 59, probado reproduciendo su viaje de ida y vuelta publicado (3,377134e-03 contra 3,377e-03). **Las dos cosas que se quieren no tienen su máximo en el mismo sitio**: la obediencia (la ETIQUETA del juez contra la pedida, sobre 500 peticiones) va de 13,2% a escala 0, que es casi el azar, a **95,2% a escala 2**; el realismo es mejor a **escala 1** (3,131e-03) y a partir de ahí empeora hasta 1,651e-02 a escala 8, cinco veces peor. Y un número que conviene mirar dos veces: a escala 2 el modelo produce el dígito pedido el 95,2% de las veces mientras el mismo juez acierta solo el **89,5%** en dígitos reales. Obedecer mejor que la realidad no es ganarle: es dibujar el dígito de manual, y la variedad lo confirma (2,7884 contra 3,7678 de los reales).
 
 El experimento que separa obedecer de saber: un segundo modelo entrenado sobre 1.116 dígitos con **todos los 3 y todos los 8 fuera**. Pedírselos da 1,4% contra 96,3% en las etiquetas que sí vio, y a escala 5 baja a 0,0%: por debajo del azar, porque la dirección del guiado es "lejos del dígito medio y hacia este token", y para un token sin significado eso empuja a ninguna parte. El dial amplifica una correspondencia que el modelo fue entrenado a tener; no la crea.
 

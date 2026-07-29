@@ -531,11 +531,19 @@ input[type='range'].atlas-range::-moz-range-thumb {
   text-transform: uppercase;
   letter-spacing: 2px;
   font-size: 0.8rem;
-  fill: var(--squidink);
   paint-order: stroke fill;
-  stroke: var(--white);
   stroke-width: 4px;
   font-weight: 700;
+}
+
+/* Ver la nota larga junto a .chart-note: el color por defecto se aparta si el
+   widget puso el suyo con un atributo, que de otro modo pierde siempre. */
+svg text.chart-annotation:not([fill]) {
+  fill: var(--squidink);
+}
+
+svg text.chart-annotation:not([stroke]) {
+  stroke: var(--white);
 }
 
 /* Naming a series inside a chart is not the same job as shouting two words at
@@ -550,11 +558,32 @@ input[type='range'].atlas-range::-moz-range-thumb {
   text-transform: none;
   letter-spacing: 0.4px;
   font-size: 11.5px;
-  fill: var(--squidink);
   paint-order: stroke fill;
-  stroke: var(--white);
   stroke-width: 3.5px;
   stroke-linejoin: round;
+}
+
+/* El color por defecto va en una regla que se aparta cuando el widget pone el
+   suyo, y ese `:not([fill])` no es un adorno.
+
+   Un atributo de presentación (`.attr('fill', ...)` en d3) tiene la prioridad
+   MAS BAJA que existe: pierde contra cualquier regla CSS, incluida una de
+   clase. Así que durante mucho tiempo cada leyenda de color del sitio se
+   dibujó en gris tinta: "red dots: the months it missed" salía gris, y el
+   lector tenía que adivinar a qué rojo se refería. No lo caza ninguna
+   auditoría numérica, porque el nodo está, dice lo que debe y ocupa su sitio;
+   se ve mirando una captura, o preguntando por `getComputedStyle`.
+
+   Con `:not([fill])` la regla simplemente no aplica cuando el widget puso un
+   color, y entonces el atributo manda. Lo mismo con el halo: un texto blanco
+   dentro de una barra pide `stroke="none"` y hasta ahora se lo comía la clase,
+   que lo dejaba con un contorno blanco del grosor de la letra. */
+svg text.chart-note:not([fill]) {
+  fill: var(--squidink);
+}
+
+svg text.chart-note:not([stroke]) {
+  stroke: var(--white);
 }
 
 .chart-title {
