@@ -108,28 +108,56 @@ def thumb_hyperparameters():
     ch = (H - 2 * m) / n
     out = head(["las 961 celdas de la superficie, con la meseta que ningun",
                 "buscador puede distinguir de la mejor marcada en naranja"])
+    # El color se cuantiza a ocho escalones y se escribe un `<g>` por escalón,
+    # así que el atributo `fill` va una vez por grupo en vez de una por celda. A
+    # 460 px es la misma imagen: ocho tonos son más de los que se distinguen en
+    # una tarjeta que se mira un segundo.
+    STEPS = 8
     near = 0
-    cells = []
+
+    def runs(row_vals, key):
+        """Tramos seguidos con la misma clave, para no escribir 961 rectángulos.
+
+        Un `<rect>` por celda son 49 kB, cuarenta veces lo que pesa una
+        miniatura del sitio, y el assert de abajo lo cazó a la primera. Una
+        superficie es lisa por tramos, así que unir los vecinos iguales de cada
+        fila no pierde un solo píxel del dibujo y deja el fichero en la banda.
+        """
+        out_runs = []
+        j = 0
+        while j < len(row_vals):
+            k = key(row_vals[j])
+            j2 = j
+            while j2 + 1 < len(row_vals) and key(row_vals[j2 + 1]) == k:
+                j2 += 1
+            out_runs.append((j, j2 - j + 1, k))
+            j = j2 + 1
+        return out_runs
+
+    def bucket(v):
+        t = (v - lo) / max(top - lo, 1e-9)
+        return min(STEPS - 1, int(t ** 0.75 * STEPS))
+
+    buckets = {}
     for i, row in enumerate(S["cv"]):
-        for j, v in enumerate(row):
-            t = (v - lo) / max(top - lo, 1e-9)
-            colour = mix(BG, ACCENT["hyperparameters"], t ** 0.75)
-            x = m + j * cw
-            y = H - m - (i + 1) * ch
-            cells.append(f'<rect x="{round(x)}" y="{round(y)}" width="{round(cw) + 1}"'
-                         f' height="{round(ch) + 1}" fill="{colour}"/>')
-            if v >= top - floor:
-                near += 1
-    out.append("  " + "".join(cells))
+        near += sum(1 for v in row if v >= top - floor)
+        y = H - m - (i + 1) * ch
+        for j0, span, k in runs(row, bucket):
+            buckets.setdefault(k, []).append(
+                f'<rect x="{round(m + j0 * cw)}" y="{round(y)}"'
+                f' width="{round(span * cw) + 1}" height="{round(ch) + 1}"/>')
+    for k in sorted(buckets):
+        colour = mix(BG, ACCENT["hyperparameters"], (k + 0.5) / STEPS)
+        out.append(f'  <g fill="{colour}">' + "".join(buckets[k]) + "</g>")
+
     marks = []
     for i, row in enumerate(S["cv"]):
-        for j, v in enumerate(row):
-            if v < top - floor:
+        y = H - m - (i + 1) * ch
+        for j0, span, k in runs(row, lambda v: v >= top - floor):
+            if not k:
                 continue
-            x = m + j * cw
-            y = H - m - (i + 1) * ch
-            marks.append(f'<rect x="{round(x)}" y="{round(y)}" width="{round(cw)}"'
-                         f' height="{round(ch)}"/>')
+            marks.append(f'<rect x="{round(m + j0 * cw)}" y="{round(y)}"'
+                         f' width="{round(span * cw)}" height="{round(ch)}"/>')
     out.append(f'  <g fill="none" stroke="{SMILE}" stroke-width="1.2">'
                + "".join(marks) + "</g>")
     assert 0 < near < n * n * 0.6, \
