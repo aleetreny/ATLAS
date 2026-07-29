@@ -306,3 +306,68 @@ casos el arreglo era el enunciado y no el número:
 Antes de tocar el dato, comprobar que el guardia pide algo que el experimento
 puede dar.
 
+## Trampa 27: qué datos llegan a la nube y cuáles no
+
+El módulo 6 necesitaba datos que este atlas no tenía: una tabla de personas por
+cosas, un grafo con etiquetas y un grafo de conocimiento. Lo que se aprendió
+sobre de dónde sacarlos, con el proxy de esta sesión:
+
+- **`files.grouplens.org` está bloqueado** (403 al CONNECT), así que MovieLens
+  no entra por ahí y tampoco por los espejos obvios. `raw.githubusercontent.com`
+  **sí** entra, que es por donde ya venía el `groceries.csv` del artículo 35.
+- De ahí salieron los tres: `goodbooks-10k` (5.976.479 valoraciones con títulos),
+  los ficheros `ind.cora.*` de Planetoid, y `WN18RR` del repositorio de RotatE.
+  Los tres se comprueban por digest, como manda la casa, y los digests se
+  registran en la primera descarga.
+- La regla que sale de esto: **antes de dar por imposible un dataset, probar el
+  espejo de GitHub**, y antes de usarlo, reproducir una cifra publicada de ese
+  dataset (aquí, la homofilia de Cora), que es lo único que caza una carga que
+  funciona y está mal.
+
+## Trampa 28: matar un proceso por un patrón que está en tu propia línea de comandos
+
+Es la trampa 30 otra vez, por un camino que parecía a salvo. `PID=$(ps -eo
+pid,cmd | grep "[g]enerate_mf_data" ...)` evita que el `grep` se encuentre a sí
+mismo, pero **no evita que encuentre al shell que lo ejecuta**, cuya línea de
+comandos contiene el patrón entero: la llamada vuelve con código 144 y la sesión
+pierde el shell a mitad de una edición. Pasó dos veces en la misma sesión. Lo
+que funciona es construir el patrón por concatenación, para que la línea del
+propio shell no lo contenga:
+
+```
+PAT="generate_""mf_data.py"
+PID=$(ps -eo pid,cmd | awk -v p="$PAT" '$0 ~ p && /python/ {print $1}' | head -1)
+kill "$PID"
+```
+
+## Trampa 29: esperar sin `sleep` en primer plano
+
+El arnés de esta sesión bloquea un `sleep` en primer plano. Para esperar a un
+generador largo, un bucle en segundo plano sobre el **fichero de salida** (no
+sobre el proceso, que es la trampa 19):
+
+```
+until [ -f <articulo>/data/x.json ]; do sleep 20; done
+```
+
+lanzado con `run_in_background`, que además avisa al terminar. Y encadenar los
+generadores con un script `sh` suelto en `/tmp` es lo que evita tenerlos dos a
+la vez sobre cuatro núcleos, que es la trampa 63.
+
+## Trampa 30: el arnés de barrido del módulo 6
+
+`audit.mjs`, un fichero, cinco artículos, dos anchuras. Para cada uno: carga en
+el puerto frío, recoge errores y avisos de consola, recorre la página entera
+para disparar los `IntersectionObserver`, espera 1.600 ms, llama a
+`window.__atlasCheck(false)`, comprueba los ids de `prose.js` contra el relleno
+del HTML crudo bajado con `fetch`, y luego recorre **cada botón que no esté ya
+activo, cada paso de cada slider y cada opción de cada `<select>`** reauditando
+en cada estado: texto malo, LaTeX en bruto leído sin los nodos que KaTeX
+esconde, rayas largas, doble codificación UTF-8, recorte contra el viewBox y
+contra el elemento svg, tamaño de fuente renderizado, solapes por SAT con las
+cajas encogidas 2,5 unidades, filas de controles desbordadas y scroll horizontal
+del documento. Sale a unos 40 estados por artículo (81 si tiene un slider de
+sesenta pasos) y tarda medio minuto. Dos cosas nuevas respecto al del 4.1: el
+barrido de `<select>` (el explorador de vecinos tiene sesenta libros) y el
+chequeo de scroll horizontal del documento, que es el que cazó la tabla de
+títulos a 375px.

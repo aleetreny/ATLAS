@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nobody Told It What A Book Is | ATLAS</title>
+  <meta name="description" content="A visual, interactive introduction to collaborative filtering: a recommender that has never seen a book, an author or a genre, working only from who read what, with the neighbours it finds computed live and the baseline it has to beat measured first." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/collaborative-filtering/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="Nobody Told It What A Book Is | ATLAS" />
+  <meta property="og:description" content="A visual, interactive introduction to collaborative filtering: a recommender that has never seen a book, an author or a genre, working only from who read what, with the neighbours it finds computed live and the baseline it has to beat measured first." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/collaborative-filtering/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Nobody Told It What A Book Is | ATLAS" />
+  <meta name="twitter:description" content="A visual, interactive introduction to collaborative filtering: a recommender that has never seen a book, an author or a genre, working only from who read what, with the neighbours it finds computed live and the baseline it has to beat measured first." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    :root {
+      --primary: #994595;
+      --secondary: #7a3777;
+    }
+    /* A list of book titles is prose, not a chart: it needs a column that can
+       wrap, and a grid keeps the numbers under each other. */
+    .neigh-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      margin-top: 0.6rem;
+    }
+    .neigh-table th,
+    .neigh-table td {
+      padding: 5px 10px 5px 0;
+      text-align: left;
+      font-weight: 400;
+      vertical-align: top;
+    }
+    .neigh-table th {
+      font-family: var(--font-heavy);
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      border-bottom: 1px solid var(--stone);
+    }
+    .neigh-table td.num,
+    .neigh-table th.num {
+      text-align: right;
+      white-space: nowrap;
+    }
+    .neigh-table td.title {
+      white-space: normal;
+    }
+    .neigh-table td .author {
+      opacity: 0.6;
+    }
+    /* A four column table of book titles does not fit a phone, and an element
+       with no overflow ancestor drags the whole document sideways: the same
+       fix `.atlas-table-wrap` already uses on the verdict table. */
+    #sim-list {
+      overflow-x: auto;
+    }
+    .book-picker {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      padding: 7px 10px;
+      max-width: 100%;
+      background: var(--white);
+      border: 1px solid var(--squidink);
+      border-radius: 0;
+    }
+    .widget-note {
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      line-height: 1.45;
+      opacity: 0.8;
+      margin-top: 0.6rem;
+      max-width: var(--max-width);
+      margin-left: auto;
+      margin-right: auto;
+    }
+  </style>
+</head>
+<body>
+  <!-- ======================= chrome ======================= -->
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <!-- ======================= hero ======================= -->
+  <section id="intro">
+    <h1 id="intro-hed">Nobody Told It What A Book Is</h1>
+    <h1 id="intro-sub">A recommender with no idea what an author, a genre or a plot is still puts the right two books next to each other. All it has is a table of who read what, and almost all of that table is missing</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 6.1 &middot; Recommenders &middot; Collaborative Filtering</span>
+  </section>
+
+  <br />
+
+  <!-- ======================= introduction ======================= -->
+  <section>
+    <p class="body-text">
+      Every model in this atlas so far has been handed a description of the
+      thing it is reasoning about. A row of numbers, a picture, a sentence, a
+      waveform: something intrinsic to the object. This module changes the
+      object. Here an item has no description at all, and what stands in for
+      one is the list of people who touched it.
+    </p>
+    <br />
+    <p class="body-text" id="intro-shape"></p>
+    <br />
+    <p class="body-text" id="intro-plan"></p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the hole ======================= -->
+  <section>
+    <h1 class="body-header">The Hole In The Table</h1>
+    <p class="body-text" id="hole-intro"></p>
+  </section>
+
+  <div class="interactive-full">
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">
+        keep books with at least
+        <span class="value" id="hole-value"></span>
+      </span>
+      <input type="range" class="atlas-range" id="hole-slider" min="0" max="60" step="1" value="0"
+             aria-label="minimum number of ratings a book needs to stay in the catalogue" />
+    </div>
+    <div id="hole-chart"></div>
+    <div class="widget-readout" id="hole-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="hole-note"></p>
+  </section>
+
+  <!-- ======================= similarity ======================= -->
+  <section>
+    <h1 class="body-header">What Similar Means Here</h1>
+    <p class="body-text" id="sim-intro"></p>
+    <br />
+    <p class="body-text" id="sim-math"></p>
+  </section>
+
+  <div class="interactive-full">
+    <div class="controls-row" style="justify-content: center">
+      <label class="slider-label" for="sim-book">book</label>
+      <select class="book-picker" id="sim-book" aria-label="which book to find neighbours for"></select>
+    </div>
+    <div class="controls-row" id="sim-buttons" style="justify-content: center"></div>
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">
+        shrink towards zero below
+        <span class="value" id="sim-shrink-value"></span> shared readers
+      </span>
+      <input type="range" class="atlas-range" id="sim-shrink" min="0" max="8" step="1" value="0"
+             aria-label="how hard to shrink similarities computed from few shared readers" />
+    </div>
+    <div id="sim-list"></div>
+    <div class="widget-readout" id="sim-readout"></div>
+    <p class="widget-note" id="sim-note"></p>
+  </div>
+
+  <section>
+    <p class="body-text" id="sim-verdict"></p>
+  </section>
+
+  <!-- ======================= the baseline ======================= -->
+  <section>
+    <h1 class="body-header">The Baseline Nobody Publishes</h1>
+    <p class="body-text" id="rank-intro"></p>
+  </section>
+
+  <div class="interactive-full">
+    <div class="controls-row" id="rank-buttons" style="justify-content: center"></div>
+    <div id="rank-chart"></div>
+    <div class="widget-readout" id="rank-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="rank-note"></p>
+    <br />
+    <p class="body-text" id="rank-cost"></p>
+  </section>
+
+  <!-- ======================= where it breaks ======================= -->
+  <section>
+    <h1 class="body-header">Where It Stops Working</h1>
+    <p class="body-text" id="slice-intro"></p>
+  </section>
+
+  <div class="interactive-full">
+    <div class="controls-row" id="slice-buttons" style="justify-content: center"></div>
+    <div id="slice-chart"></div>
+    <div class="widget-readout" id="slice-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="slice-note"></p>
+  </section>
+
+  <!-- ======================= verdict ======================= -->
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text" id="verdict-intro"></p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>What you want</th>
+          <th>Reach for</th>
+          <th>What it gives</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">A number in a box</span></td>
+          <td>The bias model</td>
+          <td id="v-bias"></td>
+          <td id="v-bias-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">A list of ten</span></td>
+          <td>Item to item neighbours</td>
+          <td id="v-item"></td>
+          <td id="v-item-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">Neighbours by hand</span></td>
+          <td>Centred, shrunk cosine</td>
+          <td id="v-sim"></td>
+          <td id="v-sim-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">To know if it works</span></td>
+          <td>The popularity control</td>
+          <td id="v-pop"></td>
+          <td id="v-pop-warn"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="closing-1"></p>
+    <br />
+    <p class="body-text" id="closing-2"></p>
+    <br />
+    <p class="body-text" id="closing-3"></p>
+  </section>
+
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text" id="ref-note"></p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://dl.acm.org/doi/10.1145/371920.372071">[1] Item-based Collaborative Filtering Recommendation Algorithms</a><br />
+      (Sarwar, B. et al., WWW, 2001; the adjusted cosine and the item to item direction this article measures)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://dl.acm.org/doi/10.1145/1401890.1401944">[2] Factorization Meets the Neighborhood</a><br />
+      (Koren, Y., KDD, 2008; the bias model used here as the baseline, and the shrinkage that makes a similarity from four readers behave)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://dl.acm.org/doi/10.1145/963770.963772">[3] Evaluating Collaborative Filtering Recommender Systems</a><br />
+      (Herlocker, J. L. et al., TOIS, 2004; why the metric you pick decides the winner)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://dl.acm.org/doi/10.1145/3298689.3347058">[4] Are We Really Making Much Progress?</a><br />
+      (Dacrema, M. F. et al., RecSys, 2019; the paper behind this article's insistence on running the popularity control first)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://github.com/zygmuntz/goodbooks-10k">[5] goodbooks-10k</a><br />
+      (Zaj&#261;c, Z., 2017; six million ratings with titles attached, which is what lets the neighbours be read rather than counted)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>

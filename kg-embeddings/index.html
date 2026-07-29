@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>A Relation Is A Movement | ATLAS</title>
+  <meta name="description" content="A visual, interactive introduction to knowledge graph embeddings: TransE, RotatE and DistMult, with the algebra that says which relation patterns each one can represent turned into predictions about the trained parameters, and checked against them." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/kg-embeddings/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="A Relation Is A Movement | ATLAS" />
+  <meta property="og:description" content="A visual, interactive introduction to knowledge graph embeddings: TransE, RotatE and DistMult, with the algebra that says which relation patterns each one can represent turned into predictions about the trained parameters, and checked against them." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/kg-embeddings/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="A Relation Is A Movement | ATLAS" />
+  <meta name="twitter:description" content="A visual, interactive introduction to knowledge graph embeddings: TransE, RotatE and DistMult, with the algebra that says which relation patterns each one can represent turned into predictions about the trained parameters, and checked against them." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    :root {
+      --primary: #456b99;
+      --secondary: #37567a;
+    }
+    .widget-note {
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      line-height: 1.45;
+      opacity: 0.8;
+      margin-top: 0.6rem;
+      max-width: var(--max-width);
+      margin-left: auto;
+      margin-right: auto;
+    }
+  </style>
+</head>
+<body>
+  <!-- ======================= chrome ======================= -->
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <!-- ======================= hero ======================= -->
+  <section id="intro">
+    <h1 id="intro-hed">A Relation Is A Movement</h1>
+    <h1 id="intro-sub">Give an edge a type and the question changes: what can a vector hold about "is a kind of" that it cannot hold about "is similar to"? The answer is algebra, and the algebra makes predictions about the trained parameters that you can go and look at</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 6.2 &middot; Graph Neural Networks &middot; TransE and RotatE</span>
+  </section>
+
+  <br />
+
+  <!-- ======================= introduction ======================= -->
+  <section>
+    <p class="body-text" id="intro-1"></p>
+    <br />
+    <p class="body-text" id="intro-2"></p>
+    <br />
+    <p class="body-text" id="intro-3"></p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the live rotation ======================= -->
+  <section>
+    <h1 class="body-header">One Complex Dimension, Turning</h1>
+    <p class="body-text" id="live-intro"></p>
+  </section>
+
+  <div class="interactive-full">
+    <div class="controls-row" id="live-buttons" style="justify-content: center"></div>
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">
+        turn it by
+        <span class="value" id="live-value"></span>
+      </span>
+      <input type="range" class="atlas-range" id="live-slider" min="0" max="24" step="1" value="0"
+             aria-label="the angle to rotate the head entity by" />
+    </div>
+    <div id="live-chart"></div>
+    <div class="widget-readout" id="live-readout"></div>
+    <p class="widget-note" id="live-note"></p>
+  </div>
+
+  <!-- ======================= the prediction ======================= -->
+  <section>
+    <h1 class="body-header">The Prediction You Can Go And Check</h1>
+    <p class="body-text" id="sym-intro"></p>
+    <br />
+    <p class="body-text" id="sym-math"></p>
+  </section>
+
+  <div class="interactive-full">
+    <div class="controls-row" id="sym-buttons" style="justify-content: center"></div>
+    <div id="sym-chart"></div>
+    <div class="widget-readout" id="sym-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="sym-note"></p>
+  </section>
+
+  <!-- ======================= the written graph ======================= -->
+  <section>
+    <h1 class="body-header">Four Patterns, Written In On Purpose</h1>
+    <p class="body-text" id="pat-intro"></p>
+  </section>
+
+  <div class="interactive-full">
+    <div id="pat-chart"></div>
+    <div class="widget-readout" id="pat-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="pat-note"></p>
+  </section>
+
+  <!-- ======================= the protocol ======================= -->
+  <section>
+    <h1 class="body-header">The Number Everybody Quotes</h1>
+    <p class="body-text" id="proto-intro"></p>
+    <br />
+    <p class="body-text" id="proto-note"></p>
+  </section>
+
+  <!-- ======================= verdict ======================= -->
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text" id="verdict-intro"></p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>What your relations are like</th>
+          <th>Reach for</th>
+          <th>What it gives</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">Hierarchies and chains</span></td>
+          <td>TransE</td>
+          <td id="v-transe"></td>
+          <td id="v-transe-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">A mixture, symmetry included</span></td>
+          <td>RotatE</td>
+          <td id="v-rotate"></td>
+          <td id="v-rotate-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">Symmetric only</span></td>
+          <td>DistMult</td>
+          <td id="v-distmult"></td>
+          <td id="v-distmult-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">A number to report</span></td>
+          <td>Filtered ranking</td>
+          <td id="v-proto"></td>
+          <td id="v-proto-warn"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="closing-1"></p>
+    <br />
+    <p class="body-text" id="closing-2"></p>
+    <br />
+    <p class="body-text" id="closing-3"></p>
+  </section>
+
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text" id="ref-note"></p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://papers.nips.cc/paper/5071-translating-embeddings-for-modeling-multi-relational-data">[1] Translating Embeddings for Modeling Multi-relational Data</a><br />
+      (Bordes, A. et al., NeurIPS, 2013; TransE, and the argument that a relation can be a vector)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1902.10197">[2] RotatE: Knowledge Graph Embedding by Relational Rotation in Complex Space</a><br />
+      (Sun, Z. et al., ICLR, 2019; the rotation, the pattern table this article measures, and the self-adversarial sampling used here)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1412.6575">[3] Embedding Entities and Relations for Learning and Inference in Knowledge Bases</a><br />
+      (Yang, B. et al., ICLR, 2015; DistMult, whose symmetry is not a bug but a definition)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1811.06965">[4] A Re-evaluation of Knowledge Graph Completion Methods</a><br />
+      (Sun, Z. et al., ACL, 2020; why the ranking protocol decides the leaderboard as much as the model does)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://github.com/DeepGraphLearning/KnowledgeGraphEmbedding">[5] WN18RR</a><br />
+      (the split distributed with the RotatE code, which is the one every number in this literature is measured on)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>

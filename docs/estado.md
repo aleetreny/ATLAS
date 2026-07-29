@@ -92,6 +92,60 @@ Este repositorio empezó como notebooks de ML y se está convirtiendo en una web
 | 66 | Credit, Exactly (los 1.024 conjuntos enumerados contra la forma cerrada de un modelo aditivo, KernelSHAP muestreado, las dos funciones de valor, y LIME con el ancho como mando) | `attribution/` | `#473a04` |
 | 67 | Where It Looked (seis mapas y dos controles puntuados contra la máscara exacta, Grad-CAM por profundidad, el test de aleatorización de Adebayo, y la atención contra la importancia medida) | `saliency/` | `#853c6f` |
 | 68 | Do As You Are Told (los diez dígitos pedidos a cuatro ajustes del dial, obediencia contra realismo sobre los mismos ejes, dos etiquetas quitadas del entrenamiento) | `controlnet/` | `#994573` |
+| 69 | Nobody Told It What A Book Is (cuatro similitudes calculadas en la página, el control de popularidad corrido antes que nada, el error partido por decil) | `collaborative-filtering/` | `#994595` |
+| 70 | A Few Numbers Per Reader (la identidad con el 25 sobre los mismos dígitos, el agujero medido, la rotación que no mueve nada) | `matrix-factorization/` | `#647032` |
+| 71 | Both Sides Of The Dot Product (300 libros con las valoraciones borradas, el techo exacto de un producto escalar, la torre corriendo en la página) | `two-tower/` | `#856314` |
+| 72 | The Average Of Your Neighbours (los dos controles, el mando de homofilia, el paso de mensajes en vivo, la atención contra 1/grado) | `gnn/` | `#591c5c` |
+| 73 | A Relation Is A Movement (la predicción cerrada de TransE contra sus normas aprendidas, los cuatro patrones escritos, el giro en vivo) | `kg-embeddings/` | `#456b99` |
+**El módulo 6 entero (artículos 69 a 73), publicado de una vez.** Las dos
+secciones cerradas y los cinco chips encendidos: 6.1 recomendadores (69, 70 y
+71) y 6.2 grafos (72 y 73), encadenados en ese orden y enganchados desde el
+cierre del 57 (`wavenet/`), que es la tarjeta anterior en la portada. Es la
+primera rama del atlas cuyo objeto **no se describe**: un libro no tiene
+rasgos, tiene lectores; un nodo no tiene rasgos que basten, tiene vecinos; una
+entidad es donde sus relaciones la ponen.
+
+Los tres de 6.1 comparten datos y partición, y no se declara, se **afirma**:
+`goodbooks-10k` (5.976.479 valoraciones de 53.424 lectores sobre 10.000 libros,
+fuera del repo y comprobada por digest), con cinco valoraciones retenidas por
+lector y la huella `6111a2884e877844` del conjunto retenido comprobada por los
+generadores del 70 y del 71 antes de correr. Así las tres tablas se leen juntas.
+Lo que hay que saber de cada uno:
+
+- **69** corre el control que casi nadie publica antes que ningún modelo: darle
+  a todo el mundo los diez libros más valorados acierta el **5,75%** en una
+  lista de diez, contra el 22,38% de los vecinos por libro, un factor de 3,89 y
+  no el que sugiere la palabra "personalizado". Y el resultado que reescribió la
+  sección de similitud: el coseno centrado devuelve vecinos **menos** populares
+  (percentil 48,0 contra 63,6 del encogido) y el **19,94%** de ellos salen de
+  menos de cinco lectores compartidos, contra el 0,61% del encogido. Evitar el
+  sesgo de popularidad se puede, y cuesta evidencia. El barrido de k no tiene
+  vuelta dentro del dominio: mejora hasta k = 4.000 de 10.000 libros, o sea que
+  el mejor "vecindario" es casi el catálogo entero.
+- **70** empieza afirmando la identidad con el **artículo 25**: el SVD truncado
+  de los mismos 2.000 dígitos reproduce el error de PCA que aquella página
+  publicó (0,05573261 contra 0,05573261 en rango 2, peor caso 1,8e-7, que es su
+  redondeo). Con eso, la cuarta restricción se mide en vez de contarse: los
+  mismos dígitos con el 90% de los píxeles tapados, rellenando con cero, con la
+  media, o ajustando solo sobre lo observado. Y la invariancia por rotación es
+  un guardia exacto: la predicción se mueve **3,2e-14** bajo una transformación
+  invertible cualquiera, así que un factor no es un género.
+- **71** hace el experimento que los dos anteriores no pueden: **300 libros con
+  todas sus valoraciones borradas** del entrenamiento. La torre de solo
+  identificadores cae al azar, la de contenido no. Y el techo de un producto
+  escalar se **calcula** en vez de entrenarse, porque es la cola de los valores
+  singulares de la matriz que intenta escribir.
+- **72** corre los dos controles juntos sobre Cora: los rasgos sin el grafo
+  (55,7%) y el grafo sin los rasgos (69,9%), o sea que **el grafo solo vale más
+  que los rasgos solos** y una mejora atribuida a la arquitectura es medio
+  malentendido. El GCN saca 81,3%. El mando de homofilia dice cuándo esta
+  familia entera es la idea equivocada, y la atención de GAT resulta ser, en
+  este grafo, el 1/grado que ya estaba ahí gratis.
+- **73** convierte dos teoremas en predicciones sobre parámetros entrenados: una
+  relación simétrica obliga a TransE a poner su vector a cero y a RotatE a un
+  giro de media vuelta, y las dos cosas se miden contra lo simétrica que es cada
+  relación de WN18RR en los datos.
+
 **El módulo 7 entero (artículos 60 a 67), publicado de una vez.** Las tres
 secciones cerradas y los ocho chips encendidos: 7.1 causalidad (60 a 63), 7.2
 incertidumbre (64 y 65), 7.3 explicabilidad (66 y 67), encadenados en ese orden

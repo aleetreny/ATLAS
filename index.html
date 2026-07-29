@@ -1469,16 +1469,110 @@
           the collective wisdom of the crowd.
         </p>
       </div>
+      <div class="articles-container">
+        <!-- card: collaborative-filtering -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./collaborative-filtering/';" style="cursor: pointer">
+            <img src="assets/thumbnails/collaborative-filtering.svg"
+                 alt="Nobody Told It What A Book Is article image: the long tail of a catalogue on log axes, with a grid of mostly empty cells beside it." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Nobody Told It What A Book Is</h2>
+            <p class="article-description">
+              A recommender that has never seen an author or a genre still puts
+              the right two books together. Compute the neighbours four ways in
+              the page, and meet the baseline that has to be beaten before any
+              of it counts.
+            </p>
+            <button class="content-button">
+              <a href="./collaborative-filtering/">Dive In</a>
+            </button>
+          </div>
+        </div>
+        <!-- card: matrix-factorization -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./matrix-factorization/';" style="cursor: pointer">
+            <img src="assets/thumbnails/matrix-factorization.svg"
+                 alt="A Few Numbers Per Reader article image: a mostly empty grid written as the product of two thin ones, with a measured rank sweep underneath." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">A Few Numbers Per Reader</h2>
+            <p class="article-description">
+              The same factorisation three earlier articles ran on a full table,
+              with one constraint added that changes the algorithm. Then a
+              slider that rotates the factors and proves they mean nothing.
+            </p>
+            <button class="content-button">
+              <a href="./matrix-factorization/">Dive In</a>
+            </button>
+          </div>
+        </div>
+        <!-- card: two-tower -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./two-tower/';" style="cursor: pointer">
+            <img src="assets/thumbnails/two-tower.svg"
+                 alt="Both Sides Of The Dot Product article image: two stacks of blocks meeting at a single dot product, with the exact rank ceiling drawn below." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">Both Sides Of The Dot Product</h2>
+            <p class="article-description">
+              Three hundred books have every rating deleted, and only a model
+              that reads their features can find them again. The price of that
+              architecture is a ceiling you can compute exactly.
+            </p>
+            <button class="content-button">
+              <a href="./two-tower/">Dive In</a>
+            </button>
+          </div>
+        </div>
+        <!-- card: gnn -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./gnn/';" style="cursor: pointer">
+            <img src="assets/thumbnails/gnn.svg"
+                 alt="The Average Of Your Neighbours article image: a small citation graph with a few labelled nodes, and the accuracy of a stack falling with depth." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">The Average Of Your Neighbours</h2>
+            <p class="article-description">
+              A graph layer is one line of arithmetic. Watch labels spread
+              through a real citation graph in the page, find the homophily
+              below which the whole family is the wrong idea, and see why deeper
+              is not more.
+            </p>
+            <button class="content-button">
+              <a href="./gnn/">Dive In</a>
+            </button>
+          </div>
+        </div>
+        <!-- card: kg-embeddings -->
+        <div class="article-card">
+          <div class="imgBx" onclick="location.href='./kg-embeddings/';" style="cursor: pointer">
+            <img src="assets/thumbnails/kg-embeddings.svg"
+                 alt="A Relation Is A Movement article image: a point on a circle turned to another point, with the half turn a symmetric relation is forced into marked." />
+          </div>
+          <div class="content">
+            <h2 class="article-title">A Relation Is A Movement</h2>
+            <p class="article-description">
+              Give an edge a type and one line of algebra says which facts a
+              vector can hold. Those proofs make predictions about the trained
+              parameters, and this page goes and looks at them.
+            </p>
+            <button class="content-button">
+              <a href="./kg-embeddings/">Dive In</a>
+            </button>
+          </div>
+        </div>
+      </div>
       <details class="roadmap">
         <summary>Full branch map: 6. Relational Intelligence</summary>
         <div class="branch">
           <h4>6.1 Recommenders &nbsp;·&nbsp; 6.2 Graph Neural Networks</h4>
           <div class="chips">
-            <span class="chip">Collaborative Filtering</span>
-            <span class="chip">Matrix Factorization (SVD/ALS)</span>
-            <span class="chip">Two-Tower · DeepFM</span>
-            <span class="chip">GCN · GAT · GraphSAGE</span>
-            <span class="chip">TransE · RotatE</span>
+            <span class="chip live"><a href="./collaborative-filtering/">Collaborative Filtering</a></span>
+            <span class="chip live"><a href="./matrix-factorization/">Matrix Factorization (SVD/ALS)</a></span>
+            <span class="chip live"><a href="./two-tower/">Two-Tower · DeepFM</a></span>
+            <span class="chip live"><a href="./gnn/">GCN · GAT · GraphSAGE</a></span>
+            <span class="chip live"><a href="./kg-embeddings/">TransE · RotatE</a></span>
           </div>
         </div>
       </details>

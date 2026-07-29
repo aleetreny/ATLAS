@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>A Few Numbers Per Reader | ATLAS</title>
+  <meta name="description" content="A visual, interactive introduction to matrix factorization for recommenders: the same factorization three earlier articles ran on a full table, with one constraint added that changes the algorithm, plus a live demonstration that the factors mean nothing on their own." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/matrix-factorization/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="A Few Numbers Per Reader | ATLAS" />
+  <meta property="og:description" content="A visual, interactive introduction to matrix factorization for recommenders: the same factorization three earlier articles ran on a full table, with one constraint added that changes the algorithm, plus a live demonstration that the factors mean nothing on their own." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/matrix-factorization/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="A Few Numbers Per Reader | ATLAS" />
+  <meta name="twitter:description" content="A visual, interactive introduction to matrix factorization for recommenders: the same factorization three earlier articles ran on a full table, with one constraint added that changes the algorithm, plus a live demonstration that the factors mean nothing on their own." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    :root {
+      --primary: #647032;
+      --secondary: #505a28;
+    }
+    .rank-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      margin-top: 0.6rem;
+    }
+    .rank-table th,
+    .rank-table td {
+      padding: 5px 10px 5px 0;
+      text-align: left;
+      font-weight: 400;
+      vertical-align: top;
+    }
+    .rank-table th {
+      font-family: var(--font-heavy);
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      border-bottom: 1px solid var(--stone);
+    }
+    .rank-table td.num,
+    .rank-table th.num {
+      text-align: right;
+      white-space: nowrap;
+    }
+    .rank-table td.title {
+      white-space: normal;
+    }
+    .rank-table td .author {
+      opacity: 0.6;
+    }
+    .two-lists {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.6rem;
+      align-items: flex-start;
+      justify-content: center;
+    }
+    .two-lists > div {
+      flex: 1 1 320px;
+      min-width: 280px;
+      max-width: 460px;
+    }
+    .list-head {
+      font-family: var(--font-heavy);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 0.2rem;
+    }
+    .book-picker {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      padding: 7px 10px;
+      max-width: 100%;
+      background: var(--white);
+      border: 1px solid var(--squidink);
+      border-radius: 0;
+    }
+    .widget-note {
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      line-height: 1.45;
+      opacity: 0.8;
+      margin-top: 0.6rem;
+      max-width: var(--max-width);
+      margin-left: auto;
+      margin-right: auto;
+    }
+  </style>
+</head>
+<body>
+  <!-- ======================= chrome ======================= -->
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <!-- ======================= hero ======================= -->
+  <section id="intro">
+    <h1 id="intro-hed">A Few Numbers Per Reader</h1>
+    <h1 id="intro-sub">Three earlier articles factorised a table that was completely filled in. This one factorises a table that is 99% missing, which sounds like a detail and is in fact a different algorithm, a different objective and a different failure</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 6.1 &middot; Recommenders &middot; Matrix Factorization</span>
+  </section>
+
+  <br />
+
+  <!-- ======================= introduction ======================= -->
+  <section>
+    <p class="body-text" id="intro-1"></p>
+    <br />
+    <p class="body-text" id="intro-2"></p>
+    <br />
+    <p class="body-text" id="intro-3"></p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the identity ======================= -->
+  <section>
+    <h1 class="body-header">The Same Factorisation, Then The Hole</h1>
+    <p class="body-text" id="hole-intro"></p>
+  </section>
+
+  <div class="interactive-full">
+    <div class="controls-row" id="hole-buttons" style="justify-content: center"></div>
+    <div id="hole-chart"></div>
+    <div class="widget-readout" id="hole-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="hole-note"></p>
+  </section>
+
+  <!-- ======================= on the real table ======================= -->
+  <section>
+    <h1 class="body-header">On The Real Table</h1>
+    <p class="body-text" id="fit-intro"></p>
+    <br />
+    <p class="body-text" id="fit-math"></p>
+  </section>
+
+  <div class="interactive-full">
+    <div class="controls-row" id="sweep-buttons" style="justify-content: center"></div>
+    <div id="sweep-chart"></div>
+    <div class="widget-readout" id="sweep-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="sweep-note"></p>
+    <br />
+    <p class="body-text" id="search-note"></p>
+  </section>
+
+  <!-- ======================= the factors mean nothing ======================= -->
+  <section>
+    <h1 class="body-header">The Factors Do Not Mean Anything</h1>
+    <p class="body-text" id="rot-intro"></p>
+  </section>
+
+  <div class="interactive-full">
+    <div class="controls-row" style="justify-content: center">
+      <span class="slider-label">
+        rotate the first two factors by
+        <span class="value" id="rot-value"></span>
+      </span>
+      <input type="range" class="atlas-range" id="rot-slider" min="0" max="90" step="3" value="0"
+             aria-label="angle to rotate the plane of the first two factors by" />
+    </div>
+    <div id="rot-chart"></div>
+    <div class="widget-readout" id="rot-readout"></div>
+    <p class="widget-note" id="rot-note"></p>
+  </div>
+
+  <section>
+    <p class="body-text" id="rot-verdict"></p>
+  </section>
+
+  <!-- ======================= ranking ======================= -->
+  <section>
+    <h1 class="body-header">Ordering Instead Of Guessing The Number</h1>
+    <p class="body-text" id="imp-intro"></p>
+  </section>
+
+  <div class="interactive-full">
+    <div class="controls-row" style="justify-content: center">
+      <label class="slider-label" for="nb-book">book</label>
+      <select class="book-picker" id="nb-book" aria-label="which book to find neighbours for"></select>
+    </div>
+    <div class="controls-row" id="nb-buttons" style="justify-content: center"></div>
+    <div id="nb-lists" class="two-lists"></div>
+    <div class="widget-readout" id="nb-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="imp-note"></p>
+  </section>
+
+  <!-- ======================= verdict ======================= -->
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text" id="verdict-intro"></p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>What you want</th>
+          <th>Reach for</th>
+          <th>What it gives</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">A complete table factorised</span></td>
+          <td>The SVD</td>
+          <td id="v-svd"></td>
+          <td id="v-svd-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">A table with holes</span></td>
+          <td>Alternating least squares</td>
+          <td id="v-als"></td>
+          <td id="v-als-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">A list, not a number</span></td>
+          <td>Implicit ALS</td>
+          <td id="v-imp"></td>
+          <td id="v-imp-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">An explanation</span></td>
+          <td>Not the factors</td>
+          <td id="v-rot"></td>
+          <td id="v-rot-warn"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="closing-1"></p>
+    <br />
+    <p class="body-text" id="closing-2"></p>
+    <br />
+    <p class="body-text" id="closing-3"></p>
+  </section>
+
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text" id="ref-note"></p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://ieeexplore.ieee.org/document/5197422">[1] Matrix Factorization Techniques for Recommender Systems</a><br />
+      (Koren, Y., Bell, R. &amp; Volinsky, C., IEEE Computer, 2009; the biases, the regularisation and the objective fitted here)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://ieeexplore.ieee.org/document/4781121">[2] Collaborative Filtering for Implicit Feedback Datasets</a><br />
+      (Hu, Y., Koren, Y. &amp; Volinsky, C., ICDM, 2008; the confidence weighting and the Gram matrix trick that makes 534 million cells affordable)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://link.springer.com/article/10.1007/BF02288367">[3] The approximation of one matrix by another of lower rank</a><br />
+      (Eckart, C. &amp; Young, G., Psychometrika, 1936; why the SVD is the answer when nothing is missing, and why that stops being true when something is)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://dl.acm.org/doi/10.1145/1401890.1401944">[4] Factorization Meets the Neighborhood</a><br />
+      (Koren, Y., KDD, 2008; the comparison this article runs against the previous one, on the same split)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://github.com/zygmuntz/goodbooks-10k">[5] goodbooks-10k</a><br />
+      (Zaj&#261;c, Z., 2017; the same six million ratings the previous article used, on the same held out cells)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>

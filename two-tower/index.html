@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Both Sides Of The Dot Product | ATLAS</title>
+  <meta name="description" content="A visual, interactive introduction to two-tower retrieval models and factorization machines: what a feature buys when a book has no ratings at all, and the exact ceiling that scoring by a dot product puts on what a model can say." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/two-tower/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="Both Sides Of The Dot Product | ATLAS" />
+  <meta property="og:description" content="A visual, interactive introduction to two-tower retrieval models and factorization machines: what a feature buys when a book has no ratings at all, and the exact ceiling that scoring by a dot product puts on what a model can say." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/two-tower/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Both Sides Of The Dot Product | ATLAS" />
+  <meta name="twitter:description" content="A visual, interactive introduction to two-tower retrieval models and factorization machines: what a feature buys when a book has no ratings at all, and the exact ceiling that scoring by a dot product puts on what a model can say." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    :root {
+      --primary: #856314;
+      --secondary: #6a4f10;
+    }
+    .pick-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      justify-content: center;
+      margin: 0.6rem auto;
+      max-width: 860px;
+    }
+    .pick-list button {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      padding: 5px 9px;
+      border: 1px solid var(--stone);
+      background: var(--white);
+      color: var(--squidink);
+      cursor: pointer;
+      border-radius: 0;
+    }
+    .pick-list button.on {
+      background: var(--primary);
+      color: var(--white);
+      border-color: var(--primary);
+    }
+    .rank-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      margin-top: 0.6rem;
+    }
+    .rank-table th,
+    .rank-table td {
+      padding: 5px 10px 5px 0;
+      text-align: left;
+      font-weight: 400;
+      vertical-align: top;
+    }
+    .rank-table th {
+      font-family: var(--font-heavy);
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      border-bottom: 1px solid var(--stone);
+    }
+    .rank-table td.num,
+    .rank-table th.num {
+      text-align: right;
+      white-space: nowrap;
+    }
+    .rank-table td.title {
+      white-space: normal;
+    }
+    .rank-table td .author {
+      opacity: 0.6;
+    }
+    #tower-list {
+      overflow-x: auto;
+    }
+    .widget-note {
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      line-height: 1.45;
+      opacity: 0.8;
+      margin-top: 0.6rem;
+      max-width: var(--max-width);
+      margin-left: auto;
+      margin-right: auto;
+    }
+  </style>
+</head>
+<body>
+  <!-- ======================= chrome ======================= -->
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <!-- ======================= hero ======================= -->
+  <section id="intro">
+    <h1 id="intro-hed">Both Sides Of The Dot Product</h1>
+    <h1 id="intro-sub">The shape of a retrieval model is chosen by the deployment, not by the accuracy. Here is what one vector per side buys, what it costs in a number you can compute exactly, and what a feature does for a book nobody has read</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 6.1 &middot; Recommenders &middot; Two Tower and DeepFM</span>
+  </section>
+
+  <br />
+
+  <!-- ======================= introduction ======================= -->
+  <section>
+    <p class="body-text" id="intro-1"></p>
+    <br />
+    <p class="body-text" id="intro-2"></p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= cold start ======================= -->
+  <section>
+    <h1 class="body-header">Three Hundred Books Nobody Has Read</h1>
+    <p class="body-text" id="cold-intro"></p>
+  </section>
+
+  <div class="interactive-full">
+    <div class="controls-row" id="cold-buttons" style="justify-content: center"></div>
+    <div id="cold-chart"></div>
+    <div class="widget-readout" id="cold-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="cold-note"></p>
+  </section>
+
+  <!-- ======================= the ceiling ======================= -->
+  <section>
+    <h1 class="body-header">The Ceiling Is A Rank</h1>
+    <p class="body-text" id="ceil-intro"></p>
+    <br />
+    <p class="body-text" id="ceil-math"></p>
+  </section>
+
+  <div class="interactive-full">
+    <div class="controls-row" id="ceil-buttons" style="justify-content: center"></div>
+    <div id="ceil-chart"></div>
+    <div class="widget-readout" id="ceil-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="ceil-note"></p>
+  </section>
+
+  <!-- ======================= crossing features ======================= -->
+  <section>
+    <h1 class="body-header">Every Pair Of Features, Most Of Them Never Seen</h1>
+    <p class="body-text" id="fm-intro"></p>
+    <br />
+    <p class="body-text" id="fm-math"></p>
+  </section>
+
+  <!-- ======================= the live tower ======================= -->
+  <section>
+    <h1 class="body-header">Scoring A Catalogue In The Page</h1>
+    <p class="body-text" id="tower-intro"></p>
+  </section>
+
+  <div class="interactive-full">
+    <div class="pick-list" id="tower-picks"></div>
+    <div class="controls-row" id="tower-buttons" style="justify-content: center"></div>
+    <div id="tower-list"></div>
+    <div class="widget-readout" id="tower-readout"></div>
+    <p class="widget-note" id="tower-note"></p>
+  </div>
+
+  <!-- ======================= the cost ======================= -->
+  <section>
+    <h1 class="body-header">Why Anybody Accepts The Ceiling</h1>
+    <p class="body-text" id="cost-intro"></p>
+  </section>
+
+  <div class="interactive-full">
+    <div id="cost-chart"></div>
+    <div class="widget-readout" id="cost-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="cost-note"></p>
+  </section>
+
+  <!-- ======================= verdict ======================= -->
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text" id="verdict-intro"></p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>What you want</th>
+          <th>Reach for</th>
+          <th>What it gives</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">To score a million items</span></td>
+          <td>Two towers</td>
+          <td id="v-tower"></td>
+          <td id="v-tower-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">An item with no history</span></td>
+          <td>Content in the tower</td>
+          <td id="v-cold"></td>
+          <td id="v-cold-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">Feature crosses</span></td>
+          <td>Factorised interactions</td>
+          <td id="v-fm"></td>
+          <td id="v-fm-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">The last few points</span></td>
+          <td>A model that sees the pair</td>
+          <td id="v-cross"></td>
+          <td id="v-cross-warn"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="closing-1"></p>
+    <br />
+    <p class="body-text" id="closing-2"></p>
+    <br />
+    <p class="body-text" id="closing-3"></p>
+  </section>
+
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text" id="ref-note"></p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://dl.acm.org/doi/10.1145/3298689.3346996">[1] Sampling-Bias-Corrected Neural Modeling for Large Corpus Item Recommendations</a><br />
+      (Yi, X. et al., RecSys, 2019; the two tower retrieval model and the sampled softmax it is trained with)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://ieeexplore.ieee.org/document/5694074">[2] Factorization Machines</a><br />
+      (Rendle, S., ICDM, 2010; the factorised second order term, and the counting argument for why it exists)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1703.04247">[3] DeepFM: A Factorization-Machine based Neural Network for CTR Prediction</a><br />
+      (Guo, H. et al., IJCAI, 2017; the shared embedding between the factorised part and the deep part)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://dl.acm.org/doi/10.1145/2988450.2988454">[4] Deep Neural Networks for YouTube Recommendations</a><br />
+      (Covington, P., Adams, J. &amp; Sargin, E., RecSys, 2016; where the retrieve then rank split is spelled out as an engineering constraint)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://github.com/zygmuntz/goodbooks-10k">[5] goodbooks-10k</a><br />
+      (Zaj&#261;c, Z., 2017; the same ratings, the same split and the same held out cells as the two previous articles)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>
