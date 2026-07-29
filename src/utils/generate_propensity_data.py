@@ -82,7 +82,7 @@ REPS = 240
 TAU_0 = 2.0
 TAU_V = np.array([0.9, 0.0, 0.5, 0.0])
 
-TAG = f"n{N}r{REPS}s{SEED}-v2"
+TAG = f"n{N}r{REPS}s{SEED}-v3"
 
 
 def cached(name, fn, tag=True):
@@ -376,6 +376,11 @@ def stage_trimming():
     """
     rng = np.random.default_rng(SEED + 4)
     rows = []
+    # Dos brazos: recortar las dos colas y recortar solo la de arriba. El
+    # primero es lo que se hace y el segundo es el control que hace falta para
+    # poder decir algo sobre el estimando, porque con un efecto simétrico en la
+    # variable que decide el score, quitar las dos colas a la vez **no mueve la
+    # media**: el guion previsto decía que sí y la medida dijo que no.
     for lo in [0.0, 0.01, 0.05, 0.1, 0.2]:
         ests, truths, kept = [], [], []
         for _ in range(80):
@@ -389,7 +394,27 @@ def stage_trimming():
             truths.append(float(tau(V[m]).mean()))
             kept.append(float(m.mean()))
         a, t = np.array(ests), np.array(truths)
-        rows.append(dict(trim=lo, estimate=float(a.mean()), sd=float(a.std(ddof=1)),
+        rows.append(dict(trim=lo, side="both", estimate=float(a.mean()),
+                         sd=float(a.std(ddof=1)),
+                         truth_kept=float(t.mean()), truth_all=TAU_0,
+                         kept=float(np.mean(kept)),
+                         error_vs_kept=float(a.mean() - t.mean()),
+                         error_vs_all=float(a.mean() - TAU_0)))
+    for lo in [0.0, 0.05, 0.1, 0.2, 0.3]:
+        ests, truths, kept = [], [], []
+        for _ in range(80):
+            V, X, Y, e = draw(N, rng, scale=4.0)
+            lr = LogisticRegression(max_iter=3000).fit(V, X)
+            e_hat = np.clip(lr.predict_proba(V)[:, 1], 1e-6, 1 - 1e-6)
+            m = e_hat < 1 - lo                      # solo la cola de arriba
+            if m.sum() < 50 or (X[m] == 1).sum() < 10 or (X[m] == 0).sum() < 10:
+                continue
+            ests.append(est_ipw(V[m], X[m], Y[m], e_hat[m]))
+            truths.append(float(tau(V[m]).mean()))
+            kept.append(float(m.mean()))
+        a, t = np.array(ests), np.array(truths)
+        rows.append(dict(trim=lo, side="upper", estimate=float(a.mean()),
+                         sd=float(a.std(ddof=1)),
                          truth_kept=float(t.mean()), truth_all=TAU_0,
                          kept=float(np.mean(kept)),
                          error_vs_kept=float(a.mean() - t.mean()),
@@ -466,6 +491,9 @@ def main():
     for k, v in dr["cells"].items():
         print(f"  DR cell {k}: reg {v['regression']['bias']:+.4f}  "
               f"ipw {v['ipw']['bias']:+.4f}  aipw {v['aipw']['bias']:+.4f}")
+    for row in trim:
+        print(f"    trim {row['trim']:.2f} {row['side']:<6} estimate {row['estimate']:.4f} "
+              f"truth for who is left {row['truth_kept']:.4f} kept {row['kept']:.3f}")
     print(f"  hidden covariate: bias {hidden['bias']:+.4f}, "
           f"smd seen {hidden['smd_seen']:.4f} hidden {hidden['smd_hidden']:.4f}")
 
@@ -474,9 +502,19 @@ def main():
         "el score verdadero no está balanceando, así que el teorema no se ve"
     assert abs(balance["after_wrong"][1]) > 0.3 * abs(balance["before"][1]), \
         "el score equivocado balancea lo que no mira, y entonces no es un control"
-    aipw_bias = abs(dr["cells"]["10"]["aipw"]["bias"])
-    ipw_bias = abs(dr["cells"]["10"]["ipw"]["bias"])
-    assert aipw_bias < ipw_bias, "AIPW no gana en la celda donde la propensión es la buena"
+    # En la celda 10 (propensión bien, resultado mal) los dos que usan la
+    # propensión aciertan, así que compararlos entre sí es comparar ruido con
+    # ruido: el primer intento de este aserto disparaba por 0,003 contra 0,006.
+    # Lo que la celda tiene que enseñar es que el que NO usa la propensión se
+    # rompe y los otros dos no.
+    for cell, bueno, malo in (("10", ("ipw", "aipw"), "regression"),
+                              ("01", ("regression", "aipw"), "ipw")):
+        roto = abs(dr["cells"][cell][malo]["bias"])
+        for k in bueno:
+            sano = abs(dr["cells"][cell][k]["bias"])
+            assert sano < 0.25 * roto, (
+                f"en la celda {cell} el estimador {k} se sesga {sano:.4f} contra "
+                f"{roto:.4f} del que tenía que romperse")
     assert abs(hidden["bias"]) > 5 * hidden["se"], \
         "esconder un confusor no deja sesgo, y esa sección no tiene sujeto"
 
@@ -497,7 +535,8 @@ def main():
             k: {m: {kk: r(vv) for kk, vv in c.items()} for m, c in v.items()}
             for k, v in dr["cells"].items()}),
         overlap=[{k: r(v) for k, v in row.items()} for row in overlap],
-        trimming=[{k: r(v) for k, v in row.items()} for row in trim],
+        trimming=[{k: (v if isinstance(v, str) else r(v)) for k, v in row.items()}
+                  for row in trim],
         hidden={k: (v if isinstance(v, str) else r(v)) for k, v in hidden.items()},
         cloud=cloud,
     )

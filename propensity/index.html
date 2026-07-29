@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>No Two Alike | ATLAS</title>
+  <meta name="description" content="The propensity score theorem checked rather than cited: one number balances every covariate it was built from, seven estimators are scored against a known effect, and the doubly robust two by two table shows which cell still fails." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/propensity/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="No Two Alike | ATLAS" />
+  <meta property="og:description" content="With four continuous covariates there are no two comparable people anywhere in the data. One number fixes that, and the theorem is checked instead of quoted." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/propensity/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="No Two Alike | ATLAS" />
+  <meta name="twitter:description" content="With four continuous covariates there are no two comparable people anywhere in the data. One number fixes that, and the theorem is checked instead of quoted." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    /* Per-article theme. Everything else inherits from these two. */
+    :root {
+      --primary: #5c2938;
+      --secondary: #4a212d;
+    }
+  </style>
+</head>
+<body>
+  <!-- ======================= chrome ======================= -->
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <!-- ======================= hero ======================= -->
+  <section id="intro">
+    <h1 id="intro-hed">No Two Alike</h1>
+    <h1 id="intro-sub">Comparing like with like stops having any subjects the moment the confounders are continuous, and the repair is a theorem that sounds too good to be true</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 7.1 &middot; Causal Inference &middot; No Two Alike</span>
+  </section>
+
+  <br />
+
+  <!-- ======================= introduction ======================= -->
+  <section>
+    <p class="body-text" id="intro-problem">
+      The previous article ended with a working recipe and a problem.
+    </p>
+    <br />
+    <p class="body-text" id="intro-theorem">
+      The result that rescues it is one line long.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= balance ======================= -->
+  <section>
+    <h1 class="body-header">One Number, Four Covariates</h1>
+    <p class="body-text" id="balance-intro">
+      The claim is checkable, so it gets checked before anything is built on it.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="balance-widget">
+    <div class="controls-row" style="justify-content: center" id="balance-views"></div>
+    <div id="balance-chart"></div>
+    <div class="widget-readout" id="balance-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="balance-note">
+      The control is the row that makes the first one mean something.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the weights ======================= -->
+  <section>
+    <h1 class="body-header">Four Ways To Spend One Score</h1>
+    <p class="body-text" id="weights-intro">
+      Once the score exists there are several things to do with it, and they are
+      not variations on a theme.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="weights-widget">
+    <div class="controls-row" style="justify-content: center" id="weights-views"></div>
+    <div id="weights-chart"></div>
+    <div class="widget-readout" id="weights-readout"></div>
+  </div>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table" id="board-table">
+      <thead>
+        <tr>
+          <th>Estimator</th>
+          <th>Bias</th>
+          <th>Spread between samples</th>
+          <th>Root mean squared error</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="board-verdict">
+      The ranking has a result in it that the literature does not advertise.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= doubly robust ======================= -->
+  <section>
+    <h1 class="body-header">Two Chances Instead Of One</h1>
+    <p class="body-text" id="dr-intro">
+      Every estimator above needs a model, and the model can be wrong.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="dr-widget">
+    <div class="controls-row" style="justify-content: center" id="dr-views"></div>
+    <div id="dr-chart"></div>
+    <div class="widget-readout" id="dr-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="dr-note">
+      Three of the four cells are the advertisement. The fourth is the one worth
+      remembering.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= overlap ======================= -->
+  <section>
+    <h1 class="body-header">When There Is Nobody To Compare With</h1>
+    <p class="body-text" id="overlap-intro">
+      Everything so far assumed that for every kind of person there are both
+      treated and untreated examples.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="overlap-widget">
+    <div class="controls-row">
+      <span class="slider-label">how separable the two groups are: <span class="value" id="overlap-label">1.0</span></span>
+      <input type="range" class="atlas-range" id="overlap-slider" aria-label="how separable the treated and untreated groups are" min="0" max="6" step="1" value="1" />
+    </div>
+    <div class="controls-row" style="justify-content: center" id="overlap-views"></div>
+    <div id="overlap-chart"></div>
+    <div class="widget-readout" id="overlap-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="overlap-trim">
+      The standard repair is to throw away the units with extreme scores.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the hidden one ======================= -->
+  <section>
+    <h1 class="body-header">Balance Is Not Identification</h1>
+    <p class="body-text" id="hidden-intro">
+      Every diagnostic in this article so far has been about balance.
+    </p>
+    <br />
+    <p class="body-text" id="hidden-result">
+      So here is the same machinery with one covariate hidden from the analyst.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= verdict ======================= -->
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text">
+      What each way of spending the score buys, and what it costs.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Method</th>
+          <th>What it does with the score</th>
+          <th>Measured here</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">Outcome regression</span></td>
+          <td>Ignores it and models the outcome instead</td>
+          <td id="v-reg">Measured above.</td>
+          <td id="v-reg-watch">Everything rests on the outcome model being right.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Weighting</span></td>
+          <td>Divides by the probability of the treatment received</td>
+          <td id="v-ipw">Measured above.</td>
+          <td id="v-ipw-watch">A few tiny scores can carry most of the estimate.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Matching and strata</span></td>
+          <td>Rebuilds a comparison group by hand</td>
+          <td id="v-match">Measured above.</td>
+          <td id="v-match-watch">Coarse strata leave residual confounding inside each one.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Doubly robust</span></td>
+          <td>Uses both models and needs only one of them</td>
+          <td id="v-aipw">Measured above.</td>
+          <td id="v-aipw-watch">Two chances, not a guarantee: both wrong is still wrong.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="closing-1">
+      The propensity score is the most useful idea in this branch and the most
+      easily oversold.
+    </p>
+    <br />
+    <p class="body-text" id="closing-2">
+      All of which still assumes the thing the previous article said we could
+      never check.
+    </p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! Everything above was measured rather than cited: the
+      balancing property is checked inside strata of the true score with a
+      deliberately wrong score as the control, every estimator is scored against
+      an effect that was chosen rather than estimated, and each row of the
+      scoreboard is repeated over independent samples so that the spread between
+      them is printed next to the bias, from
+      <code>src/utils/generate_propensity_data.py</code>.
+    </p>
+  </section>
+
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text" id="ref-note">
+      The world is written out in the generator.
+    </p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://academic.oup.com/biomet/article/70/1/41/240879">[1] The Central Role of the Propensity Score in Observational Studies for Causal Effects</a><br />
+      (Rosenbaum, P. R. &amp; Rubin, D. B., Biometrika, 1983; the balancing theorem the second section checks, and the recommendation to match on the logit)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://www.jstor.org/stable/2290054">[2] Estimation of Regression Coefficients When Some Regressors Are Not Always Observed</a><br />
+      (Robins, J. M., Rotnitzky, A. &amp; Zhao, L. P., JASA, 1994; the augmented estimator behind the two by two table)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://projecteuclid.org/journals/statistical-science/volume-22/issue-4/Demystifying-Double-Robustness--A-Comparison-of-Alternative-Strategies-for/10.1214/07-STS227.full">[3] Demystifying Double Robustness</a><br />
+      (Kang, J. D. Y. &amp; Schafer, J. L., Statistical Science, 2007; the paper that measured how badly the doubly robust promise behaves when both models are wrong)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://onlinelibrary.wiley.com/doi/10.1002/sim.6607">[4] Moving towards Best Practice when Using Inverse Probability of Treatment Weighting</a><br />
+      (Austin, P. C. &amp; Stuart, E. A., Statistics in Medicine, 2015; standardised differences, weight diagnostics and trimming as they are used in practice)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://www.tandfonline.com/doi/abs/10.1080/01621459.2016.1260466">[5] Balancing, Regression, Difference-in-Differences and Synthetic Control Methods: A Synthesis</a><br />
+      (Athey, S. &amp; Imbens, G. W., 2016; the framing of weighting and regression as two halves of the same estimator)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>

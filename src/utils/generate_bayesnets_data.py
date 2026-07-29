@@ -346,12 +346,15 @@ def score(exact, mean, sd, dens, xs, inside, every=10):
     """
     ys = exact["ys"]
     dy = ys[1] - ys[0]
-    tv_all = 0.5 * np.abs(exact["dens"] - dens[::every]).sum(1) * dy
-    inside = inside[::every]
-    tv = tv_all
+    # La distancia entre densidades solo existe donde la densidad exacta se
+    # guardó (uno de cada `every`); las razones de desviación se miden en los
+    # 81 puntos, que sí están completos. Mezclar las dos máscaras fue un
+    # IndexError, que al menos avisa.
+    tv = 0.5 * np.abs(exact["dens"] - dens[::every]).sum(1) * dy
+    tin = inside[::every]
     return dict(
-        tv_all=float(tv.mean()), tv_in=float(tv[inside].mean()),
-        tv_out=float(tv[~inside].mean()),
+        tv_all=float(tv.mean()), tv_in=float(tv[tin].mean()),
+        tv_out=float(tv[~tin].mean()),
         sd_ratio_in=float((sd[inside] / exact["pred_sd"][inside]).mean()),
         sd_ratio_out=float((sd[~inside] / exact["pred_sd"][~inside]).mean()),
         mean_abs=float(np.abs(mean - exact["pred_mean"]).mean()),
