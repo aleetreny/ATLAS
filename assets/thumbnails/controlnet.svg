@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <rect width="400" height="300" fill="#f1f3f3" />
+  <!-- obedience and realism against the guidance scale -->
+  <line x1="58" y1="96" x2="360" y2="96" stroke="#1d4ed8" stroke-width="1.6" stroke-dasharray="6 4" />
+  <polyline points="58,207 77,147 96,101 134,88 171,90 247,93 360,99" fill="none" stroke="#994573" stroke-width="2.4" />
+    <circle cx="58" cy="207" r="3.6" fill="#994573" />
+    <circle cx="77" cy="147" r="3.6" fill="#994573" />
+    <circle cx="96" cy="101" r="3.6" fill="#994573" />
+    <circle cx="134" cy="88" r="3.6" fill="#994573" />
+    <circle cx="171" cy="90" r="3.6" fill="#994573" />
+    <circle cx="247" cy="93" r="3.6" fill="#994573" />
+    <circle cx="360" cy="99" r="3.6" fill="#994573" />
+  <polyline points="58,187 77,178 96,226 134,208 171,170 247,136 360,74" fill="none" stroke="#232f3e" stroke-width="2.4" stroke-dasharray="6 4" />
+    <circle cx="58" cy="187" r="3.6" fill="#232f3e" />
+    <circle cx="77" cy="178" r="3.6" fill="#232f3e" />
+    <circle cx="96" cy="226" r="3.6" fill="#232f3e" />
+    <circle cx="134" cy="208" r="3.6" fill="#232f3e" />
+    <circle cx="171" cy="170" r="3.6" fill="#232f3e" />
+    <circle cx="247" cy="136" r="3.6" fill="#232f3e" />
+    <circle cx="360" cy="74" r="3.6" fill="#232f3e" />
+  <line x1="134" y1="88" x2="134" y2="226" stroke="#994573" stroke-width="1.2" stroke-dasharray="3 3" />
+  <line x1="96" y1="226" x2="96" y2="226" stroke="#232f3e" stroke-width="1.2" stroke-dasharray="3 3" />
+  <text x="134" y="246" text-anchor="middle" font-family="monospace" font-size="12" fill="#994573">obeys best: 2.0</text>
+  <text x="96" y="62" text-anchor="middle" font-family="monospace" font-size="12" fill="#232f3e">looks best: 1.0</text>
+  <text x="209" y="270" text-anchor="middle" font-family="monospace" font-size="12" fill="#232f3e">guidance scale</text>
+  <text x="209" y="40" text-anchor="middle" font-family="monospace" font-size="12" fill="#232f3e">the two peaks are not the same</text>
+</svg>

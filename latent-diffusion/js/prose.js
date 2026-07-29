@@ -148,15 +148,9 @@ export function initProse(data) {
     + `as it is and adds a second input, a condition, which the sampler has to obey while still `
     + `producing something that looks real, and the interesting part is what that costs: a model `
     + `that follows an instruction perfectly and a model that produces good pictures are not the `
-    + `same model, and the distance between them can be measured. That is where this module goes `
-    + `next.`
-    + `<br /><br />`
-    + `The article after this one in the atlas changes the object rather than the method. `
-    + `Everything so far has started from a row of numbers or a picture, and both arrive already `
-    + `numeric. A <span class="bold">document</span> does not: it is a sequence of words of no `
-    + `fixed length, from a vocabulary nobody wrote down, and something has to decide what its `
-    + `numbers are before any of this machinery can touch it. `
-    + `<a href="../tf-idf/">Counting words</a> is where that starts.`);
+    + `same model, and the distance between them can be measured. `
+    + `<a href="../controlnet/">That is the next article</a>, where the two peaks turn out to sit `
+    + `at different settings of the same dial and the more obedient one is not the one you want.`);
 
   set('ref-note',
     `${n0(M.n_train)} of the ${M.side} by ${M.side} digits the `

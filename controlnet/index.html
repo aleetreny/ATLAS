@@ -3,20 +3,280 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>ControlNet | ATLAS</title>
+  <title>Do As You Are Told | ATLAS</title>
+  <meta name="description" content="A visual, interactive introduction to classifier free guidance: turn the dial and the model obeys the label harder while its samples get less real, measured both ways at once, plus what happens when you ask for a digit it was never trained on." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/controlnet/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="Do As You Are Told | ATLAS" />
+  <meta property="og:description" content="A visual, interactive introduction to classifier free guidance: turn the dial and the model obeys the label harder while its samples get less real, measured both ways at once, plus what happens when you ask for a digit it was never trained on." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/controlnet/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Do As You Are Told | ATLAS" />
+  <meta name="twitter:description" content="A visual, interactive introduction to classifier free guidance: turn the dial and the model obeys the label harder while its samples get less real, measured both ways at once, plus what happens when you ask for a digit it was never trained on." />
   <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
   <style>
     :root {
       --primary: #994573;
       --secondary: #7a375c;
     }
+    .narrow-widget {
+      max-width: 880px;
+    }
+    .widget-readout {
+      overflow-x: auto;
+    }
+    .gen-table {
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      margin-top: 0.4rem;
+      width: 100%;
+    }
+    .gen-table th,
+    .gen-table td {
+      padding: 4px 10px 4px 0;
+      text-align: left;
+      font-weight: 400;
+      white-space: nowrap;
+    }
+    .gen-table th {
+      font-family: var(--font-heavy);
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .gen-table td:first-child,
+    .gen-table th:first-child {
+      opacity: 0.75;
+    }
+    .gen-table td:last-child,
+    .gen-table th:last-child {
+      white-space: normal;
+    }
+    .gen-note {
+      margin-top: 0.6rem;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+    .gen-pair {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.6rem;
+      align-items: flex-start;
+      justify-content: center;
+    }
+    .gen-pair canvas {
+      border: 1px solid var(--stone);
+      background: var(--white);
+    }
+    /* An <svg> carrying only a viewBox has an intrinsic RATIO and no intrinsic
+       size, so as a flex item its width is whatever the engine falls back to:
+       the 300px default for a replaced element if you are lucky, and zero if
+       you are not. The flows article is the lucky case and has been drawing a
+       400 unit chart into 300 pixels without anyone noticing; this one was the
+       other case and drew it into nothing. Neither is worth relying on, so the
+       half is sized here and the svg is told to fill it. */
+    .gen-pair .chart-half {
+      flex: 1 1 380px;
+      min-width: 300px;
+      max-width: 420px;
+    }
+    .gen-pair .chart-half svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    /* the scrolly graphic is a canvas here rather than an svg, and the shared
+       rule that fits a chart to its column only names svg */
+    .charts-container canvas {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .gen-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    .canvas-caption {
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      letter-spacing: 0.3px;
+      color: var(--squidink);
+      opacity: 0.85;
+      text-align: center;
+      max-width: 360px;
+      line-height: 1.35;
+    }
+    .slider-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+      margin: 0.2rem 0 0.6rem;
+      font-family: var(--font-mono);
+      font-size: 13px;
+    }
+    .slider-row input[type="range"] {
+      width: 240px;
+      accent-color: var(--primary);
+    }
   </style>
 </head>
 <body>
-  <!-- Placeholder claiming this folder and this accent while the article is
-       written. It carries no article yet: check_publication.py counts a folder
-       as published only when it has js/main.js as well, so this is invisible to
-       the guard and visible to the accent allocator, which is the point. -->
-  <p>ControlNet, in progress.</p>
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <section id="intro">
+    <h1 id="intro-hed">Do As You Are Told</h1>
+    <h1 id="intro-sub">Every model in this module so far has been asked for something plausible and nothing more; adding an instruction is one line of training, and the dial that makes it obey harder makes its output worse in a way you can measure</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 3.3 · Diffusion · Conditioning and Guidance</span>
+  </section>
+
+  <br />
+
+  <section>
+    <p class="body-text">
+      Nothing so far has been told what to make. The samplers in the last two
+      articles produce whatever the data looked like, in whatever proportion,
+      and if you wanted a seven you drew until one turned up. Conditioning
+      fixes that by handing the network a second input alongside the noisy
+      picture: the label of the thing you want.
+    </p>
+    <br />
+    <p class="body-text">
+      Training it is nearly free. Show the network the label most of the time
+      and hide it the rest, and one set of weights ends up able to answer both
+      "denoise this" and "denoise this, and it is a seven". At sampling time
+      you have both answers available, and the difference between them points
+      in the direction of <i>more seven</i>. Scale that direction up and the
+      model obeys harder. That scaling factor is the subject of this article.
+    </p>
+    <br />
+    <p class="body-text" id="opening-note"></p>
+  </section>
+
+  <section>
+    <h1 class="body-header">Turn the Dial</h1>
+    <p class="body-text" id="dial-intro"></p>
+  </section>
+
+  <div class="widget narrow-widget">
+    <div class="slider-row">
+      <label for="dial-slider">guidance</label>
+      <input type="range" id="dial-slider" min="0" max="3" step="1" value="1"
+             aria-label="how hard the sampler is pushed towards the label" />
+      <span id="dial-value" class="value"></span>
+    </div>
+    <div id="dial-canvas"></div>
+    <div class="canvas-caption" id="dial-caption"></div>
+    <div class="widget-readout" id="dial-readout"></div>
+  </div>
+
+  <section>
+    <h1 class="body-header">The Two Things You Wanted</h1>
+    <p class="body-text" id="trade-intro"></p>
+    <br />
+    <p class="body-text" id="trade-note"></p>
+  </section>
+
+  <div class="widget narrow-widget">
+    <div id="trade-buttons" class="button-row"></div>
+    <div id="trade-chart"></div>
+    <div class="widget-readout" id="trade-readout"></div>
+  </div>
+
+  <section>
+    <h1 class="body-header">Ask For What It Never Saw</h1>
+    <p class="body-text" id="held-intro"></p>
+  </section>
+
+  <div class="widget narrow-widget">
+    <div id="held-chart"></div>
+    <div class="widget-readout" id="held-readout"></div>
+  </div>
+
+  <section>
+    <h1 class="body-header">Sampling It Here</h1>
+    <p class="body-text" id="live-intro"></p>
+  </section>
+
+  <div class="widget narrow-widget">
+    <div id="live-buttons" class="button-row"></div>
+    <div class="slider-row">
+      <label for="live-slider">guidance</label>
+      <input type="range" id="live-slider" min="0" max="16" step="1" value="4"
+             aria-label="the guidance scale the live sampler uses" />
+      <span id="live-value" class="value"></span>
+    </div>
+    <div id="live-canvas"></div>
+    <div class="canvas-caption" id="live-caption"></div>
+    <div class="widget-readout" id="live-readout"></div>
+  </div>
+
+  <section>
+    <h1 class="body-header">What This Costs, and What It Buys</h1>
+    <p class="body-text" id="verdict-intro"></p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>What you want</th>
+          <th>Reach for</th>
+          <th>Why</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">It to obey</span></td>
+          <td>Guidance</td>
+          <td id="verdict-obey"></td>
+          <td id="verdict-obey-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">It to look real</span></td>
+          <td>Less guidance</td>
+          <td id="verdict-real"></td>
+          <td id="verdict-real-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">Something it never saw</span></td>
+          <td>Not this</td>
+          <td id="verdict-held"></td>
+          <td id="verdict-held-warn"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="closing-1"></p>
+    <br />
+    <p class="body-text" id="closing-2"></p>
+  </section>
+
+  <section>
+    <h1 class="body-header">How This Was Measured</h1>
+    <p class="body-text" id="ref-note"></p>
+  </section>
+
+  <br /><br />
 </body>
 </html>

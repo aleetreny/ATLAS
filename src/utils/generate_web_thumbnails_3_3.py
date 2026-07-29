@@ -138,4 +138,52 @@ if d:
     write("latent-diffusion", lines)
 
 
+
+# ------------------------------------------------------------------- controlnet
+# The card is the finding: two curves against the same dial, peaking apart.
+d = load("controlnet", "control.json")
+if d:
+    ACC = "#994573"
+    S = d["sweep"]
+    lines = head()
+    lines.append("  <!-- obedience and realism against the guidance scale -->")
+    L, R, TOP, BOT = 58, W - 40, 74, 226
+    xs = [r["scale"] for r in S]
+    px = lambda v: L + (R - L) * (v - xs[0]) / (xs[-1] - xs[0])
+    obey = [r["obeys"] for r in S]
+    mm = [abs(float(r["mmd2"])) for r in S]
+    pyo = lambda v: BOT - (BOT - TOP) * v / 1.05
+    lo, hi = np.log10(min(mm)), np.log10(max(mm))
+    pym = lambda v: BOT - (BOT - TOP) * (np.log10(abs(float(v))) - lo) / (hi - lo)
+    # the judge on real digits, which is the line the obedience curve passes
+    lines.append(f'  <line x1="{L}" y1="{pyo(d["real"]["obeys"]):.0f}" x2="{R}" '
+                 f'y2="{pyo(d["real"]["obeys"]):.0f}" stroke="#1d4ed8" stroke-width="1.6" '
+                 f'stroke-dasharray="6 4" />')
+    for key, fy, colour, dash, name in (("obeys", pyo, ACC, "", "obeys"),
+                                        ("mmd2", pym, "#232f3e", ' stroke-dasharray="6 4"',
+                                         "looks real")):
+        pts = " ".join(f"{px(r['scale']):.0f},{fy(r[key]):.0f}" for r in S)
+        lines.append(f'  <polyline points="{pts}" fill="none" stroke="{colour}" '
+                     f'stroke-width="2.4"{dash} />')
+        for r in S:
+            lines.append(f'    <circle cx="{px(r["scale"]):.0f}" cy="{fy(r[key]):.0f}" r="3.6" '
+                         f'fill="{colour}" />')
+    bo = max(S, key=lambda r: r["obeys"])
+    br = min(S, key=lambda r: abs(float(r["mmd2"])))
+    for r, fy, colour, key in ((bo, pyo, ACC, "obeys"), (br, pym, "#232f3e", "mmd2")):
+        lines.append(f'  <line x1="{px(r["scale"]):.0f}" y1="{fy(r[key]):.0f}" '
+                     f'x2="{px(r["scale"]):.0f}" y2="{BOT}" stroke="{colour}" stroke-width="1.2" '
+                     f'stroke-dasharray="3 3" />')
+    lines.append(f'  <text x="{px(bo["scale"]):.0f}" y="{BOT + 20}" text-anchor="middle" '
+                 f'font-family="monospace" font-size="12" fill="{ACC}">obeys best: {bo["scale"]}</text>')
+    lines.append(f'  <text x="{px(br["scale"]):.0f}" y="{TOP - 12}" text-anchor="middle" '
+                 f'font-family="monospace" font-size="12" fill="#232f3e">looks best: {br["scale"]}</text>')
+    lines.append(f'  <text x="{(L + R) / 2:.0f}" y="{BOT + 44}" text-anchor="middle" '
+                 f'font-family="monospace" font-size="12" fill="{INK}">guidance scale</text>')
+    lines.append(f'  <text x="{(L + R) / 2:.0f}" y="{TOP - 34}" text-anchor="middle" '
+                 f'font-family="monospace" font-size="12" fill="{INK}">'
+                 f'the two peaks are not the same</text>')
+    write("controlnet", lines)
+
+
 print("done")
