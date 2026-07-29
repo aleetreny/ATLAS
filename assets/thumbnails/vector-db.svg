@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <rect width="400" height="300" fill="#f1f3f3" />
+  <!-- el recall dentro del filtro segun el filtro aprieta: buscar y -->
+  <!-- luego descartar se hunde, pedir de mas lo sostiene -->
+  <path d="M24,30 L376,30" fill="none" stroke="#ff9900" stroke-width="1.6" opacity="0.9" stroke-dasharray="5 3"/>
+  <path d="M30,274 L82,271 L151,263 L203,251 L272,214 L324,152 L376,30" fill="none" stroke="#df2a5d" stroke-width="3.0" opacity="1.0"/>
+  <g fill="#df2a5d" opacity="0.85"><circle cx="30" cy="274" r="3.4"/><circle cx="82" cy="271" r="3.4"/><circle cx="151" cy="263" r="3.4"/><circle cx="203" cy="251" r="3.4"/><circle cx="272" cy="214" r="3.4"/><circle cx="324" cy="152" r="3.4"/><circle cx="376" cy="30" r="3.4"/></g>
+  <path d="M30,50 L82,44 L151,70 L203,55 L272,61 L324,52 L376,30" fill="none" stroke="#854960" stroke-width="2.6" opacity="1.0"/>
+  <g fill="#854960" opacity="0.85"><circle cx="30" cy="50" r="3.4"/><circle cx="82" cy="44" r="3.4"/><circle cx="151" cy="70" r="3.4"/><circle cx="203" cy="55" r="3.4"/><circle cx="272" cy="61" r="3.4"/><circle cx="324" cy="52" r="3.4"/><circle cx="376" cy="30" r="3.4"/></g>
+</svg>

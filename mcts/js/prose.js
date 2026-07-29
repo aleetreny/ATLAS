@@ -176,7 +176,7 @@ export function initProse(data) {
     + `description at all and all anybody knows about an item is which people touched it.`);
 
   set('resources-note',
-    `Everything was measured by <code>src/utils/generate_mcts_data.py</code> with seed `
+    `Everything was measured by <code>src/<wbr>utils/<wbr>generate_<wbr>mcts_<wbr>data.py</code> with seed `
     + `${M.seed}. The game is connect ${M.connect} on ${M.rows} by ${M.cols}, solved in full by `
     + `negamax with a memo (${n0(S.positions)} position and turn pairs). The search is plain `
     + `UCT: no priors, no learnt evaluation, random play outs unless the panel says otherwise. `

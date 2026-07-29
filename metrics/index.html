@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>One Number for a Model | ATLAS</title>
+  <meta name="description" content="A visual, interactive introduction to evaluation metrics: the area under a curve as a counting statistic, every confusion matrix of a hundred cases enumerated to see where F1 and the correlation coefficient disagree, and what BLEU can and cannot see, measured on controlled perturbations." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/metrics/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="One Number for a Model | ATLAS" />
+  <meta property="og:description" content="A visual, interactive introduction to evaluation metrics: the area under a curve as a counting statistic, every confusion matrix of a hundred cases enumerated to see where F1 and the correlation coefficient disagree, and what BLEU can and cannot see, measured on controlled perturbations." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/metrics/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="One Number for a Model | ATLAS" />
+  <meta name="twitter:description" content="A visual, interactive introduction to evaluation metrics: the area under a curve as a counting statistic, every confusion matrix of a hundred cases enumerated to see where F1 and the correlation coefficient disagree, and what BLEU can and cannot see, measured on controlled perturbations." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    :root {
+      --primary: #5c3257;
+      --secondary: #4a2846;
+    }
+    .narrow-widget {
+      max-width: 880px;
+    }
+    .widget-readout {
+      overflow-x: auto;
+    }
+    .gen-table {
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      margin-top: 0.4rem;
+      width: 100%;
+    }
+    .gen-table th,
+    .gen-table td {
+      padding: 4px 10px 4px 0;
+      text-align: left;
+      font-weight: 400;
+      white-space: nowrap;
+    }
+    .gen-table th {
+      font-family: var(--font-heavy);
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .gen-table td:first-child,
+    .gen-table th:first-child {
+      opacity: 0.75;
+    }
+    .gen-table td.wrap {
+      white-space: normal;
+    }
+    .gen-note {
+      margin-top: 0.6rem;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+    .widget svg {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+    }
+    .slider-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+      margin: 0.2rem 0 0.6rem;
+      font-family: var(--font-mono);
+      font-size: 13px;
+    }
+    .slider-row input[type="range"] {
+      width: 240px;
+      accent-color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <section id="intro">
+    <h1 id="intro-hed">One Number for a Model</h1>
+    <h1 id="intro-sub">Every model in this atlas has been summarised into a single figure, and the figure was chosen without discussion. Here are all the confusion matrices of a hundred cases, so the choice can be argued from a count instead of a habit</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 8.2 &middot; Evaluation &middot; ROC-AUC, MCC and BLEU</span>
+  </section>
+
+  <br />
+
+  <section>
+    <p class="body-text">
+      The <a href="../crossval/">cross validation article</a> was about the split. This
+      one is about what gets computed once the split has done its job, and it
+      has a similar shape: the default is chosen by convention, it answers a
+      specific question, and the question is rarely the one being asked.
+    </p>
+    <br />
+    <p class="body-text">
+      Three metrics, picked because they fail in three different ways. The area
+      under the ROC curve is a statement about an ordering and about nothing
+      else. The Matthews correlation coefficient is a statement about a two by
+      two table, in competition with several others that summarise the same
+      table differently. BLEU is a statement about overlapping word sequences,
+      standing in for a judgement about meaning.
+    </p>
+    <br />
+    <p class="body-text" id="opening-note"></p>
+  </section>
+
+  <section>
+    <h1 class="body-header">An Area That Is Really a Count</h1>
+    <p class="body-text" id="roc-intro"></p>
+    <br />
+    <p class="body-text">
+      The area under the curve of true positives against false positives has a
+      second definition that does not mention a curve at all: it is the
+      probability that a randomly chosen positive is scored above a randomly
+      chosen negative, with ties counted as half. Written as a count over pairs,
+      $$\mathrm{AUC} = \frac{1}{n_{+}n_{-}}\sum_{i \in +}\sum_{j \in -}
+      \left[\,\mathbb{1}(s_i &gt; s_j) + \tfrac{1}{2}\mathbb{1}(s_i = s_j)\right]$$
+      which is the Mann and Whitney statistic. Both routes are computed below and
+      they must agree exactly, not approximately.
+    </p>
+    <br />
+    <p class="body-text" id="roc-note"></p>
+  </section>
+
+  <div class="widget narrow-widget">
+    <div id="roc-buttons" class="button-row"></div>
+    <div id="roc-chart"></div>
+    <div class="widget-readout" id="roc-readout"></div>
+  </div>
+
+  <section>
+    <h1 class="body-header">Four Metrics, Four Different Thresholds</h1>
+    <p class="body-text" id="th-intro"></p>
+    <br />
+    <p class="body-text" id="th-note"></p>
+  </section>
+
+  <div class="widget narrow-widget">
+    <div id="th-chart"></div>
+    <div class="widget-readout" id="th-readout"></div>
+  </div>
+
+  <section>
+    <h1 class="body-header">Every Confusion Matrix of a Hundred Cases</h1>
+    <p class="body-text" id="enum-intro"></p>
+    <br />
+    <p class="body-text" id="enum-note"></p>
+  </section>
+
+  <div class="widget narrow-widget">
+    <div id="enum-chart"></div>
+    <div class="widget-readout" id="enum-readout"></div>
+  </div>
+
+  <section>
+    <h1 class="body-header">What BLEU Can and Cannot See</h1>
+    <p class="body-text" id="bleu-intro"></p>
+    <br />
+    <p class="body-text" id="bleu-note"></p>
+  </section>
+
+  <div class="widget narrow-widget">
+    <div id="bleu-buttons" class="button-row"></div>
+    <div id="bleu-chart"></div>
+    <div class="widget-readout" id="bleu-readout"></div>
+  </div>
+
+  <section>
+    <h1 class="body-header">Which Number to Report</h1>
+    <p class="body-text" id="verdict-intro"></p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>The metric</th>
+          <th>What it is a statement about</th>
+          <th>What it cannot see</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">Area under the ROC curve</span></td>
+          <td id="verdict-auc"></td>
+          <td id="verdict-auc-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">Average precision</span></td>
+          <td id="verdict-ap"></td>
+          <td id="verdict-ap-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">F1 and the correlation coefficient</span></td>
+          <td id="verdict-mcc"></td>
+          <td id="verdict-mcc-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">BLEU</span></td>
+          <td id="verdict-bleu"></td>
+          <td id="verdict-bleu-warn"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="closing-1"></p>
+    <br />
+    <p class="body-text" id="closing-2"></p>
+  </section>
+
+  <section>
+    <h1 class="body-header">How This Was Measured</h1>
+    <p class="body-text" id="ref-note"></p>
+  </section>
+
+  <br /><br />
+</body>
+</html>

@@ -514,7 +514,7 @@ export function initProse(data) {
     + `it sounds.`);
 
   set('resources-note',
-    `Every figure on this page comes from <code>src/utils/generate_stylegan_data.py</code>: `
+    `Every figure on this page comes from <code>src/<wbr>utils/<wbr>generate_<wbr>stylegan_<wbr>data.py</code>: `
     + `${n0(M.n_train)} sprites at ${M.res} by ${M.res}, two generators of ${n0(plain.params)} and `
     + `${n0(styled.params)} weights trained for ${n0(M.steps)} steps at batch ${M.batch} on `
     + `${word(M.seeds.length)} seeds each, a ${M.z}-dimensional noise vector mapped to a `

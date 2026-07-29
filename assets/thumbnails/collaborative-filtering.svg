@@ -3,46 +3,46 @@
   <!-- la cola larga del catalogo: 10.000 libros ordenados por cuantas -->
   <!-- valoraciones tienen, en ejes logaritmicos, con la marca de donde -->
   <!-- esta la mitad de todas las valoraciones -->
-  <path d="M 34 40 L 59 41 L 74 44 L 85 46 L 93 46 L 100 47 L 105 47 L 110 47 L 115 48 L 118 48 L 122 48 L 125 48 L 128 48 L 131 49 L 133 49 L 136 49 L 138 49 L 140 50 L 144 51 L 147 51 L 149 51 L 152 52 L 155 53 L 158 53 L 161 54 L 163 55 L 167 56 L 169 56 L 172 57 L 175 58 L 178 58 L 180 59 L 183 61 L 186 62 L 189 63 L 192 64 L 194 65 L 197 65 L 200 66 L 203 66 L 206 67 L 209 68 L 211 69 L 214 70 L 217 71 L 220 72 L 223 73 L 226 75 L 228 76 L 231 76 L 234 77 L 237 78 L 240 79 L 242 80 L 245 82 L 248 83 L 251 84 L 254 85 L 257 86 L 259 88 L 262 89 L 265 90 L 268 91 L 271 93 L 273 94 L 276 95 L 279 97 L 282 98 L 285 100 L 288 101 L 290 102 L 293 103 L 296 105 L 299 106 L 302 108 L 304 109 L 307 111 L 310 112 L 313 114 L 316 116 L 318 117 L 321 119 L 324 120 L 327 122 L 330 123 L 333 125 L 335 127 L 338 128 L 341 130 L 344 132 L 347 133 L 349 135 L 352 137 L 355 139 L 358 140 L 361 142 L 364 145 L 366 147 L 369 151 L 372 203" fill="none" stroke="#74009e" stroke-width="3" />
+  <path d="M 34 40 L 59 41 L 74 44 L 85 46 L 93 46 L 100 47 L 105 47 L 110 47 L 115 48 L 118 48 L 122 48 L 125 48 L 128 48 L 131 49 L 133 49 L 136 49 L 138 49 L 140 50 L 144 51 L 147 51 L 149 51 L 152 52 L 155 53 L 158 53 L 161 54 L 163 55 L 167 56 L 169 56 L 172 57 L 175 58 L 178 58 L 180 59 L 183 61 L 186 62 L 189 63 L 192 64 L 194 65 L 197 65 L 200 66 L 203 66 L 206 67 L 209 68 L 211 69 L 214 70 L 217 71 L 220 72 L 223 73 L 226 75 L 228 76 L 231 76 L 234 77 L 237 78 L 240 79 L 242 80 L 245 82 L 248 83 L 251 84 L 254 85 L 257 86 L 259 88 L 262 89 L 265 90 L 268 91 L 271 93 L 273 94 L 276 95 L 279 97 L 282 98 L 285 100 L 288 101 L 290 102 L 293 103 L 296 105 L 299 106 L 302 108 L 304 109 L 307 111 L 310 112 L 313 114 L 316 116 L 318 117 L 321 119 L 324 120 L 327 122 L 330 123 L 333 125 L 335 127 L 338 128 L 341 130 L 344 132 L 347 133 L 349 135 L 352 137 L 355 139 L 358 140 L 361 142 L 364 145 L 366 147 L 369 151 L 372 203" fill="none" stroke="#a33e56" stroke-width="3" />
   <line x1="281" y1="34" x2="281" y2="246" stroke="#003181" stroke-width="2" stroke-dasharray="6 4" />
   <line x1="34" y1="246" x2="372" y2="246" stroke="#232f3e" stroke-width="1.5" />
   <line x1="34" y1="34" x2="34" y2="246" stroke="#232f3e" stroke-width="1.5" />
-  <rect x="52" y="150" width="9" height="9" fill="#74009e" opacity="0.55" />
+  <rect x="52" y="150" width="9" height="9" fill="#a33e56" opacity="0.55" />
   <rect x="52" y="163" width="9" height="9" fill="none" stroke="#d4dada" stroke-width="1" />
   <rect x="52" y="176" width="9" height="9" fill="none" stroke="#d4dada" stroke-width="1" />
   <rect x="52" y="189" width="9" height="9" fill="none" stroke="#d4dada" stroke-width="1" />
   <rect x="52" y="202" width="9" height="9" fill="none" stroke="#d4dada" stroke-width="1" />
   <rect x="65" y="150" width="9" height="9" fill="none" stroke="#d4dada" stroke-width="1" />
   <rect x="65" y="163" width="9" height="9" fill="none" stroke="#d4dada" stroke-width="1" />
-  <rect x="65" y="176" width="9" height="9" fill="#74009e" opacity="0.55" />
+  <rect x="65" y="176" width="9" height="9" fill="#a33e56" opacity="0.55" />
   <rect x="65" y="189" width="9" height="9" fill="none" stroke="#d4dada" stroke-width="1" />
   <rect x="65" y="202" width="9" height="9" fill="none" stroke="#d4dada" stroke-width="1" />
   <rect x="78" y="150" width="9" height="9" fill="none" stroke="#d4dada" stroke-width="1" />
   <rect x="78" y="163" width="9" height="9" fill="none" stroke="#d4dada" stroke-width="1" />
   <rect x="78" y="176" width="9" height="9" fill="none" stroke="#d4dada" stroke-width="1" />
   <rect x="78" y="189" width="9" height="9" fill="none" stroke="#d4dada" stroke-width="1" />
-  <rect x="78" y="202" width="9" height="9" fill="#74009e" opacity="0.55" />
+  <rect x="78" y="202" width="9" height="9" fill="#a33e56" opacity="0.55" />
   <rect x="91" y="150" width="9" height="9" fill="none" stroke="#d4dada" stroke-width="1" />
   <rect x="91" y="163" width="9" height="9" fill="none" stroke="#d4dada" stroke-width="1" />
   <rect x="91" y="176" width="9" height="9" fill="none" stroke="#d4dada" stroke-width="1" />
   <rect x="91" y="189" width="9" height="9" fill="none" stroke="#d4dada" stroke-width="1" />
   <rect x="91" y="202" width="9" height="9" fill="none" stroke="#d4dada" stroke-width="1" />
   <rect x="104" y="150" width="9" height="9" fill="none" stroke="#d4dada" stroke-width="1" />
-  <rect x="104" y="163" width="9" height="9" fill="#74009e" opacity="0.55" />
+  <rect x="104" y="163" width="9" height="9" fill="#a33e56" opacity="0.55" />
   <rect x="104" y="176" width="9" height="9" fill="none" stroke="#d4dada" stroke-width="1" />
   <rect x="104" y="189" width="9" height="9" fill="none" stroke="#d4dada" stroke-width="1" />
   <rect x="104" y="202" width="9" height="9" fill="none" stroke="#d4dada" stroke-width="1" />
   <rect x="117" y="150" width="9" height="9" fill="none" stroke="#d4dada" stroke-width="1" />
   <rect x="117" y="163" width="9" height="9" fill="none" stroke="#d4dada" stroke-width="1" />
   <rect x="117" y="176" width="9" height="9" fill="none" stroke="#d4dada" stroke-width="1" />
-  <rect x="117" y="189" width="9" height="9" fill="#74009e" opacity="0.55" />
+  <rect x="117" y="189" width="9" height="9" fill="#a33e56" opacity="0.55" />
   <rect x="117" y="202" width="9" height="9" fill="none" stroke="#d4dada" stroke-width="1" />
   <rect x="130" y="150" width="9" height="9" fill="none" stroke="#d4dada" stroke-width="1" />
   <rect x="130" y="163" width="9" height="9" fill="none" stroke="#d4dada" stroke-width="1" />
   <rect x="130" y="176" width="9" height="9" fill="none" stroke="#d4dada" stroke-width="1" />
   <rect x="130" y="189" width="9" height="9" fill="none" stroke="#d4dada" stroke-width="1" />
   <rect x="130" y="202" width="9" height="9" fill="none" stroke="#d4dada" stroke-width="1" />
-  <rect x="143" y="150" width="9" height="9" fill="#74009e" opacity="0.55" />
+  <rect x="143" y="150" width="9" height="9" fill="#a33e56" opacity="0.55" />
   <rect x="143" y="163" width="9" height="9" fill="none" stroke="#d4dada" stroke-width="1" />
   <rect x="143" y="176" width="9" height="9" fill="none" stroke="#d4dada" stroke-width="1" />
   <rect x="143" y="189" width="9" height="9" fill="none" stroke="#d4dada" stroke-width="1" />

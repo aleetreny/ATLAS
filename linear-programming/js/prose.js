@@ -302,7 +302,7 @@ export function initProse(data) {
     + `shape of what it is searching, and has to earn every improvement by trying things.`);
 
   set('resources-note',
-    `Everything was measured by <code>src/utils/generate_lp_data.py</code> with seed `
+    `Everything was measured by <code>src/<wbr>utils/<wbr>generate_<wbr>lp_<wbr>data.py</code> with seed `
     + `${data.meta.seed}, using ${data.meta.solver} through SciPy ${data.meta.scipy} as the `
     + `independent solver. The corner enumeration, the simplex, the Klee and Minty cube and the `
     + `branch and bound all exist twice, once in Python and once in <code>js/lpkit.js</code>, and `

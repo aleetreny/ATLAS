@@ -142,7 +142,7 @@ export function initProse(data) {
     + `then measure what happens when the model is one you learnt rather than one you were given.`);
 
   set('resources-note',
-    `Everything was measured by <code>src/utils/generate_pg_data.py</code> with seed ${M.seed}. `
+    `Everything was measured by <code>src/<wbr>utils/<wbr>generate_<wbr>pg_<wbr>data.py</code> with seed ${M.seed}. `
     + `The world is ${M.size} by ${M.size} with a discount of ${M.gamma}, a step costing `
     + `${O.step_cost}, a goal paying ${O.goal_reward} and a square in the middle paying `
     + `${O.trap_reward}. The policy is a softmax over one parameter per state and action. The `

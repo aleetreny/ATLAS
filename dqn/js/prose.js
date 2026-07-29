@@ -161,7 +161,7 @@ export function initProse(data) {
     + `the exact gradient, that noise can be measured rather than described.`);
 
   set('resources-note',
-    `Everything was measured by <code>src/utils/generate_dqn_data.py</code> with seed ${M.seed}. `
+    `Everything was measured by <code>src/<wbr>utils/<wbr>generate_<wbr>dqn_<wbr>data.py</code> with seed ${M.seed}. `
     + `The world is the cliff walk of the previous article, deterministic, ${M.rows} by `
     + `${M.cols}. The network is two inputs, one hidden layer of ${Wt.hidden} rectified units and `
     + `four outputs, trained with Adam at 1e-3, batches of 32 from a buffer of 10,000, target `

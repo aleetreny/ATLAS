@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Where the Vectors Live | ATLAS</title>
+  <meta name="description" content="A visual, interactive introduction to vector databases: what a filter does to a graph index, what deletions do to recall, why sparse and dense retrieval fuse better than either alone, and the bytes per vector each choice costs, all measured on a corpus with an answer key." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/vector-db/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="Where the Vectors Live | ATLAS" />
+  <meta property="og:description" content="A visual, interactive introduction to vector databases: what a filter does to a graph index, what deletions do to recall, why sparse and dense retrieval fuse better than either alone, and the bytes per vector each choice costs, all measured on a corpus with an answer key." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/vector-db/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Where the Vectors Live | ATLAS" />
+  <meta name="twitter:description" content="A visual, interactive introduction to vector databases: what a filter does to a graph index, what deletions do to recall, why sparse and dense retrieval fuse better than either alone, and the bytes per vector each choice costs, all measured on a corpus with an answer key." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    :root {
+      --primary: #854960;
+      --secondary: #6a3a4d;
+    }
+    .narrow-widget {
+      max-width: 880px;
+    }
+    .widget-readout {
+      overflow-x: auto;
+    }
+    .gen-table {
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      margin-top: 0.4rem;
+      width: 100%;
+    }
+    .gen-table th,
+    .gen-table td {
+      padding: 4px 10px 4px 0;
+      text-align: left;
+      font-weight: 400;
+      white-space: nowrap;
+    }
+    .gen-table th {
+      font-family: var(--font-heavy);
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .gen-table td:first-child,
+    .gen-table th:first-child {
+      opacity: 0.75;
+    }
+    .gen-note {
+      margin-top: 0.6rem;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+    .widget svg {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+    }
+    .slider-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+      margin: 0.2rem 0 0.6rem;
+      font-family: var(--font-mono);
+      font-size: 13px;
+    }
+    .slider-row input[type="range"] {
+      width: 240px;
+      accent-color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <section id="intro">
+    <h1 id="intro-hed">Where the Vectors Live</h1>
+    <h1 id="intro-sub">An index assumes the collection sits still, the query is only a vector, and the nearest vectors are what you wanted. A database gets none of those, and each one that goes breaks something measurable</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 8.3 &middot; Vector Search &middot; Vector Databases</span>
+  </section>
+
+  <br />
+
+  <section>
+    <p class="body-text">
+      The <a href="../ann-search/">approximate search article</a> built three indexes over
+      a pile of vectors that never changed, answered questions of the form "the
+      ten nearest", and scored them against exhaustive search. Everything it
+      measured holds. What it left out is everything that makes the difference
+      between an index and a system somebody runs.
+    </p>
+    <br />
+    <p class="body-text">
+      Three assumptions go, one at a time. The collection changes, so vectors
+      arrive and leave. The query carries a condition, so the answer must come
+      from a subset chosen by something that is not a vector. And the thing
+      being retrieved is a document rather than a vector, so a word that matches
+      exactly can beat a direction that is merely close.
+    </p>
+    <br />
+    <p class="body-text" id="opening-note"></p>
+  </section>
+
+  <section>
+    <h1 class="body-header">A Condition on the Query</h1>
+    <p class="body-text" id="filter-intro"></p>
+    <br />
+    <p class="body-text" id="filter-note"></p>
+  </section>
+
+  <div class="widget narrow-widget">
+    <div id="filter-buttons" class="button-row"></div>
+    <div id="filter-chart"></div>
+    <div class="widget-readout" id="filter-readout"></div>
+  </div>
+
+  <section>
+    <h1 class="body-header">Nothing Is Ever Deleted</h1>
+    <p class="body-text" id="churn-intro"></p>
+    <br />
+    <p class="body-text" id="churn-note"></p>
+  </section>
+
+  <div class="widget narrow-widget">
+    <div id="churn-chart"></div>
+    <div class="widget-readout" id="churn-readout"></div>
+  </div>
+
+  <section>
+    <h1 class="body-header">Words and Directions</h1>
+    <p class="body-text" id="hybrid-intro"></p>
+    <br />
+    <p class="body-text">
+      The fusion rule is deliberately the crudest one that works. Reciprocal
+      rank fusion throws away every score and keeps only the position each
+      system gave a document:
+      $$\mathrm{RRF}(d) = \sum_{s} \frac{1}{k + \mathrm{rank}_s(d)}$$
+      which needs no calibration between a similarity and a term weight, and is
+      the reason it survives contact with two systems whose numbers mean nothing
+      to each other.
+    </p>
+    <br />
+    <p class="body-text" id="hybrid-note"></p>
+  </section>
+
+  <div class="widget narrow-widget">
+    <div id="hybrid-chart"></div>
+    <div class="widget-readout" id="hybrid-readout"></div>
+  </div>
+
+  <section>
+    <h1 class="body-header">The Bill, Per Vector</h1>
+    <p class="body-text" id="bytes-intro"></p>
+    <br />
+    <p class="body-text" id="bytes-note"></p>
+  </section>
+
+  <div class="widget narrow-widget">
+    <div id="bytes-buttons" class="button-row"></div>
+    <div id="bytes-chart"></div>
+    <div class="widget-readout" id="bytes-readout"></div>
+  </div>
+
+  <section>
+    <h1 class="body-header">What Breaks When</h1>
+    <p class="body-text" id="verdict-intro"></p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>The assumption</th>
+          <th>What it costs to drop it</th>
+          <th>What actually fixes it</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">Queries are only vectors</span></td>
+          <td id="verdict-filter"></td>
+          <td id="verdict-filter-fix"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">The collection sits still</span></td>
+          <td id="verdict-churn"></td>
+          <td id="verdict-churn-fix"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">Nearest means best</span></td>
+          <td id="verdict-hybrid"></td>
+          <td id="verdict-hybrid-fix"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">Memory is free</span></td>
+          <td id="verdict-bytes"></td>
+          <td id="verdict-bytes-fix"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="closing-1"></p>
+    <br />
+    <p class="body-text" id="closing-2"></p>
+  </section>
+
+  <section>
+    <h1 class="body-header">How This Was Measured</h1>
+    <p class="body-text" id="ref-note"></p>
+  </section>
+
+  <br /><br />
+</body>
+</html>

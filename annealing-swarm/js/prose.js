@@ -208,7 +208,7 @@ export function initProse(data) {
     + `question from where the optimum is into how much you are willing to pay to find out.`);
 
   set('resources-note',
-    `Everything was measured by <code>src/utils/generate_annealing_data.py</code> with seed `
+    `Everything was measured by <code>src/<wbr>utils/<wbr>generate_<wbr>annealing_<wbr>data.py</code> with seed `
     + `${data.meta.seed}. The ring has ${B.states} states and the chains run to `
     + `${n0(B.rows[0].steps)} steps; the convergence panel runs four chains at each of six `
     + `lengths. The travelling salesman is the ${S.n} city instance from `

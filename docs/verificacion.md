@@ -399,7 +399,94 @@ puerto frío local, que es la comprobación que de verdad mira la página. Lo qu
 falta cuando la red está cerrada es solo la última confirmación de que el CDN
 sirve lo mismo que el repositorio.
 
-## Trampa 30: qué datos llegan a la nube y cuáles no
+
+## Trampa 30: el espacio de acentos no se habia agotado, la busqueda si
+
+Con 78 articulos publicados, `--next` devolvia **dos** colores por encima de dE
+12 y el mensaje de `--reparte` invitaba a ensanchar la banda de luminosidad, es
+decir a aceptar que dos acentos empezaran a parecerse. Antes de bajar el
+liston conviene mirar la rejilla: la de `acentos_libres` iba de tres en tres
+grados de tono con tres saturaciones y cuatro valores, o sea 1.440 candidatos
+antes de filtrar. Afinandola al mismo rango (tono de uno en uno, siete
+saturaciones y nueve valores, unos 15.000 candidatos) salen **diez** colores y
+el peor esta a dE 13,7, sin tocar ni el umbral ni la banda.
+
+La leccion general, que vale para cualquier "ya no queda sitio": antes de
+relajar un criterio de calidad, comprobar si lo que se agoto fue el criterio o
+el barrido. El coste de afinar aqui es una pasada mas larga, y se paga una vez
+porque las distancias se llevan en un acumulador (coger un color solo puede
+ACERCAR a los demas, asi que se actualiza contra el elegido en vez de
+recalcularse contra todo). Sigue tardando un segundo, que es lo que pide correr
+en cada push.
+
+## Trampa 31: matar el envoltorio no mata el script
+
+Encadenar generadores con un `sh chain.sh` en segundo plano y luego querer
+cambiarlo: `ps` lista el `bash -c` que lo lanzo **y** el `sh` que lo ejecuta, y
+matar el primero deja al segundo vivo esperando. El sintoma es tener dos
+cadenas a la vez sobre los mismos cachés, que es la trampa 54 por otro camino.
+Se matan todos los PID cuya linea de comandos contenga el script, se comprueba
+con `ps -eo pid,cmd | grep -c` que quedan cero, y solo entonces se relanza. Y
+`sed -i` sobre un script de shell **que esta corriendo** es peor que inutil:
+`sh` lo lee a trozos, asi que la edicion puede entrar a mitad.
+
+## Trampa 32: un modulo entero sin torch
+
+El modulo 8 se escribio en la nube sin instalar torch: numpy, scipy,
+scikit-learn y statsmodels, unos 40 segundos de `pip install
+--break-system-packages`, contra los ~3 GB y 4 minutos que arrastra torch desde
+PyPI (el indice de CPU esta bloqueado por el proxy, trampa 14). Lo que lo hace
+posible es que las dos paginas que necesitan entrenar algo estudian **capas
+lineales**, no arquitecturas, asi que un perceptron en numpy con Adam
+(`src/utils/tinynet.py`, unas 200 lineas con objetivos blandos, LoRA y
+cuantizacion a cuatro bits) es el sujeto correcto y no un sucedaneo. La regla:
+antes de instalar un framework, mirar si lo que el articulo mide es una
+propiedad de una matriz o una propiedad de una arquitectura. Si es lo primero,
+el framework solo aporta dependencias.
+
+
+## Trampa 33: cuatro hilos sobre una matriz diminuta son nueve veces mas lentos
+
+La receta ya avisa de no sobresuscribir hilos, y este modulo se encontro el
+caso extremo por el otro lado. Un perceptron entrenado con lotes de 32 filas
+hace multiplicaciones de 32 por 784 por 256, que son diminutas: repartirlas
+entre los cuatro nucleos cuesta mas en lanzar hilos que en multiplicar. Medido
+en esta maquina con el mismo bucle, cinco epocas tardan **1,7 s con un hilo,
+2,0 s con dos y 15,2 s con cuatro**. Un factor de nueve, y en la direccion
+contraria a la que uno espera.
+
+El sintoma en `ps` es reconocible y facil de leer al reves: 385% de CPU y carga
+media 6,7 sobre cuatro nucleos parece "esta aprovechando la maquina" y es
+"esta peleandose consigo misma".
+
+Dos detalles operativos. Las variables (`OMP_NUM_THREADS` y sus cuatro
+hermanas) las lee el BLAS **al importar numpy**, asi que se fijan antes del
+`import`, no en `main()`. Y el numero de hilos va en la clave del cache, porque
+cambia el orden de las reducciones en coma flotante: la tirada vieja se borra
+en vez de mezclarse con la nueva.
+
+La regla generalizable: antes de dejar correr una tirada larga de numpy, medir
+el mismo bucle a uno, dos y cuatro hilos. Cuesta dos minutos y aqui convirtio
+dos horas de generador en un cuarto de hora.
+
+**Y la mitad que falta, que se pago despues.** Con la leccion recien aprendida,
+el generador de validacion cruzada aparecio en `ps` al 392% de CPU y parecio el
+mismo fallo: se mato la cadena para fijar los hilos a uno. Medido el bucle real
+antes de tocar nada, **1,26 s con un hilo y 1,26 s con cuatro**, o sea ninguna
+diferencia, y los cinco minutos de la primera etapa se tiraron para nada. El
+motivo es que el coste dominante de ese generador no son los ajustes diminutos
+sino evaluar el riesgo de cada modelo sobre un millon de filas frescas, que es
+un producto de matrices grande y quiere los cuatro nucleos.
+
+Asi que el 392% no dice si sobra paralelismo o si falta: dice cuantos nucleos se
+estan usando, y nada mas. Lo que decide es el **tamaño de la matriz del bucle
+caliente**, y eso se mide, no se deduce de un sintoma que las dos situaciones
+comparten. La forma correcta de aplicar la trampa es la frase de arriba tal cual,
+medir, y no su version corta, "pinchar los hilos a uno", que aqui habria sido un
+error. Una leccion recien aprendida es justo cuando mas facil es aplicarla donde
+no toca.
+
+## Trampa 34: qué datos llegan a la nube y cuáles no
 
 El módulo 6 necesitaba datos que este atlas no tenía: una tabla de personas por
 cosas, un grafo con etiquetas y un grafo de conocimiento. Lo que se aprendió
@@ -417,7 +504,7 @@ sobre de dónde sacarlos, con el proxy de esta sesión:
   dataset (aquí, la homofilia de Cora), que es lo único que caza una carga que
   funciona y está mal.
 
-## Trampa 31: matar un proceso por un patrón que está en tu propia línea de comandos
+## Trampa 35: matar un proceso por un patrón que está en tu propia línea de comandos
 
 Es el punto 30 de la lista de arriba otra vez, por un camino que parecía a
 salvo. `PID=$(ps -eo
@@ -434,7 +521,7 @@ PID=$(ps -eo pid,cmd | awk -v p="$PAT" '$0 ~ p && /python/ {print $1}' | head -1
 kill "$PID"
 ```
 
-## Trampa 32: esperar sin `sleep` en primer plano
+## Trampa 36: esperar sin `sleep` en primer plano
 
 El arnés de esta sesión bloquea un `sleep` en primer plano. Para esperar a un
 generador largo, un bucle en segundo plano sobre el **fichero de salida** (no
@@ -448,7 +535,7 @@ lanzado con `run_in_background`, que además avisa al terminar. Y encadenar los
 generadores con un script `sh` suelto en `/tmp` es lo que evita tenerlos dos a
 la vez sobre cuatro núcleos, que es la trampa 63.
 
-## Trampa 33: un `head -1` sobre `ps` puede declarar muerto a un proceso vivo
+## Trampa 37: un `head -1` sobre `ps` puede declarar muerto a un proceso vivo
 
 Comprobando si el generador de grafos de conocimiento seguía corriendo:
 
@@ -472,7 +559,7 @@ Dos reglas, y la segunda importa más que la primera:
   Antes de relanzar nada largo: `dmesg | tail`, `free -m`, y `ps` **sin
   recortar**. Un generador que lleva una hora no se relanza por una corazonada.
 
-## Trampa 34: el arnés de barrido del módulo 6
+## Trampa 38: el arnés de barrido del módulo 6
 
 `audit.mjs`, un fichero, cinco artículos, dos anchuras. Para cada uno: carga en
 el puerto frío, recoge errores y avisos de consola, recorre la página entera

@@ -21,11 +21,11 @@ BG = "#f1f3f3"
 INK = "#232f3e"
 
 ACCENT = {
-    "collaborative-filtering": "#74009e",
-    "matrix-factorization": "#4a5734",
-    "two-tower": "#8a5369",
-    "gnn": "#0b009e",
-    "kg-embeddings": "#725f9e",
+    "collaborative-filtering": "#a33e56",
+    "matrix-factorization": "#47703e",
+    "two-tower": "#813ea3",
+    "gnn": "#0d58a3",
+    "kg-embeddings": "#3e48a3",
 }
 ANCHOR = "#003181"
 COSMOS = "#df2a5d"

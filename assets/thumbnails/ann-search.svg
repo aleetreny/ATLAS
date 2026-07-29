@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <rect width="400" height="300" fill="#f1f3f3" />
+  <!-- recall contra distancias calculadas por consulta, con la -->
+  <!-- busqueda exhaustiva como el punto naranja de la derecha -->
+  <path d="M55,100 L117,59 L178,37 L243,32 L290,31 L332,30 L366,30" fill="none" stroke="#003181" stroke-width="2.8" opacity="1.0"/>
+  <g fill="#003181" opacity="0.85"><circle cx="55" cy="100" r="3.4"/><circle cx="117" cy="59" r="3.4"/><circle cx="178" cy="37" r="3.4"/><circle cx="243" cy="32" r="3.4"/><circle cx="290" cy="31" r="3.4"/><circle cx="332" cy="30" r="3.4"/><circle cx="366" cy="30" r="3.4"/></g>
+  <path d="M30,39 L50,34 L69,32 L95,31 L123,30 L151,30 L182,30 L211,30" fill="none" stroke="#3e6d70" stroke-width="2.8" opacity="1.0"/>
+  <g fill="#3e6d70" opacity="0.85"><circle cx="30" cy="39" r="3.4"/><circle cx="50" cy="34" r="3.4"/><circle cx="69" cy="32" r="3.4"/><circle cx="95" cy="31" r="3.4"/><circle cx="123" cy="30" r="3.4"/><circle cx="151" cy="30" r="3.4"/><circle cx="182" cy="30" r="3.4"/><circle cx="211" cy="30" r="3.4"/></g>
+  <circle cx="365" cy="30" r="6" fill="#ff9900"/>
+</svg>
