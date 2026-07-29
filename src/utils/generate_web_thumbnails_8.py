@@ -71,6 +71,44 @@ def dots(points, colour, r=3, opacity=0.85):
     return f'  <g fill="{colour}" opacity="{opacity}">{inner}</g>'
 
 
+def speckle(points, colour, opacity=0.4, grid=2):
+    """Una nube de miles de puntos, en un solo `path` y en coordenadas relativas.
+
+    Un `<circle>` por punto cuesta unos 34 caracteres, asi que 1.824 puntos son
+    62 kB y la portada carga ochenta tarjetas a la vez. Tres pasos la bajan a
+    unos pocos kB sin que se note a tamano de tarjeta:
+
+      1. cuantizar a una rejilla de `grid` unidades sobre un lienzo de 400 por
+         300, que es mas fina que lo que el ojo separa en una tarjeta;
+      2. juntar cada fila en tramos consecutivos, un `h` por tramo en vez de un
+         circulo por punto;
+      3. escribirlo en coordenadas relativas, que en una nube ordenada por filas
+         son numeros de una o dos cifras en vez de tres.
+    """
+    filas = {}
+    for x, y in points:
+        filas.setdefault(round(y / grid) * grid, set()).add(round(x / grid) * grid)
+    partes = []
+    cx = cy = None
+    for y in sorted(filas):
+        xs = sorted(filas[y])
+        i = 0
+        while i < len(xs):
+            j = i
+            while j + 1 < len(xs) and xs[j + 1] == xs[j] + grid:
+                j += 1
+            largo = xs[j] - xs[i] + grid
+            if cx is None:
+                partes.append(f"M{xs[i]} {y}h{largo}")
+            else:
+                partes.append(f"m{xs[i] - cx} {y - cy}h{largo}")
+            cx, cy = xs[j] + grid, y
+            i = j + 1
+    d = "".join(partes)
+    return (f'  <path d="{d}" stroke="{colour}" stroke-width="{grid}" '
+            f'opacity="{opacity}" fill="none" stroke-linecap="butt"/>')
+
+
 def fit(vals, lo, hi, flip=False):
     a, b = min(vals), max(vals)
     if b - a < 1e-12:
@@ -134,9 +172,26 @@ def thumb_hyperparameters():
             j = j2 + 1
         return out_runs
 
+    # Los escalones se reparten por RANGO y no por valor. Con una meseta, casi
+    # todas las celdas caen en el tramo alto de la escala lineal y la tarjeta
+    # sale de dos colores planos: se ve una silueta, no una superficie. Los
+    # cortes por cuantiles gastan los ocho tonos siempre, sea cual sea la forma
+    # de la distribucion, que es justo lo que una miniatura necesita.
+    ordenados = sorted(v for row in S["cv"] for v in row)
+    cortes = [ordenados[round(len(ordenados) * (k + 1) / STEPS) - 1]
+              for k in range(STEPS - 1)]
+
     def bucket(v):
-        t = (v - lo) / max(top - lo, 1e-9)
-        return min(STEPS - 1, int(t ** 0.75 * STEPS))
+        k = 0
+        while k < len(cortes) and v > cortes[k]:
+            k += 1
+        return k
+
+    # Cada tramo es un subcamino de un `path` y no un `<rect>`: `M12 34h13v10h-13z`
+    # son 18 caracteres contra los 45 de un rectangulo con sus cuatro atributos,
+    # y con cortes por cuantiles hay mas tramos que antes. Es el mismo dibujo.
+    def caja(x, y, w2, h2):
+        return f"M{x} {y}h{w2}v{h2}h-{w2}z"
 
     buckets = {}
     for i, row in enumerate(S["cv"]):
@@ -144,22 +199,24 @@ def thumb_hyperparameters():
         y = H - m - (i + 1) * ch
         for j0, span, k in runs(row, bucket):
             buckets.setdefault(k, []).append(
-                f'<rect x="{round(m + j0 * cw)}" y="{round(y)}"'
-                f' width="{round(span * cw) + 1}" height="{round(ch) + 1}"/>')
+                caja(round(m + j0 * cw), round(y), round(span * cw) + 1, round(ch) + 1))
     for k in sorted(buckets):
         colour = mix(BG, ACCENT["hyperparameters"], (k + 0.5) / STEPS)
-        out.append(f'  <g fill="{colour}">' + "".join(buckets[k]) + "</g>")
+        out.append(f'  <path fill="{colour}" d="{"".join(buckets[k])}"/>')
 
+    # La meseta va RELLENA y no perfilada. Un rectangulo con borde por tramo y
+    # por fila son treinta y una lineas finas apiladas, que a tamano de tarjeta
+    # se leen como un codigo de barras encima del dibujo en vez de como una
+    # region. Rellena es una mancha, que es lo que es.
     marks = []
     for i, row in enumerate(S["cv"]):
         y = H - m - (i + 1) * ch
         for j0, span, k in runs(row, lambda v: v >= top - floor):
             if not k:
                 continue
-            marks.append(f'<rect x="{round(m + j0 * cw)}" y="{round(y)}"'
-                         f' width="{round(span * cw)}" height="{round(ch)}"/>')
-    out.append(f'  <g fill="none" stroke="{SMILE}" stroke-width="1.2">'
-               + "".join(marks) + "</g>")
+            marks.append(caja(round(m + j0 * cw), round(y),
+                              round(span * cw) + 1, round(ch) + 1))
+    out.append(f'  <path fill="{SMILE}" opacity="0.92" d="{"".join(marks)}"/>')
     assert 0 < near < n * n * 0.6, \
         f"la meseta ocupa {near} de {n * n} celdas y la tarjeta deja de decir nada"
     write("hyperparameters", out)
@@ -194,24 +251,39 @@ def thumb_automl():
 
 # ------------------------------------------------------------- distillation
 def thumb_distillation():
-    """La curva de transferencia con su control: lo aprendido contra la misma
-    arquitectura sin entrenar contra los pixeles."""
+    """La curva de transferencia, su control y el techo.
+
+    La tarjeta enseña el resultado que tiene la pagina y no el que uno espera:
+    los PIXELES CRUDOS ganan al codificador transferido en las nueve tallas, y
+    tambien a la misma arquitectura sin entrenar. Y el oraculo, un codificador
+    de la misma forma entrenado en la tarea de destino, gana a los tres, que es
+    lo que descarta la explicacion facil (el cuello de botella).
+
+    La primera version del cromo afirmaba lo contrario, y el guardia de abajo
+    la paro. Se deja como afirmacion comprobada: si una re-tirada cambiara el
+    orden, la tarjeta no se escribe."""
     d = load("distillation", "distillation.json")
     R = d["transfer"]["forward"]["rows"]
     ns = [r["n"] for r in R]
-    vals = [r[k] for r in R for k in ("transfer", "random", "pixels")]
+    keys = ("transfer", "random", "pixels", "oracle")
+    vals = [r[k] for r in R for k in keys]
     m = 20
     fx = logfit(ns, m + 6, W - m)
     fy = fit(vals, m + 6, H - m, flip=True)
-    out = head(["la curva de transferencia y su control: la misma red sin",
-                "entrenar ya llega bastante lejos, y los pixeles no"])
-    for key, colour, width in (("pixels", INK, 2.2), ("random", AQUA, 2.4),
-                               ("transfer", ACCENT["distillation"], 3.0)):
-        out.append(polyline([(fx(r["n"]), fy(r[key])) for r in R], colour, width))
-        out.append(dots([(fx(r["n"]), fy(r[key])) for r in R], colour, r=3))
-    first = R[0]
-    assert first["transfer"] > first["random"] > first["pixels"], \
-        "el orden de los tres brazos al principio ha cambiado y la tarjeta miente"
+    out = head(["transferir de digitos a ropa sale PEOR que los pixeles crudos",
+                "en las nueve tallas, y un codificador de la misma forma",
+                "entrenado en la tarea de destino gana a los tres"])
+    for key, colour, width, dash in (("oracle", SMILE, 2.4, "6 4"),
+                                     ("pixels", INK, 2.6, None),
+                                     ("random", AQUA, 2.2, "4 3"),
+                                     ("transfer", ACCENT["distillation"], 3.0, None)):
+        pts = [(fx(r["n"]), fy(r[key])) for r in R]
+        out.append(polyline(pts, colour, width, dash=dash))
+        out.append(dots(pts, colour, r=3))
+    assert all(r["pixels"] > r["transfer"] for r in R), \
+        "los pixeles ya no ganan al codificador transferido y la tarjeta miente"
+    assert all(r["oracle"] > r["pixels"] for r in R), \
+        "el oraculo ya no es el techo y la tarjeta miente"
     write("distillation", out)
 
 
@@ -244,7 +316,14 @@ def thumb_crossval():
     todo, contra elegirlas dentro del pliegue, contra la unica respuesta."""
     d = load("crossval", "crossval.json")
     N = d["noise"]
-    lo, hi = 0.35, 0.8
+    # El rango sale de los datos. Escrito a mano en [0,35, 0,8] metia 195 de los
+    # 200 valores con fuga en el ultimo cubo: la tarjeta era una barra pegada al
+    # marco y nada mas, justo donde lo que hay que ver es que las dos
+    # distribuciones casi no se solapan.
+    todos = N["outside_all"] + N["inside_all"]
+    lo, hi = min(todos), max(todos)
+    pad = (hi - lo) * 0.03
+    lo, hi = lo - pad, hi + pad
     bins = 26
     m = 22
 
@@ -257,6 +336,8 @@ def thumb_crossval():
 
     a = hist(N["outside_all"])
     b = hist(N["inside_all"])
+    assert sum(a) == len(N["outside_all"]) and sum(b) == len(N["inside_all"]), \
+        "algun valor se ha salido del rango y se ha apilado en un cubo del borde"
     top = max(max(a), max(b))
     fx = fit([lo, hi], m, W - m)
     fy = fit([0, top], m + 10, H - m, flip=True)
@@ -293,7 +374,7 @@ def thumb_metrics():
     out.append(polyline([(m, fy(0)), (W - m, fy(0))], INK, 1.2, 0.5))
     plain = [(fx(f1), fy(mcc)) for tp, fp, f1, mcc in C if tp > 0]
     zero = [(fx(f1), fy(mcc)) for tp, fp, f1, mcc in C if tp == 0]
-    out.append(dots(plain, ACCENT["metrics"], r=1.7, opacity=0.4))
+    out.append(speckle(plain, ACCENT["metrics"], opacity=0.55, grid=2))
     out.append(dots(zero, COSMOS, r=2.2, opacity=0.9))
     lo = min(mcc for _, _, _, mcc in C)
     hi = max(mcc for _, _, _, mcc in C)
@@ -308,13 +389,17 @@ def thumb_annsearch():
     punto de la derecha: la forma entera del tema en una figura."""
     d = load("ann-search", "annsearch.json")
     I = d["indices"]
-    costs = [r["cost"] for k in ("hnsw", "ivf", "pq") for r in I[k]] + [I["brute_cost"]]
+    # el cuantizador de producto no salta ni un vector, asi que no tiene coste
+    # en este eje: su `cost` sale nulo del generador a proposito, y meterlo aqui
+    # rompia la tarjeta con un KeyError en vez de dibujar una linea falsa
+    ARMAS = (("ivf", ANCHOR), ("hnsw", ACCENT["ann-search"]))
+    costs = [r["cost"] for k, _ in ARMAS for r in I[k]] + [I["brute_cost"]]
     m = 24
     fx = logfit(costs, m + 6, W - m - 10)
     fy = fit([0.0, 1.0], m + 6, H - m, flip=True)
     out = head(["recall contra distancias calculadas por consulta, con la",
                 "busqueda exhaustiva como el punto naranja de la derecha"])
-    for key, colour in (("ivf", ANCHOR), ("pq", COSMOS), ("hnsw", ACCENT["ann-search"])):
+    for key, colour in ARMAS:
         rows = sorted(I[key], key=lambda r: r["cost"])
         pts = [(fx(r["cost"]), fy(r["recall"])) for r in rows]
         out.append(polyline(pts, colour, 2.8))

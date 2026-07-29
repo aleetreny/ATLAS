@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <rect width="400" height="300" fill="#f1f3f3" />
+  <!-- transferir de digitos a ropa sale PEOR que los pixeles crudos -->
+  <!-- en las nueve tallas, y un codificador de la misma forma -->
+  <!-- entrenado en la tarea de destino gana a los tres -->
+  <path d="M26,162 L78,73 L118,53 L157,50 L209,46 L249,34 L288,33 L341,30 L380,26" fill="none" stroke="#ff9900" stroke-width="2.4" opacity="1.0" stroke-dasharray="6 4"/>
+  <g fill="#ff9900" opacity="0.85"><circle cx="26" cy="162" r="3"/><circle cx="78" cy="73" r="3"/><circle cx="118" cy="53" r="3"/><circle cx="157" cy="50" r="3"/><circle cx="209" cy="46" r="3"/><circle cx="249" cy="34" r="3"/><circle cx="288" cy="33" r="3"/><circle cx="341" cy="30" r="3"/><circle cx="380" cy="26" r="3"/></g>
+  <path d="M26,241 L78,190 L118,140 L157,127 L209,93 L249,74 L288,65 L341,55 L380,50" fill="none" stroke="#232f3e" stroke-width="2.6" opacity="1.0"/>
+  <g fill="#232f3e" opacity="0.85"><circle cx="26" cy="241" r="3"/><circle cx="78" cy="190" r="3"/><circle cx="118" cy="140" r="3"/><circle cx="157" cy="127" r="3"/><circle cx="209" cy="93" r="3"/><circle cx="249" cy="74" r="3"/><circle cx="288" cy="65" r="3"/><circle cx="341" cy="55" r="3"/><circle cx="380" cy="50" r="3"/></g>
+  <path d="M26,265 L78,226 L118,171 L157,156 L209,118 L249,99 L288,86 L341,76 L380,68" fill="none" stroke="#007faa" stroke-width="2.2" opacity="1.0" stroke-dasharray="4 3"/>
+  <g fill="#007faa" opacity="0.85"><circle cx="26" cy="265" r="3"/><circle cx="78" cy="226" r="3"/><circle cx="118" cy="171" r="3"/><circle cx="157" cy="156" r="3"/><circle cx="209" cy="118" r="3"/><circle cx="249" cy="99" r="3"/><circle cx="288" cy="86" r="3"/><circle cx="341" cy="76" r="3"/><circle cx="380" cy="68" r="3"/></g>
+  <path d="M26,280 L78,237 L118,177 L157,154 L209,117 L249,89 L288,78 L341,65 L380,56" fill="none" stroke="#a30d5d" stroke-width="3.0" opacity="1.0"/>
+  <g fill="#a30d5d" opacity="0.85"><circle cx="26" cy="280" r="3"/><circle cx="78" cy="237" r="3"/><circle cx="118" cy="177" r="3"/><circle cx="157" cy="154" r="3"/><circle cx="209" cy="117" r="3"/><circle cx="249" cy="89" r="3"/><circle cx="288" cy="78" r="3"/><circle cx="341" cy="65" r="3"/><circle cx="380" cy="56" r="3"/></g>
+</svg>
