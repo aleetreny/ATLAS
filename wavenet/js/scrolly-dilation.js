@@ -11,12 +11,17 @@ import { scrolly } from '../../assets/js/scrolly.js';
 
 export function initDilationScrolly(data) {
   const R = data.receptive;
+  /* The left margin has to hold the widest row label ("d=16") on the first
+     three steps AND a rotated axis label on the fourth, and 34 px was only
+     enough for the first of those: the tick "0.15" and the words "held out
+     loss" landed on top of each other. The top margin holds a title that wraps
+     to two lines on step 2, which is why it is not 46 either. */
   const chart = makeChart('#dilation-chart', {
-    width: 640, height: 430, margin: { top: 46, right: 24, bottom: 52, left: 34 },
+    width: 640, height: 430, margin: { top: 64, right: 24, bottom: 52, left: 58 },
   });
   const { g, w, h, margin } = chart;
   const title = g.append('text').attr('class', 'chart-note')
-    .attr('x', w / 2).attr('y', -26).attr('text-anchor', 'middle').style('font-size', '12px');
+    .attr('x', w / 2).attr('y', -44).attr('text-anchor', 'middle').style('font-size', '12px');
   const layer = g.append('g');
   const N = 33;                       // samples drawn, newest on the right
   const x = d3.scaleLinear().domain([-(N - 1), 0]).range([0, w]);
@@ -73,8 +78,11 @@ export function initDilationScrolly(data) {
     layer.append('line').attr('x1', x(-(rf - 1))).attr('x2', x(0))
       .attr('y1', h - 6).attr('y2', h - 6)
       .attr('stroke', 'var(--anchor)').attr('stroke-width', 2);
+    /* anchored to the right end of the bar, which is where the newest sample
+       always is. Anchored to the left end it runs off the plot whenever the
+       reach is short, which is exactly the first two steps. */
     layer.append('text').attr('class', 'chart-note')
-      .attr('x', x(-(rf - 1)) + 4).attr('y', h - 10).style('font-size', '11px')
+      .attr('x', x(0)).attr('y', h - 10).attr('text-anchor', 'end').style('font-size', '11px')
       .attr('fill', 'var(--anchor)').text(`${rf} samples`);
     layer.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', -8)
       .style('font-size', '11px').text(note);

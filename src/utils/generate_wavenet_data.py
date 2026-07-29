@@ -440,7 +440,17 @@ def stage_recognition():
         return int(d[-1, -1])
 
     ctc_err = ctc_len = 0
-    align_err = []
+    # Two references for the same spikes, because picking one of them silently
+    # decides the answer. The first version of this measured against the middle
+    # of each phone and reported 57,5 ms against a frame step of 10, which reads
+    # as an alignment five frames wrong. It is not: the spikes land 3 to 16 ms
+    # after the phone STARTS. A connectionist temporal classification loss has
+    # no term that would put a spike in the middle of anything, so the middle is
+    # the wrong reference, and the article now shows both and says which.
+    onset_err = []
+    centre_err = []
+    signed_centre = []
+    durations = []
     with torch.no_grad():
         for b in test:
             x, _ = pad([b])
@@ -458,8 +468,12 @@ def stage_recognition():
             ctc_len += len(b["syms"])
             if len(out) == len(b["syms"]):
                 for t, (sym, start, end) in zip(peaks, b["marks"]):
+                    spike = (t * HOP + WIN / 2) / SR
                     centre = (start + end) / 2 / SR
-                    align_err.append(abs((t * HOP + WIN / 2) / SR - centre) * 1000)
+                    onset_err.append(abs(spike - start / SR) * 1000)
+                    centre_err.append(abs(spike - centre) * 1000)
+                    signed_centre.append((spike - centre) * 1000)
+                    durations.append((end - start) / SR * 1000)
 
     dec_err = dec_len = 0
     too_long = 0
@@ -500,9 +514,13 @@ def stage_recognition():
                     "too_long": too_long, "runaway": repeats,
                     "mean_length": r(float(np.mean(lengths)), 3),
                     "cap": 24},
-        "alignment": {"n": len(align_err),
-                      "median_ms": r(float(np.median(align_err)) if align_err else 0, 2),
-                      "mean_ms": r(float(np.mean(align_err)) if align_err else 0, 2),
+        "alignment": {"n": len(onset_err),
+                      "median_ms": r(float(np.median(onset_err)) if onset_err else 0, 2),
+                      "mean_ms": r(float(np.mean(onset_err)) if onset_err else 0, 2),
+                      "centre_median_ms": r(float(np.median(centre_err)) if centre_err else 0, 2),
+                      "signed_centre_ms": r(float(np.median(signed_centre))
+                                            if signed_centre else 0, 2),
+                      "phone_median_ms": r(float(np.median(durations)) if durations else 0, 2),
                       "frame_ms": r(1000 * HOP / SR, 2)},
         "demo": {"syms": demo["syms"],
                  "marks": [{"sym": s, "start": int(a), "end": int(bb)}

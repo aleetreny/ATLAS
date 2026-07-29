@@ -16,12 +16,15 @@ export function initAsrWidget(data) {
   let view = 'post';
   const controls = d3.select('#asr-controls');
   const readout = document.querySelector('#asr-readout');
+  /* room above for a title that wraps to two lines AND the row of phone letters
+     that sits at y = -8: at a top margin of 48 the second line of the title
+     landed on the letters. */
   const chart = makeChart('#asr-chart', {
-    width: 640, height: 350, margin: { top: 48, right: 30, bottom: 52, left: 68 },
+    width: 640, height: 350, margin: { top: 66, right: 30, bottom: 52, left: 68 },
   });
   const { g, w, h, margin } = chart;
   const title = g.append('text').attr('class', 'chart-note')
-    .attr('x', w / 2).attr('y', -28).attr('text-anchor', 'middle').style('font-size', '12px');
+    .attr('x', w / 2).attr('y', -46).attr('text-anchor', 'middle').style('font-size', '12px');
   const layer = g.append('g');
   const nFrames = D.posteriors.length;
   const secondsPerFrame = D.frame_ms / 1000;
@@ -114,22 +117,14 @@ export function initAsrWidget(data) {
       </table>
       <div class="gen-note">
         The spikes in the first view are the whole trick of the alignment free
-        loss: nobody ever told it where the phones were, and it puts a spike near
+        loss: nobody ever told it where the phones were, and it puts a spike at
         each one anyway, because summing over every alignment makes the sharp
-        ones the cheap ones. Measured against the boundaries this utterance was
-        built from, the spikes land
-        <span class="value">${A.alignment.median_ms} ms</span> from the middle of
-        their phone in the median, on ${A.alignment.n} phones, against a frame
-        step of ${A.alignment.frame_ms} ms: the alignment is good to about a
-        frame, and it came free with the transcript.
-        ${A.decoder.too_long > 0
-    ? ` The decoder has the failure it is famous for: ${A.decoder.too_long} of
-             ${A.n_test} test utterances come back longer than the truth, and
-             ${A.decoder.runaway} of them repeat a symbol three times running.
-             Nothing stops it: it emits an end symbol when it feels like it, and
-             when it does not, it keeps going until the cap of ${A.decoder.cap}.`
-    : ` On this corpus the decoder always stopped on time, which is the
-             behaviour it is not famous for.`}
+        ones the cheap ones. Each dashed line is where a phone actually
+        <span class="bold">starts</span>, taken from the recipe the sound was
+        made with, and the letter above sits at that phone's middle. Look at
+        which of the two each spike is next to. The paragraph below counts it
+        over all ${A.alignment.n} phones of the test set, and is mostly about
+        how much of the answer that choice decides.
       </div>`;
   }
 

@@ -23,7 +23,10 @@ export function initReceptiveWidget(data) {
   drawGrid(g, x, y, w, h, { yTicks: 4 });
   drawAxes(g, x, y, w, h, { yTicks: 4 });
   axisLabels(g, w, h, {
-    x: 'layers in the stack', y: 'signal to noise of what it predicts, dB',
+    /* the long version, "signal to noise of what it predicts", is 17 px taller
+       than the plot once it is rotated, and the chart title already says what
+       is being predicted */
+    x: 'layers in the stack', y: 'signal to noise, dB',
     leftBudget: margin.left, xOffset: 40,
   });
   g.selectAll('rect').data(rows).join('rect')

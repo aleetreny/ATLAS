@@ -79,6 +79,13 @@ export function initStackScrolly(data) {
       x: 'months, the last twelve of them unseen', y: 'the part',
       leftBudget: margin.left, xOffset: 36,
     });
+    /* the same divider as the panel above, so the empty left three quarters of
+       this one reads as "the blocks only produce the forecast" rather than as a
+       curve that failed to draw. The two panels share an x scale on purpose:
+       lining the parts up with the window they came from is the whole figure. */
+    gBot.append('line').attr('x1', x(L - 0.5)).attr('x2', x(L - 0.5))
+      .attr('y1', 0).attr('y2', botH).attr('stroke', 'var(--squidink)')
+      .attr('stroke-dasharray', '4 4').attr('opacity', 0.6);
     series.forEach(([vals, colour, dash]) => {
       layerBot.append('path').datum(vals).attr('fill', 'none').attr('stroke', colour)
         .attr('stroke-width', dash ? 1.6 : 2.4).attr('stroke-dasharray', dash || null)

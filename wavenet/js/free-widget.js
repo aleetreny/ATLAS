@@ -11,11 +11,16 @@ import { decodeInt16, play } from '../../assets/js/dsp.js';
 
 export function initFreeWidget(data) {
   const F = data.free;
+  /* The generator writes its temperatures with `str(float)`, so the keys are
+     "0.0" and "1.0" and not "0" and "1". Looking them up by number rather than
+     by spelling means a change of format on that side cannot silently turn
+     three arms into three undefineds here. */
+  const armKey = (t) => Object.keys(F.arms).find((k) => Number(k) === t);
   const ARMS = [
     ['what it was trained on', 'truth'],
-    ['always the likeliest sample', '0'],
-    ['sampled, temperature 0.7', '0.7'],
-    ['sampled, temperature 1', '1'],
+    ['always the likeliest sample', armKey(0)],
+    ['sampled, temperature 0.7', armKey(0.7)],
+    ['sampled, temperature 1', armKey(1)],
   ];
   let current = 0;
   const controls = d3.select('#free-controls');
@@ -70,16 +75,23 @@ export function initFreeWidget(data) {
         The model was trained to answer "given these true samples, what comes
         next", and it is now being asked "given the samples you just invented,
         what comes next", which is a question nobody trained it on. The three
-        arms fail differently: taking the likeliest sample every time
-        ${F.arms['0'].rms < F.arms.truth.rms * 0.6
-    ? `collapses towards silence (loudness ${F.arms['0'].rms} against
-             ${F.arms.truth.rms})`
-    : `gives loudness ${F.arms['0'].rms} against ${F.arms.truth.rms}`}, and
-        sampling at temperature 1 injects the full noise of the model's own
-        uncertainty at every step
-        (${F.arms['1'].zero_crossing_rate} zero crossings per sample against
-        ${F.arms.truth.zero_crossing_rate}). Press each button and listen to a
-        second of it before reading the last column. The distances there are
+        arms do not fail in the same way or by anything like the same amount.
+        Taking the likeliest sample every time
+        ${F.arms[armKey(0)].rms < F.arms.truth.rms * 0.6
+    ? `collapses towards silence: loudness ${F.arms[armKey(0)].rms} against
+             ${F.arms.truth.rms}`
+    : `stays on the sound: loudness ${F.arms[armKey(0)].rms} against
+             ${F.arms.truth.rms}, and ${F.arms[armKey(0)].zero_crossing_rate}
+             zero crossings per sample against
+             ${F.arms.truth.zero_crossing_rate}`}. Sampling injects the full
+        noise of the model's own uncertainty at every step, and the zero
+        crossing rate is where it shows:
+        ${F.arms[armKey(1)].zero_crossing_rate} against
+        ${F.arms.truth.zero_crossing_rate} at temperature 1, which is
+        ${((F.arms[armKey(1)].zero_crossing_rate
+            / F.arms.truth.zero_crossing_rate - 1) * 100).toFixed(0)}% more sign
+        changes than the real sound has. Press each button and listen to a
+        second of it before reading the first column. The distances there are
         between spectra rather than between samples, for the reason the previous
         article measured: two periodic sounds one sample out of phase are far
         apart sample by sample and identical to the ear.

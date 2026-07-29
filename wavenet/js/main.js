@@ -51,17 +51,32 @@ function runGuards(data, deep) {
   check('the receptive field', bad === 0,
     `${bad} of ${data.receptive.rows.length} stacks disagree with 1 + sum of the dilations`);
 
-  /* 2. the compander, round tripped */
+  /* 2. the compander, round tripped.
+   *
+   * Both numbers here used to be guesses and the pair of them cancelled: a grid
+   * of 201 points and a hand written limit of 0.02. The grid stepped straight
+   * over the worst case and reported exactly 0.02, which passed by 2e-16. On a
+   * grid of 200,001 the true worst is 0.02159, and the guard would have failed.
+   *
+   * So neither is written by hand now. The limit is the arithmetic: quantising
+   * y into mu+1 levels over [-1, 1] puts half a step at 1/mu, and decoding
+   * stretches y by at most d/dy of ((1+mu)^y - 1)/mu, which is largest at y = 1.
+   * The grid is fine enough that the spacing between probes is far below the
+   * quantity being bounded, so it cannot miss the peak the way the old one did.
+   */
+  const halfStep = 1 / M.mu;
+  const stretch = (Math.log1p(M.mu) * (1 + M.mu)) / M.mu;
+  const limit = halfStep * stretch;
+  const probes = deep ? 200000 : 20000;
   let worst = 0;
-  for (let i = 0; i <= 200; i++) {
-    const v = -1 + (2 * i) / 200;
+  for (let i = 0; i <= probes; i++) {
+    const v = -1 + (2 * i) / probes;
     const back = muDecode(muEncode(v, M.mu), M.mu);
     worst = Math.max(worst, Math.abs(back - v));
   }
-  /* one level of 256 spans about 1/128 of the range near the top, and the
-     compander is coarsest there */
-  check('the compander', worst < 0.02,
-    `encoding and decoding moves a sample by ${worst.toFixed(4)}, more than a level`);
+  check('the compander', worst <= limit,
+    `encoding and decoding moves a sample by ${worst.toFixed(5)}, and half a level stretched by `
+    + `the steepest part of the curve is ${limit.toFixed(5)}`);
 
   /* 3. the clips decode to something audible rather than to silence */
   if (deep) {
@@ -88,10 +103,11 @@ function runGuards(data, deep) {
     });
   check('composed text', empty.length === 0, `undefined or NaN appears in: ${empty.join(', ')}`);
 
-  console.info(`[wavenet] load-time checks complete: receptive fields exact, compander to `
-    + `${worst.toFixed(4)}${deep ? '' : ' (spot check; window.__atlasCheck(true) decodes the '
+  console.info(`[wavenet] load-time checks complete: receptive fields exact, compander worst `
+    + `${worst.toFixed(5)} against a bound of ${limit.toFixed(5)}`
+    + `${deep ? '' : ' (spot check; window.__atlasCheck(true) uses a finer grid and decodes the '
       + 'clips too)'}`);
-  return { bad, worst };
+  return { bad, worst, limit };
 }
 
 async function boot() {

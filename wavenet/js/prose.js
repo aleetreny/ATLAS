@@ -22,7 +22,9 @@ export function initProse(data) {
     const jump = rows[i].nll - row.nll;
     return jump > best.jump ? { jump, from: rows[i], to: row } : best;
   }, { jump: -Infinity, from: rows[0], to: rows[1] });
-  const freeArms = ['0', '0.7', '1'].map((k) => ({ k, ...F.arms[k] }));
+  /* by number, not by spelling: the generator writes "0.0" and "1.0" */
+  const armKey = (t) => Object.keys(F.arms).find((k) => Number(k) === t);
+  const freeArms = [0, 0.7, 1].map((t) => ({ k: String(t), ...F.arms[armKey(t)] }));
   const bestFree = freeArms.reduce((a, b) => (b.spec_distance < a.spec_distance ? b : a),
     freeArms[0]);
 
@@ -128,14 +130,26 @@ export function initProse(data) {
     + `they are its best guesses, complete with whatever it got slightly wrong. After `
     + `${n0(F.generated)} steps of that, is it still making the sound it was trained on?`);
 
+  const worstFree = freeArms.reduce((a, b) => (b.spec_distance > a.spec_distance ? b : a),
+    freeArms[0]);
   set('free-note',
-    `The honest summary is that a small model run free drifts, and how it drifts depends on how it `
-    + `is sampled. The best of the three arms here is `
-    + `${bestFree.k === '0' ? 'always taking the likeliest sample'
-      : `sampling at temperature ${bestFree.k}`} at ${bestFree.spec_distance} of spectral `
-    + `distance. This is the gap that scheduled sampling, and later the whole family of `
-    + `non-autoregressive vocoders, was invented to close, and it is not a small model's `
-    + `peculiarity: it is a property of training on the truth and running on yourself.`);
+    `${bestFree.k === '0'
+      ? `The received wisdom about running a generator free is that greedy decoding degenerates `
+        + `and that sampling is what saves it. On a periodic sound it is the other way round, and `
+        + `not narrowly: <span class="bold">always taking the likeliest sample scores `
+        + `${bestFree.spec_distance}</span> of spectral distance while sampling at temperature `
+        + `${worstFree.k} scores ${worstFree.spec_distance}, a factor of `
+        + `${(worstFree.spec_distance / bestFree.spec_distance).toFixed(1)}. The reason is what `
+        + `the sound is: a vowel is one shape repeated, so the likeliest continuation is very `
+        + `nearly the right one at every step, and there is no variety for sampling to buy. What `
+        + `it buys instead is a fresh error per sample, fed straight back in.`
+      : `Sampling at temperature ${bestFree.k} wins here at ${bestFree.spec_distance} of spectral `
+        + `distance, against ${worstFree.spec_distance} for the worst arm.`} `
+    + `The gap between how a model is trained and how it is run is what scheduled sampling, and `
+    + `later the whole family of non-autoregressive vocoders, was invented to close, and it is not `
+    + `a small model's peculiarity: it is a property of training on the truth and running on `
+    + `yourself. What this page can say is how much it costs and which way, which needs both arms `
+    + `measured rather than one asserted.`);
 
   set('asr-intro',
     `The other half of the field goes the other way. It never touches a waveform: it takes the log `
@@ -146,9 +160,20 @@ export function initProse(data) {
     + `encoder, like Whisper's.`);
 
   set('asr-note',
-    `Both learn it. What separates them is what they do at the edges, and the second view of the `
-    + `widget is there to make the point that neither of them sees anything else: `
-    + `${M.n_mels} numbers per frame is the whole input, and the waveform, the pitch and the `
+    `${A.decoder.ser > 4 * A.ctc.ser
+      ? `Only one of them learns it. On identical features, identical encoder and identical `
+        + `training utterances, the alignment free head reaches ${pc(A.ctc.ser)} symbol error and `
+        + `the attention decoder ${pc(A.decoder.ser)}, a factor of `
+        + `${(A.decoder.ser / A.ctc.ser).toFixed(0)}. That gap is not the architecture being `
+        + `worse in principle, it is the architecture being hungrier: an attention decoder has to `
+        + `learn where to look as well as what to say, and ${n0(A.n_train)} utterances of `
+        + `synthetic speech is not enough for the first half. Which is itself the useful fact, `
+        + `because it is the same reason the models this one is named after are trained on `
+        + `hundreds of thousands of hours.`
+      : `Both learn it: ${pc(A.ctc.ser)} symbol error against ${pc(A.decoder.ser)}. What `
+        + `separates them is what they do at the edges.`} `
+    + `The second view of the widget is there to make the point that neither of them sees anything `
+    + `else: ${M.n_mels} numbers per frame is the whole input, and the waveform, the pitch and the `
     + `phase are all already gone.`);
 
   const at = document.querySelector('#asr-table');
@@ -180,10 +205,19 @@ export function initProse(data) {
         + `length of the output to the length of the input.`
       : `on this corpus it always decided right, which is worth reporting as the negative result `
         + `it is: a failure that does not reproduce at this scale.`} `
-    + `And the alignment: the spikes of the first head land ${A.alignment.median_ms} milliseconds `
-    + `from the middle of their phone in the median, over ${A.alignment.n} phones, against a frame `
-    + `step of ${A.alignment.frame_ms} milliseconds. Timestamps came free with a model nobody ever `
-    + `told where anything was.`);
+    + `And the alignment, which is worth being careful about because the reference you score it `
+    + `against decides the answer. The spikes of the first head land `
+    + `<span class="value">${A.alignment.median_ms} milliseconds</span> from where their phone `
+    + `<span class="bold">starts</span>, in the median over ${A.alignment.n} phones, against a `
+    + `frame step of ${A.alignment.frame_ms} milliseconds: about one frame, and free, from a model `
+    + `nobody ever told where anything was. Score the same spikes against the `
+    + `<span class="bold">middle</span> of the phone instead and they look `
+    + `${A.alignment.centre_median_ms} milliseconds out, `
+    + `${(A.alignment.centre_median_ms / A.alignment.frame_ms).toFixed(1)} frames, which would read `
+    + `as a badly broken alignment. It is the same spikes. A connectionist temporal classification `
+    + `loss has no term anywhere in it that would pull a spike towards the middle of anything, so `
+    + `it fires at onsets, and the median phone here lasts ${A.alignment.phone_median_ms} `
+    + `milliseconds, which is most of the difference.`);
 
   set('verdict-intro', `Four things you might want, and what this page measured.`);
   set('verdict-gen',
@@ -203,10 +237,12 @@ export function initProse(data) {
     `The decoder's length is its own decision: ${A.decoder.too_long} of ${A.n_test} outputs were `
     + `longer than the truth.`);
   set('verdict-align',
-    `Spikes land ${A.alignment.median_ms} ms from the middle of their phone, with a frame step of `
-    + `${A.alignment.frame_ms} ms.`);
+    `Spikes land ${A.alignment.median_ms} ms from where their phone starts, with a frame step of `
+    + `${A.alignment.frame_ms} ms, and nobody supplied a single boundary.`);
   set('verdict-align-warn',
-    `An attention decoder gives you no alignment at all, and the attention weights are not one: `
+    `They mark onsets, not middles: score them against the middle of a phone and the same spikes `
+    + `read ${A.alignment.centre_median_ms} ms out. And an attention decoder gives you no alignment `
+    + `at all, while its attention weights are not one: `
     + `<a href="../deep-forecast/">the fourth article of the previous branch</a> measured what `
     + `those weights are worth.`);
   set('verdict-trust',
@@ -233,8 +269,8 @@ export function initProse(data) {
     + `and skip connections, over ${M.levels} mu-law levels, trained on ${R.seconds} seconds and `
     + `scored on the last fifth of it. The recognisers share a two layer bidirectional recurrent `
     + `encoder over ${M.n_mels} log mel bands (window ${M.win}, hop ${M.hop}, `
-    + `${A.frames_per_second} frames a second) and differ only in the head: a `
-    + `${A.symbols.length} symbol alignment free loss, and an attention decoder with a learned end `
+    + `${A.frames_per_second} frames a second) and differ only in the head: an alignment free loss `
+    + `over ${A.symbols.length} symbols, and an attention decoder with a learned end `
     + `symbol and a hard cap of ${A.decoder.cap}. ${n0(A.n_train)} utterances for training and `
     + `${A.n_test} held out. Trained on ${M.threads} threads with torch ${M.torch}.`);
 }
