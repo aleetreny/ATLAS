@@ -200,15 +200,17 @@ if d:
     lines = head()
     lines.append("  <!-- distance from real digits against the step budget -->")
     L, R, TOP, BOT = 60, W - 34, 78, 222
-    vals = [abs(float(r["mmd2"])) for r in A] + [abs(float(d["setup"]["floor"]["mmd2_max"]))]
-    lo, hi = np.log10(min(vals)), np.log10(max(vals))
+    # No floor line on the card. It lands exactly on the bottom axis, because
+    # the floor is the smallest number in the set, so it draws as a second axis
+    # rule that says nothing, and its caption collided with both the last tick
+    # and the annotation. The article carries the floor properly; a card that
+    # makes one claim needs one annotation.
+    vals = [abs(float(r["mmd2"])) for r in A]
+    # a little headroom under the flat curve, so its label and the annotation
+    # have somewhere to sit that is not on top of the data
+    lo, hi = np.log10(min(vals) * 0.55), np.log10(max(vals))
     px = lambda s: L + (R - L) * (np.log10(s) - np.log10(B[0])) / (np.log10(B[-1]) - np.log10(B[0]))
     py = lambda v: BOT - (BOT - TOP) * (np.log10(abs(float(v))) - lo) / (hi - lo)
-    floor_y = py(d["setup"]["floor"]["mmd2_max"])
-    lines.append(f'  <line x1="{L}" y1="{floor_y:.0f}" x2="{R}" y2="{floor_y:.0f}" '
-                 f'stroke="#1d4ed8" stroke-width="1.4" stroke-dasharray="6 4" opacity="0.8" />')
-    lines.append(f'  <text x="{R}" y="{floor_y + 15:.0f}" text-anchor="end" '
-                 f'font-family="monospace" font-size="11" fill="#1d4ed8">real against real</text>')
     for name, colour, dash in (("rectified flow", "#232f3e", ' stroke-dasharray="6 4"'),
                                ("after reflow", ACC, "")):
         rs = rows(name)
@@ -232,12 +234,12 @@ if d:
     for yy in (ya, yb):
         lines.append(f'    <line x1="{L + 7}" y1="{yy:.0f}" x2="{L + 17}" y2="{yy:.0f}" '
                      f'stroke="{ACC}" stroke-width="1.4" />')
-    lines.append(f'  <text x="{L + 18}" y="{BOT - 12:.0f}" text-anchor="start" '
+    lines.append(f'  <text x="{L + 18}" y="{BOT - 4:.0f}" text-anchor="start" '
                  f'font-family="monospace" font-size="12" fill="{ACC}">'
                  f'{ratio:.0f} times closer at one evaluation</text>')
     lines.append(f'  <text x="{px(1):.0f}" y="{ya - 12:.0f}" text-anchor="start" '
                  f'font-family="monospace" font-size="11" fill="#232f3e">rectified flow</text>')
-    lines.append(f'  <text x="{px(B[-1]):.0f}" y="{py(rows("after reflow")[-1]["mmd2"]) + 18:.0f}" '
+    lines.append(f'  <text x="{px(B[-1]):.0f}" y="{py(rows("after reflow")[-1]["mmd2"]) - 10:.0f}" '
                  f'text-anchor="end" font-family="monospace" font-size="11" '
                  f'fill="{ACC}">after reflow</text>')
     for s in (1, 10, 100):
