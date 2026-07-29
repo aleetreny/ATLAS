@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Close Enough, Faster | ATLAS</title>
+  <meta name="description" content="A visual, interactive introduction to approximate nearest neighbour search: an inverted file, a navigable graph and a product quantiser scored against exhaustive search, with cost counted in distance evaluations and the hierarchy of the graph ablated away." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/ann-search/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="Close Enough, Faster | ATLAS" />
+  <meta property="og:description" content="A visual, interactive introduction to approximate nearest neighbour search: an inverted file, a navigable graph and a product quantiser scored against exhaustive search, with cost counted in distance evaluations and the hierarchy of the graph ablated away." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/ann-search/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Close Enough, Faster | ATLAS" />
+  <meta name="twitter:description" content="A visual, interactive introduction to approximate nearest neighbour search: an inverted file, a navigable graph and a product quantiser scored against exhaustive search, with cost counted in distance evaluations and the hierarchy of the graph ablated away." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    :root {
+      --primary: #3e6d70;
+      --secondary: #32575a;
+    }
+    .narrow-widget {
+      max-width: 880px;
+    }
+    .widget-readout {
+      overflow-x: auto;
+    }
+    .gen-table {
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      margin-top: 0.4rem;
+      width: 100%;
+    }
+    .gen-table th,
+    .gen-table td {
+      padding: 4px 10px 4px 0;
+      text-align: left;
+      font-weight: 400;
+      white-space: nowrap;
+    }
+    .gen-table th {
+      font-family: var(--font-heavy);
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .gen-table td:first-child,
+    .gen-table th:first-child {
+      opacity: 0.75;
+    }
+    .gen-note {
+      margin-top: 0.6rem;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+    .widget svg {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+    }
+    .slider-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+      margin: 0.2rem 0 0.6rem;
+      font-family: var(--font-mono);
+      font-size: 13px;
+    }
+    .slider-row input[type="range"] {
+      width: 240px;
+      accent-color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <section id="intro">
+    <h1 id="intro-hed">Close Enough, Faster</h1>
+    <h1 id="intro-sub">Finding the nearest vectors exactly means looking at all of them. Three ways of not doing that, each scored against the exact answer, with the cost counted in distances rather than in seconds</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 8.3 &middot; Vector Search &middot; ANN, HNSW and FAISS</span>
+  </section>
+
+  <br />
+
+  <section>
+    <p class="body-text">
+      The <a href="../neighbours/">neighbour embedding article</a> already
+      searched for nearest neighbours, and it searched exhaustively: compute
+      every distance, sort, keep the closest. That is the correct algorithm and
+      it never stops being correct. It stops being affordable, and the point at
+      which it does is not "when there are a lot of vectors" but a number, which
+      this page measures.
+    </p>
+    <br />
+    <p class="body-text">
+      Everything here is counted in <span class="bold">distance
+      evaluations</span> rather than in seconds. A wall clock measures whatever
+      else the machine was doing, and it does not survive being read anywhere
+      else; the number of distances an index computes to answer a query is a
+      property of the index and the data. The indexes are written in the
+      generator with the counter inside them, so the figures are what each one
+      actually paid.
+    </p>
+    <br />
+    <p class="body-text" id="opening-note"></p>
+  </section>
+
+  <section>
+    <h1 class="body-header">When Nearest Stops Meaning Anything</h1>
+    <p class="body-text" id="conc-intro"></p>
+    <br />
+    <p class="body-text" id="conc-note"></p>
+  </section>
+
+  <div class="widget narrow-widget">
+    <div id="conc-chart"></div>
+    <div class="widget-readout" id="conc-readout"></div>
+  </div>
+
+  <section>
+    <h1 class="body-header">Three Ways Not to Look at Everything</h1>
+    <p class="body-text" id="trade-intro"></p>
+    <br />
+    <p class="body-text" id="trade-note"></p>
+  </section>
+
+  <div class="widget narrow-widget">
+    <div id="trade-buttons" class="button-row"></div>
+    <div id="trade-chart"></div>
+    <div class="widget-readout" id="trade-readout"></div>
+  </div>
+
+  <section>
+    <h1 class="body-header">Watching the Graph Walk</h1>
+    <p class="body-text" id="demo-intro"></p>
+  </section>
+
+  <div class="widget narrow-widget">
+    <div class="slider-row">
+      <label for="demo-slider">query</label>
+      <input type="range" id="demo-slider" min="0" max="3" step="1" value="0"
+             aria-label="which of the four example queries to walk" />
+      <span id="demo-value" class="value"></span>
+    </div>
+    <div id="demo-chart"></div>
+    <div class="widget-readout" id="demo-readout"></div>
+  </div>
+
+  <section>
+    <h1 class="body-header">What the Layers Are For</h1>
+    <p class="body-text" id="abl-intro"></p>
+    <br />
+    <p class="body-text" id="abl-note"></p>
+  </section>
+
+  <div class="widget narrow-widget">
+    <div id="abl-chart"></div>
+    <div class="widget-readout" id="abl-readout"></div>
+  </div>
+
+  <section>
+    <h1 class="body-header">What Each Index Trades</h1>
+    <p class="body-text" id="verdict-intro"></p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>The index</th>
+          <th>What it costs here</th>
+          <th>What it gives up</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">Exhaustive search</span></td>
+          <td id="verdict-brute"></td>
+          <td id="verdict-brute-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">An inverted file</span></td>
+          <td id="verdict-ivf"></td>
+          <td id="verdict-ivf-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">A navigable graph</span></td>
+          <td id="verdict-hnsw"></td>
+          <td id="verdict-hnsw-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">A product quantiser</span></td>
+          <td id="verdict-pq"></td>
+          <td id="verdict-pq-warn"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="closing-1"></p>
+    <br />
+    <p class="body-text" id="closing-2"></p>
+  </section>
+
+  <section>
+    <h1 class="body-header">How This Was Measured</h1>
+    <p class="body-text" id="ref-note"></p>
+  </section>
+
+  <br /><br />
+</body>
+</html>
