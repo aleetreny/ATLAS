@@ -33,6 +33,7 @@ import sys
 from pathlib import Path
 
 import numpy as np
+import scipy.sparse as sp
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from kg_data import digest, pattern_kg, wn18rr  # noqa: E402
@@ -43,14 +44,41 @@ CACHE = (Path(os.environ.get("ATLAS_DATA_DIR", Path.home() / ".atlas_vision_data
          / "kg_cache")
 
 SEED = 19
-DIM = 64                  # 32 dimensiones complejas para RotatE
-EPOCHS = 120
+# El presupuesto de esta pagina es pequeño a proposito y hay que decirlo: el
+# coste por paso lo fija B x NEG x DIM, que es el tamaño de los arrays de
+# negativos, no el numero de entidades. Las cifras publicadas de esta
+# literatura usan 500 dimensiones y cien veces mas pasos, asi que lo que esta
+# pagina compara son los tres modelos entre si.
+#
+# Estos tres numeros se midieron, no se eligieron (sonda en el historial de la
+# sesion, 300 tripletas de test, TransE):
+#
+#   paso plano  lr=0,05 neg=16 e=10   MRR 0,0098
+#   paso plano  lr=0,50 neg=16 e=10   MRR 0,0101   la tasa sola no arregla nada
+#   adagrad     lr=0,50 neg=16 e=10   MRR 0,0338
+#   adagrad     lr=0,50 neg=64 e=10   MRR 0,0489
+#   adagrad     lr=0,50 neg=64 e=15   MRR 0,0843, y |r| simetricas 6,9 contra
+#                                     12,8 en las demas: la prediccion cerrada
+#                                     del articulo aparece justo aqui
+#
+# Adagrad es lo que mas mueve la aguja y el motivo es la forma del grafo: una
+# entidad de WN18RR aparece en dos tripletas de media y otras en cientos, asi
+# que con un paso comun o la rara no se mueve o la frecuente explota.
+#
+# Y una que se probo y se descarto con datos: renormalizar cada entidad a norma
+# 1 en cada paso, que es lo que hace el TransE original de 2013. Aqui BAJA el
+# MRR de 0,0843 a 0,0121 y BORRA la separacion de las simetricas (razon 1,86 a
+# 1,11). Con margen 9 y entidades en la esfera unidad las distancias no llegan
+# a cubrir el margen, asi que la restriccion se come el modelo entero. Se deja
+# la escala libre y se dice que se probó lo otro.
+DIM = 32                  # 16 dimensiones complejas para RotatE
+EPOCHS = 60
 BATCH = 1024
 NEG = 64
-LR = 0.05
+LR = 0.5                  # con adagrad, no con paso plano
 GAMMA = 9.0
 ALPHA = 1.0               # temperatura del muestreo adversario
-TAG = f"s{SEED}d{DIM}e{EPOCHS}n{NEG}g{int(GAMMA)}"
+TAG = f"s{SEED}d{DIM}e{EPOCHS}n{NEG}g{int(GAMMA)}ada"
 
 
 def cached(name, fn):
@@ -89,6 +117,33 @@ def r(v, d=6):
 # para las tres y lo único que cambia entre ellas es el álgebra de la línea de
 # arriba, que es exactamente lo que el artículo compara.
 # --------------------------------------------------------------------------
+def apply_update(target, acc, idx_blocks, val_blocks, lr):
+    """Un paso de adagrad sobre varios bloques de índices repetidos, de una vez.
+
+    Las dos escrituras obvias cuestan el articulo entero. `np.add.at` tarda
+    decimas de segundo por llamada, y un `bincount` por columna arregla eso y
+    deja otros dos problemas igual de caros: escribir una tabla de 40.943 por
+    64 columna a columna, que en memoria va a saltos, y reservar esa tabla
+    entera como gradiente cuando el lote toca dos mil filas.
+
+    Lo que queda barato es agrupar todos los bloques de indices repetidos con
+    una matriz de seleccion dispersa y sumar **solo sobre las filas que
+    aparecen**. De 1,6 segundos por paso a unas milesimas, que es la diferencia
+    entre poder barrer tres modelos y no poder.
+
+    El acumulado de adagrad se toca en esas mismas filas y por la misma razon:
+    una tabla de 40.943 por 32 entera por paso costaria mas que el gradiente."""
+    dim = target.shape[1]
+    flat = np.concatenate([np.asarray(i).ravel() for i in idx_blocks])
+    vals = np.concatenate([np.ascontiguousarray(v).reshape(-1, dim) for v in val_blocks])
+    uniq, inv = np.unique(flat, return_inverse=True)
+    sel = sp.csr_matrix((np.ones(flat.size), (inv, np.arange(flat.size))),
+                        shape=(uniq.size, flat.size))
+    grad = sel @ vals
+    acc[uniq] += grad * grad
+    target[uniq] -= lr * grad / np.sqrt(acc[uniq] + 1e-10)
+
+
 class Model:
     def __init__(self, kind, n_ent, n_rel, dim=DIM, seed=SEED, gamma=GAMMA):
         rng = np.random.default_rng(seed)
@@ -100,7 +155,8 @@ class Model:
             self.R = rng.uniform(-np.pi, np.pi, (n_rel, self.k))
         else:
             self.R = rng.uniform(-scale, scale, (n_rel, dim))
-        self.state = {}
+        self.accE = np.zeros_like(self.E)
+        self.accR = np.zeros_like(self.R)
 
     def params(self):
         return [self.E, self.R]
@@ -140,52 +196,79 @@ class Model:
         gR = -(du * (-hr * s_ - hi * c) + dv * (hr * c - hi * s_))
         return sc, (gH, gR, gT)
 
-    def step(self, pos, neg_h, neg_t, lr=LR, alpha=ALPHA):
-        """Un paso sobre un lote, con negativos por los dos lados."""
+    def step(self, pos, pool, lr=None, alpha=ALPHA):
+        """Un paso sobre un lote, con un pool de negativos compartido.
+
+        Compartir los negativos entre todo el lote no es un atajo de
+        implementacion, es lo que hace que el paso toque dos mil filas de la
+        tabla de entidades en vez de casi todas, y es lo que hacen los sistemas
+        de recuperacion de verdad por la misma razon."""
+        lr = LR if lr is None else lr
         h, rel, t = pos[:, 0], pos[:, 1], pos[:, 2]
         sp_, (gh, gr, gt) = self.score(h, rel, t, want_grad=True)
-        # (B, NEG) por cada lado
         rel_b = rel[:, None]
-        sn_h, (gnh_h, gnh_r, gnh_t) = self.score(neg_h, rel_b, t[:, None], want_grad=True)
-        sn_t, (gnt_h, gnt_r, gnt_t) = self.score(h[:, None], rel_b, neg_t, want_grad=True)
+        pool_b = pool[None, :]
+        sn_h, (gnh_h, gnh_r, gnh_t) = self.score(pool_b, rel_b, t[:, None], want_grad=True)
+        sn_t, (gnt_h, gnt_r, gnt_t) = self.score(h[:, None], rel_b, pool_b, want_grad=True)
 
         def sigmoid(x):
             return 1.0 / (1.0 + np.exp(-np.clip(x, -30, 30)))
 
-        gE = np.zeros_like(self.E)
-        gR = np.zeros_like(self.R)
-        # positivo: -log sigma(s)
+        n = len(pos)
+        # El gradiente NO se divide por el tamaño del lote. Cada fila de la
+        # tabla de entidades recibe el de las pocas tripletas en las que
+        # aparece, no el de las mil del lote, así que dividir por mil deja el
+        # movimiento por entidad en 5e-5 y el modelo entero en el azar: MRR
+        # 0,0001 tras treinta pasadas, con las normas de las relaciones donde
+        # las dejó el inicializador.
         cp = -sigmoid(-sp_)[:, None]
-        np.add.at(gE, h, cp * gh)
-        np.add.at(gE, t, cp * gt)
-        np.add.at(gR, rel, cp * gr)
-        # negativos, ponderados por el muestreo adversario
-        for sn, gnh, gnr, gnt, idx_h, idx_t in (
-                (sn_h, gnh_h, gnh_r, gnh_t, neg_h, np.repeat(t[:, None], NEG, 1)),
-                (sn_t, gnt_h, gnt_r, gnt_t, np.repeat(h[:, None], NEG, 1), neg_t)):
+        idx_e = [h, t]
+        val_e = [cp * gh, cp * gt]
+        idx_r = [rel]
+        val_r = [cp * gr]
+        for sn, gnh, gnr, gnt, ih, it in (
+                (sn_h, gnh_h, gnh_r, gnh_t, np.broadcast_to(pool_b, sn_h.shape),
+                 np.broadcast_to(t[:, None], sn_h.shape)),
+                (sn_t, gnt_h, gnt_r, gnt_t, np.broadcast_to(h[:, None], sn_t.shape),
+                 np.broadcast_to(pool_b, sn_t.shape))):
             w = np.exp(alpha * (sn - sn.max(1, keepdims=True)))
             w /= w.sum(1, keepdims=True)
             cn = (w * sigmoid(sn))[:, :, None]
-            np.add.at(gE, idx_h, cn * gnh)
-            np.add.at(gE, idx_t, cn * gnt)
-            np.add.at(gR, np.repeat(rel[:, None], NEG, 1), cn * gnr)
-        n = len(pos)
-        self.E -= lr * gE / n
-        self.R -= lr * gR / n
+            idx_e += [ih, it]
+            val_e += [np.broadcast_to(cn * gnh, (n, len(pool), self.E.shape[1])),
+                      np.broadcast_to(cn * gnt, (n, len(pool), self.E.shape[1]))]
+            idx_r.append(np.broadcast_to(rel_b, sn.shape))
+            val_r.append(np.broadcast_to(cn * gnr, (n, len(pool), self.R.shape[1])))
+
+        apply_update(self.E, self.accE, idx_e, val_e, lr)
+        apply_update(self.R, self.accR, idx_r, val_r, lr)
         if self.kind == "rotate":
             self.R[:] = (self.R + np.pi) % (2 * np.pi) - np.pi
 
-    def fit(self, train, n_ent, epochs=EPOCHS, batch=BATCH, seed=SEED, log=None):
+    def fit(self, train, n_ent, epochs=None, batch=None, seed=SEED, log=None, lr=None,
+            neg=NEG, trace=None):
+        """`trace`, si se pasa, es (test, known, cada_cuantas) y sirve para ver
+        si el presupuesto llegó: una curva plana al final dice que sí y una que
+        todavía sube dice que el número publicado está limitado por las pasadas
+        y no por el modelo, que es una diferencia que hay que saber antes de
+        escribir "RotatE gana"."""
+        epochs = EPOCHS if epochs is None else epochs
+        batch = BATCH if batch is None else batch
+        lr = LR if lr is None else lr
         rng = np.random.default_rng(seed + 100)
+        curve = []
         for ep in range(epochs):
             order = rng.permutation(len(train))
             for a in range(0, len(train), batch):
                 pos = train[order[a:a + batch]]
-                nh = rng.integers(0, n_ent, (len(pos), NEG))
-                nt = rng.integers(0, n_ent, (len(pos), NEG))
-                self.step(pos, nh, nt)
-            if log is not None and (ep + 1) % 20 == 0:
-                print(f"      época {ep + 1}")
+                pool = rng.integers(0, n_ent, neg)
+                self.step(pos, pool, lr=lr)
+            if trace and (ep + 1) % trace[2] == 0:
+                ev = evaluate(self, trace[0], trace[1], n_ent, limit=200)
+                curve.append({"epoch": ep + 1, "mrr": ev["mrr"], "hits10": ev["hits10"]})
+                print(f"      época {ep + 1}: MRR {ev['mrr']:.4f} h@10 {ev['hits10']:.4f}",
+                      flush=True)
+        self.curve = curve
         return self
 
     def score_all(self, h, rel, mode="tail", block=4096):
@@ -274,7 +357,7 @@ def stage_wn(train, valid, test, n_ent, n_rel, rel_rows):
     for kind in ["transe", "rotate", "distmult"]:
         print(f"    entrenando {kind}")
         m = cached(f"wn_{kind}", lambda kind=kind: Model(kind, n_ent, n_rel)
-                   .fit(train, n_ent))
+                   .fit(train, n_ent, trace=(test, known, 15)))
         ev = evaluate(m, test, known, n_ent, limit=800, per_relation=True)
         norms = {}
         for row in rel_rows:
@@ -290,7 +373,7 @@ def stage_wn(train, valid, test, n_ent, n_rel, rel_rows):
                                           np.histogram(ang, bins=12, range=(-np.pi, np.pi))[0]]}
             else:
                 norms[str(i)] = {"norm": float(np.linalg.norm(m.R[i]))}
-        out[kind] = {"eval": ev, "relations": norms}
+        out[kind] = {"eval": ev, "relations": norms, "curve": getattr(m, "curve", [])}
         print(f"      MRR {ev['mrr']:.4f} hits@10 {ev['hits10']:.4f}")
     return out
 

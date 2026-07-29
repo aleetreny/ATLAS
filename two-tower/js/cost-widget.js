@@ -25,7 +25,7 @@ export function initCostWidget(data) {
   const yTicks = [1e3, 1e5, 1e7, 1e9, 1e11].filter((v) => v >= y.domain()[0] && v <= y.domain()[1]);
   drawGrid(g, x, y, w, h, { xValues: xTicks, yValues: yTicks });
 
-  [['tower', 'two towers', 'var(--primary)'], ['cross', 'a model that sees the pair', 'var(--anchor)']]
+  [['tower', 'two towers', 'var(--primary)'], ['cross', 'sees the pair', 'var(--anchor)']]
     .forEach(([key, label, colour]) => {
       plot.append('path').attr('fill', 'none').attr('stroke', colour).attr('stroke-width', 2.3)
         .attr('d', d3.line().x((d) => x(d.n)).y((d) => y(d[key]))(rows));

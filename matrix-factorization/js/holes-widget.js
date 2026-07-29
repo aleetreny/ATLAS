@@ -100,7 +100,7 @@ export function initHolesWidget(data) {
         y: y(D.hidden_baseline) + 3.5, yMax: h + 8 });
       line(null, 'var(--cosmos)', false, 'holes as zero', x, y, rows, 'zero');
       line(null, 'var(--anchor)', false, 'holes averaged', x, y, rows, 'mean');
-      line(null, 'var(--primary)', false, 'only what is there', x, y, rows, 'observed');
+      line(null, 'var(--primary)', false, 'observed only', x, y, rows, 'observed');
       flushLabels();
       drawAxes(g, x, y, w, h, { xValues: ranks, yTicks: 5, xFmt: (v) => String(v), yFmt: d3.format('.3f') });
       axisLabels(g, w, h, { x: 'factors kept', y: 'error on the hidden pixels' });
@@ -120,7 +120,17 @@ export function initHolesWidget(data) {
         + `<span class="value">${same.mean.toFixed(4)}</span> and `
         + `<span class="value">${same.zero.toFixed(4)}</span> for the other two at the same rank. `
         + `All three are the same objective and the same rank. What differs is which entries the `
-        + `sum runs over.`;
+        + `sum runs over. `
+        + `${rows[rows.length - 1].observed > best.observed
+          ? `And the one that fits properly is the one that can overfit: by rank `
+            + `${rows[rows.length - 1].rank} it is back up at `
+            + `<span class="value">${rows[rows.length - 1].observed.toFixed(4)}</span>, `
+            + `${rows[rows.length - 1].observed > D.hidden_baseline
+              ? 'which is worse than answering the column average'
+              : 'still under the column average but climbing'}. `
+            + `Nothing here is regularised, and with ${(100 * D.hide).toFixed(0)}% of the entries `
+            + `missing there is not much holding it down.`
+          : 'The observed arm has not turned inside this range of ranks.'}`;
     }
   }
 

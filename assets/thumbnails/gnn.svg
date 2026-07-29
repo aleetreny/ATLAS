@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <rect width="400" height="300" fill="#f1f3f3" />
+  <!-- un trozo del grafo de citas: los nodos rellenos son los que llevan -->
+  <!-- etiqueta y el color es lo que llega a cada uno tras promediar con -->
+  <!-- sus vecinos -->
+  <path d="M 133 82 L 133 90 M 133 82 L 152 113 M 205 145 L 157 83 M 205 145 L 221 160 M 205 145 L 136 126 M 205 145 L 187 89 M 205 145 L 274 223 M 205 145 L 152 113 M 205 145 L 186 116 M 205 145 L 228 145 M 205 145 L 241 151 M 205 145 L 220 151 M 205 145 L 155 131 M 205 145 L 240 131 M 205 145 L 219 144 M 205 145 L 256 105 M 205 145 L 154 143 M 205 145 L 211 124 M 205 145 L 211 108 M 308 233 L 296 244 M 308 233 L 274 223 M 308 233 L 310 222 M 308 233 L 303 227 M 157 83 L 133 90 M 157 83 L 186 116 M 133 90 L 136 126 M 132 110 L 136 126 M 132 110 L 167 115 M 221 160 L 234 203 M 221 160 L 187 89 M 221 160 L 186 116 M 221 160 L 228 145 M 221 160 L 241 151 M 221 160 L 220 151 M 221 160 L 219 144 M 221 160 L 211 124 M 221 160 L 235 195 M 104 148 L 136 126 M 82 137 L 136 126 M 136 126 L 200 126 M 234 203 L 235 195 M 187 89 L 196 56 M 187 89 L 211 124 M 274 223 L 310 222 M 274 223 L 303 227 M 310 222 L 303 227 M 152 113 L 186 116 M 152 113 L 96 105 M 152 113 L 154 143 M 152 113 L 167 115 M 186 116 L 211 108 M 228 145 L 220 151 M 228 145 L 240 131 M 228 145 L 211 124 M 220 151 L 219 144" fill="none" stroke="#d4dada" stroke-width="1.6" />
+  <circle cx="303" cy="227" r="6" fill="#003181" opacity="0.45" />
+  <circle cx="87" cy="213" r="6" fill="#003181" opacity="0.45" />
+  <circle cx="221" cy="160" r="6" fill="#003181" opacity="0.45" />
+  <circle cx="235" cy="195" r="6" fill="#003181" opacity="0.45" />
+  <circle cx="104" cy="148" r="6" fill="#003181" opacity="0.45" />
+  <circle cx="228" cy="145" r="6" fill="#003181" opacity="0.45" />
+  <circle cx="211" cy="108" r="6" fill="#003181" opacity="0.45" />
+  <circle cx="234" cy="203" r="6" fill="#003181" opacity="0.45" />
+  <circle cx="310" cy="222" r="6" fill="#003181" opacity="0.45" />
+  <circle cx="196" cy="56" r="6" fill="#003181" opacity="0.45" />
+  <circle cx="241" cy="151" r="6" fill="#003181" opacity="0.45" />
+  <circle cx="308" cy="233" r="6" fill="#003181" opacity="0.45" />
+  <circle cx="187" cy="89" r="6" fill="#003181" opacity="0.45" />
+  <circle cx="219" cy="144" r="6" fill="#003181" opacity="0.45" />
+  <circle cx="167" cy="115" r="6" fill="#003181" opacity="0.45" />
+  <circle cx="211" cy="124" r="6" fill="#003181" opacity="0.45" />
+  <circle cx="136" cy="126" r="6" fill="#003181" opacity="0.45" />
+  <circle cx="274" cy="223" r="6" fill="#003181" opacity="0.45" />
+  <circle cx="152" cy="113" r="6" fill="#003181" opacity="0.45" />
+  <circle cx="186" cy="116" r="6" fill="#003181" opacity="0.45" />
+  <circle cx="157" cy="83" r="6" fill="#003181" opacity="0.45" />
+  <circle cx="296" cy="244" r="6" fill="#003181" opacity="0.45" />
+  <circle cx="133" cy="90" r="6" fill="#003181" opacity="0.45" />
+  <circle cx="132" cy="110" r="6" fill="#003181" opacity="0.45" />
+  <circle cx="82" cy="137" r="6" fill="#003181" opacity="0.45" />
+  <circle cx="96" cy="105" r="6" fill="#003181" opacity="0.45" />
+  <circle cx="200" cy="126" r="6" fill="#003181" opacity="0.45" />
+  <circle cx="220" cy="151" r="6" fill="#003181" opacity="0.45" />
+  <circle cx="155" cy="131" r="6" fill="#003181" opacity="0.45" />
+  <circle cx="240" cy="131" r="6" fill="#003181" opacity="0.45" />
+  <circle cx="256" cy="105" r="6" fill="#003181" opacity="0.45" />
+  <circle cx="154" cy="143" r="6" fill="#003181" opacity="0.45" />
+  <circle cx="205" cy="145" r="9" fill="#591c5c" opacity="1" />
+  <circle cx="133" cy="82" r="9" fill="#591c5c" opacity="1" />
+  <path d="M 44 276 L 89 214 L 133 220 L 178 230 L 267 240 L 356 236" fill="none" stroke="#591c5c" stroke-width="3" />
+  <circle cx="44" cy="276" r="3.5" fill="#591c5c" />
+  <circle cx="89" cy="214" r="3.5" fill="#591c5c" />
+  <circle cx="133" cy="220" r="3.5" fill="#591c5c" />
+  <circle cx="178" cy="230" r="3.5" fill="#591c5c" />
+  <circle cx="267" cy="240" r="3.5" fill="#591c5c" />
+  <circle cx="356" cy="236" r="3.5" fill="#591c5c" />
+</svg>

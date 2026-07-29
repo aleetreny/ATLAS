@@ -355,10 +355,15 @@ inicialización, mismo Adam): las trayectorias de 200 pasos coinciden a 4,9e-9.
 
 **Y con los artículos 36 a 40, el módulo 3.2 entero.** Los cinco están encadenados entre ellos (vae -> vq-vae -> ebm -> flows -> glow), el primero recoge la promesa que dejó abierta el cierre del 30 (abre tomando la red de ese artículo, peso a peso de su propio fichero de datos, y muestreándola) y el último desemboca en el 3.3 por la difusión. De la sección 3 quedan 3.1 y 3.3.
 
-**Dónde está el mapa ahora mismo**: secciones 1 y 2 cerradas enteras, de la 3 el 3.1 y el 3.2, y
-la **sección 4 entera** (4.1, 4.2 y 4.3, artículos 44 a 57), que es lo último publicado y salió de
-dos sesiones a la vez. Los huecos abiertos son, por tamaño: el **3.3** (difusión, al que apunta el
-cierre del 40) y las secciones 5 a 8 sin empezar, que es ya la mayor parte de lo que queda.
+**Dónde está el mapa ahora mismo**: secciones 1 y 2 cerradas enteras, de la 3 el 3.1 y el 3.2, la
+**sección 4 entera** (4.1, 4.2 y 4.3, artículos 44 a 57), el **módulo 7 entero** (60 a 67) y el
+**módulo 6 entero** (69 a 73), que es lo último publicado. Los huecos abiertos son, por tamaño: el
+**3.3** (difusión, al que apunta el cierre del 40, y del que ya existe el 68), la **sección 5**
+(agentes y estrategia) sin empezar, y la 8. En la portada, el módulo 6 se lee justo después del 4,
+así que el cierre del 57 (`wavenet/`) enlaza ahora al 69 (`collaborative-filtering/`) y el del 73
+(`kg-embeddings/`) al 60 (`confounding/`), que es la primera tarjeta del módulo 7: esos dos
+enganches son lo que la regla 7 del guardia comprueba y lo que hay que rehacer en cuanto alguien
+inserte una sección por delante.
 La cadena de lectura de la sección 4 va `glow/` -> `tf-idf/` -> ... -> `state-space/` ->
 `arima/` -> ... -> `wavenet/`, y termina hoy en `wavenet/`, que devuelve a la portada. El enganche
 entre los dos bloques lo puso esta sesión al mergear: el cierre del 50 (`state-space/`) ya

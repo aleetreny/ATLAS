@@ -57,19 +57,65 @@ export function initProse(data) {
   set('cold-note',
     `${idsAtChance
       ? `The ids only tower scores ${pc(cold.ids.cold.hits['10'])} against a chance rate of `
-        + `${pc(A.chance_at_10)}, which is the result: an embedding for a book that never appeared `
-        + `in a gradient is the number the initialiser wrote there.`
+        + `${pc(A.chance_at_10)}, which is the result and not a disappointment: an embedding for a `
+        + `book that never appeared in a gradient is the number the initialiser wrote there.`
       : `The ids only tower manages ${pc(cold.ids.cold.hits['10'])} against a chance rate of `
-        + `${pc(A.chance_at_10)}, above chance, which is worth explaining rather than explaining `
-        + `away: the negatives it was trained against were sampled from the whole catalogue, so `
-        + `even an untouched embedding inherits something from the ones around it.`} `
-    + `Reading the features instead scores ${pc(cold.content.cold.hits['10'])}, `
-    + `<span class="bold">${contentGain.toFixed(1)} times chance</span>, from an author, a decade `
-    + `and a handful of title words. And the warm view is the other half of the sentence: on the `
-    + `ordinary catalogue the same content only tower scores `
-    + `${pc(cold.content.warm.hits['10'])} against `
-    + `${pc(cold.ids.warm.hits['10'])} for ids alone. Features are what you have when history is `
-    + `missing, and history is better than features when you have it.`);
+        + `${pc(A.chance_at_10)}, above chance, which needs explaining rather than explaining away, `
+        + `because an embedding that never took a gradient cannot know anything about the book it `
+        + `belongs to. The explanation is the grey bar: recommending the most rated of the three `
+        + `hundred scores ${pc(A.arms.popular.cold.hits['10'])}, and what the tower carries besides `
+        + `its embeddings is a popularity term per item, which the sampling trains for every book `
+        + `whether or not anybody rated it.`} `
+    + `${contentGain >= 1.35
+      ? `Reading the features instead scores ${pc(cold.content.cold.hits['10'])}, `
+        + `<span class="bold">${contentGain.toFixed(1)} times chance</span>, from an author, a `
+        + `decade and a handful of title words, and carrying both `
+        + `${pc(cold.both.cold.hits['10'])}. `
+        + `${A.arms.popular.cold.hits['10'] > cold.both.cold.hits['10']
+          ? `And then the grey bar, which is the reason the first article of this module insisted `
+            + `on running it: recommending the most rated of the three hundred, with no model and `
+            + `no features, scores <span class="bold">${pc(A.arms.popular.cold.hits['10'])}</span> `
+            + `and beats all three. These books were chosen with at least fifty ratings each, so `
+            + `"cold" here means the model was not shown them, not that nobody has read them, and `
+            + `popularity survives that. The honest reading is the one the bars give: features `
+            + `recover most of what deleting the history destroyed, and they do not recover the `
+            + `part that was popularity.`
+          : `And the popularity control, which the first article of this module insisted on, does `
+            + `${pc(A.arms.popular.cold.hits['10'])}: the features beat it.`}`
+      : `Reading the features instead scores ${pc(cold.content.cold.hits['10'])}, which is `
+        + `${contentGain.toFixed(2)} times chance and therefore <span class="bold">not a `
+        + `result</span>. At this budget, an author, a decade and a handful of title words did not `
+        + `buy a usable cold start on this catalogue, and the honest thing is to say so: the `
+        + `mechanism is sound and the evidence for it here is not. What the same experiment does `
+        + `establish is the negative half, which needs no budget at all, because it is structural: `
+        + `an id embedding for a book with no ratings cannot be anything but noise.`} `
+    + `And the warm view is the other half of the sentence: on the ordinary catalogue the same `
+    + `content only tower scores ${pc(cold.content.warm.hits['10'])} against `
+    + `${pc(cold.ids.warm.hits['10'])} for ids alone. `
+    + `${cold.ids.warm.hits['10'] > cold.content.warm.hits['10']
+      ? 'So features are what you have when history is missing, and history is better than '
+        + 'features when you have it, which is the trade the third arm exists to avoid making.'
+      : 'So even with the history there, the features are not the weaker half at this budget, '
+        + 'which is not the textbook order and is what the numbers say: six passes is not enough '
+        + 'to learn ten thousand independent embeddings, and it is plenty to learn a few thousand '
+        + 'shared ones.'}`
+    + `<br /><br />`
+    + `${data.content_knn
+      ? `Those four bars all depend on how well three towers trained, which is a bad thing for an `
+        + `argument to depend on, so here is the same question asked without training anything at `
+        + `all. Score each of the ${A.cold_books} deleted books by the cosine between its features `
+        + `and the reader's own profile, which is the sum of the features of everything they liked, `
+        + `weighted by rarity. No parameters, no learning rate, no budget: `
+        + `<span class="bold">${pc(data.content_knn.cold.hits['10'])}</span> against `
+        + `${pc(A.chance_at_10)} for chance and ${pc(A.arms.popular.cold.hits['10'])} for `
+        + `popularity. `
+        + `${data.content_knn.cold.hits['10'] > Math.max(A.chance_at_10, A.arms.popular.cold.hits['10'])
+          ? 'That is the result the section was after, and it is the one that does not move if you '
+            + 'retrain anything: an author and a handful of title words are worth something for a '
+            + 'book with no readers.'
+          : 'Which does not clear the two controls, and is therefore the honest answer for this '
+            + 'catalogue: the features here are too thin to place a book nobody has read.'}`
+      : ''}`);
 
   set('ceil-intro',
     `Now the constraint that the name hides. Two towers means the score of a pair is `
@@ -148,11 +194,23 @@ export function initProse(data) {
   set('v-tower-warn', `The score matrix it can write has rank ${M.k}. Anything that needs the pair `
     + `is outside what it can express, measurably.`);
 
-  set('v-cold', `${pc(cold.content.cold.hits['10'])} on books with no training ratings at all, `
-    + `against ${pc(A.chance_at_10)} for chance and ${pc(cold.ids.cold.hits['10'])} for ids.`);
-  set('v-cold-warn', `On warm items the features are the weaker signal `
-    + `(${pc(cold.content.warm.hits['10'])} against ${pc(cold.ids.warm.hits['10'])}), so the useful `
-    + `arm is the one that carries both.`);
+  set('v-cold', `${contentGain >= 1.35
+    ? `${pc(cold.content.cold.hits['10'])} on books with no training ratings at all, against `
+      + `${pc(A.chance_at_10)} for chance and ${pc(cold.ids.cold.hits['10'])} for ids.`
+    : `Structurally, the only arm that can say anything at all: ids score `
+      + `${pc(cold.ids.cold.hits['10'])} against ${pc(A.chance_at_10)} for chance, and content `
+      + `${pc(cold.content.cold.hits['10'])}, which at this budget is the same thing.`}`);
+  /* this row used to assert the textbook order, that features are the weaker
+     signal once history exists, while printing the two numbers that say the
+     opposite. Both halves are composed now. */
+  set('v-cold-warn', `${cold.ids.warm.hits['10'] > cold.content.warm.hits['10']
+    ? `On warm items the features are the weaker signal `
+      + `(${pc(cold.content.warm.hits['10'])} against ${pc(cold.ids.warm.hits['10'])}), so the `
+      + `useful arm is the one that carries both.`
+    : `The textbook order did not appear here: on warm items the same features still score `
+      + `${pc(cold.content.warm.hits['10'])} against ${pc(cold.ids.warm.hits['10'])} for ids, `
+      + `which is a statement about this budget rather than about the method, and the arm to `
+      + `deploy is still the one that carries both.`}`);
 
   set('v-fm', `${n0(P.params_fm)} numbers instead of ${n0(P.params_full)}, and a weight for pairs `
     + `that never occur together, which is ${pc(1 - P.share, 2)} of them.`);

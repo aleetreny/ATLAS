@@ -48,7 +48,7 @@ HIDDEN = 64
 EPOCHS = 200
 LR = 0.01
 WD = 5e-4
-SEEDS = 5
+SEEDS = 3                  # semillas por brazo, que es lo que da la dispersion publicada
 TAG = f"s{SEED}h{HIDDEN}e{EPOCHS}n{SEEDS}"
 
 
@@ -411,7 +411,15 @@ def stage_homophily():
         accs = {"mlp": [], "gcn": [], "sage": []}
         real_h = []
         for s in range(SEEDS):
-            X, y, A, meta = contextual_sbm(n=1000, homophily=h, seed=SEED + s)
+            # Dos parámetros de este generador deciden si el barrido mide algo:
+            # con cuatro clases en vez de dos, "mis vecinos son de otra clase"
+            # deja de ser tan informativo como "son de la mía", que es lo que
+            # hace que la heterofilia duela de verdad; y con la señal de los
+            # rasgos bajada, el perceptrón deja de saturar en 0,998 y hay sitio
+            # para que el grafo aporte. La primera versión tenía dos clases y
+            # señal 1,0, y las tres curvas salían planas y pegadas al techo.
+            X, y, A, meta = contextual_sbm(n=1200, classes=4, d=16, signal=0.45,
+                                           homophily=h, seed=SEED + s)
             co = A.tocoo()
             real_h.append(float((y[co.row] == y[co.col]).mean()))
             n = len(y)

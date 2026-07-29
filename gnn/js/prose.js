@@ -2,7 +2,7 @@
 const IDS = ['intro-1', 'intro-2', 'intro-3', 'arms-intro', 'arms-note', 'live-intro',
   'homo-intro', 'homo-note', 'depth-intro', 'depth-note', 'att-intro', 'att-note',
   'ind-intro', 'ind-note', 'verdict-intro', 'v-gcn', 'v-gcn-warn', 'v-hetero',
-  'v-hetero-warn', 'v-sage', 'v-sage-warn', 'v-gat', 'v-gat-warn',
+  'v-hetero-warn', 'v-sage-pick', 'v-sage', 'v-sage-warn', 'v-gat', 'v-gat-warn',
   'closing-1', 'closing-2', 'closing-3', 'ref-note'];
 
 function set(id, html) {
@@ -129,8 +129,17 @@ export function initProse(data) {
       ? `The comparison the bars make is not flattering, and it reproduces what the literature `
         + `found once anybody checked: on a homophilous benchmark the attention ends up nearly `
         + `where the fixed normalisation already was. Its accuracy here `
-        + `(${pc(C.gat.acc)} against ${pc(C.gcn.acc)}) is within the seed spread of the `
-        + `GCN's, which is what a mechanism that has learned the degree looks like.`
+        + `(${pc(C.gat.acc)} against ${pc(C.gcn.acc)}) is `
+        /* this sentence used to assert "within the seed spread" without
+           measuring it, while the verdict row two screens down computed the
+           same comparison and printed the opposite. Both are composed now, so
+           they cannot disagree again. */
+        + `${Math.abs(C.gat.acc - C.gcn.acc) <= C.gcn.sd
+          ? 'inside the spread the GCN shows across seeds, which is what a mechanism that has '
+            + 'learned the degree looks like'
+          : `${(100 * (C.gcn.acc - C.gat.acc)).toFixed(1)} points below it, which is more than the `
+            + `GCN's own spread across seeds (&plusmn;${(100 * C.gcn.sd).toFixed(1)}), so the extra `
+            + 'parameters are not paying for themselves here'}.`
       : `The learned weights do separate the two kinds of edge, by ${attGap.toFixed(3)} more than `
         + `the degree alone, and the accuracy follows: ${pc(C.gat.acc)} against ${pc(C.gcn.acc)}.`} `
     + `The place where attention has room is the other kind of graph: where the neighbours disagree, `
@@ -154,8 +163,13 @@ export function initProse(data) {
     + `${I.inductive.sage.unseen > I.inductive.gcn.unseen
       ? `The separate weight for a node's own features is what makes the difference: it means the `
         + `model has learned a function of a neighbourhood rather than a table of node vectors.`
-      : `On this graph the two are within noise of each other, so the inductive gap is about the `
-        + `operator rather than about the separate self weight.`} `
+      : `Which is worth reading carefully, because it is not the answer the architecture's name `
+        + `promises: on this graph the plain GCN handles the new nodes `
+        + `${(100 * (I.inductive.gcn.unseen - I.inductive.sage.unseen)).toFixed(1)} points better `
+        + `than GraphSAGE. Both are inductive here, and that is the real point: what makes a model `
+        + `able to classify a node it never saw is that its parameters are a function of a `
+        + `neighbourhood rather than a table with one row per node, and both of these are. The `
+        + `separate self weight buys other things; it does not buy this.`} `
     + `And sampling, which is what makes this affordable on a graph with a billion edges, costs `
     + `less than it looks: keeping ${I.sampling[0].k} neighbour per node scores `
     + `${pc(I.sampling[0].acc)} (&plusmn;${(100 * I.sampling[0].sd).toFixed(1)} across draws) `
@@ -176,9 +190,20 @@ export function initProse(data) {
   set('v-hetero-warn', `Measure the homophily of your graph before choosing the family. It is one `
     + `line of code and it decides the question.`);
 
-  set('v-sage', `${pc(I.inductive.sage.unseen)} on nodes that were not in the graph during `
-    + `training, and it survives keeping ${I.sampling[0].k} neighbour each.`);
-  set('v-sage-warn', `Sampling adds variance you have to report: `
+  /* the recommendation is composed too, because the measurement decides it: on
+     this graph the plain GCN handled the unseen nodes better than GraphSAGE,
+     and a table that says "GraphSAGE" over the GCN's number would be quoting a
+     result against itself */
+  const sageWins = I.inductive.sage.unseen > I.inductive.gcn.unseen;
+  set('v-sage-pick', sageWins ? 'GraphSAGE' : 'Either, and here the GCN');
+  set('v-sage', `${pc(sageWins ? I.inductive.sage.unseen : I.inductive.gcn.unseen)} on nodes that `
+    + `were not in the graph during training `
+    + `(${pc(sageWins ? I.inductive.gcn.unseen : I.inductive.sage.unseen)} for the other), and it `
+    + `survives keeping ${I.sampling[0].k} neighbour each (${pc(I.sampling[0].acc)} against `
+    + `${pc(I.full)} for the whole neighbourhood).`);
+  set('v-sage-warn', `${sageWins ? '' : 'The separate self weight is not what makes a model '
+    + 'inductive: both are, because both are functions of a neighbourhood rather than a table. '}`
+    + `Sampling adds variance you have to report: `
     + `&plusmn;${(100 * I.sampling[0].sd).toFixed(1)} points across draws at the smallest sample.`);
 
   set('v-gat', `${pc(C.gat.acc)}, ${Math.abs(C.gat.acc - C.gcn.acc) <= C.gcn.sd

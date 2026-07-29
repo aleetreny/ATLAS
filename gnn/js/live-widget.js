@@ -26,18 +26,17 @@ export function initLiveWidget(data) {
   const { g, plot, w, h, clear } = chart;
 
   const n = W.nodes.length;
-  const index = new Map(W.nodes.map((d, i) => [d.id, i]));
   const x = d3.scaleLinear().domain([-1.05, 1.05]).range([0, w]);
   const y = d3.scaleLinear().domain([-1.05, 1.05]).range([h, 0]);
 
-  /* the same operator the generator uses: A + I, row averaged */
+  /* the same operator the generator uses: A + I, row averaged. The edges
+     arrive as pairs of positions in this node list, not as node ids, which is
+     what the drawing below indexes with too. */
   const nb = W.nodes.map(() => []);
   W.edges.forEach(([a, b]) => {
-    const i = index.get(W.nodes[a] ? W.nodes[a].id : a);
-    const j = index.get(W.nodes[b] ? W.nodes[b].id : b);
-    if (i === undefined || j === undefined) return;
-    nb[i].push(j);
-    nb[j].push(i);
+    if (a < 0 || b < 0 || a >= n || b >= n || a === b) return;
+    nb[a].push(b);
+    nb[b].push(a);
   });
 
   const btns = {};

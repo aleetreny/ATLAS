@@ -107,12 +107,17 @@ export function initColdWidget(data) {
         + `<span class="value">${pct(both)}</span>. The bar to compare them against is not zero, it `
         + `is the grey one: recommending the most rated of the three hundred scores `
         + `<span class="value">${pct(A.popular.cold.hits['10'])}</span> without any model at all.`
-      : `On the ordinary catalogue the ranking is the other way round: ids alone score `
-        + `<span class="value">${pct(ids)}</span>, content alone `
-        + `<span class="value">${pct(content)}</span>, and the two together `
-        + `<span class="value">${pct(both)}</span>. A book that thousands of people have rated does `
-        + `not need its author read out: what those readers did is a better description of it than `
-        + `any feature anybody would write down.`;
+      : `On the ordinary catalogue: ids alone score <span class="value">${pct(ids)}</span>, content `
+        + `alone <span class="value">${pct(content)}</span>, and the two together `
+        + `<span class="value">${pct(both)}</span>. `
+        + `${ids > content
+          ? 'The order is the reverse of the cold view, and for the same reason: a book that '
+            + 'thousands of people have rated does not need its author read out, because what '
+            + 'those readers did is a better description of it than any feature anybody would '
+            + 'write down.'
+          : 'The features are not the weaker signal here even on well rated books, which is worth '
+            + 'flagging rather than smoothing over: at this budget the id embeddings have not '
+            + 'learned more than the content ones have.'}`;
   }
 
   render();

@@ -41,17 +41,32 @@ function check(data, tower, loud = false) {
 
   /* 1. the live scoring against the generator's */
   if (tower) {
-    let bad = 0;
+    /* What can be checked here is the SCORE, not the order. The vectors travel
+       with five decimals and a score is a sum of thirty two of them, so two
+       books a thousandth apart can swap places without anything being wrong:
+       a ranking is not continuous in the numbers it ranks, which is a lesson
+       this atlas has already paid for once. So the guard asks for the best
+       score to the precision the file actually carries, and for the top five
+       to agree on at least four, which no wrong vector layout would. */
+    let worstScore = 0;
+    let swapped = 0;
     data.widget.check.forEach((row) => {
-      const got = tower.score(new Set(row.picked), true)
-        .filter((d) => !row.picked.includes(d.i))
-        .sort((a, b) => b.s - a.s).slice(0, 5).map((d) => d.i);
-      const want = row.top.filter((t) => !row.picked.includes(t)).slice(0, got.length);
-      if (got.join(',') !== want.join(',')) bad += 1;
+      const scored = tower.score(new Set(row.picked), true);
+      const best = Math.max(...scored.filter((d) => !row.picked.includes(d.i)).map((d) => d.s));
+      worstScore = Math.max(worstScore, Math.abs(best - row.best));
+      const got = new Set(scored.filter((d) => !row.picked.includes(d.i))
+        .sort((a, b) => b.s - a.s).slice(0, 5).map((d) => d.i));
+      const want = row.top.filter((t) => !row.picked.includes(t)).slice(0, 5);
+      if (want.filter((t) => got.has(t)).length < 4) swapped += 1;
     });
-    if (bad) {
-      fail('the live tower', `${bad} of ${data.widget.check.length} query vectors return a `
-        + 'different top five than the generator, so the item vectors are being read wrongly');
+    if (!(worstScore < 5e-3)) {
+      fail('the live tower', `the best score it computes differs from the generator's by `
+        + `${worstScore.toExponential(2)}, which is more than five decimals of rounding can `
+        + 'explain, so the item vectors are being read wrongly');
+    }
+    if (swapped) {
+      fail('the live tower', `${swapped} of ${data.widget.check.length} queries disagree with the `
+        + 'generator on more than one of their top five');
     }
   }
 
@@ -76,8 +91,10 @@ function check(data, tower, loud = false) {
   }
 
   /* 3. the cold start arm has to be scored against the right chance rate */
+  /* the file carries five decimals, so the comparison has that floor and not
+     the floor of a double */
   const chance = 10 / data.arms.cold_books;
-  if (Math.abs(chance - data.arms.chance_at_10) > 1e-9) {
+  if (Math.abs(chance - data.arms.chance_at_10) > 1e-5) {
     fail('the cold start control', `chance at ten should be ${chance} for ${data.arms.cold_books} `
       + `books and the file says ${data.arms.chance_at_10}`);
   }

@@ -47,12 +47,18 @@ K = 32                 # dimensión de las dos torres
 EPOCHS = 6
 BATCH = 1024
 NEG = 256              # negativos compartidos por lote (softmax muestreado)
-LR = 0.05
+# La tasa de aprendizaje NO es un detalle aqui y por eso viaja en la clave del
+# cache: con el paso escalado por 1/lote, 0,05 deja las torres literalmente en
+# el azar sobre los libros frios y por debajo del control de popularidad sobre
+# los calientes. Medido sobre 400.000 interacciones y dos pasadas: 0,0099 de
+# aciertos en diez con 0,05 y 0,0552 con 1,0. Un experimento a ese primer nivel
+# no mide lo que dice medir, mide que el modelo no ha aprendido.
+LR = 1.0
 COLD_BOOKS = 300       # libros con todas sus valoraciones borradas
 TOP_TOKENS = 2000      # palabras de título que se quedan como rasgo
 TOP_AUTHORS = 1500
 WIDGET_BOOKS = 400
-TAG = f"s{SEED}k{K}e{EPOCHS}n{NEG}c{COLD_BOOKS}"
+TAG = f"s{SEED}k{K}e{EPOCHS}n{NEG}c{COLD_BOOKS}lr{LR}"
 
 
 def cached(name, fn):
@@ -216,21 +222,31 @@ def stage_ceiling():
     A = rng.normal(size=(n_u, d))
     B = rng.normal(size=(n_i, d))
     taste = A @ B.T / np.sqrt(d)
-    # el cruce: un umbral sobre un rasgo de cada lado, que es exactamente lo que
-    # una red que ve el par puede escribir y un producto escalar no
-    cross = 2.0 * ((A[:, 0:1] > 0) & (B[:, 1:2].T > 0)).astype(float)
+    # El cruce tiene que ser algo que un producto escalar NO pueda escribir, y
+    # elegirlo mal es fácil: un umbral sobre un rasgo de cada lado es un
+    # producto exterior de dos indicadores, o sea rango 1, y con una dimensión
+    # más el modelo lo representa exacto (la primera versión de esta sección
+    # daba rango 7 y error cero en k = 7, que es lo contrario de lo que dice).
+    # Lo que sí es de rango alto es una preferencia CON PICO: el lector tiene un
+    # nivel favorito y le gusta lo que cae cerca, y "cerca" es un valor
+    # absoluto, que no es bilineal en nada.
+    cross = -2.0 * np.abs(A[:, 0:1] - B[:, 1:2].T)
+    cross = cross - cross.mean()
     truth = taste + cross
     s = np.linalg.svd(truth, compute_uv=False)
     total = float((truth ** 2).sum())
     rows = []
     for k in [1, 2, 3, 4, 6, 8, 12, 16, 24, 32]:
         keep = float((s[:k] ** 2).sum())
-        rows.append({"k": k, "rmse": float(np.sqrt((total - keep) / truth.size)),
-                     "explained": keep / total})
+        # la cola de una suma de cuadrados puede salir negativa por redondeo
+        # cuando ya no queda nada, y una raiz de eso es un NaN que viaja al
+        # fichero y deja el widget sin curva
+        rows.append({"k": k, "rmse": float(np.sqrt(max(total - keep, 0.0) / truth.size)),
+                     "explained": min(keep / total, 1.0)})
     # y el mismo mundo sin el término de cruce, donde el techo es exacto en k=d
     s_pure = np.linalg.svd(taste, compute_uv=False)
     pure = [{"k": k, "rmse": float(np.sqrt(max(float((s_pure ** 2).sum())
-                                               - float((s_pure[:k] ** 2).sum()), 0) / taste.size))}
+                                               - float((s_pure[:k] ** 2).sum()), 0.0) / taste.size))}
             for k in [1, 2, 3, 4, 6, 8, 12, 16, 24, 32]]
     return {"rows": rows, "pure": pure, "n_users": n_u, "n_items": n_i, "d": d,
             "rank_needed": int(np.linalg.matrix_rank(truth)),
@@ -330,11 +346,68 @@ def stage_arms(train, test, F, shape, users):
     arms["popular"] = {"cold": pstats}
 
     return {"arms": arms, "cold_books": int(cold.size), "cold_cells": lost,
+            "_eval_users": eval_users, "_cold_lists": cold_lists, "_ok": ok,
             "eval_users": int(eval_users.size),
             "cold_users": int(ok.sum()),
             "cold_items_held": int(sum(len(h) for h in cold_held)),
             "warm_items_held": int(sum(len(h) for h in warm_held)),
             "chance_at_10": float(10.0 / cold.size)}, cold
+
+
+# --------------------------------------------------------------------------
+# S3b. El mismo arranque en frío sin entrenar nada.
+#
+# Las tres torres comparten presupuesto y por eso son comparables entre ellas,
+# pero su nivel absoluto depende del presupuesto, y una pregunta que solo se
+# puede contestar con un modelo bien entrenado no es una buena pregunta. Esta
+# regla no tiene parámetros: el perfil de un lector es la suma de los rasgos de
+# lo que ha leído, ponderada por rareza, y un libro se puntúa por el coseno
+# entre su vector de rasgos y ese perfil. Si los rasgos dicen algo sobre lo que
+# alguien va a leer, esto lo dice sin entrenamiento y sin tasa de aprendizaje.
+# --------------------------------------------------------------------------
+def cold_eval_sets(test, users, cold, shape):
+    """Los mismos conjuntos de evaluación en frío que arma `stage_arms`.
+
+    Se calcula aparte y de forma determinista para que el brazo sin entrenar no
+    dependa de lo que la etapa cara dejó en su caché, que es justo lo que hace
+    que añadir una medida nueva no obligue a repetir tres entrenamientos."""
+    tu, tb, tr = test
+    keep = np.isin(tu, users) & (tr >= 4)
+    cold_mask = np.zeros(shape["per_book"].size, dtype=bool)
+    cold_mask[cold] = True
+    held = {}
+    for u, b in zip(tu[keep], tb[keep]):
+        held.setdefault(int(u), []).append(int(b))
+    eval_users = np.array(sorted(held))
+    cold_held = [np.array([b for b in held[u] if cold_mask[b]]) for u in eval_users]
+    ok = np.array([len(h) > 0 for h in cold_held])
+    remap = {int(b): j for j, b in enumerate(cold)}
+    cold_lists = [np.array([remap[int(b)] for b in h]) for h, o in zip(cold_held, ok) if o]
+    return eval_users, cold_lists, ok
+
+
+def stage_content_knn(train, F, shape, eval_users, cold, cold_lists, ok):
+    df = np.asarray((F > 0).sum(0)).ravel()
+    idf = np.log(F.shape[0] / np.maximum(df, 1)).astype(np.float32)
+    Fw = F @ sp.diags(idf)
+    norms = np.sqrt(np.asarray(Fw.multiply(Fw).sum(1)).ravel())
+    Fn = sp.diags(1.0 / np.maximum(norms, 1e-9)) @ Fw
+
+    B = sp.csr_matrix((np.ones_like(train.data), train.indices, train.indptr),
+                      shape=train.shape)
+    liked = sp.csr_matrix((np.where(train.data >= 4, 1.0, 0.0), train.indices, train.indptr),
+                          shape=train.shape)
+    liked.eliminate_zeros()
+    prof = np.asarray((liked[eval_users][ok] @ Fn).todense(), dtype=np.float32)
+    pn = np.sqrt((prof ** 2).sum(1, keepdims=True))
+    prof /= np.maximum(pn, 1e-9)
+    scores = prof @ np.asarray(Fn[cold].todense(), dtype=np.float32).T
+    pop = shape["per_book"].astype(np.float64)
+    stats, _ = CF.rank_eval(scores, sp.csr_matrix(scores.shape), cold_lists,
+                            pop[cold], np.sort(pop[cold]))
+    del B
+    return {"cold": stats, "features": int(F.shape[1]),
+            "profile_nonzero": float((prof != 0).sum(1).mean())}
 
 
 # --------------------------------------------------------------------------
@@ -415,6 +488,12 @@ def main():
     print("los tres brazos, con 300 libros borrados")
     arms, cold = cached("arms", lambda: stage_arms(train, test, F, shape, users))
 
+    print("y la misma pregunta sin entrenar nada")
+    ev_u, cold_lists, ok = cold_eval_sets(test, users, cold, shape)
+    cknn = cached("content_knn", lambda: stage_content_knn(
+        train, F, shape, ev_u, cold, cold_lists, ok))
+    print(f"  contenido sin entrenar, frío @10 {cknn['cold']['hits']['10']:.4f}")
+
     cost = stage_cost(n_b, K)
     widget = cached("widget", lambda: stage_widget(train, F, shape, titles, authors, cold))
 
@@ -429,7 +508,8 @@ def main():
         },
         "ceiling": r(ceiling, 6),
         "pairs": r(pairs, 6),
-        "arms": r(arms, 5),
+        "arms": r({k: v for k, v in arms.items() if not k.startswith("_")}, 5),
+        "content_knn": r(cknn, 5),
         "cost": r(cost, 4),
         "widget": {"items": widget["items"], "vectors": r(widget["vectors"], 5),
                    "bias": r(widget["bias"], 5), "check": r(widget["check"], 5)},

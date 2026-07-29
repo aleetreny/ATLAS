@@ -41,7 +41,10 @@ export function initAttWidget(data) {
       g.append('text').attr('class', 'chart-note')
         .attr('x', x0(grp.label) + x1(key) + x1.bandwidth() / 2).attr('y', h + 17)
         .attr('text-anchor', 'middle').style('font-size', '10.5px')
-        .text(key === 'learned' ? 'attention' : 'one over degree');
+        /* two sub labels under a grouped bar have half a band each, which is
+           about seventy eight units: "one over degree" needs ninety and lands
+           on its neighbour */
+        .text(key === 'learned' ? 'attention' : '1 / degree');
     });
     g.append('text').attr('class', 'chart-note')
       .attr('x', x0(grp.label) + x0.bandwidth() / 2).attr('y', h + 36)
