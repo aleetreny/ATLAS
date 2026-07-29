@@ -91,6 +91,64 @@ Este repositorio empezó como notebooks de ML y se está convirtiendo en una web
 | 65 | The Posterior You Can Actually Draw (la posterior exacta por cuadratura sobre 14 millones de pesos, cuatro cadenas que solo discrepan en el hueco, seis aproximaciones puntuadas, y el prior barrido) | `bayesian-nets/` | `#381a66` |
 | 66 | Credit, Exactly (los 1.024 conjuntos enumerados contra la forma cerrada de un modelo aditivo, KernelSHAP muestreado, las dos funciones de valor, y LIME con el ancho como mando) | `attribution/` | `#473a04` |
 | 67 | Where It Looked (seis mapas y dos controles puntuados contra la máscara exacta, Grad-CAM por profundidad, el test de aleatorización de Adebayo, y la atención contra la importancia medida) | `saliency/` | `#853c6f` |
+**El módulo 7 entero (artículos 60 a 67), publicado de una vez.** Las tres
+secciones cerradas y los ocho chips encendidos: 7.1 causalidad (60 a 63), 7.2
+incertidumbre (64 y 65), 7.3 explicabilidad (66 y 67), encadenados en ese orden
+y enganchados desde el cierre del 57 (wavenet). Lo que hay que saber de cada uno:
+
+- **60** mide el sesgo de confusión en forma cerrada (razón de Mills) y lo
+  compara con el simulado; el mundo de colisión y dos mundos Markov
+  equivalentes se resuelven algebraicamente. La reversión de Simpson sobre el
+  vino se encontró buscando, con un control por permutación.
+- **61** enfrenta siete estimadores a una verdad conocida sobre 240 repeticiones.
+  El resultado que reescribió la sección: **recortar por los dos lados no mueve
+  un estimando simétrico** (1,9978 a 1,9991), así que hay además un recorte de un
+  solo lado, donde sí se mueve (1,6477 al 20%).
+- **62** publica el **intervalo entero de betas compatibles** con los momentos
+  observados, [1,2755, 3,7245], barriendo hasta donde la varianza del ruido deja
+  de ser positiva. La primera versión llevaba un `max(...,0)` que dejaba pasar un
+  mundo imposible.
+- **63** tiene el mejor número del módulo: el bosque causal sin centrar da 2,2179
+  de error contra 0,4548 de responder la media, y **con centrado local y
+  validación cruzada baja a 0,0373**, un factor 59. No era ajuste de
+  hiperparámetros: una diferencia de medias dentro de una hoja sigue confundida.
+- **64** comprueba la cobertura contra su distribución exacta Beta(k, n+1-k), sin
+  ruido de muestreo, y reutiliza el CO2 del artículo de series con un digest que
+  lo asegura.
+- **65** calcula la posterior **exacta** de una red de tres pesos por cuadratura
+  sobre 13.997.521 puntos, y con eso puntúa seis aproximaciones. Dos resultados
+  contra el guion: la incertidumbre **no** crece al alejarse de los datos (1,01
+  veces; una tanh satura), crece en el hueco (9,11 veces); y un conjunto de ocho
+  redes sobre los mismos datos da **exactamente la misma función** que un solo
+  ajuste, así que su dispersión es 0,000. El prior es invisible donde hay datos
+  y multiplica por 4,9 la dispersión en el hueco.
+- **66** enumera los 1.024 conjuntos de diez columnas y los contrasta con la
+  forma cerrada de un modelo aditivo ajustado por backfitting, que es la
+  comprobación que la eficiencia no da: una atribución equivocada cuyos errores
+  se cancelen pasa la cascada y falla aquí.
+- **67** no entrena nada: reconstruye en numpy el detector del 23 (cajas
+  idénticas a 0,0000 px) y el codificador del 48, y los explica. Seis mapas y
+  **dos controles**, uno de los cuales (la imagen de entrada, sin modelo) puntúa
+  0,390 y adelanta al gradiente en solape. Y la atención: contra la ablación que
+  el 48 publicó sobre sus 5.734 frases de test, lo picudo del mapa correlaciona
+  **exactamente 0,000** con la importancia; medido sobre las ocho frases de
+  ejemplo del fichero, +0,715. La página publica las dos y explica por qué.
+
+Tres arreglos de este módulo tocan páginas ya publicadas y conviene saberlo:
+`assets/styles/global.css` ya no fija `fill` ni `stroke` en `.chart-note` y
+`.chart-annotation` con una regla de clase, sino con `svg text.chart-note:not([fill])`,
+porque un atributo de presentación pierde contra cualquier regla CSS y **todas las
+leyendas de color del sitio se estaban dibujando en gris tinta**; `makeChart`
+devuelve ahora un `clear()` que vacía el lienzo sin desconectar el grupo
+recortado; y se subieron a 0,72rem los textos de `deep-learning-tables/` que a
+375px caían por debajo del suelo de 5px. Queda pendiente, y no es de este
+módulo: `detection/`, `deep-learning-tables/`, `ddpm/` y `latent-diffusion/` no
+exportan `window.__atlasCheck` ni `window.__atlasProseIds`. Los dos primeros son
+anteriores a la convención; los dos últimos sí corren sus guardias al cargar
+pero no los dejan accesibles desde fuera, y sin eso el arnés no puede
+dispararlos en cada estado de cada control (punto 58 de `verificacion.md`). Son
+dos líneas al final de su `main.js`.
+
 Los artículos 1 a 6 pasaron una **revisión completa** (commit `5e4852b`, 2026-07-25): auditoría estática en paralelo más un barrido en navegador de cada control, cada paso de scrolly y cada etiqueta a 1425px y 375px. 73 hallazgos aplicados. Todas las páginas tienen ahora `canonical` + Open Graph, los 20 sliders tienen `aria-label`, y cada cierre enlaza al siguiente artículo.
 
 Dos de esos hallazgos eran errores numéricos publicados: `polyFit` del artículo 1 formaba `X'X` (grado 9 daba r² test 0.681 en vez de 0.649, invirtiendo la moraleja) y el lasso del artículo 2 no convergía por debajo de λ=1e-3. Ver [la receta de un artículo](receta-de-articulo.md).
