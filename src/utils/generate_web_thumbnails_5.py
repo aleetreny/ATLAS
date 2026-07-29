@@ -15,6 +15,7 @@ Reglas heredadas de las tandas anteriores:
 Ejecutar desde cualquier sitio: `python src/utils/generate_web_thumbnails_5.py`.
 """
 import json
+import math
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -186,11 +187,68 @@ def thumb_bandits():
     write("bandits", body)
 
 
+# ---------------------------------------------------------------------------
+def thumb_thompson_ucb():
+    """Las cinco posteriores de Thompson tras mil tirones."""
+    accent = "#994591"
+    d = load("thompson-ucb", "ucb")
+    snap = d["snapshots"]["thompson"][str(d["snapshots"]["marks"][-1])]
+    alphas, betas = snap["alpha"], snap["beta"]
+
+    def log_gamma(z):
+        # Lanczos, suficiente para dibujar cinco densidades
+        g = [676.5203681218851, -1259.1392167224028, 771.32342877765313,
+             -176.61502916214059, 12.507343278686905, -0.13857109526572012,
+             9.9843695780195716e-06, 1.5056327351493116e-07]
+        if z < 0.5:
+            return math.log(math.pi / math.sin(math.pi * z)) - log_gamma(1 - z)
+        x = z - 1
+        a = 0.99999999999980993
+        tt = x + 7.5
+        for i, gi in enumerate(g):
+            a += gi / (x + i + 1)
+        return 0.5 * math.log(2 * math.pi) + (x + 0.5) * math.log(tt) - tt + math.log(a)
+
+    def pdf(x, a, b):
+        if x <= 0 or x >= 1:
+            return 0.0
+        lb = log_gamma(a) + log_gamma(b) - log_gamma(a + b)
+        return math.exp((a - 1) * math.log(x) + (b - 1) * math.log(1 - x) - lb)
+
+    pad, base = 28, 268
+    n = 160
+    curves, tops = [], []
+    for a, b in zip(alphas, betas):
+        ys = [pdf(i / n, a, b) for i in range(n + 1)]
+        tops.append(max(ys))
+        curves.append(ys)
+    top = max(tops)
+    px = lambda i: round(pad + (W - 2 * pad) * i / n)
+    py = lambda v: round(base - (base - 34) * v / top)
+    # La miniatura ensena que una posterior domina a las demas. Se afirma
+    # contra la mediana y no contra la segunda, porque dos maquinas parecidas
+    # tienen posteriores parecidas a proposito, y ademas se exige que la que
+    # domina sea la de la mejor maquina y no otra.
+    best = d["meta"]["arms"].index(max(d["meta"]["arms"]))
+    assert tops.index(max(tops)) == best, "la posterior mas alta no es la de la mejor maquina"
+    assert max(tops) / sorted(tops)[len(tops) // 2] > 1.4, "las posteriores salen iguales"
+    body = ""
+    for k, ys in enumerate(curves):
+        pts = " ".join(f"{px(i)},{py(v)}" for i, v in enumerate(ys))
+        lead = tops[k] == top
+        body += (f'  <polyline points="{pts}" fill="none" stroke="{accent}" '
+                 f'stroke-width="{4 if lead else 2}" opacity="{1 if lead else 0.45}" />\n')
+    body += (f'  <line x1="{pad}" y1="{base}" x2="{W - pad}" y2="{base}" '
+             f'stroke="{GREY}" stroke-width="1.5" />\n')
+    write("thompson-ucb", body)
+
+
 THUMBS = {
     "linear-programming": thumb_linear_programming,
     "genetic-algorithms": thumb_genetic_algorithms,
     "annealing-swarm": thumb_annealing_swarm,
     "bandits": thumb_bandits,
+    "thompson-ucb": thumb_thompson_ucb,
 }
 
 

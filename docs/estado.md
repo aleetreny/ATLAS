@@ -85,6 +85,7 @@ Este repositorio empezó como notebooks de ML y se está convirtiendo en una web
 | 59 | Breeding an Answer (cinco buscadores en cuatro paisajes con optimo conocido, la hipotesis de los bloques falsada barajando posiciones, presion de seleccion medida, viajante contra 2-opt) | `genetic-algorithms/` | `#995e45` |
 | 60 | The Right Way to Go Downhill (Metropolis contra la Boltzmann exacta con la pendiente del muestreo medida, seis horarios sobre las mismas 40 ciudades del 59, enjambre contra dos controles, region de estabilidad barrida) | `annealing-swarm/` | `#994573` |
 | 61 | What It Costs to Find Out (cinco politicas sobre 4.000 tiradas, epsilon barrido, la formula de explorar y comprometerse contra el barrido, la forma del arrepentimiento ajustada) | `bandits/` | `#5c293b` |
+| 62 | Knowing What You Do Not Know (cobertura de la cota contada, calibracion de la posterior medida, pendientes contra la constante exacta de Lai y Robbins, maquinas que cambian) | `thompson-ucb/` | `#994591` |
 
 Los artículos 1 a 6 pasaron una **revisión completa** (commit `5e4852b`, 2026-07-25): auditoría estática en paralelo más un barrido en navegador de cada control, cada paso de scrolly y cada etiqueta a 1425px y 375px. 73 hallazgos aplicados. Todas las páginas tienen ahora `canonical` + Open Graph, los 20 sliders tienen `aria-label`, y cada cierre enlaza al siguiente artículo.
 
