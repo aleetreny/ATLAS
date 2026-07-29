@@ -58,12 +58,19 @@ PORTADA = ROOT / "index.html"
 # distancia CIELAB. El peor de los catorce está a dE 15,5 del vecino más
 # cercano, que sigue siendo una diferencia que cualquiera ve. Cuando estos se
 # acaben, se repite ese barrido en vez de improvisar.
+# La tercera tanda (los cinco ultimos) sale de repetir ese barrido con los 57
+# acentos publicados Y la reserva entera como conjunto de partida, que es lo
+# que el parrafo de arriba manda hacer cuando se acaben. El peor de los cinco
+# esta a dE 15,9 de su vecino mas cercano, del mismo orden que el peor de la
+# tanda anterior (15,5). Hicieron falta porque una sesion escribio ocho
+# articulos de una vez y quedaban tres colores sin pedir.
 RESERVA = [
     "#1d4ed8", "#3f6212", "#7c2d12", "#134e4a", "#581c87", "#831843",
     "#164e63", "#713f12", "#3730a3", "#065f46", "#701a75", "#7f1d1d",
     "#3e295c", "#705e32", "#5c2938", "#853c6f", "#706b11", "#143b85",
     "#5c0e40", "#643c85", "#5c3e29", "#5c0e1d", "#0e5c29", "#3c4e85",
     "#853c43", "#851463",
+    "#945b43", "#473a04", "#056605", "#202c47", "#381a66",
 ]
 
 # El secundario de los artículos publicados es el primario a un 80% por canal:

@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>The Third Thing | ATLAS</title>
+  <meta name="description" content="Confounding and Simpson's paradox, measured against a world written in closed form: the bias has an exact formula, adjusting for the wrong variable creates bias out of nothing, and two graphs that produce the same data ask for opposite corrections." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/confounding/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="The Third Thing | ATLAS" />
+  <meta property="og:description" content="Every model so far predicted. This one asks what would happen if somebody intervened, which is a number no column contains." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/confounding/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="The Third Thing | ATLAS" />
+  <meta name="twitter:description" content="Every model so far predicted. This one asks what would happen if somebody intervened, which is a number no column contains." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    /* Per-article theme. Everything else inherits from these two. */
+    :root {
+      --primary: #202c47;
+      --secondary: #1a2339;
+    }
+  </style>
+</head>
+<body>
+  <!-- ======================= chrome ======================= -->
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <!-- ======================= hero ======================= -->
+  <section id="intro">
+    <h1 id="intro-hed">The Third Thing</h1>
+    <h1 id="intro-sub">Every model in this atlas so far has predicted. This one asks what would happen if somebody reached in and changed something, which is a number that no column contains</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 7.1 &middot; Causal Inference &middot; The Third Thing</span>
+  </section>
+
+  <br />
+
+  <!-- ======================= introduction ======================= -->
+  <section>
+    <p class="body-text" id="intro-predict">
+      Fifty-seven articles of this atlas have been about prediction.
+    </p>
+    <br />
+    <p class="body-text" id="intro-truth">
+      So the world here is written down rather than collected.
+    </p>
+    <br />
+    <p class="body-text" id="intro-machine">
+      Three lines, and one of them is the answer.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the machine ======================= -->
+  <section>
+    <h1 class="body-header">A Bias With A Formula</h1>
+    <p class="body-text" id="engine-intro">
+      The gap between the difference in means and the effect is not a mystery
+      to be discovered. It can be written down before any data exists.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="engine-widget">
+    <div class="controls-row">
+      <span class="slider-label">how strongly the hidden variable decides treatment: <span class="value" id="engine-alpha-label">1.2</span></span>
+      <input type="range" class="atlas-range" id="engine-alpha" aria-label="strength with which the hidden variable decides who is treated" min="0" max="9" step="1" value="5" />
+    </div>
+    <div class="controls-row" style="justify-content: center" id="engine-views"></div>
+    <div id="engine-chart"></div>
+    <div class="widget-readout" id="engine-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="engine-note">
+      The measured gap and the formula agree.
+    </p>
+    <br />
+    <p class="body-text" id="engine-strata">
+      Splitting the hidden variable into groups and comparing inside each group
+      is what everybody does when the confounder is measured.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the real reversal ======================= -->
+  <section>
+    <h1 class="body-header">A Reversal In Real Bottles</h1>
+    <p class="body-text" id="wine-intro">
+      Simpson's paradox is always introduced with the same famous table, which
+      makes it look like a museum piece.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="wine-widget">
+    <div class="controls-row" style="justify-content: center" id="wine-views"></div>
+    <div id="wine-chart"></div>
+    <div class="widget-readout" id="wine-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="wine-count">
+      One reversal is an anecdote. The question is how many there are.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= what adjusting costs ======================= -->
+  <section>
+    <h1 class="body-header">Three Ways The Correction Fails</h1>
+    <p class="body-text" id="cost-intro">
+      Adjusting for the confounder is the right move, and it is the move that
+      goes wrong in three different ways that all look the same from outside.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="cost-widget">
+    <div class="controls-row" style="justify-content: center" id="cost-views"></div>
+    <div id="cost-chart"></div>
+    <div class="widget-readout" id="cost-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="cost-collider">
+      The third one is the one that should worry anybody who has ever put every
+      available column into a regression.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= two worlds ======================= -->
+  <section>
+    <h1 class="body-header">Two Worlds, One Dataset</h1>
+    <p class="body-text" id="worlds-intro">
+      If adjusting can help and can hurt, the obvious question is how to tell
+      which situation you are in by looking at the data.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="worlds-widget">
+    <div class="controls-row" style="justify-content: center" id="worlds-views"></div>
+    <div id="worlds-chart"></div>
+    <div class="widget-readout" id="worlds-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="worlds-verdict">
+      The two worlds are not similar. They are identical, as far as the data
+      are concerned.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= verdict ======================= -->
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text">
+      Four ways of handling a third variable, and what each of them is actually
+      doing to the number you report.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>What you do</th>
+          <th>What it gives you</th>
+          <th>Measured here</th>
+          <th>Watch out for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">Compare the groups</span></td>
+          <td>The association, which answers a different question</td>
+          <td id="v-naive">Measured above.</td>
+          <td id="v-naive-watch">It is the right answer only when nothing decides treatment.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Adjust for the confounder</span></td>
+          <td>The effect, if you adjusted for the right thing and measured it well</td>
+          <td id="v-adjust">Measured above.</td>
+          <td id="v-adjust-watch">Coarse groups and noisy measurements both leave part of the bias behind.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Adjust for everything</span></td>
+          <td>Whatever the graph says it gives you</td>
+          <td id="v-collider">Measured above.</td>
+          <td id="v-collider-watch">A common effect of treatment and outcome creates bias where there was none.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Draw the graph first</span></td>
+          <td>A decision the data cannot make for you</td>
+          <td id="v-graph">Measured above.</td>
+          <td id="v-graph-watch">Two graphs can fit the same data and disagree about the answer.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="closing-1">
+      The uncomfortable part of this article is not the arithmetic.
+    </p>
+    <br />
+    <p class="body-text" id="closing-2">
+      Which leaves an obvious practical problem for the next article.
+    </p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! Everything above was measured rather than cited: the
+      synthetic world is written out in full so that the causal effect is a
+      parameter and not an estimate, the real reversal was found by searching
+      every pair of columns rather than picked to make a point, and the
+      permutation control was run so that the count means something, from
+      <code>src/utils/generate_confounding_data.py</code>.
+    </p>
+  </section>
+
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text" id="ref-note">
+      The bottles are the ones this atlas keeps reusing.
+    </p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://www.jstor.org/stable/2984065">[1] The Interpretation of Interaction in Contingency Tables</a><br />
+      (Simpson, E. H., Journal of the Royal Statistical Society B, 1951; the reversal, and the argument that the table alone cannot say which reading is right)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://academic.oup.com/biomet/article/82/4/669/251647">[2] Causal Diagrams for Empirical Research</a><br />
+      (Pearl, J., Biometrika, 1995; the backdoor criterion and the graphical language the last section is about)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://www.hsph.harvard.edu/miguel-hernan/causal-inference-book/">[3] Causal Inference: What If</a><br />
+      (Hern&aacute;n, M. A. &amp; Robins, J. M., 2020; the standard reference for adjustment, and for why conditioning on a collider is not a technicality)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://journals.lww.com/epidem/fulltext/1999/01000/the_birth_weight__paradox__uncovered_.9.aspx">[4] Collider Bias and the Birth Weight Paradox</a><br />
+      (Hern&aacute;ndez-D&iacute;az, S., Schisterman, E. F. &amp; Hern&aacute;n, M. A., American Journal of Epidemiology, 2006; the best known case of a real conclusion produced by adjusting for the wrong variable)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://archive.ics.uci.edu/dataset/109/wine">[5] Wine recognition data</a><br />
+      (Forina, M. et al., via UCI and scikit-learn; the 178 bottles and 13 chemical measurements, and the three cultivars used as the grouping variable)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>

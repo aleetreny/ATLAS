@@ -25,6 +25,67 @@ def _read_idx(path):
         return np.frombuffer(fh.read(), dtype=np.uint8).reshape(dims)
 
 
+# Los cuatro ficheros que componen cualquiera de los dos datasets, con el nombre
+# que torchvision les deja ya descomprimidos.
+_IDX_FILES = [
+    "train-images-idx3-ubyte", "train-labels-idx1-ubyte",
+    "t10k-images-idx3-ubyte", "t10k-labels-idx1-ubyte",
+]
+
+# De donde bajarlos sin torchvision. El formato IDX es el mismo fichero, asi
+# que los bytes que salen de aqui son identicos a los que deja torchvision y
+# ninguna cifra publicada se mueve por cambiar de camino.
+_MIRRORS = {
+    "MNIST": "https://raw.githubusercontent.com/fgnt/mnist/master/",
+    "FashionMNIST": ("https://raw.githubusercontent.com/zalandoresearch/"
+                     "fashion-mnist/master/data/fashion/"),
+}
+
+
+def _ensure_idx(nombre):
+    """Los IDX en `~/.atlas_vision_data/<nombre>/raw`, cueste lo que cueste.
+
+    torchvision primero, porque es lo que uso la maquina de referencia y no hay
+    razon para cambiarle el camino a nadie. Pero arrastra torch entero (unos 3
+    GB de ruedas CUDA que aqui no sirven para nada), y una sesion que solo
+    necesita los pixeles para medir sobre un modelo YA entrenado no deberia
+    pagar eso: si torchvision no esta, se bajan los cuatro .gz y se
+    descomprimen con la stdlib. Los bytes son los mismos.
+    """
+    raw = CACHE / nombre / "raw"
+    if (raw / _IDX_FILES[0]).exists():
+        return raw
+    CACHE.mkdir(parents=True, exist_ok=True)
+    try:
+        from torchvision import datasets
+
+        clase = getattr(datasets, nombre)
+        clase(str(CACHE), train=True, download=True)
+        clase(str(CACHE), train=False, download=True)
+        return raw
+    except ImportError:
+        pass
+
+    import gzip
+    import urllib.request
+
+    raw.mkdir(parents=True, exist_ok=True)
+    for fichero in _IDX_FILES:
+        destino = raw / fichero
+        if destino.exists():
+            continue
+        url = _MIRRORS[nombre] + fichero + ".gz"
+        with urllib.request.urlopen(url, timeout=120) as resp:
+            crudo = gzip.decompress(resp.read())
+        # A un temporal y luego rename, por lo mismo que los caches de los
+        # generadores: un corte a mitad de escritura no puede dejar un fichero
+        # a medias que la tirada siguiente lea como bueno.
+        tmp = destino.with_suffix(".part")
+        tmp.write_bytes(crudo)
+        tmp.replace(destino)
+    return raw
+
+
 def mnist():
     """(train_images, train_labels, test_images, test_labels), uint8.
 
@@ -32,13 +93,7 @@ def mnist():
     on first use, then reads the raw IDX files directly so nothing but numpy
     is needed afterwards.
     """
-    raw = CACHE / "MNIST" / "raw"
-    if not (raw / "train-images-idx3-ubyte").exists():
-        from torchvision import datasets
-
-        CACHE.mkdir(parents=True, exist_ok=True)
-        datasets.MNIST(str(CACHE), train=True, download=True)
-        datasets.MNIST(str(CACHE), train=False, download=True)
+    raw = _ensure_idx("MNIST")
     return (
         _read_idx(raw / "train-images-idx3-ubyte"),
         _read_idx(raw / "train-labels-idx1-ubyte"),
@@ -51,13 +106,7 @@ def fashion_mnist():
     """Zalando's drop-in replacement for MNIST: same 28x28 uint8 format, same
     ten classes, several times harder. The depth article needs a task where
     optimisation is the bottleneck, and handwritten digits are not one."""
-    raw = CACHE / "FashionMNIST" / "raw"
-    if not (raw / "train-images-idx3-ubyte").exists():
-        from torchvision import datasets
-
-        CACHE.mkdir(parents=True, exist_ok=True)
-        datasets.FashionMNIST(str(CACHE), train=True, download=True)
-        datasets.FashionMNIST(str(CACHE), train=False, download=True)
+    raw = _ensure_idx("FashionMNIST")
     return (
         _read_idx(raw / "train-images-idx3-ubyte"),
         _read_idx(raw / "train-labels-idx1-ubyte"),
