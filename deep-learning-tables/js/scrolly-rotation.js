@@ -286,7 +286,7 @@ export function initScrollyRotation() {
     .attr('class', 'chart-annotation')
     .attr('x', 0)
     .attr('y', 0)
-    .style('font-size', '0.62rem')
+    .style('font-size', '0.72rem')
     .text('held-out error');
 
   const countLeaves = (t) => leafRects(t).length;
@@ -312,7 +312,7 @@ export function initScrollyRotation() {
     .attr('class', 'chart-annotation')
     .attr('x', 0)
     .attr('y', 0)
-    .style('font-size', '0.6rem')
+    .style('font-size', '0.72rem')
     .style('text-transform', 'none')
     .text((d) => d.label);
   const rowVal = rowG
@@ -330,7 +330,7 @@ export function initScrollyRotation() {
      * it. Invisible on a desktop, a one-pixel collision at 375px. The row pitch
      * is 44, so there is room. */
     .attr('y', 34)
-    .style('font-size', '0.55rem')
+    .style('font-size', '0.72rem')
     .style('text-transform', 'none')
     .attr('opacity', 0.7);
 

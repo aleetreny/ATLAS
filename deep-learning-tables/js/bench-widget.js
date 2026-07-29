@@ -156,7 +156,7 @@ export function initBenchWidget(data) {
           .append('text')
           .attr('class', 'chart-annotation')
           .attr('x', w + 12)
-          .style('font-size', '0.6rem')
+          .style('font-size', '0.72rem')
           .style('text-transform', 'none')
       )
       /* The linear family is drawn in --stone so its dot reads as a baseline,

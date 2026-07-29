@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>The Posterior You Can Actually Draw | ATLAS</title>
+  <meta name="description" content="A neural network with three weights, whose exact posterior is computed by brute force over a grid, so that six approximations people actually use can be marked against the right answer instead of against each other." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/bayesian-nets/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="The Posterior You Can Actually Draw | ATLAS" />
+  <meta property="og:description" content="Three weights is small enough that the integral nobody can do becomes a sum anybody can. Then every approximation has an answer key." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/bayesian-nets/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="The Posterior You Can Actually Draw | ATLAS" />
+  <meta name="twitter:description" content="Three weights is small enough that the integral nobody can do becomes a sum anybody can. Then every approximation has an answer key." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    /* Per-article theme. Everything else inherits from these two. */
+    :root {
+      --primary: #381a66;
+      --secondary: #2c1451;
+    }
+  </style>
+</head>
+<body>
+  <!-- ======================= chrome ======================= -->
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <!-- ======================= hero ======================= -->
+  <section id="intro">
+    <h1 id="intro-hed">The Posterior You Can Actually Draw</h1>
+    <h1 id="intro-sub">Every approximate posterior is compared against other approximate posteriors, because the real one is an integral nobody can do. Make the network small enough and it becomes a sum, and then there is an answer key</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 7.2 &middot; Uncertainty &middot; The Posterior You Can Actually Draw</span>
+  </section>
+
+  <br />
+
+  <!-- ======================= introduction ======================= -->
+  <section>
+    <p class="body-text" id="intro-why">
+      A Bayesian neural network is a simple idea with an impossible integral in
+      the middle of it.
+    </p>
+    <br />
+    <p class="body-text" id="intro-model">
+      So here is a network small enough that the integral is a sum.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the exact posterior ======================= -->
+  <section>
+    <h1 class="body-header">The Whole Posterior, By Brute Force</h1>
+    <p class="body-text" id="exact-intro">
+      The recipe is the one from the textbook, run without any of the
+      approximations the textbook then spends four chapters on.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="exact-widget">
+    <div class="controls-row" style="justify-content: center" id="exact-views"></div>
+    <div id="exact-chart"></div>
+    <div class="widget-readout" id="exact-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="exact-gap">
+      And the shape of that band is the first result, because it is not the
+      shape the phrase everybody uses would lead you to draw.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= chains ======================= -->
+  <section>
+    <h1 class="body-header">A Second Opinion That Disagrees In One Place</h1>
+    <p class="body-text" id="chains-intro">
+      A grid is not how anybody computes a posterior, so before this one is used
+      as an answer key it is worth checking against the method that is.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="chains-widget">
+    <div class="controls-row" style="justify-content: center" id="chains-views"></div>
+    <div id="chains-chart"></div>
+    <div class="widget-readout" id="chains-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="chains-note">
+      Where the disagreement is, and why, is the useful part.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the approximations ======================= -->
+  <section>
+    <h1 class="body-header">Six Ways To Not Do The Integral</h1>
+    <p class="body-text" id="approx-intro">
+      Now the part that needs an answer key. These are the things people
+      actually run.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="approx-widget">
+    <div class="controls-row" style="justify-content: center" id="approx-views"></div>
+    <div id="approx-chart"></div>
+    <div class="widget-readout" id="approx-readout"></div>
+  </div>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table" id="approx-table">
+      <thead>
+        <tr>
+          <th>Method</th>
+          <th>Distance to the exact predictive</th>
+          <th>Fraction of the right spread, in the gap</th>
+          <th>Fraction of the right spread, outside</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="approx-ensemble">
+      One row of that table is worth stopping on, because it is the row that
+      contradicts the reason people reach for the method.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= the prior ======================= -->
+  <section>
+    <h1 class="body-header">The Assumption Nobody Reports</h1>
+    <p class="body-text" id="prior-intro">
+      Every number on this page depends on a choice that is almost never
+      mentioned when a Bayesian network is presented.
+    </p>
+  </section>
+
+  <div class="interactive-full" id="prior-widget">
+    <div class="controls-row" style="justify-content: center" id="prior-views"></div>
+    <div id="prior-chart"></div>
+    <div class="widget-readout" id="prior-readout"></div>
+  </div>
+
+  <section>
+    <p class="body-text" id="prior-note">
+      Read those two columns against each other and the prior turns out to be
+      two different things at once.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ======================= verdict ======================= -->
+  <section>
+    <h1 class="body-header">The Verdict</h1>
+    <p class="body-text">
+      What each method is actually giving you, once there is something to check
+      it against.
+    </p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>Method</th>
+          <th>What it costs</th>
+          <th>What it gets right</th>
+          <th>What it gets wrong</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">A single best fit</span></td>
+          <td id="v-map-cost">One optimisation.</td>
+          <td id="v-map-good">Measured above.</td>
+          <td id="v-map-bad">Measured above.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Laplace</span></td>
+          <td id="v-lap-cost">One optimisation and one Hessian.</td>
+          <td id="v-lap-good">Measured above.</td>
+          <td id="v-lap-bad">Measured above.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Ensembles</span></td>
+          <td id="v-ens-cost">Eight optimisations.</td>
+          <td id="v-ens-good">Measured above.</td>
+          <td id="v-ens-bad">Measured above.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Mean field VI</span></td>
+          <td id="v-vi-cost">One optimisation over twice as many parameters.</td>
+          <td id="v-vi-good">Measured above.</td>
+          <td id="v-vi-bad">Measured above.</td>
+        </tr>
+        <tr>
+          <td><span class="bold">Sampling</span></td>
+          <td id="v-mc-cost">Thousands of passes.</td>
+          <td id="v-mc-good">Measured above.</td>
+          <td id="v-mc-bad">Measured above.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="closing-1">
+      The honest summary of this page is shorter than the page.
+    </p>
+    <br />
+    <p class="body-text" id="closing-2">
+      The next article keeps the model and throws away the uncertainty.
+    </p>
+    <br />
+    <p class="body-text">
+      Thanks for reading! Everything above was measured rather than cited: the
+      posterior is a sum over a cube of grid points evaluated in full, the
+      chains are Metropolis with a measured acceptance rate, and each
+      approximation was fitted here and scored against that sum, from
+      <code>src/utils/generate_bayesnets_data.py</code>.
+    </p>
+  </section>
+
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
+    <p class="body-text" id="ref-note">
+      The model is deliberately the smallest thing that is still a neural
+      network.
+    </p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://www.cs.toronto.edu/~radford/bnn.book.html">[1] Bayesian Learning for Neural Networks</a><br />
+      (Neal, R. M., Springer, 1996; the thesis that started this, and the source of the observation that a wide prior on a single hidden layer is a Gaussian process)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1505.05424">[2] Weight Uncertainty in Neural Networks</a><br />
+      (Blundell, C. et al., ICML, 2015; mean field variational inference for weights, the fourth row of the table)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1612.01474">[3] Simple and Scalable Predictive Uncertainty Estimation using Deep Ensembles</a><br />
+      (Lakshminarayanan, B. et al., NeurIPS, 2017; the method whose row here is the one worth arguing with)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://www.stats.ox.ac.uk/~teh/research/compstats/WelTeh2011a.pdf">[4] Bayesian Learning via Stochastic Gradient Langevin Dynamics</a><br />
+      (Welling, M. &amp; Teh, Y. W., ICML, 2011; gradient descent with the right amount of noise added, and the best of the cheap rows)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/2002.08791">[5] How Good is the Bayes Posterior in Deep Neural Networks Really?</a><br />
+      (Wenzel, F. et al., ICML, 2020; the reason the last section of this page exists)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
+  </section>
+</body>
+</html>

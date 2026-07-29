@@ -192,3 +192,60 @@ se encuentra a sí mismo y el bucle es infinito. Se encadena con `;` en un solo
 `sh -c`, o se busca el patrón con `pgrep -f "python3 -u src/utils/generate_..."`,
 que no coincide con el shell que espera.
 
+
+## Trampa 31: dos generadores del mismo artículo a la vez
+
+Un `sh -c` encadenado se lanzó dos veces por descuido y salieron dos procesos
+corriendo `generate_bayesnets_data.py` en paralelo, los dos redirigiendo a
+`/tmp/bayes.log` con `>` y los dos escribiendo el mismo directorio de caché.
+El log queda ilegible (cada proceso mantiene su propio desplazamiento sobre un
+fichero que el otro truncó) y las dos tiradas compiten por la CPU haciendo el
+mismo trabajo. Antes de relanzar algo largo:
+
+```
+ps -eo pid,etime,cmd | grep "[g]enerate_<tema>_data"
+```
+
+Y si hay que matar, **por PID**, nunca `pkill -f` (trampa 30): `pkill -f` se
+llevó por delante el shell padre y con él dos cadenas de generación que no
+tenían nada que ver con el patrón buscado.
+
+## Trampa 32: un `NaN` en el JSON deja la página muda, no rota
+
+`json.dumps` escribe el literal `NaN` sin protestar, y eso no es JSON válido.
+El navegador lanza al parsear, la promesa del `fetch` revienta, y como todo el
+arranque vive dentro de ese `then`, la página se queda **sin prosa numérica y
+sin guardia**: se ve entera, con los textos de relleno del HTML, y no hay un
+solo error en el sitio donde está el fallo. Lo caza el barrido de prosa (los
+identificadores de `PROSE_IDS` siguen diciendo lo que decía el HTML) y lo evita
+`allow_nan=False` en todos los `json.dumps`, que convierte el fallo silencioso
+del navegador en una excepción del generador.
+
+## Trampa 33: el desbordamiento se mide con `scrollWidth`, no sumando hijos
+
+La primera versión del guardia de filas de controles sumaba el ancho de los
+hijos y lo comparaba con el de la fila. Daba 13 hallazgos sobre dos artículos
+publicados y limpios, porque una fila con `flex-wrap` reparte en varias líneas
+y la suma no significa nada. Lo que hay que mirar es `scrollWidth >
+clientWidth` en la fila, y aparte el scroll horizontal del documento entero.
+
+## Trampa 34: un guardia bien programado y mal planteado
+
+Tres guardias de este módulo dispararon sobre datos correctos, y en los tres
+casos el arreglo era el enunciado y no el número:
+
+- "la cuadratura tiene que coincidir con las cadenas de Metropolis a 0,01"
+  daba 0,12, y el peor desacuerdo caía justo en el hueco entre datos, donde la
+  desviación predictiva vale 0,61 y las cuatro cadenas se separan entre ellas
+  0,19. Lo que se puede exigir es coincidencia donde hay datos, y que la
+  cuadratura caiga dentro de la banda entre cadenas.
+- "mi ablación por cabeza tiene que coincidir con la publicada" disparaba en
+  cinco cabezas de ocho, porque aquí se mide sobre las 95 etiquetas del
+  fichero de ejemplo y allí sobre 5.734 frases de test. El desacuerdo era el
+  resultado del artículo.
+- un guardia a 1e-6 sobre una suma de diez valores exportados con seis
+  decimales dispara siempre: el suelo de esa comparación es 5e-6. La tolerancia
+  se calcula con los decimales que se escribieron.
+
+Antes de tocar el dato, comprobar que el guardia pide algo que el experimento
+puede dar.

@@ -40,7 +40,7 @@ export function initRotationWidget(data) {
     legend.append('rect').attr('x', d.dx).attr('y', -9).attr('width', 10).attr('height', 10)
       .attr('fill', d.colour).attr('stroke', 'var(--squidink)').attr('stroke-width', 0.8);
     legend.append('text').attr('class', 'chart-annotation').attr('x', d.dx + 15).attr('y', 0)
-      .style('font-size', '0.58rem').style('text-transform', 'none').text(d.label);
+      .style('font-size', '0.72rem').style('text-transform', 'none').text(d.label);
   });
 
   function render() {
@@ -86,7 +86,7 @@ export function initRotationWidget(data) {
     labelG
       .selectAll('text')
       .data(items, (d) => d.key)
-      .join((e) => e.append('text').attr('class', 'chart-annotation').style('font-size', '0.6rem').style('text-transform', 'none'))
+      .join((e) => e.append('text').attr('class', 'chart-annotation').style('font-size', '0.72rem').style('text-transform', 'none'))
       .attr('fill', (d) => (d.colour === 'var(--stone)' ? 'var(--squidink)' : d.colour))
       .transition()
       .duration(360)

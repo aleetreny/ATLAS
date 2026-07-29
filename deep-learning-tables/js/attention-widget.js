@@ -98,7 +98,7 @@ export function initAttentionWidget(data) {
       .attr('class', 'chart-annotation')
       .attr('x', d.dx + 16)
       .attr('y', 0)
-      .style('font-size', '0.6rem')
+      .style('font-size', '0.72rem')
       .style('text-transform', 'none')
       .text(d.label);
   });
@@ -134,7 +134,7 @@ export function initAttentionWidget(data) {
     zeroTags
       .selectAll('text')
       .data(feats.map((f, i) => ({ name: f.name, off: sp[i] === 0 })))
-      .join((e) => e.append('text').attr('class', 'chart-annotation').attr('text-anchor', 'middle').style('font-size', '0.55rem').attr('fill', 'var(--cosmos)'))
+      .join((e) => e.append('text').attr('class', 'chart-annotation').attr('text-anchor', 'middle').style('font-size', '0.72rem').attr('fill', 'var(--cosmos)'))
       .attr('x', (d) => x(d.name) + inner * 1.5)
       .attr('y', h - 5)
       .text((d) => (d.off ? 'off' : ''));

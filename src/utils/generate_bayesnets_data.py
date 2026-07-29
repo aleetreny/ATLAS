@@ -437,18 +437,31 @@ def stage_prior_functions():
     return dict(rows=rows, xs=r(xs, 4), draws=r(net(S, xs), 4), scale=PRIOR)
 
 
-def stage_prior_sweep(x, y, xs):
-    """Y cuánto mueve la respuesta cambiar esa escala."""
+def stage_prior_sweep(x, y, xs, base):
+    """Y cuánto mueve la respuesta cambiar esa escala.
+
+    Cada brazo es una cuadratura entera sobre el mismo cubo, o sea veinte
+    minutos, así que se cachean **uno a uno** y el brazo que coincide con el
+    PRIOR del artículo reutiliza la posterior que ya se calculó. Con el barrido
+    cacheado como una sola pieza, una interrupción a la tercera vuelta costaba
+    las tres.
+
+    Ojo: `TAG` se fija al importar, con el PRIOR del artículo, así que no
+    distingue los brazos. El nombre del caché lleva la escala explícita.
+    """
     global PRIOR
     keep = PRIOR
     rows = []
     for scale in [0.5, 1.0, 3.0, 6.0]:
-        PRIOR = scale
-        ex = stage_exact(x, y, xs)
+        if scale == keep:
+            ex = base
+        else:
+            PRIOR = scale
+            ex = cached(f"exact_prior{scale}", lambda: stage_exact(x, y, xs))
+            PRIOR = keep
         rows.append(dict(scale=scale, log_evidence=float(ex["log_evidence"]),
                          sd_in=float(ex["pred_sd"][2]), sd_gap=float(ex["pred_sd"][len(xs) // 2]),
                          sd_out=float(ex["pred_sd"][-1])))
-    PRIOR = keep
     return rows
 
 
@@ -458,6 +471,15 @@ def main():
     x, y = make_data(rng)
     xs = np.linspace(-4.0, 4.0, 81)
     inside = (xs >= X_LO) & (xs <= X_HI)
+    # El hueco se lee de los datos, no se escribe: es el trozo entre el último
+    # punto de la izquierda y el primero de la derecha. Hace falta aquí arriba
+    # porque el hueco cae DENTRO del rango de los datos, y "donde hay datos"
+    # sin quitarlo no quiere decir lo que parece.
+    lo_gap = float(x[x < 0].max())
+    hi_gap = float(x[x > 0].min())
+    gap = (xs > lo_gap) & (xs < hi_gap)
+    far = ~inside
+    on = inside & ~gap
 
     exact = cached("exact", lambda: stage_exact(x, y, xs))
     print(f"  exact posterior: mass {exact['mass']:.6e}, "
@@ -472,15 +494,45 @@ def main():
           f"worst sd {worst_sd:.5f}, acceptance "
           f"{np.mean([c['rate'] for c in chains]):.3f}")
 
+    # Ese 0,12 de peor caso NO es un fallo, y el guardia que decía `worst <
+    # 0.01` estaba mal planteado. Medido: fuera del hueco las cadenas y la
+    # cuadratura coinciden a 0,0125, y TODO el desacuerdo está en el hueco, con
+    # el máximo en x = +0,10, donde la desviación predictiva vale 0,99 y las
+    # cuatro cadenas se separan ENTRE ELLAS 0,18. Ahí no hay nada que
+    # reproducir a tres decimales.
+    #
+    # Y se ve por qué en las medias de cada cadena: dos se quedaron en w = +3,5
+    # y dos en w = -3,6. La posterior tiene dos modos que dan LA MISMA función
+    # (cambiar el signo de w, b y v deja v·tanh(wx+b) igual), así que donde los
+    # datos mandan da igual en cuál se sentó cada cadena; en el hueco, donde lo
+    # que manda es la cola de la posterior, no da igual.
+    cm = np.array([c["mean"] for c in chains])
+    tight = float(np.abs(cm[:, on] - exact["pred_mean"][on]).max())
+    spread = float((cm.max(0) - cm.min(0)).max())
+    excursion = float(np.maximum(np.maximum(cm.min(0) - exact["pred_mean"],
+                                            exact["pred_mean"] - cm.max(0)), 0).max())
+    outside_band = int(((exact["pred_mean"] < cm.min(0) - 1e-9)
+                        | (exact["pred_mean"] > cm.max(0) + 1e-9)).sum())
+    worst_at = float(xs[np.abs(cm - exact["pred_mean"]).max(0).argmax()])
+    print(f"  outside the gap, chains and quadrature agree to {tight:.5f}; the worst "
+          f"disagreement is {worst:.5f} at x = {worst_at:+.2f}, inside the gap "
+          f"({lo_gap:+.2f} to {hi_gap:+.2f}), where the four chains already disagree "
+          f"with each other by {spread:.5f}")
+
     approx = cached("approx", lambda: stage_approx(x, y, xs, exact))
     labels = dict(map="a single best fit (MAP)", laplace="Laplace around the MAP",
                   ensemble="ensemble of eight, same data",
                   bootstrap="ensemble of eight, resampled data",
                   vi="mean field VI", sgld="SGLD")
+    # Un nombre para la prosa y otro para el eje de un gráfico de barras. Sin el
+    # corto, "ensemble of eight, resampled data" se sale del lienzo por 210
+    # unidades y ningún margen izquierdo razonable lo arregla.
+    short = dict(map="one best fit", laplace="Laplace", ensemble="ensemble, same data",
+                 bootstrap="ensemble, resampled", vi="mean field VI", sgld="SGLD")
     rows = []
     for k, (mean, sd, dens, th) in approx.items():
         s = score(exact, mean, sd, dens, xs, inside)
-        rows.append(dict(key=k, label=labels[k], **s))
+        rows.append(dict(key=k, label=labels[k], short=short[k], **s))
         print(f"    {labels[k]:<26} TV in {s['tv_in']:.4f} out {s['tv_out']:.4f}  "
               f"sd ratio in {s['sd_ratio_in']:.3f} out {s['sd_ratio_out']:.3f}")
 
@@ -490,13 +542,6 @@ def main():
     # aplanan en el mismo sitio y el modelo esta MAS seguro. Donde crece es en
     # el hueco del medio, que es lo que este dataset tiene y casi ningun
     # ejemplo de libro dibuja.
-    # El hueco se lee de los datos, no se escribe: es el trozo entre el último
-    # punto de la izquierda y el primero de la derecha.
-    lo_gap = float(x[x < 0].max())
-    hi_gap = float(x[x > 0].min())
-    gap = (xs > lo_gap) & (xs < hi_gap)
-    far = ~inside
-    on = inside & ~gap
     regions = dict(
         on_data=float(exact["pred_sd"][on].mean()),
         in_gap=float(exact["pred_sd"][gap].mean()),
@@ -508,9 +553,16 @@ def main():
           f"{regions['far']:.4f} ({far_ratio:.2f} times)")
 
     priors = cached("prior_funcs", stage_prior_functions)
-    sweep = cached("prior_sweep", lambda: stage_prior_sweep(x, y, xs))
+    sweep = cached("prior_sweep", lambda: stage_prior_sweep(x, y, xs, exact))
 
-    assert worst < 0.01, "la cuadratura y las cadenas no coinciden"
+    assert tight < 0.02, \
+        f"fuera del hueco la cuadratura y las cadenas tendrían que coincidir, y difieren {tight}"
+    assert lo_gap < worst_at < hi_gap, \
+        f"el peor desacuerdo cae en x = {worst_at}, fuera del hueco, y la página dice que está dentro"
+    assert worst < spread, \
+        "la cuadratura se aleja de las cadenas más de lo que las cadenas se alejan entre sí"
+    assert excursion < 0.05 * regions["in_gap"], \
+        f"la cuadratura se sale de la banda entre cadenas por {excursion}, que no es un margen"
     assert abs(exact["mean_theta"][0]) < 1e-9 and abs(exact["mean_theta"][2]) < 1e-9, \
         "la simetría de la posterior no sale exacta y esa sección la afirma"
     assert growth > 1.2, "la incertidumbre exacta no crece en el hueco"
@@ -550,7 +602,11 @@ def main():
         chains=[dict(rate=r(c["rate"]), n=c["n"],
                      mean=r(c["mean"], 5), sd=r(c["sd"], 5),
                      theta_mean=r(c["theta_mean"], 5)) for c in chains],
-        chain_worst=dict(mean=r(worst, 6), sd=r(worst_sd, 6)),
+        chain_worst=dict(mean=r(worst, 6), sd=r(worst_sd, 6), tight=r(tight, 6),
+                         spread=r(spread, 6), outside_band=outside_band,
+                         excursion=r(excursion, 6), worst_at=r(worst_at, 4),
+                         n_points=len(xs)),
+        chain_curves=[r(c["mean"], 5) for c in chains],
         approx=dict(rows=[{k: (v if isinstance(v, str) else r(v))
                            for k, v in row.items()} for row in rows],
                     curves={k: dict(mean=r(v[0], 5), sd=r(v[1], 5), theta=r(v[3], 5))

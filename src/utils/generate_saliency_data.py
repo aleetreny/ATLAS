@@ -83,6 +83,14 @@ N_IMAGES = 300          # escenas puntuadas
 N_OCCLUSION = 150       # las que además pagan el barrido de oclusión
 TAG = f"n{N_IMAGES}o{N_OCCLUSION}s{SEED}"
 
+# Los nombres que se leen en la página. Fuera del caché a propósito: el TAG no
+# los cubre, así que si vivieran dentro, corregir una palabra obligaría a
+# repetir la oclusión o dejaría el JSON diciendo lo viejo para siempre.
+LABELS = dict(gradient="plain gradient", grad_input="gradient times input",
+              gradcam="Grad-CAM on the last block",
+              occlusion="occlusion, 8 by 8 patches",
+              input="the input image itself", random="smooth noise")
+
 
 def cached(name, fn):
     CACHE.mkdir(parents=True, exist_ok=True)
@@ -517,11 +525,8 @@ def stage_scores(det, scenes, targets):
             for k, v in s.items():
                 acc[m][k].append(v)
     rows = []
-    labels = dict(gradient="plain gradient", grad_input="gradient times input",
-                  gradcam="Grad-CAM on the last block", occlusion="occlusion, 8x8 patches",
-                  input="the input image itself", random="smooth noise")
     for m in methods:
-        rows.append(dict(key=m, label=labels[m], n=len(acc[m]["pointing"]),
+        rows.append(dict(key=m, label=LABELS[m], n=len(acc[m]["pointing"]),
                          **{k: float(np.mean(v)) for k, v in acc[m].items()},
                          **{f"{k}_se": float(np.std(v, ddof=1) / np.sqrt(len(v)))
                             for k, v in acc[m].items()}))
@@ -673,19 +678,35 @@ def stage_attention():
     d = enc.data
     sents = enc.sentences
 
+    # Las etiquetas de oro vienen como NOMBRES de categoría, no como índices, y
+    # comparar un entero con una cadena en numpy no falla: devuelve False en
+    # todas las posiciones, o sea exactitud cero, que es exactamente el aspecto
+    # de un modelo mal reconstruido. Se traducen por la misma lista de
+    # etiquetas que el fichero publica.
+    tag_index = {name: k for k, name in enumerate(enc.tags)}
+    gold_of = lambda s: np.array([tag_index[g] for g in s["gold"]])
+
     # Primero: el modelo reconstruido tiene que acertar lo que el 48 dice que
     # acierta en SUS frases de ejemplo, o no es su modelo.
     ok, tot = 0, 0
     for s in sents:
         logits, _ = enc.forward(s["ids"])
-        ok += int((logits.argmax(1) == np.array(s["gold"])).sum())
+        ok += int((logits.argmax(1) == gold_of(s)).sum())
         tot += len(s["gold"])
     demo_acc = ok / tot
 
-    # La importancia medida por ablación, aquí y en el fichero del 48.
-    # El artículo 48 publica la caída de exactitud como `drop`, positiva. Lo
-    # que se mide aquí es la misma cantidad con el signo de una diferencia, así
-    # que se guarda tal cual y se compara en valor absoluto.
+    # La importancia por ablación, en dos resoluciones muy distintas.
+    #
+    # El 48 publica la caída de exactitud (`drop`, positiva) medida sobre sus
+    # 5.734 frases de test. Aquí sólo hay las ocho frases de ejemplo que el
+    # fichero publica, 95 etiquetas, así que la ablación medida en esta página
+    # sólo puede moverse en múltiplos de 1/95 = 0,0105 y las caídas publicadas
+    # valen entre 0,0005 y 0,031: por debajo de la resolución.
+    #
+    # Esto empezó siendo un guardia ("mi ablación tiene que coincidir con la
+    # suya") y disparó en cinco cabezas de ocho. Tenía razón: la de 95 fichas
+    # no mide lo mismo. La comparación se queda, pero como resultado, porque la
+    # correlación con una y con otra sale del derecho y del revés.
     published = {(row["layer"], row["head"]): row["drop"]
                  for row in d["ablation"]["rows"]}
     mine = {}
@@ -694,7 +715,7 @@ def stage_attention():
             good = 0
             for s in sents:
                 logits, _ = enc.forward(s["ids"], drop=(L, hd))
-                good += int((logits.argmax(1) == np.array(s["gold"])).sum())
+                good += int((logits.argmax(1) == gold_of(s)).sum())
             mine[(L, hd)] = good / tot - demo_acc
 
     # Y los estadísticos del mapa que la gente mira: entropía, cuánto se mira a
@@ -714,9 +735,17 @@ def stage_attention():
                          entropy=float(np.mean(ents)), self=float(np.mean(selfs)),
                          previous=float(np.mean(neigh)), peak=float(np.mean(maxw)),
                          published=(published.get((L, hd)) if published else None)))
-    imp = np.array([-row["ablation"] for row in rows])
-    corrs = {k: float(spearmanr([row[k] for row in rows], imp).statistic)
-             for k in ["entropy", "self", "previous", "peak"]}
+    # `corrs` es contra la medición publicada, que es la buena. `corrs_small`
+    # es contra la de ocho frases, y está para enseñar hasta dónde se llega
+    # midiendo la importancia con lo que cabe en un fichero de ejemplo.
+    stats = ["entropy", "self", "previous", "peak"]
+    imp = np.array([published[(row["layer"], row["head"])] for row in rows])
+    small = np.array([-row["ablation"] for row in rows])
+    corrs = {k: float(spearmanr([row[k] for row in rows], imp).statistic) for k in stats}
+    corrs_small = {k: float(spearmanr([row[k] for row in rows], small).statistic)
+                   for k in stats}
+    assert len(set(np.round(small, 6))) < len(rows), \
+        "la ablación de ocho frases distingue las ocho cabezas, y entonces no hay empates"
 
     # "La atención no es una explicación", en su forma medible: buscar otra
     # distribución muy distinta que deje la salida casi igual.
@@ -740,11 +769,13 @@ def stage_attention():
                         logit_shift=float(np.abs(lo - logits).max()))
     return dict(
         demo_acc=demo_acc, tokens=tot, sentences=len(sents),
-        published_acc=d["acc"], rows=rows, corrs=corrs,
-        worst_head=min(rows, key=lambda rr: rr["ablation"]),
+        published_acc=d["acc"], rows=rows, corrs=corrs, corrs_small=corrs_small,
+        published_n=d["meta"]["test_sents"], published_base=d["ablation"]["base"],
+        top_head=max(rows, key=lambda rr: published[(rr["layer"], rr["head"])]),
+        top_peak=max(rows, key=lambda rr: rr["peak"]),
         adversarial=best,
         example=dict(words=[enc.words[i] for i in sents[0]["ids"]],
-                     gold=[enc.tags[g] for g in sents[0]["gold"]],
+                     gold=list(sents[0]["gold"]),
                      attn={f"{L}-{hd}": r(enc.forward(sents[0]["ids"])[1][(L, hd)], 5)
                            for L in range(enc.layers) for hd in range(enc.heads)}),
     )
@@ -802,8 +833,10 @@ def main():
     att = cached("attention", stage_attention)
     print(f"  encoder rebuilt: {att['demo_acc']:.4f} on the demo sentences "
           f"({att['tokens']} tokens); published overall {att['published_acc']:.4f}")
-    print(f"  map statistic vs measured importance: " +
+    print(f"  map statistic vs the drop published over {att['published_n']} test sentences: " +
           ", ".join(f"{k} {v:+.3f}" for k, v in att["corrs"].items()))
+    print(f"  the same against the ablation these {att['sentences']} sentences can resolve: " +
+          ", ".join(f"{k} {v:+.3f}" for k, v in att["corrs_small"].items()))
     if att["adversarial"]:
         print(f"  a head's attention can be moved {att['adversarial']['tv']:.3f} "
               f"in total variation with every tag unchanged")
@@ -825,18 +858,26 @@ def main():
                              canvases=int(len(scenes["canvas"]))),
                   score="the objectness logit plus the class logit, at one cell "
                         "and one anchor"),
+        # Las etiquetas se vuelven a poner aquí y no se leen del caché: viven
+        # en LABELS, y una corrección de redacción no puede obligar a repetir
+        # la pasada de oclusión, que es la cara.
         scores=dict(n=scores["n"], occlusion_n=scores["occlusion_n"],
-                    rows=[{k: (v if isinstance(v, (str, int)) else r(v))
-                           for k, v in row.items()} for row in scores["rows"]]),
+                    rows=[{**{k: (v if isinstance(v, (str, int)) else r(v))
+                              for k, v in row.items()},
+                           "label": LABELS[row["key"]]} for row in scores["rows"]]),
         depth=[{k: r(v) for k, v in row.items()} for row in depth],
         identity={k: r(v) for k, v in ident.items()},
         sanity=[{k: r(v) for k, v in row.items()} for row in sanity],
         attention=dict(
             demo_acc=r(att["demo_acc"]), tokens=att["tokens"],
             sentences=att["sentences"], published_acc=r(att["published_acc"]),
+            published_n=int(att["published_n"]), published_base=r(att["published_base"]),
+            top_head=dict(layer=att["top_head"]["layer"], head=att["top_head"]["head"]),
+            top_peak=dict(layer=att["top_peak"]["layer"], head=att["top_peak"]["head"]),
             rows=[{k: (v if isinstance(v, int) or v is None else r(v))
                    for k, v in row.items()} for row in att["rows"]],
             corrs={k: r(v) for k, v in att["corrs"].items()},
+            corrs_small={k: r(v) for k, v in att["corrs_small"].items()},
             adversarial=({k: r(v) for k, v in att["adversarial"].items()}
                          if att["adversarial"] else None),
             example=att["example"]),
