@@ -58,7 +58,20 @@ PORTADA = ROOT / "index.html"
 # que alguien puso una vez) y va cogiendo, uno a uno, el candidato que más lejos
 # queda en distancia CIELAB de todo lo aceptado hasta ese momento, contando como
 # ocupado tanto lo publicado como lo que pintan las ramas sin mergear.
+#
+# Y la rejilla de candidatos importa más de lo que parece. Con 78 artículos
+# publicados, el barrido grueso original (tono de 3 en 3, tres saturaciones y
+# cuatro valores: 1.440 candidatos antes de filtrar por luminosidad) solo
+# encontraba **dos** colores por encima de dE 12, y eso se lee como "el espacio
+# de acentos oscuros se ha agotado". No se había agotado: afinando la rejilla al
+# mismo rango (tono de 1 en 1, siete saturaciones y nueve valores) salen diez
+# colores y el peor está a dE 13,7. Lo que se había agotado era la búsqueda. El
+# coste de afinar es una pasada sobre 15.000 candidatos, que se paga una vez
+# porque las distancias se llevan en un acumulador en vez de recalcularse.
 DE_MINIMO = 12.0            # por debajo de esto dos acentos empiezan a parecerse
+TONOS = range(0, 360)
+SATURACIONES = (0.45, 0.55, 0.62, 0.70, 0.78, 0.85, 0.92)
+VALORES = (0.32, 0.36, 0.40, 0.44, 0.48, 0.52, 0.56, 0.60, 0.64)
 
 
 def _srgb_lin(c):
@@ -94,28 +107,40 @@ def acentos_libres(usados, n):
     else:
         ls = sorted(lab(c)[0] for c in usados)
         lo_l, hi_l = ls[0], ls[len(ls) // 2] + 10   # de lo más oscuro a la mediana
-    cands = []
-    for h in range(0, 360, 3):
-        for s in (0.55, 0.70, 0.85):
-            for v in (0.36, 0.44, 0.52, 0.60):
+    cands, coord = [], []
+    vistos = set()
+    for h in TONOS:
+        for s in SATURACIONES:
+            for v in VALORES:
                 r, g, b = colorsys.hsv_to_rgb(h / 360, s, v)
                 c = "#%02x%02x%02x" % tuple(round(x * 255) for x in (r, g, b))
-                if lo_l <= lab(c)[0] <= hi_l:
+                if c in vistos or c in usados:
+                    continue
+                vistos.add(c)
+                p = lab(c)
+                if lo_l <= p[0] <= hi_l:
                     cands.append(c)
-    tomados = set(usados)
-    fuera = []
+                    coord.append(p)
+    if not cands:
+        return []
+    # Distancia de cada candidato a lo ya ocupado, en un acumulador: coger un
+    # color solo puede ACERCAR a los demás, así que la lista se actualiza con
+    # una pasada contra el elegido en vez de rehacerse contra todo.
+    ocupados = [lab(c) for c in usados]
+    dist = [min((sum((x - y) ** 2 for x, y in zip(p, q)) for q in ocupados),
+                default=1e4) ** 0.5 for p in coord]
+    fuera, tomados = [], set()
     for _ in range(n):
-        mejor, mejor_d = None, -1.0
-        for c in cands:
-            if c in tomados:
-                continue
-            d = min(delta_e(c, u) for u in tomados) if tomados else 100.0
-            if d > mejor_d:
-                mejor, mejor_d = c, d
-        if mejor is None or mejor_d < DE_MINIMO:
+        mejor = max(range(len(cands)), key=lambda i: -1.0 if i in tomados else dist[i])
+        if mejor in tomados or dist[mejor] < DE_MINIMO:
             break
-        fuera.append((mejor, mejor_d))
+        fuera.append((cands[mejor], dist[mejor]))
         tomados.add(mejor)
+        q = coord[mejor]
+        for i, p in enumerate(coord):
+            d = sum((x - y) ** 2 for x, y in zip(p, q)) ** 0.5
+            if d < dist[i]:
+                dist[i] = d
     return fuera
 
 # El secundario de los artículos publicados es el primario a un 80% por canal:

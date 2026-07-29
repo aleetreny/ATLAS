@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Trying Everything | ATLAS</title>
+  <meta name="description" content="A visual, interactive introduction to automated machine learning: every pipeline in the space enumerated on four tables, so what the search buys, which decision it buys it from, and how much of the winning score is selection bias can all be measured rather than claimed." />
+  <link rel="canonical" href="https://aleetreny.github.io/ATLAS/automl/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ATLAS" />
+  <meta property="og:title" content="Trying Everything | ATLAS" />
+  <meta property="og:description" content="A visual, interactive introduction to automated machine learning: every pipeline in the space enumerated on four tables, so what the search buys, which decision it buys it from, and how much of the winning score is selection bias can all be measured rather than claimed." />
+  <meta property="og:url" content="https://aleetreny.github.io/ATLAS/automl/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Trying Everything | ATLAS" />
+  <meta name="twitter:description" content="A visual, interactive introduction to automated machine learning: every pipeline in the space enumerated on four tables, so what the search buys, which decision it buys it from, and how much of the winning score is selection bias can all be measured rather than claimed." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/styles/fonts.css" />
+  <link rel="stylesheet" href="../assets/js/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="../assets/styles/global.css" />
+  <script src="../assets/js/vendor/d3.v7.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
+  <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
+  <script type="module" src="./js/main.js"></script>
+  <style>
+    :root {
+      --primary: #48522d;
+      --secondary: #3a4224;
+    }
+    .narrow-widget {
+      max-width: 880px;
+    }
+    .widget-readout {
+      overflow-x: auto;
+    }
+    .gen-table {
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      margin-top: 0.4rem;
+      width: 100%;
+    }
+    .gen-table th,
+    .gen-table td {
+      padding: 4px 10px 4px 0;
+      text-align: left;
+      font-weight: 400;
+      white-space: nowrap;
+    }
+    .gen-table th {
+      font-family: var(--font-heavy);
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .gen-table td:first-child,
+    .gen-table th:first-child {
+      opacity: 0.75;
+    }
+    .gen-note {
+      margin-top: 0.6rem;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+    .widget svg {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+    }
+    .slider-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+      margin: 0.2rem 0 0.6rem;
+      font-family: var(--font-mono);
+      font-size: 13px;
+    }
+    .slider-row input[type="range"] {
+      width: 240px;
+      accent-color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+  <div id="site-logo">
+    <a href="../">
+      <span class="logo-word">ATL<span>AS</span></span>
+    </a>
+  </div>
+
+  <section id="intro">
+    <h1 id="intro-hed">Trying Everything</h1>
+    <h1 id="intro-sub">Hand the search the model as well as its dials and it stops being tuning and starts being a catalogue. Every pipeline in the catalogue has been run here, on four different tables, which is the only way to say what the searching was worth</h1>
+    <h3 id="intro__date"><a href="https://github.com/aleetreny">aleetreny</a></h3>
+    <span id="intro__module">Module 8.1 &middot; Tuning &middot; AutoML</span>
+  </section>
+
+  <br />
+
+  <section>
+    <p class="body-text">
+      The <a href="../hyperparameters/">previous article</a> searched two dials
+      of one model and found that the shape of the surface decided almost
+      everything: four different search methods finished within a few
+      thousandths of each other because most of the surface was already the
+      answer. It also left a debt. The best score of a search is biased upward,
+      and the bias grows with how much you looked.
+    </p>
+    <br />
+    <p class="body-text">
+      Automated machine learning is that same search with the catalogue opened
+      up. It picks the scaling, the dimensionality reduction, the class
+      weighting and the model, and it reports the best score it found. This page
+      runs the whole catalogue on four tables so that both halves of that
+      sentence can be checked: what the search found, and what the score it
+      reports is worth.
+    </p>
+    <br />
+    <p class="body-text" id="opening-note"></p>
+  </section>
+
+  <section>
+    <h1 class="body-header">What the Search Bought</h1>
+    <p class="body-text" id="gain-intro"></p>
+    <br />
+    <p class="body-text" id="gain-note"></p>
+  </section>
+
+  <div class="widget narrow-widget">
+    <div id="gain-buttons" class="button-row"></div>
+    <div id="gain-chart"></div>
+    <div class="widget-readout" id="gain-readout"></div>
+  </div>
+
+  <section>
+    <h1 class="body-header">Which of the Four Decisions</h1>
+    <p class="body-text" id="axes-intro"></p>
+    <br />
+    <p class="body-text" id="axes-note"></p>
+  </section>
+
+  <div class="widget narrow-widget">
+    <div id="axes-buttons" class="button-row"></div>
+    <div id="axes-chart"></div>
+    <div class="widget-readout" id="axes-readout"></div>
+  </div>
+
+  <section>
+    <h1 class="body-header">The Price of the Catalogue</h1>
+    <p class="body-text" id="curse-intro"></p>
+    <br />
+    <p class="body-text" id="curse-note"></p>
+  </section>
+
+  <div class="widget narrow-widget">
+    <div id="curse-buttons" class="button-row"></div>
+    <div id="curse-chart"></div>
+    <div class="widget-readout" id="curse-readout"></div>
+  </div>
+
+  <section>
+    <h1 class="body-header">Four Guesses Learned Somewhere Else</h1>
+    <p class="body-text" id="port-intro"></p>
+    <br />
+    <p class="body-text" id="port-note"></p>
+  </section>
+
+  <div class="widget narrow-widget">
+    <div id="port-chart"></div>
+    <div class="widget-readout" id="port-readout"></div>
+  </div>
+
+  <section>
+    <h1 class="body-header">Keeping the Ones That Lost</h1>
+    <p class="body-text" id="ens-intro"></p>
+    <br />
+    <p class="body-text" id="ens-note"></p>
+  </section>
+
+  <div class="widget narrow-widget">
+    <div id="ens-buttons" class="button-row"></div>
+    <div id="ens-chart"></div>
+    <div class="widget-readout" id="ens-readout"></div>
+  </div>
+
+  <section>
+    <h1 class="body-header">What an Automated System Is Really Doing</h1>
+    <p class="body-text" id="verdict-intro"></p>
+  </section>
+
+  <div class="atlas-table-wrap">
+    <table class="atlas-table">
+      <thead>
+        <tr>
+          <th>The piece</th>
+          <th>What it was worth here</th>
+          <th>What it costs</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="bold">Searching the catalogue</span></td>
+          <td id="verdict-search"></td>
+          <td id="verdict-search-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">A warm start</span></td>
+          <td id="verdict-port"></td>
+          <td id="verdict-port-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">Ensembling the leftovers</span></td>
+          <td id="verdict-ens"></td>
+          <td id="verdict-ens-warn"></td>
+        </tr>
+        <tr>
+          <td><span class="bold">Nested cross validation</span></td>
+          <td id="verdict-nested"></td>
+          <td id="verdict-nested-warn"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section>
+    <p class="body-text" id="closing-1"></p>
+    <br />
+    <p class="body-text" id="closing-2"></p>
+  </section>
+
+  <section>
+    <h1 class="body-header">How This Was Measured</h1>
+    <p class="body-text" id="ref-note"></p>
+  </section>
+
+  <br /><br />
+</body>
+</html>
