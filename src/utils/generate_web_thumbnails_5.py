@@ -76,8 +76,50 @@ def thumb_linear_programming():
     write("linear-programming", body)
 
 
+# ---------------------------------------------------------------------------
+def thumb_genetic_algorithms():
+    """La poblacion final de la tirada de referencia, como bits."""
+    accent = "#995e45"
+    d = load("genetic-algorithms", "ga")
+    rows = d["reference"]["final_population"][:10]
+    bits = d["meta"]["bits"]
+    block = d["meta"]["block"]
+    pad_x, pad_y = 30, 34
+    cw = (W - 2 * pad_x) / bits
+    rh = (H - 2 * pad_y) / len(rows)
+    # Las celdas encendidas van en UN path: cuatrocientos <rect> con su propio
+    # atributo pesan 21 kB, que es cuarenta veces lo que pesa una miniatura del
+    # sitio. El fondo apagado es una banda por fila, no una celda por bit.
+    on = []
+    n_on = 0
+    for i, row in enumerate(rows):
+        for j, v in enumerate(row):
+            if not v:
+                continue
+            n_on += 1
+            x = round(pad_x + j * cw)
+            y = round(pad_y + i * rh)
+            on.append(f"M{x},{y}h{round(cw)}v{round(rh) - 2}h-{round(cw)}z")
+    share = n_on / (len(rows) * bits)
+    # Si la miniatura sale casi toda de un color no ensena nada, y esta imagen
+    # existe para ensenar que la poblacion ha convergido pero no del todo.
+    assert 0.15 < share < 0.85, f"la poblacion sale {share:.2f} de unos"
+    bands = "".join(
+        f'<rect x="{pad_x}" y="{round(pad_y + i * rh)}" width="{W - 2 * pad_x}" '
+        f'height="{round(rh) - 2}" />' for i in range(len(rows)))
+    lines = "".join(
+        f'<line x1="{round(pad_x + k * block * cw)}" y1="{pad_y - 8}" '
+        f'x2="{round(pad_x + k * block * cw)}" y2="{H - pad_y + 6}" />'
+        for k in range(bits // block + 1))
+    body = (f'  <g fill="#e2e6e7">{bands}</g>\n'
+            f'  <path d="{"".join(on)}" fill="{accent}" />\n'
+            f'  <g stroke="{GREY}" stroke-width="1.2" opacity="0.7">{lines}</g>\n')
+    write("genetic-algorithms", body)
+
+
 THUMBS = {
     "linear-programming": thumb_linear_programming,
+    "genetic-algorithms": thumb_genetic_algorithms,
 }
 
 
