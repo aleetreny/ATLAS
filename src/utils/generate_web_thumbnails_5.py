@@ -246,7 +246,7 @@ def thumb_thompson_ucb():
 # ---------------------------------------------------------------------------
 def thumb_q_learning():
     """El acantilado con los dos caminos aprendidos."""
-    accent = "#99171d"
+    accent = "#856314"
     d = load("q-learning", "qlearn")
     T = d["truth"]
     rows, cols = T["rows"], T["cols"]
@@ -350,7 +350,7 @@ def thumb_policy_gradient():
 def thumb_mcts():
     """El tablero resuelto con las columnas que empatan y las que pierden, y el
     reparto de simulaciones de la busqueda encima."""
-    accent = "#856314"
+    accent = "#99171d"
     d = load("mcts", "mcts")
     T = d["tree"]
     grid = T["grid"]
