@@ -1,11 +1,17 @@
 /* Entry point.
  *
- * One guard here is the mechanical claim of the first section, and it is worth
- * stating as a guard rather than as prose: the number of connected pieces of
- * the filtered subgraph can only go up as the filter gets tighter. If a rerun
- * ever showed it going down, either the pieces were counted wrongly or the
- * filters are not nested, and the paragraph that explains why filtered graph
- * search is hard would be resting on nothing.
+ * One guard here is the mechanical claim of the first section, and getting it
+ * right took two tries. The first version asserted that the number of connected
+ * pieces can only go up as the filter tightens, and the measurement says no:
+ * the count runs 1, 6, 35, 101, 135, 92, 50 while the kept rows run 6000 down
+ * to 60. It falls at the end for a reason that should have been obvious, since
+ * a subgraph of 60 nodes cannot have more than 60 pieces. The count was never
+ * the quantity the argument needs.
+ *
+ * What the argument needs is the SHARE of the surviving rows sitting in the
+ * largest piece, because that is what bounds how much of the filtered set one
+ * greedy walk can reach, and that one is monotone. So the guard checks it, plus
+ * the two things that are true of any partition by construction.
  */
 import { initFilterWidget } from './filter-widget.js';
 import { initChurnWidget } from './churn-widget.js';
@@ -52,13 +58,21 @@ function runGuards(data) {
       Math.abs(r.pre_cost - r.kept) < 1.5,
       `${r.pre_cost} distances to scan ${r.kept} rows`);
     if (i > 0) {
-      check(`filter at ${r.selectivity}: the subgraph only fragments further`,
-        r.pieces >= rows[i - 1].pieces,
-        `${r.pieces} pieces at ${r.selectivity} against ${rows[i - 1].pieces} at the looser `
-        + `${rows[i - 1].selectivity}`);
+      check(`filter at ${r.selectivity}: the reachable share only shrinks`,
+        r.biggest <= rows[i - 1].biggest + 1e-9,
+        `${r.biggest} of the kept rows in the largest piece at ${r.selectivity}, against `
+        + `${rows[i - 1].biggest} at the looser ${rows[i - 1].selectivity}`);
     }
     check(`filter at ${r.selectivity}: the largest piece is a share`,
       r.biggest > 0 && r.biggest <= 1, `${r.biggest}`);
+    /* a partition of the kept rows: at least one piece, never more than rows */
+    check(`filter at ${r.selectivity}: the pieces partition the kept rows`,
+      r.pieces >= 1 && r.pieces <= r.kept,
+      `${r.pieces} pieces over ${r.kept} kept rows`);
+    check(`filter at ${r.selectivity}: the largest piece fits in the kept rows`,
+      Math.round(r.biggest * r.kept) >= r.kept / r.pieces - 1,
+      `the largest of ${r.pieces} pieces holds ${Math.round(r.biggest * r.kept)} of `
+      + `${r.kept} rows, below the average piece`);
   });
 
   /* deleting more can only make the marked index worse, never better */

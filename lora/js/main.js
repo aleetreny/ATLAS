@@ -82,6 +82,20 @@ function runGuards(data) {
     `${data.quant.nf4.length} levels`);
   check('the floating point format wastes a code on negative zero',
     data.quant.fp4.length === 15, `${data.quant.fp4.length} levels rather than 15`);
+  /* two different counts per layer: how many levels the format defines, and how
+     many the quantiser actually emitted on that layer's weights. A small matrix
+     could reach fewer, and then the error of the format is not the error of its
+     table; the readout would be quoting a level count nobody used */
+  data.quant.rows.forEach((row) => {
+    ['nf4', 'int4', 'fp4'].forEach((f) => {
+      check(`the ${f} table matches the page's copy on layer ${row.layer + 1}`,
+        row[`${f}_defined`] === data.quant[f].length,
+        `${row[`${f}_defined`]} against ${data.quant[f].length}`);
+      check(`layer ${row.layer + 1} reaches every ${f} level`,
+        row[`${f}_levels`] === row[`${f}_defined`],
+        `the quantiser emitted ${row[`${f}_levels`]} of the ${row[`${f}_defined`]} available`);
+    });
+  });
 
   /* the memory table, which is arithmetic and therefore exactly checkable */
   data.memory.rows.forEach((row) => {

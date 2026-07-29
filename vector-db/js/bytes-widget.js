@@ -100,8 +100,9 @@ export function initBytesWidget(data) {
       + `${smallest.recall.toFixed(4)} recall. Most of that loss is recoverable and the way `
       + `to recover it is the second view: retrieve a wide list cheaply, then recompute exact `
       + `distances on that list alone. With ${enough.width} candidates rescored the recall is `
-      + `${enough.recall.toFixed(4)}, and the second stage costs ${enough.width} exact `
-      + `distances, which is ${(enough.width / B.n * 100).toFixed(2)}% of the collection. `
+      + `${enough.recall.toFixed(4)}, and the second stage costs ${enough.exact_dists} exact `
+      + `distances, one per candidate, which is `
+      + `${(enough.exact_dists / B.n * 100).toFixed(2)}% of the collection. `
       + `That is the shape of every serving system in production: a cheap representation for `
       + `the shortlist and an expensive one for the ten that get returned.</div>`;
   }

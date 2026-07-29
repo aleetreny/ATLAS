@@ -20,7 +20,7 @@ export function initTimeWidget(data) {
   const st = { view: 'protocols' };
 
   const chart = makeChart('#time-chart', {
-    width: 640, height: 380, margin: { top: 52, right: 34, bottom: 96, left: 86 },
+    width: 640, height: 380, margin: { top: 52, right: 34, bottom: 106, left: 86 },
   });
   const { g, w, h } = chart;
   const layer = g.append('g');
@@ -44,7 +44,14 @@ export function initTimeWidget(data) {
     if (st.view === 'protocols') {
       const rows = T.rows;
       const x = d3.scaleBand().domain(rows.map((r) => r.arm)).range([0, w]).padding(0.32);
-      const y = d3.scaleLinear().domain([0, d3.max(rows.map((r) => r.mae)) * 1.2]).range([h, 0]);
+      /* the reference line is more than twice the tallest bar, so a domain built
+         from the bars alone drew it 272 units above the top of the plot. It goes
+         in the domain: the bars stay legible, and the thing the line is for,
+         that all four protocols sit well under the series' own month to month
+         step, is the comparison the reader cannot make from the numbers alone */
+      const y = d3.scaleLinear()
+        .domain([0, Math.max(d3.max(rows.map((r) => r.mae)) * 1.2, T.scale * 1.12)])
+        .range([h, 0]);
       drawGrid(g, x, y, w, h, { xValues: [], yTicks: 5 });
       drawAxes(g, x, y, w, h, { xValues: [], yTicks: 5, yFmt: d3.format('.3f') });
       axisLabels(g, w, h, { x: '', y: 'error, parts per million' });
@@ -90,7 +97,7 @@ export function initTimeWidget(data) {
         .text(`splitting at random with the same features: ${T.embargo_random.toFixed(3)}`);
       layer.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', -34)
         .style('font-size', '11px')
-        .text(`the features include a ${T.ma} month rolling mean, so rows near a cut share observations`);
+        .text(`a ${T.ma} month rolling mean is in the features, so rows near a cut overlap`);
     } else {
       const H = T.horizon;
       const x = d3.scaleLog().domain([H[0].horizon * 0.8, H[H.length - 1].horizon * 1.3])

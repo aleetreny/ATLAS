@@ -42,6 +42,15 @@ export function initProse(data) {
   const rep = T.repeats;
   const repFirst = rep[0];
   const repLast = rep[rep.length - 1];
+  /* sd(R)^2 = floor^2 + partition^2 / R, solved from the two ends of the sweep.
+     The floor is NOT T.true_sd: that is the spread of the true risk, which is a
+     different and much smaller quantity, and an earlier draft of this paragraph
+     printed it as the floor while the measured curve sat four times above it */
+  const v1 = repFirst.sd ** 2;
+  const vL = repLast.sd ** 2;
+  const partVar = (v1 - vL) / (1 - 1 / repLast.repeats);
+  const floorSd = Math.sqrt(Math.max(v1 - partVar, 0));
+  const partSd = Math.sqrt(Math.max(partVar, 0));
 
   set('opening-note',
     `The generator is eight standard normal columns and a logistic model with coefficients `
@@ -75,8 +84,16 @@ export function initProse(data) {
     + `dataset, which is a theorem and not an oversight: no unbiased estimator of that `
     + `variance exists from a single split. Repeating the whole split helps with part of it `
     + `and only part: ${repFirst.repeats} repeat gives ${f4(repFirst.sd)} and `
-    + `${repLast.repeats} give ${f4(repLast.sd)}, but the floor is ${f4(T.true_sd)}, which is `
-    + `how much the dataset itself moves and no amount of resplitting can touch.`);
+    + `${repLast.repeats} give ${f4(repLast.sd)}, which is barely a move. Squared variances `
+    + `separate the two halves cleanly, because resplitting averages one of them and not the `
+    + `other: the part that repeating divides by the number of repeats is `
+    + `${f4(partSd)} at one repeat, close to the ${f4(T.partition_sd)} measured directly by `
+    + `resplitting a single fixed dataset ${M.partition_runs} times, and the part it `
+    + `cannot touch is <span class="bold">${f4(floorSd)}</span>. That floor is where the `
+    + `curve is already sitting, which is why the sweep looks flat. It is not the `
+    + `${f4(T.true_sd)} that the true risk itself varies by across datasets: that is a `
+    + `different quantity and a much smaller one, and confusing the two makes repeating the `
+    + `split look far more useful than it is.`);
 
   set('noise-intro',
     `Everything above assumes the split is the only thing standing between the model and the `
@@ -135,8 +152,8 @@ export function initProse(data) {
     + `on all ${T.n} rows.`);
   set('verdict-plain-fix',
     `Nothing, but quote the right error bar: the printed one is understated by `
-    + `${ten.ratio.toFixed(2)} times here, and repeating the split has a floor at `
-    + `${f4(T.true_sd)}.`);
+    + `${ten.ratio.toFixed(2)} times here, and repeating the split cannot go below `
+    + `${f4(floorSd)}, which is where one repeat already is.`);
   set('verdict-leak', `${f4(N.outside)} on data containing nothing.`);
   set('verdict-leak-fix',
     `Every step that looks at the labels goes inside the fold. Done that way the same data `
@@ -187,6 +204,6 @@ export function initProse(data) {
     + `${M.lags} lags and a ridge fit. The group section finds near duplicates among `
     + `${n0(G.docs)} Reuters newswires by cosine similarity in ${G.dims} dimensions and joins `
     + `them transitively. The empty fold section compares ${n0(rare.trials)} simulated splits `
-    + `against a ratio of binomial coefficients with a second order inclusion and exclusion `
-    + `term. No wall clocks.`);
+    + `against the full inclusion and exclusion sum over ratios of binomial coefficients, `
+    + `all ${rare.k} terms of it. No wall clocks.`);
 }

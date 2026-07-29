@@ -353,9 +353,13 @@ def stage_quant(base, src):
     for i, W in enumerate(base.W):
         rec = dict(layer=i, shape=list(W.shape), n=int(W.size), **normality(W))
         for tag, lv in (("nf4", NF4), ("int4", INT4), ("fp4", FP4)):
-            q, _, _ = quantize(W, lv, block=64)
+            q, idx, _ = quantize(W, lv, block=64)
             rec[tag] = float(np.linalg.norm(q - W) / np.linalg.norm(W))
-            rec[tag + "_levels"] = int(len(lv))
+            # los niveles que esta capa USA de verdad, contados sobre los índices
+            # que salieron del cuantizador. Escribir len(lv) seria copiar una
+            # constante, y el guardia de la pagina no podria fallar nunca
+            rec[tag + "_levels"] = int(np.unique(idx).size)
+            rec[tag + "_defined"] = int(len(lv))
         rows.append(rec)
     W = base.W[0]
     for b in BLOCKS:
@@ -441,7 +445,7 @@ def main():
     alpha = cached("alpha", lambda: stage_alpha(base, tgt))
 
     print("  6/7 la cuantización")
-    quant = cached("quant2", lambda: stage_quant(base, src))
+    quant = cached("quant3", lambda: stage_quant(base, src))
 
     print("  7/7 el adaptador sobre la base cuantizada")
     qlora = cached("qlora", lambda: stage_qlora(base, quant["qnet"], tgt))

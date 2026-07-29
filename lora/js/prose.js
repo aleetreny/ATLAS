@@ -4,7 +4,7 @@ const f4 = (v) => Number(v).toFixed(4);
 const mb = (v) => `${(v / (1024 * 1024)).toFixed(2)} MB`;
 
 export const PROSE_IDS = [
-  'opening-note', 'spec-intro', 'spec-note', 'rank-intro', 'rank-note',
+  'opening-note', 'spec-intro', 'spec-note', 'sweep-note', 'rank-intro', 'rank-note',
   'alpha-intro', 'quant-intro', 'quant-note', 'mem-intro', 'verdict-intro',
   'verdict-lora', 'verdict-lora-warn', 'verdict-bitfit', 'verdict-bitfit-warn',
   'verdict-quant', 'verdict-quant-warn', 'verdict-double', 'verdict-double-warn',
@@ -20,6 +20,7 @@ export function initProse(data) {
   const M = data.meta;
   const S = data.spectra;
   const L0 = S.layers[0];
+  const L1 = S.layers[S.layers.length - 1];
   const arms = data.arms;
   const loras = arms.filter((a) => a.rank != null).sort((a, b) => a.rank - b.rank);
   const full = arms.find((a) => a.arm === 'everything');
@@ -47,6 +48,13 @@ export function initProse(data) {
   const meanInt4 = Q.rows.reduce((s, r) => s + r.int4, 0) / Q.rows.length;
   const nf4Wins = meanNf4 < meanInt4;
   const sweep = data.data_sweep;
+  const growNorm = sweep[sweep.length - 1].fro / sweep[0].fro;
+  const growRank = sweep[sweep.length - 1].r90 / sweep[0].r90;
+  const W = data.where;
+  const wOf = (a) => W.rows.find((r) => r.arm === a);
+  const wFirst = wOf('first');
+  const wSecond = wOf('second');
+  const wBoth = wOf('both');
   const ceilAt = data.ceiling.find((c) => c.rank === r8.rank) || data.ceiling[data.ceiling.length - 1];
   const loraAt = loras.find((a) => a.rank === ceilAt.rank) || r8;
   const A = data.alpha;
@@ -89,11 +97,34 @@ export function initProse(data) {
         : `<span class="bold">No layer here comes out that way</span>, so on this model the `
           + `premise fails, and the sections that follow are measuring what an adapter does `
           + `when its justification does not hold.`)
-    + ` And the update is small in the first place: its norm is `
-    + `${(L0.rel * 100).toFixed(2)}% of the norm of the matrix it is added to. Adaptation is `
-    + `a nudge. Fitting more rows of the new task makes it a slightly bigger nudge in `
-    + `slightly more directions: from ${sweep[0].r90} directions at ${n0(sweep[0].n)} rows to `
-    + `${sweep[sweep.length - 1].r90} at ${n0(sweep[sweep.length - 1].n)}.`);
+    + ` One thing this page will not claim, because the measurement refuses it. Adaptation is `
+    + `usually described as a nudge, and here it is not: the update's norm is `
+    + `<span class="bold">${(L0.rel * 100).toFixed(1)}%</span> of the norm of the matrix it is `
+    + `added to on the first layer and ${(L1.rel * 100).toFixed(1)}% on the second. That is a `
+    + `different regime from the one the method was designed for, and the reason is visible in `
+    + `the setup: a small network moved between two genuinely different tasks changes a lot, `
+    + `where a large model nudged towards a narrow behaviour changes very little. Which makes `
+    + `the result above stronger rather than weaker. Concentration in a few directions is not `
+    + `a consequence of the change being small, because this change is not small.`);
+
+  set('sweep-note',
+    `The same three quantities, measured against how many rows of the new task the fine tune `
+    + `was allowed. From ${n0(sweep[0].n)} rows to ${n0(sweep[sweep.length - 1].n)}, the `
+    + `update grows in norm from ${sweep[0].fro.toFixed(2)} to `
+    + `${sweep[sweep.length - 1].fro.toFixed(2)}, spreads from ${sweep[0].r90} directions to `
+    + `${sweep[sweep.length - 1].r90}, and buys accuracy from ${f4(sweep[0].acc)} to `
+    + `${f4(sweep[sweep.length - 1].acc)}. Both grow, and which grows faster is the useful `
+    + `part: ${n0(sweep[sweep.length - 1].n / sweep[0].n)} times the data multiplies the norm `
+    + `by ${growNorm.toFixed(2)} and the number of directions by ${growRank.toFixed(2)}, `
+    + (growRank > growNorm
+      ? `so the change gets <span class="bold">broader faster than it gets bigger</span>, by a `
+        + `factor of ${(growRank / growNorm).toFixed(2)}. More adaptation data does not just `
+        + `push the same directions harder, it recruits new ones.`
+      : `so the change gets bigger faster than it gets broader, by a factor of `
+        + `${(growNorm / growRank).toFixed(2)}: more data mostly pushes the same directions `
+        + `harder rather than recruiting new ones.`)
+    + ` Which is the practical answer to "what rank should I use", and it is not a property of `
+    + `the model: it is a property of how much you are adapting it on.`);
 
   set('rank-intro',
     `Knowing the update is concentrated does not tell you that gradient descent through a `
@@ -121,7 +152,19 @@ export function initProse(data) {
     + `on: rank ${r8.rank} moves ${n0(r8.trainable)} parameters, `
     + `${(r8.trainable / full.trainable * 100).toFixed(2)}% of the network, and reaches `
     + `${f4(r8.mean)} against ${f4(full.mean)} for moving everything and ${f4(head.mean)} for `
-    + `moving the head alone.`);
+    + `moving the head alone. It also carries the placement question, which is a separate `
+    + `decision from the rank and is usually made by copying somebody's configuration file: `
+    + `at rank ${W.rank}, an adapter on the first layer alone reaches ${f4(wFirst.mean)} with `
+    + `${n0(wFirst.trainable)} parameters, on the second alone ${f4(wSecond.mean)} with `
+    + `${n0(wSecond.trainable)}, and on both ${f4(wBoth.mean)} with ${n0(wBoth.trainable)}. `
+    + (wFirst.mean + wFirst.sd >= wBoth.mean - wBoth.sd
+      ? `The first layer alone is within the seed spread of doing both, at `
+        + `${(wFirst.trainable / wBoth.trainable * 100).toFixed(0)}% of the parameters, so on `
+        + `this model the second adapter is close to free to leave out.`
+      : `Doing both is ahead of either alone by more than the seed spread, so here the `
+        + `placement is not a saving to be made.`)
+    + ` The second layer alone is the worst of the three despite sitting closer to the output, `
+    + `which is the kind of thing a configuration file cannot tell you.`);
 
   set('alpha-intro',
     `One dial in the LoRA formula gets tuned as though it were capacity, and it is worth a `

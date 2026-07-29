@@ -58,13 +58,19 @@ export function initTruthWidget(data) {
         .attr('fill', 'none').attr('stroke', 'var(--primary)').attr('stroke-width', 2.2);
       R.forEach((r) => layer.append('circle').attr('cx', x(r.repeats)).attr('cy', y(r.sd))
         .attr('r', 4).attr('fill', 'var(--primary)'));
+      /* The floor is what the sweep converges to, solved from its two ends, and
+         it is NOT T.true_sd: that is the spread of the true risk, four times
+         smaller, and drawing it here made a curve that is already flat look as
+         though it had most of its fall still to come. */
+      const pv = (R[0].sd ** 2 - R[R.length - 1].sd ** 2) / (1 - 1 / R[R.length - 1].repeats);
+      const fl = Math.sqrt(Math.max(R[0].sd ** 2 - pv, 0));
       layer.append('line').attr('x1', 0).attr('x2', w)
-        .attr('y1', y(T.true_sd)).attr('y2', y(T.true_sd))
+        .attr('y1', y(fl)).attr('y2', y(fl))
         .attr('stroke', 'var(--smile)').attr('stroke-width', 1.4).attr('stroke-dasharray', '6 4');
       layer.append('text').attr('class', 'chart-note').attr('x', w - 2)
-        .attr('y', y(T.true_sd) - 6).attr('text-anchor', 'end')
+        .attr('y', y(fl) - 6).attr('text-anchor', 'end')
         .style('font-size', '11px').attr('fill', 'var(--smile)')
-        .text(`the floor: how much the dataset itself moves, ${T.true_sd.toFixed(4)}`);
+        .text(`the floor no amount of resplitting reaches below, ${fl.toFixed(4)}`);
     } else {
       const ks = rows.map((r) => r.k);
       const x = d3.scaleLog().domain([ks[0] * 0.8, ks[ks.length - 1] * 1.3]).range([0, w]);

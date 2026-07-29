@@ -50,12 +50,24 @@ export function initFilterWidget(data) {
       const costs = rows.flatMap((r) => [r.post_cost, r.over_cost, r.pre_cost]);
       y = d3.scaleLog().domain([Math.min(...costs) * 0.7, Math.max(...costs) * 1.4]).range([h, 0]);
     }
-    drawGrid(g, x, y, w, h, { xValues: rows.map((r) => r.selectivity), yTicks: 5 });
+    /* d3's own list on a log axis of costs gave 7.0k and 8.0k next to each
+       other, close enough to collide. Five values spread evenly in the log of
+       the real domain never do, whatever the range turns out to be */
+    const yv = st.view === 'recall' ? null : (() => {
+      const [lo, hi] = y.domain();
+      return d3.range(5).map((i) => {
+        const v = Math.exp(Math.log(lo) + (Math.log(hi) - Math.log(lo)) * i / 4);
+        const mag = 10 ** Math.floor(Math.log10(v));
+        return Math.round(v / mag * 10) / 10 * mag;
+      }).filter((v, i, a) => a.indexOf(v) === i && v >= lo && v <= hi);
+    })();
+    drawGrid(g, x, y, w, h, { xValues: rows.map((r) => r.selectivity), yValues: yv, yTicks: 5 });
     drawAxes(g, x, y, w, h, {
-      xValues: rows.map((r) => r.selectivity), yTicks: 5,
-      xFmt: (v) => `${(v * 100).toFixed(v < 0.05 ? 0 : 0)}%`,
+      xValues: rows.map((r) => r.selectivity), yValues: yv, yTicks: 5,
+      xFmt: (v) => `${(v * 100).toFixed(0)}%`,
       yFmt: st.view === 'recall' ? d3.format('.1f')
-        : (v) => (v >= 1000 ? `${(v / 1000).toFixed(1)}k` : String(Math.round(v))),
+        : (v) => (v >= 1000 ? `${(v / 1000).toFixed(v % 1000 === 0 ? 0 : 1)}k`
+          : String(Math.round(v))),
     });
     axisLabels(g, w, h, {
       x: 'share of the collection the filter keeps',

@@ -40,6 +40,23 @@ function check(label, ok, detail) {
 function runGuards(data) {
   const I = data.indices;
 
+  /* The page says every node at the bottom layer sits exactly at the cap. That
+     is a claim about a distribution, so it is checked against the distribution
+     and not against the three summary numbers next to it: the histogram must
+     put all of its mass between the reported minimum and maximum, and add up to
+     the collection. A summary can agree with itself and still be wrong. */
+  const dg = I.degrees;
+  const total = dg.hist.reduce((a, b) => a + b, 0);
+  check('the degree histogram counts every node', total === I.n,
+    `${total} nodes in the histogram against ${I.n} in the index`);
+  const outside = dg.hist.reduce(
+    (a, c, d) => a + ((d < dg.min || d > dg.max) ? c : 0), 0);
+  check('the degree histogram agrees with its own summary', outside === 0,
+    `${outside} nodes fall outside the ${dg.min} to ${dg.max} range the page prints`);
+  const weighted = dg.hist.reduce((a, c, d) => a + c * d, 0) / Math.max(total, 1);
+  check('the mean degree is the mean of the histogram', Math.abs(weighted - dg.mean) < 5e-6,
+    `the histogram averages ${weighted} and the file says ${dg.mean}`);
+
   [['hnsw', 'ef'], ['ivf', 'nprobe'], ['pq', 'm']].forEach(([key, knob]) => {
     const rows = I[key].slice().sort((a, b) => a[knob] - b[knob]);
     const dips = rows.filter((r, i) => i > 0 && r.recall < rows[i - 1].recall - 1e-9).length;

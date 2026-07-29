@@ -134,16 +134,33 @@ export function initProse(data) {
         + `${gpDiff > 0 ? 'the surrogate' : 'the blind draw'}. `)
     + `The second view is the one that can tell them apart at all, because "best after `
     + `thirty" compresses every run into its last number: counting how many evaluations `
-    + `each needs to reach within one wobble of the top, the surrogate takes a median of `
+    + `each needs to reach ${f4(G.target)}, one wobble below the top, over `
+    + `${G.arms.random.hits.runs} runs of each. The surrogate takes a median of `
     + `${G.arms[gpBest].hits.median} and blind draws take `
-    + `${G.arms.random.hits.median}. And the reason neither can shine is the plateau: with `
+    + `${G.arms.random.hits.median}, `
+    + (G.arms[gpBest].hits.median === G.arms.random.hits.median
+      ? `<span class="bold">which is the same number</span>, and the honest place to look is `
+        + `then the tail rather than the middle: the means are `
+        + `${G.arms[gpBest].hits.mean.toFixed(2)} against `
+        + `${G.arms.random.hits.mean.toFixed(2)}, and the surrogate reaches the target in `
+        + `${pct(G.arms[gpBest].hits.reached)} of runs against `
+        + `${pct(G.arms.random.hits.reached)}. That is the whole advantage on this surface: `
+        + `not getting there sooner, but not failing to get there.`
+      : `so the surrogate is ahead by ${(G.arms.random.hits.median
+        - G.arms[gpBest].hits.median)} evaluations at the median, with means of `
+        + `${G.arms[gpBest].hits.mean.toFixed(2)} against `
+        + `${G.arms.random.hits.mean.toFixed(2)}.`)
+    + ` And the reason neither can shine is the plateau: with `
     + `${pct(G.near_optimal)} of cells already at the top, a blind draw expects to land on `
     + `one in ${G.expected_draws.toFixed(1)} tries. `
     + (noiseTie
       ? `Telling the surrogate that its observations carry noise changes nothing at all `
-        + `here, to every decimal: the fold to fold wobble of ${f4(F.cv_sd)} is tiny next to `
-        + `the ${f3(S.importance.best - Math.min(...S.cv.flat()))} the surface spans, so the `
-        + `noise term is swamped. That is a fact about this surface, not about the idea.`
+        + `here, to every decimal, and the fitted noise level says why: `
+        + `${G.arms.noisy.noise.toExponential(1)} against the `
+        + `${f3(S.importance.best - Math.min(...S.cv.flat()))} the surface spans, five orders `
+        + `of magnitude smaller, so the two arms are not two runs but one. The fold to fold `
+        + `wobble of ${f4(F.cv_sd)} is real, but it is not what limits this search. That is a `
+        + `fact about this surface, not about the idea.`
       : `Telling the surrogate that its observations carry noise moves its final score by `
         + `${f4(Math.abs(G.arms.noisy.test - G.arms.noiseless.test))}.`));
 
@@ -252,9 +269,10 @@ export function initProse(data) {
   set('ref-note',
     `Everything on this page comes from `
     + `<span class="mono">src/<wbr>utils/<wbr>generate_<wbr>hyperparameters_<wbr>data.py</span>, seed `
-    + `${M.seed}. The surface is ${M.grid} by ${M.grid} values of log2 C and log2 gamma for a `
-    + `radial basis kernel machine on ${n0(M.n_train)} of the ${n0(M.n_train + M.n_test)} `
-    + `digits, ${M.features} columns and ${M.classes} classes, scored by ${M.repeats} repeats `
+    + `${M.seed}. The data is ${M.dataset} The surface is ${M.grid} by ${M.grid} values of `
+    + `log2 C and log2 gamma for a radial basis kernel machine on ${n0(M.n_train)} of the `
+    + `${n0(M.n_train + M.n_test)} rows, ${M.features} columns and ${M.classes} classes, `
+    + `scored by ${M.repeats} repeats `
     + `of ${M.folds} fold stratified cross validation and on the ${n0(M.n_test)} held out `
     + `rows. The whole grid was scored a second time with different fold seeds, which is what `
     + `makes the winner's curse separable from the training size bias. The noise floors come `

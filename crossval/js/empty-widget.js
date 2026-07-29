@@ -2,10 +2,15 @@
  *
  * The two curves are the same quantity by two routes, which is the only kind of
  * agreement worth drawing: one is twenty thousand simulated splits and the
- * other is a ratio of binomial coefficients with an inclusion and exclusion
- * correction for the fact that the folds are not independent. They have to
+ * other is an inclusion and exclusion sum over ratios of binomial coefficients,
+ * correcting for the fact that the folds are not independent. They have to
  * agree, and if they did not, one of them would be wrong in a way no amount of
- * staring at either would reveal.
+ * staring at either would reveal. That is not hypothetical here. The first
+ * version of the formula stopped after two terms, on the usual argument that
+ * higher ones are negligible, and returned MINUS 20.69 where the simulation
+ * said 1. The argument fails exactly where the question matters: with two
+ * positives at most two folds can be occupied, so eight of the ten are empty
+ * with certainty, and no truncation of the series can reach a certainty.
  */
 import { makeChart, drawAxes, drawGrid, axisLabels } from '../../assets/js/chart.js';
 

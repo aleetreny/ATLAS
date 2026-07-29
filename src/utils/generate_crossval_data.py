@@ -65,6 +65,8 @@ TRUTH_SETS = 500          # conjuntos de datos independientes
 TRUTH_POP = 200000        # filas frescas con las que se calcula el riesgo
 KS = (2, 5, 10, 20, TRUTH_N)
 REPEATS = (1, 2, 5, 10, 20)
+PART_RUNS = 200           # reparticiones de UN conjunto fijo, para aislar el ruido de partición
+REPEAT_SETS = 150         # conjuntos sobre los que se mide el efecto de repetir
 
 NOISE_N = 100
 NOISE_P = 5000
@@ -177,7 +179,7 @@ def stage_truth():
     rep = []
     for R in REPEATS:
         vals = []
-        for s in range(150):
+        for s in range(REPEAT_SETS):
             g = np.random.default_rng(SEED + 100 + s)
             X, y = truth_process(g, TRUTH_N, beta)
             e = [kfold_scores(X, y, 10, np.random.default_rng(SEED + 9000 + 31 * s + j)).mean()
@@ -189,7 +191,7 @@ def stage_truth():
     g = np.random.default_rng(SEED + 100)
     Xf, yf = truth_process(g, TRUTH_N, beta)
     within = [float(kfold_scores(Xf, yf, 10, np.random.default_rng(SEED + 777 + j)).mean())
-              for j in range(200)]
+              for j in range(PART_RUNS)]
     return dict(rows=out, repeats=rep, bayes=bayes, expected_risk=exp_risk,
                 true_sd=float(np.std(true_this, ddof=1)),
                 partition_sd=float(np.std(within, ddof=1)),
@@ -246,7 +248,12 @@ def mae(m, X, y):
 
 
 def stage_time():
+    # El artículo 51 redondea la serie a cuatro decimales ANTES de usarla, y su
+    # digest publicado es el de esa versión. Reutilizar de verdad es correr sobre
+    # el mismo objeto, no sobre uno que se le parece: digerir la serie cruda da
+    # otra huella y la afirmación de reuso sería falsa aunque el fichero pasara.
     y, dates, meta = co2_monthly()
+    y = np.round(y, 4)
     got = digest(y)
     assert got == CO2_DIGEST, f"el CO2 cambió: {got} en vez de {CO2_DIGEST}"
     X, t, start = lag_table(y, LAGS)
@@ -397,14 +404,25 @@ def empty_fold_prob(n, pos, k):
 
     Un pliegue tiene n/k filas y la probabilidad de que ninguno de los `pos`
     positivos caiga en él es un cociente de combinatorios. Con k pliegues los
-    sucesos no son independientes, así que el primer término sobreestima y el
-    segundo lo corrige; con estos tamaños los términos de tres pliegues ya son
-    despreciables y se dice en la página.
+    sucesos no son independientes, así que hay que sumar la serie.
+
+    **Y hay que sumarla ENTERA.** La primera versión cortaba en el segundo
+    término, con el argumento de que los de tres pliegues son despreciables, y
+    con 2 positivos en 10 pliegues devolvía −20,69 contra un 1 medido. El
+    argumento es falso justo donde la pregunta importa: con `pos` positivos hay
+    como mucho `pos` pliegues ocupados, así que con pos < k la respuesta es 1
+    exacta y para llegar a ella hacen falta los k términos. Son diez sumandos de
+    combinatorios: no había nada que ahorrar.
     """
     m = n // k
-    p1 = comb(n - m, pos) / comb(n, pos) if n - m >= pos else 0.0
-    p2 = comb(n - 2 * m, pos) / comb(n, pos) if n - 2 * m >= pos else 0.0
-    return min(1.0, k * p1 - comb(k, 2) * p2)
+    total = comb(n, pos)
+    s = 0.0
+    for j in range(1, k + 1):
+        rest = n - j * m
+        if rest < pos:
+            break
+        s += (-1) ** (j + 1) * comb(k, j) * comb(rest, pos) / total
+    return min(1.0, max(0.0, s))
 
 
 def stage_empty():
@@ -444,6 +462,7 @@ def main():
         meta=dict(seed=SEED, truth_sets=TRUTH_SETS, truth_n=TRUTH_N,
                   truth_d=TRUTH_D, pop=TRUTH_POP, ks=[int(k) for k in KS],
                   noise_p=NOISE_P, noise_n=NOISE_N, noise_keep=NOISE_KEEP,
+                  partition_runs=PART_RUNS, repeat_sets=REPEAT_SETS,
                   co2_digest=CO2_DIGEST, lags=LAGS, ma=MA_WIDTH,
                   note="accuracy in the simulated sections, mean absolute error "
                        "in parts per million in the time section"),

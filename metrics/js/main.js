@@ -55,21 +55,30 @@ function aucPairs(y, s) {
   return (R - (n1 * (n1 + 1)) / 2) / (n1 * n0);
 }
 
+/* The trapezoid has to advance one THRESHOLD at a time, not one sample at a
+   time. Where several rows share a score no threshold separates them, so the
+   curve crosses that block on a single diagonal; stepping through them one by
+   one draws a staircase instead and the area comes out different. It did: the
+   two routes disagreed by 6.4e-6, which looked like a rounding problem and was
+   a tie handling problem. The scores are exported to six decimals, so ties
+   exist here even when the underlying probabilities were all distinct. */
 function aucTrapezoid(y, s) {
   const idx = y.map((_, i) => i).sort((a, b) => s[b] - s[a]);
-  let tp = 0;
-  let fp = 0;
   const P = y.reduce((a, b) => a + b, 0);
   const N = y.length - P;
+  let tp = 0;
+  let fp = 0;
   let area = 0;
-  let prevFp = 0;
-  let prevTp = 0;
-  idx.forEach((i) => {
-    if (y[i] === 1) tp += 1; else fp += 1;
+  let i = 0;
+  while (i < idx.length) {
+    let j = i;
+    while (j + 1 < idx.length && s[idx[j + 1]] === s[idx[i]]) j += 1;
+    const prevFp = fp;
+    const prevTp = tp;
+    for (let k = i; k <= j; k++) { if (y[idx[k]] === 1) tp += 1; else fp += 1; }
     area += ((fp - prevFp) / N) * ((tp + prevTp) / (2 * P));
-    prevFp = fp;
-    prevTp = tp;
-  });
+    i = j + 1;
+  }
   return area;
 }
 

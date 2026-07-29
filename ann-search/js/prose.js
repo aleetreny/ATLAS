@@ -89,7 +89,9 @@ export function initProse(data) {
     + `ignores that a graph walk jumps around memory while a scan does not, which is why the `
     + `crossover in seconds is at a larger collection than the crossover in distances. And it `
     + `grows slowly: from ${n0(first.n)} to ${n0(last.n)} vectors the graph's cost per query `
-    + `goes from ${Math.round(first.cost)} to ${Math.round(last.cost)} distances, which is `
+    + `goes from ${Math.round(first.cost)} to ${Math.round(last.cost)} distances while `
+    + `exhaustive search goes from ${n0(first.brute)} to ${n0(last.brute)}, so the saving `
+    + `widens from ${first.ratio.toFixed(1)} times to ${last.ratio.toFixed(1)}. That is `
     + `the ${growth.toFixed(2)} power of the collection size rather than the first power `
     + `exhaustive search pays. The second view is the one that changes what all of this is `
     + `worth, and it is in the readout.`);
@@ -144,9 +146,13 @@ export function initProse(data) {
       + `${growth.toFixed(2)} power of the collection.`
       : `does not reach ${(target * 100).toFixed(0)}% recall within its dial range here.`);
   set('verdict-hnsw-warn',
-    `${n0(I.build_cost)} distances to build and a graph to keep in memory: about `
-    + `${(I.degrees.mean).toFixed(1)} edges per node at the bottom layer, on top of the `
-    + `vectors themselves.`);
+    `${n0(I.build_cost)} distances to build and a graph to keep in memory: `
+    + (I.degrees.min === I.degrees.max
+      ? `<span class="bold">exactly ${I.degrees.max}</span> edges on every node at the bottom `
+        + `layer, not an average of that, because the cap is what every node reaches`
+      : `${(I.degrees.mean).toFixed(1)} edges per node at the bottom layer on average, from `
+        + `${I.degrees.min} to ${I.degrees.max}`)
+    + `, on top of the vectors themselves.`);
   set('verdict-pq',
     `${smallPq.bytes} bytes per vector instead of ${I.float_bytes}, a factor of `
     + `${(I.float_bytes / smallPq.bytes).toFixed(0)}, at ${f3(smallPq.recall)} recall; with `
@@ -174,12 +180,18 @@ export function initProse(data) {
     `Everything on this page comes from `
     + `<span class="mono">src/<wbr>utils/<wbr>generate_<wbr>annsearch_<wbr>data.py</span> and the indexes in `
     + `<span class="mono">src/<wbr>utils/<wbr>annkit.py</span>, seed ${M.seed}. The collection is `
-    + `${n0(I.n)} single label Reuters newswires as ${M.dims} columns from a singular value `
+    + `${n0(M.index_n)} of the ${n0(M.docs)} single label Reuters newswires, in `
+    + `${M.classes.length} categories over a vocabulary of ${n0(M.vocab)} words, as `
+    + `${M.dims} columns from a singular value `
     + `decomposition of their weighted counts, with ${I.queries} held out as queries and `
     + `${M.k} neighbours asked for. The graph uses ${M.M} neighbours per node and a `
     + `construction width of ${M.ef_construction}; the inverted file uses ${M.nlist} cells `
     + `from k-means; the product quantiser uses eight bit codebooks. Cost is counted inside `
     + `the indexes as distance evaluations and never in seconds, which is the only form that `
     + `means the same thing on another machine. The intrinsic dimension is the two nearest `
-    + `neighbour estimator of Facco and colleagues, fitted through the origin.`);
+    + `neighbour estimator of Facco and colleagues, fitted through the origin, over a sample `
+    + `of ${n0(C.reuters.dim_sample)} points with exact duplicates excluded and counted. The `
+    + `word vectors are read from the <a href="../embeddings/">embeddings article</a>'s own `
+    + `file, ${C.word_meta.shipped} words of ${C.word_meta.corpus} in `
+    + `${C.word_meta.dim} dimensions, decoded from the float16 it ships them in.`);
 }

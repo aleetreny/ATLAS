@@ -43,6 +43,22 @@ def brute(X, Q, k, block=64):
     return out, len(X) * len(Q)
 
 
+def pad_to(res, k):
+    """Rellena listas cortas con -1 hasta k, para poder apilarlas.
+
+    Un índice invertido que sondea pocas celdas puede devolver MENOS de k
+    vecinos, porque en las celdas que miró no hay más. Es comportamiento real y
+    no un fallo, así que no se descarta la consulta ni se rellena con vecinos
+    inventados: se rellena con un índice imposible, que ningún conjunto de
+    verdad contiene y que por tanto cuenta como no encontrado en el recall.
+    """
+    out = np.full((len(res), k), -1, dtype=int)
+    for i, a in enumerate(res):
+        a = np.asarray(a, dtype=int)[:k]
+        out[i, :len(a)] = a
+    return out
+
+
 def recall_at(found, truth):
     """Fracción de los vecinos verdaderos que el índice devolvió."""
     k = truth.shape[1]

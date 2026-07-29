@@ -35,6 +35,7 @@ Tres familias, y las tres tienen el mismo defecto por el mismo motivo: resumir.
 
 Ejecutar desde cualquier sitio: `python src/utils/generate_metrics_data.py`.
 """
+import base64
 import json
 import os
 import pickle
@@ -449,10 +450,22 @@ def sentence_bleu(cand, ref, maxn=4):
     return bleu_from_stats([bleu_stats(cand, ref, maxn)], maxn, smooth=True)
 
 
+def decode_half(b64, n, d):
+    """Los vectores del artículo 41 viajan en float16 y base64, no en JSON.
+
+    Es el mismo contrato que lee `decodeHalf` de `assets/js/textkit.js`: little
+    endian, por filas. Leerlos con `np.array(..., float)` falla con un
+    ValueError sobre una cadena de base64, que es un error honesto y confuso.
+    """
+    W = np.frombuffer(base64.b64decode(b64), dtype="<f2").astype(np.float64)
+    assert W.size == n * d, f"{W.size} medios contra {n} por {d} esperados"
+    return W.reshape(n, d)
+
+
 def load_vectors():
     d = json.loads(EMBED.read_text("utf-8"))
     v = d["vectors"]
-    W = np.array(v["models"]["skip-gram"]["vec"], float)
+    W = decode_half(v["models"]["skip-gram"]["vec"], len(v["words"]), v["dim"])
     W = W / np.maximum(np.linalg.norm(W, axis=1, keepdims=True), 1e-12)
     return v["words"], W, d["meta"]
 

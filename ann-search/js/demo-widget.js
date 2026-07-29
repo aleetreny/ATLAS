@@ -61,8 +61,11 @@ export function initDemoWidget(data) {
         .attr('opacity', lvl > 0 ? 0.9 : 0.4);
     });
 
-    /* the descent through the layers, drawn as the arrows it is */
+    /* The descent through the layers, drawn as the arrows it is, with the node
+       where each new layer is entered recorded for the readout. */
     let prev = null;
+    let lastLevel = null;
+    const entries = [];
     walk.path.forEach((step) => {
       const p = D.points[step.node];
       if (prev) {
@@ -73,10 +76,24 @@ export function initDemoWidget(data) {
       }
       layer.append('circle').attr('cx', x(p[0])).attr('cy', y(p[1])).attr('r', 6)
         .attr('fill', 'none').attr('stroke', 'var(--primary)').attr('stroke-width', 2);
-      layer.append('text').attr('class', 'chart-note').attr('x', x(p[0]) + 9)
-        .attr('y', y(p[1]) - 7).style('font-size', '10.5px').attr('fill', 'var(--primary)')
-        .text(`layer ${step.level}`);
+      if (step.level !== lastLevel) {
+        entries.push({ node: step.node, p, level: step.level });
+        lastLevel = step.level;
+      }
       prev = p;
+    });
+
+    /* The entry points are NOT labelled on the canvas. They move with the
+       slider, so any placement rule that works for one query collides for
+       another: against each other where the walk converges, against "the query"
+       where it lands close. This is the lesson the consistency article already
+       paid for, and the answer is the same one: a series that moves gets named
+       in the readout, not on top of itself. */
+    const grouped = [];
+    entries.forEach((e) => {
+      const last = grouped[grouped.length - 1];
+      if (last && last.node === e.node) last.levels.push(e.level);
+      else grouped.push({ node: e.node, p: e.p, levels: [e.level] });
     });
 
     found.forEach((i) => {
@@ -100,19 +117,28 @@ export function initDemoWidget(data) {
     });
 
     const counts = D.upper.map((nodes, L) => `${nodes.length} at layer ${L}`).reverse();
+    const qCat = D.labels[walk.truth];
+    const agree = walk.found.filter((i) => D.labels[i] === qCat).length;
     readout.innerHTML = `<div class="gen-note">${D.points.length} of the same newswire `
       + `vectors, projected onto two coordinates and indexed there, with `
       + `${D.edges.length} edges at the bottom layer and at most ${D.m} new neighbours per `
-      + `insertion. The layer sizes are ${counts.join(', ')}: each level up keeps a `
+      + `insertion. Every walk starts at node ${D.entry}, the single node of the top layer. `
+      + `The layer sizes are ${counts.join(', ')}: each level up keeps a `
       + `geometrically smaller sample, which is what makes the first hop long and the last `
-      + `ones short. This query descends through ${walk.path.length} `
-      + `${walk.path.length === 1 ? 'layer' : 'layers'} before widening at the bottom, and it `
+      + `ones short. This query takes ${walk.path.length} `
+      + `${walk.path.length === 1 ? 'step' : 'steps'}, entering `
+      + `${grouped.map((gr) => (gr.levels.length === 1
+        ? `layer ${gr.levels[0]}`
+        : `layers ${gr.levels.join(' and ')} on the same node`)).join(', then ')}`
+      + `. Then it widens at the bottom, and it `
       + (walk.hit
         ? `lands on the true nearest point.`
         : `does not land on the true nearest point, which is marked with a diamond. That is `
           + `what approximate means, and on this small a graph it happens often enough to `
           + `see.`)
-      + `</div>`;
+      + ` Either way ${agree} of the ${walk.found.length} it returned share the true `
+      + `neighbour's category, which is the measure the previous widget argues matters more `
+      + `than whether the walk landed on the exact point.</div>`;
   }
 
   render();

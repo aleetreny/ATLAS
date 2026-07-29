@@ -32,11 +32,17 @@ export function initTradeWidget(data) {
     btns[key] = b;
   }
 
+  /* The product quantiser has no cost on this axis, and that is the honest
+     answer rather than a gap in the data: it skips no vector at all, so it pays
+     the same number of visits as exhaustive search and saves on what each visit
+     costs instead. Its cost comes out of the generator as null, and plotting a
+     null on a log axis drew a path with NaN in its coordinates. It belongs to
+     the last widget, where the axis is bytes. */
   const SERIES = [
     ['hnsw', 'navigable graph', 'var(--primary)', (r) => r.ef],
     ['ivf', 'inverted file', 'var(--anchor)', (r) => r.nprobe],
-    ['pq', 'product quantiser', 'var(--cosmos)', (r) => r.m],
   ];
+  const COSTLESS = [['pq', 'product quantiser', 'var(--cosmos)', (r) => r.m]];
 
   function render() {
     Object.entries(btns).forEach(([k, b]) => b.classList.toggle('ghost', k !== st.view));
@@ -84,14 +90,26 @@ export function initTradeWidget(data) {
         .text(`${name}, dial from ${knob(rows[0])} to ${knob(lab)}`);
     });
 
+    /* the quantiser gets a line at the exhaustive cost, where it really sits */
+    COSTLESS.forEach(([s, name, colour]) => {
+      const best = I[s].reduce((a, b) => (b.recall > a.recall ? b : a));
+      layer.append('circle').attr('cx', x(I.brute_cost)).attr('cy', y(best[key])).attr('r', 4.5)
+        .attr('fill', 'none').attr('stroke', colour).attr('stroke-width', 2.2);
+      layer.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', -46 + SERIES.length * 15)
+        .style('font-size', '11px').attr('fill', colour)
+        .text(`${name}: same visits as exhaustive, cheaper ones`);
+    });
+
     const target = 0.9;
-    const rows = SERIES.map(([s, name]) => {
+    const rows = SERIES.concat(COSTLESS).map(([s, name]) => {
       const sorted = I[s].slice().sort((a, b) => a.cost - b.cost);
       const hit = sorted.find((r) => r.recall >= target);
       const best = sorted[sorted.length - 1];
       return `<tr><td>${name}</td>`
-        + `<td>${hit ? Math.round(hit.cost) : 'never'}</td>`
-        + `<td>${hit ? `${(I.brute_cost / hit.cost).toFixed(1)} times less` : ''}</td>`
+        + `<td>${hit && hit.cost != null ? Math.round(hit.cost)
+          : hit ? 'the whole collection' : 'never'}</td>`
+        + `<td>${hit && hit.cost != null ? `${(I.brute_cost / hit.cost).toFixed(1)} times less`
+          : hit ? 'none, it saves bytes instead' : ''}</td>`
         + `<td>${best.recall.toFixed(3)}</td><td>${best.quality.toFixed(3)}</td></tr>`;
     }).join('');
     readout.innerHTML = `<table class="gen-table"><thead><tr><th>index</th>`
@@ -105,7 +123,13 @@ export function initTradeWidget(data) {
       + `newswire are not all from its category, and no index can fix that. That is why the `
       + `two views have different shapes. Losing ten per cent of the true neighbours does not `
       + `cost ten per cent of the answer, because the neighbours that are easy to find are `
-      + `also the ones that agree with the query.</div>`;
+      + `also the ones that agree with the query.</div>`
+      + `<div class="gen-note">The quantiser is the odd one out and its own row says why: `
+      + I.pq.slice().sort((a, b) => a.m - b.m).map((q) => `${q.m} chunks reconstructs the `
+        + `vector to ${(q.rec_err * 100).toFixed(1)}% relative error`).join(', ')
+      + `. Every one of those still touches all ${I.n.toLocaleString('en-US')} vectors, so `
+      + `nothing on the horizontal axis moves; what moves is the bytes, and that is the last `
+      + `widget of the next article.</div>`;
   }
 
   render();

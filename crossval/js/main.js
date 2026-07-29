@@ -57,11 +57,24 @@ function runGuards(data) {
       + 'so the paragraph about understatement has its direction wrong');
   });
 
-  /* repeating the split cannot go below the dataset's own spread */
-  const last = T.repeats[T.repeats.length - 1];
-  check('repeating the split has a floor', last.sd >= T.true_sd * 0.5,
-    `${T.repeats.length} repeats reach ${last.sd}, below the ${T.true_sd} the dataset itself `
-    + 'moves, which would mean the two were measured on different things');
+  /* Repeating the split averages away one component and not the other, so the
+     sweep must fall and must stop falling. The first version of this guard
+     compared the last point against T.true_sd, which is the spread of the TRUE
+     RISK and a different quantity entirely: the sweep sits four times above it
+     and always will, so the check passed for the wrong reason while the
+     paragraph next to it printed true_sd as the floor. */
+  const reps = T.repeats;
+  const last = reps[reps.length - 1];
+  check('repeating the split only helps', reps.every((r, i) => i === 0 || r.sd <= reps[i - 1].sd),
+    `the sweep is not monotone: ${reps.map((r) => r.sd.toFixed(5)).join(', ')}`);
+  const partVar = (reps[0].sd ** 2 - last.sd ** 2) / (1 - 1 / last.repeats);
+  check('the two variance components separate', partVar > 0 && partVar < reps[0].sd ** 2,
+    `the part repeating can average away comes out at ${partVar}, which is not between zero `
+    + `and the whole ${reps[0].sd ** 2}`);
+  check('the partition component matches the direct measurement',
+    Math.abs(Math.sqrt(partVar) - T.partition_sd) < 0.6 * T.partition_sd,
+    `${Math.sqrt(partVar).toFixed(5)} from the sweep against ${T.partition_sd} measured by `
+    + `resplitting one fixed dataset, which are meant to be the same quantity`);
 
   /* the leakage arm must beat chance and the honest arm must not */
   const N = data.noise;
@@ -81,11 +94,16 @@ function runGuards(data) {
     `shuffling gives ${shuf.mae}, random gives ${rand.mae} and forward chaining gives `
     + `${fwd.mae}: the control did not isolate the order`);
 
-  /* the two routes to the same probability */
+  /* the two routes to the same probability. The tolerance is not a round number
+     chosen to pass: it is four standard errors of the simulation itself, so the
+     guard tightens as the trial count rises and a real disagreement cannot hide
+     behind a generous constant */
   data.empty.forEach((r) => {
+    const se = Math.sqrt(Math.max(r.measured * (1 - r.measured), 1e-6) / r.trials);
     check(`empty folds at ${r.positives} positives`,
-      Math.abs(r.exact - r.measured) < 0.02,
-      `the formula says ${r.exact} and ${r.trials} simulated splits say ${r.measured}`);
+      Math.abs(r.exact - r.measured) < 4 * se,
+      `the formula says ${r.exact} and ${r.trials} simulated splits say ${r.measured}, `
+      + `apart by ${(Math.abs(r.exact - r.measured) / se).toFixed(1)} standard errors`);
   });
 
   const bad = [];

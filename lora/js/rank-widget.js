@@ -36,7 +36,13 @@ export function initRankWidget(data) {
   }
 
   const loras = data.arms.filter((a) => a.rank != null).sort((a, b) => a.rank - b.rank);
-  const others = data.arms.filter((a) => a.rank == null);
+  /* the placement arms belong on this axis too: "which layers get an adapter" is a
+     different decision from "how big is it", and it buys parameters on the same
+     scale. "both" is the rank r run already on the curve, so only the two partial
+     placements are added */
+  const placed = data.where.rows.filter((r) => r.arm !== 'both')
+    .map((r) => ({ ...r, arm: `${r.arm} layer only, r=${data.where.rank}` }));
+  const others = data.arms.filter((a) => a.rank == null).concat(placed);
 
   function render() {
     Object.entries(btns).forEach(([k, b]) => b.classList.toggle('ghost', k !== st.view));
@@ -115,7 +121,10 @@ export function initRankWidget(data) {
       });
       layer.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', -40)
         .style('font-size', '11px').attr('fill', 'var(--primary)')
-        .text('filled: low rank adapters, rank 1 to 64');
+        .text(`filled: low rank adapters, rank ${loras[0].rank} to ${loras[loras.length - 1].rank}`);
+      layer.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', -25)
+        .style('font-size', '11px').attr('fill', 'var(--cosmos)')
+        .text('hollow: everything else, named');
     }
 
     const ceilRows = data.ceiling.filter((r) => r.rank > 0);

@@ -32,6 +32,7 @@ Lo que se mide:
 
 Ejecutar desde cualquier sitio: `python src/utils/generate_annsearch_data.py`.
 """
+import base64
 import json
 import os
 import pickle
@@ -43,7 +44,7 @@ import numpy as np
 from sklearn.utils.extmath import randomized_svd
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from annkit import HNSW, IVF, PQ, brute, kmeans, recall_at  # noqa: E402
+from annkit import HNSW, IVF, PQ, brute, kmeans, pad_to, recall_at  # noqa: E402
 from nlp_data import reuters, tokenize  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -134,31 +135,68 @@ def reuters_vectors():
     return Z, lab, len(words), [" ".join(t[:12]) for t in texts]
 
 
+def decode_half(b64, n, d):
+    """Los vectores del artículo 41 viajan en float16 y base64, no en JSON.
+
+    Es el mismo contrato que lee `decodeHalf` de `assets/js/textkit.js`: little
+    endian, por filas. Leerlos con `np.array(..., float)` falla con un
+    ValueError sobre una cadena de base64, que es un error honesto y confuso.
+    """
+    W = np.frombuffer(base64.b64decode(b64), dtype="<f2").astype(np.float64)
+    assert W.size == n * d, f"{W.size} medios contra {n} por {d} esperados"
+    return W.reshape(n, d)
+
+
 def load_words():
     d = json.loads(EMBED.read_text("utf-8"))
     v = d["vectors"]
-    W = np.array(v["models"]["skip-gram"]["vec"], float)
+    W = decode_half(v["models"]["skip-gram"]["vec"], len(v["words"]), v["dim"])
     return v["words"], W, d["meta"], v["tags"]
 
 
 # ------------------------------------------------------------ 1. concentración
+# Las dos medidas de esta sección son cocientes CON LA DISTANCIA AL VECINO MÁS
+# CERCANO EN EL DENOMINADOR, así que dos documentos iguales las hacen explotar:
+# Reuters archiva la misma noticia más de una vez (es justo lo que mide la
+# sección de grupos del artículo de validación cruzada) y la primera versión de
+# esta página publicó un contraste de 94.829.612 y una dimensión intrínseca de
+# 0,28, las dos sin sentido y las dos con pinta de cifra. Poner a infinito solo
+# las distancias EXACTAMENTE cero no basta: un casi duplicado deja 1e-8, que es
+# finito y sobrevive al filtro.
+#
+# La regla, que es la que usa el propio artículo de Facco: se descartan los
+# puntos cuyo vecino más cercano está a menos de DUP_EPS veces la distancia
+# típica, se cuentan, y el recuento se publica. Un duplicado no es ruido que
+# haya que esconder, es una propiedad del corpus que el lector quiere saber.
+DUP_EPS = 1e-4
+
+
+def drop_duplicates(near, scale):
+    """Máscara de puntos cuyo vecino más cercano es otro documento de verdad."""
+    return near > DUP_EPS * scale
+
+
 def two_nn_dimension(X, rng, sample=1500):
     """Estimador de Facco: la razón entre el segundo y el primer vecino.
 
     La dimensión intrínseca sale de una recta sin término independiente sobre
-    log(mu) contra menos log(1 - F), y no depende de ninguna escala.
+    log(mu) contra menos log(1 - F), y no depende de ninguna escala. Devuelve
+    también cuántos puntos se descartaron por duplicado.
     """
     idx = rng.choice(len(X), min(sample, len(X)), replace=False)
     S = X[idx]
-    d = np.sqrt(((S[:, None, :] - S[None, :, :]) ** 2).sum(-1))
+    d = np.sqrt(np.maximum(((S[:, None, :] - S[None, :, :]) ** 2).sum(-1), 0.0))
     np.fill_diagonal(d, np.inf)
     part = np.sort(d, axis=1)[:, :2]
-    mu = part[:, 1] / np.maximum(part[:, 0], 1e-12)
+    scale = float(np.median(part[:, 0][np.isfinite(part[:, 0])]))
+    keep = drop_duplicates(part[:, 0], scale)
+    part = part[keep]
+    mu = part[:, 1] / part[:, 0]
     mu = np.sort(mu[np.isfinite(mu) & (mu > 1)])
     F = np.arange(1, len(mu) + 1) / (len(mu) + 1)
     x = np.log(mu)
     yv = -np.log(1 - F)
-    return float((x @ yv) / (x @ x))
+    return float((x @ yv) / (x @ x)), int((~keep).sum()), int(len(keep))
 
 
 def stage_concentration(Z):
@@ -173,24 +211,41 @@ def stage_concentration(Z):
         rows.append(dict(d=d, contrast=float(np.mean((far - near) / near)),
                          near=float(near.mean()), far=float(far.mean()),
                          ratio=float(np.mean(far / near))))
-    Q = Z[rng.choice(len(Z), 100, replace=False)]
-    dist = np.sqrt(np.maximum(
-        (Z ** 2).sum(1)[None, :] - 2.0 * (Q @ Z.T) + (Q ** 2).sum(1)[:, None], 0.0))
-    dist[dist == 0] = np.inf
-    near, far = dist.min(1), np.where(np.isfinite(dist), dist, -np.inf).max(1)
-    real = dict(d=DIMS, contrast=float(np.mean((far - near) / near)),
-                near=float(near.mean()), far=float(far.mean()),
-                ratio=float(np.mean(far / near)),
-                intrinsic=two_nn_dimension(Z, rng))
+    def real_row(All, qi, d, extra=None):
+        """Contraste sobre consultas cuyo vecino más cercano es otro documento.
+
+        La consulta se excluye POR ÍNDICE y no por valor. La identidad de normas
+        deja la distancia de un punto a sí mismo en unos 5e-9 y no en cero, así
+        que un `dist[dist == 0] = inf` no la quita: la primera versión de esta
+        función tomaba cada consulta como su propio vecino más cercano y
+        publicaba un contraste de 94.829.612.
+        """
+        P = All[qi]
+        dist = np.sqrt(np.maximum(
+            (All ** 2).sum(1)[None, :] - 2.0 * (P @ All.T) + (P ** 2).sum(1)[:, None], 0.0))
+        dist[np.arange(len(qi)), qi] = np.inf
+        near = dist.min(1)
+        far = np.where(np.isfinite(dist), dist, -np.inf).max(1)
+        # la escala sale de la distancia LEJANA, que ningún duplicado contamina
+        keep = drop_duplicates(near, float(np.median(far)))
+        n, f = near[keep], far[keep]
+        row = dict(d=d, contrast=float(np.mean((f - n) / n)),
+                   near=float(n.mean()), far=float(f.mean()),
+                   ratio=float(np.mean(f / n)),
+                   queries=int(keep.sum()), duplicate_queries=int((~keep).sum()))
+        row.update(extra or {})
+        return row
+
+    qi = rng.choice(len(Z), 100, replace=False)
+    dim, dup, seen = two_nn_dimension(Z, rng)
+    real = real_row(Z, qi, DIMS,
+                    dict(intrinsic=dim, duplicate_points=dup, dim_sample=seen))
     words, W, wmeta, tags = load_words()
     Wn = W / np.maximum(np.linalg.norm(W, axis=1, keepdims=True), 1e-12)
-    dw = np.sqrt(((Wn[:100, None, :] - Wn[None, :, :]) ** 2).sum(-1))
-    dw[dw == 0] = np.inf
-    nw, fw = dw.min(1), np.where(np.isfinite(dw), dw, -np.inf).max(1)
-    wordrow = dict(d=int(W.shape[1]), n=int(len(words)),
-                   contrast=float(np.mean((fw - nw) / nw)),
-                   ratio=float(np.mean(fw / nw)),
-                   intrinsic=two_nn_dimension(Wn, rng))
+    wdim, wdup, wseen = two_nn_dimension(Wn, rng)
+    wordrow = real_row(Wn, np.arange(100), int(W.shape[1]),
+                       dict(n=int(len(words)), intrinsic=wdim,
+                            duplicate_points=wdup, dim_sample=wseen))
     return dict(gaussian=rows, reuters=real, words=wordrow,
                 word_meta=dict(corpus=wmeta["corpus"], dim=wmeta["dim"],
                                shipped=wmeta["shipped"]))
@@ -213,7 +268,7 @@ def stage_indices(Z, lab):
     ivf_rows = []
     for npb in NPROBES:
         res = [ivf.search(q, K, npb) for q in Q]
-        found = np.array([a for a, _ in res])
+        found = pad_to([a for a, _ in res], K)
         ivf_rows.append(dict(nprobe=npb, recall=recall_at(found, truth),
                              cost=float(np.mean([c for _, c in res])),
                              quality=category_hits(found, lab_x, lab_q)))
@@ -224,7 +279,7 @@ def stage_indices(Z, lab):
     hnsw_rows = []
     for ef in EFS:
         res = [h.search(q, K, ef) for q in Q]
-        found = np.array([a for a, _ in res])
+        found = pad_to([a for a, _ in res], K)
         hnsw_rows.append(dict(ef=ef, recall=recall_at(found, truth),
                               cost=float(np.mean([c for _, c in res])),
                               quality=category_hits(found, lab_x, lab_q)))
@@ -268,7 +323,13 @@ def stage_indices(Z, lab):
 def category_hits(found, lab_x, lab_q):
     """La medida que le importa a quien consulta: cuántos de los diez devueltos
     son de la categoría de la consulta."""
-    return float(np.mean([(lab_x[row] == q).mean() for row, q in zip(found, lab_q)]))
+    # `row` puede traer -1 de relleno cuando el índice devolvió menos de k, y
+    # lab_x[-1] es la última etiqueta del conjunto, así que sumaría un acierto
+    # fantasma. Se divide entre k y no entre los devueltos: un hueco no es un
+    # acierto de categoría, es un resultado que no está.
+    k = found.shape[1]
+    return float(np.mean([(lab_x[row[row >= 0]] == q).sum() / k
+                          for row, q in zip(found, lab_q)]))
 
 
 def stage_ablation(Z):
@@ -288,7 +349,7 @@ def stage_ablation(Z):
                  rng=np.random.default_rng(SEED + 2))
         for ef in (16, 64, 250):
             res = [h.search(q, K, ef) for q in Q]
-            found = np.array([a for a, _ in res])
+            found = pad_to([a for a, _ in res], K)
             rows.append(dict(arm=tag, ef=ef, recall=recall_at(found, truth),
                              cost=float(np.mean([c for _, c in res])),
                              build=int(h.build_cost),
@@ -311,7 +372,7 @@ def stage_scale(Z):
         truth, _ = brute(X, Q, K)
         h = HNSW(X, M=M, ef_construction=EF_C, rng=np.random.default_rng(SEED + 2))
         res = [h.search(q, K, 64) for q in Q]
-        found = np.array([a for a, _ in res])
+        found = pad_to([a for a, _ in res], K)
         rows.append(dict(n=n, recall=recall_at(found, truth),
                          cost=float(np.mean([c for _, c in res])),
                          brute=float(n), build=int(h.build_cost),

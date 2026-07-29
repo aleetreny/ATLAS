@@ -99,10 +99,14 @@ export function initHalvingWidget(data) {
     const cheap = H.rows[0];
     const same = H.halving_pick === bestCfg;
     const lost = full[bestCfg] - full[H.halving_pick];
-    readout.innerHTML = `<div class="gen-note">Twenty four candidates, scored at `
-      + `${H.rows.map((r) => r.n).join(', ')} training rows. At the cheapest budget the `
-      + `order already agrees with the expensive one to a rank correlation of `
-      + `<span class="bold">${cheap.spearman.toFixed(3)}</span>, and `
+    readout.innerHTML = `<div class="gen-note">${H.configs} candidates, scored at `
+      + `${H.rows.map((r) => r.n).join(', ')} training rows, which are `
+      + `${H.rows.map((r) => `${(r.frac * 100).toFixed(1)}%`).join(', ')} of the set. At the `
+      + `cheapest budget the mean score over the candidates is only `
+      + `${cheap.mean.toFixed(4)} against ${H.rows[H.rows.length - 1].mean.toFixed(4)} at the `
+      + `dearest, so the cheap fits are genuinely worse models and not merely noisier ones. `
+      + `What survives is the ORDER: it already agrees with the expensive one to a rank `
+      + `correlation of <span class="bold">${cheap.spearman.toFixed(3)}</span>, and `
       + `${(cheap.top_half_kept * 100).toFixed(0)}% of the top half survives; the eventual `
       + `winner is already top of the list at `
       + `${H.rows.filter((r) => r.top1_kept).length} of the ${H.rows.length} budgets. `

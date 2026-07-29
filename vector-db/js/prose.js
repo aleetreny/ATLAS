@@ -26,7 +26,11 @@ export function initProse(data) {
   const rows = F.rows.slice().sort((a, b) => a.selectivity - b.selectivity);
   const tight = rows[0];
   const loose = rows[rows.length - 1];
-  const split = rows.find((r) => r.pieces > 1);
+  /* the loosest filter that has ALREADY broken the subgraph, which is the
+     threshold the sentence is about. Scanning from rows[0] finds the tightest
+     one instead, which is true of every row past the split and says nothing */
+  const split = rows.slice().reverse().find((r) => r.pieces > 1);
+  const peak = rows.reduce((a, b) => (b.pieces > a.pieces ? b : a));
   const cats = F.categories.slice().sort((a, b) => a.selectivity - b.selectivity);
   const worstCat = cats[0];
   const churn = C.rows;
@@ -69,7 +73,12 @@ export function initProse(data) {
     + (split
       ? `it stops being one piece as soon as the filter keeps ${pct(split.selectivity)}: at `
         + `${pct(tight.selectivity)} it is in ${tight.pieces} pieces with only `
-        + `${pct(tight.biggest)} of the kept rows in the largest.`
+        + `${pct(tight.biggest)} of the kept rows in the largest. The share is the number to `
+        + `watch and the count of pieces is not, which the sweep makes plain: the count peaks `
+        + `at ${peak.pieces} pieces when the filter keeps ${pct(peak.selectivity)} and then `
+        + `falls to ${tight.pieces}, for the unremarkable reason that ${n0(tight.kept)} rows `
+        + `cannot be broken into more than ${n0(tight.kept)} pieces. Fragmentation keeps `
+        + `getting worse the whole way down; only its most obvious symptom turns around.`
       : `here it stays in one piece at every selectivity tested, which is the case where that `
         + `third way works and is worth knowing as much as the failure would be.`)
     + ` And with the real filter rather than a random one, the worst category leaves the `
@@ -188,9 +197,13 @@ export function initProse(data) {
     `Everything on this page comes from `
     + `<span class="mono">src/<wbr>utils/<wbr>generate_<wbr>vectordb_<wbr>data.py</span>, with the indexes in `
     + `<span class="mono">src/<wbr>utils/<wbr>annkit.py</span>, seed ${M.seed}. The collection is `
-    + `${n0(F.n)} single label Reuters newswires as ${M.dims} columns, ${M.queries} queries, `
-    + `${M.k} results asked for, a graph with ${M.M} neighbours per node searched at width `
-    + `${M.ef}. Filters are applied at fixed selectivities and also by the documents' own `
+    + `${n0(M.index_n)} of the ${n0(M.docs)} single label Reuters newswires, in `
+    + `${M.classes.length} categories over a vocabulary of ${n0(M.vocab)} words, as `
+    + `${M.dims} columns; ${M.queries} queries, ${M.k} results asked for, and a graph with `
+    + `${M.M} neighbours per node searched at width ${M.ef}. The `
+    + `${n0(M.later)} documents held back are what the churn section inserts, so the `
+    + `"arriving later" rows are real newswires and not resampled copies of the indexed ones. `
+    + `Filters are applied at fixed selectivities and also by the documents' own `
     + `categories, and the connected pieces of each filtered subgraph are counted by a depth `
     + `first sweep. The word matching side is BM25 with the usual constants over the same `
     + `counts the <a href="../tf-idf/">TF-IDF article</a> measured, and fusion is reciprocal `

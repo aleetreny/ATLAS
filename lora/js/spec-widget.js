@@ -119,8 +119,11 @@ export function initSpecWidget(data) {
           + `times fewer directions than the null. `
         : `So on this layer the update is <span class="bold">not</span> more concentrated `
           + `than a random matrix, and an adapter of small rank has no reason to work here. `)
-      + `The whole change is small in the first place: its norm is `
-      + `${(L.rel * 100).toFixed(2)}% of the norm of the matrix it was added to.</div>`;
+      + `And the change itself is not small on this model: its norm is `
+      + `${L.delta.fro.toFixed(2)}, which is `
+      + `${(L.rel * 100).toFixed(1)}% of the norm of the matrix it was added to, where the `
+      + `usual description of fine tuning as a nudge would put it in the low single `
+      + `digits.</div>`;
   }
 
   render();

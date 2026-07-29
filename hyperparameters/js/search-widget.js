@@ -25,7 +25,7 @@ export function initSearchWidget(data) {
     forest: { rows: C.forest, size: data.forest.cv.length, name: 'the forest',
       importance: data.forest.importance,
       axes: [`depth ${data.forest.depth[0]} to `
-        + `${data.forest.depth[data.forest.depth.length - 1]}`,
+        + `${data.forest.depth[data.forest.depth.length - 1]}, ${data.forest.trees} trees`,
       `${data.forest.feats[0]} to `
         + `${data.forest.feats[data.forest.feats.length - 1]} columns per split`] },
     flattened: { rows: C.flattened, size: data.surface.cv.length,

@@ -71,9 +71,26 @@ export function initConcWidget(data) {
     + `first and second neighbour, is ${C.reuters.intrinsic.toFixed(1)} rather than `
     + `${C.reuters.d}. That is the whole reason approximate search works on real data and `
     + `not on noise: the vectors live on something much thinner than the box they are `
-    + `written in. The word vectors are the ones the `
-    + `<a href="../embeddings/">embeddings article</a> published, read from its own `
-    + `file.</div>`;
+    + `written in. In absolute terms the newswire nearest sits at `
+    + `${C.reuters.near.toFixed(3)} and the farthest at ${C.reuters.far.toFixed(3)}, against `
+    + `${at64.near.toFixed(2)} and ${at64.far.toFixed(2)} for noise of the same width, which `
+    + `is worth seeing because the contrast is a ratio and ratios hide the scale.`
+    + `</div><div class="gen-note">Both of these numbers put the nearest neighbour's distance `
+    + `in a denominator, so a repeated document makes them meaningless rather than merely `
+    + `noisy, and the newswires do repeat: `
+    + `<span class="bold">${C.reuters.duplicate_points}</span> of the `
+    + `${C.reuters.dim_sample} points sampled for the intrinsic dimension have a twin close `
+    + `enough to be the same vector, and ${C.reuters.duplicate_queries} of the queries do. `
+    + `They are excluded here and counted rather than quietly dropped. The word vectors, `
+    + `which are the ${C.words.n} most frequent words of ${C.word_meta.corpus} as the `
+    + `<a href="../embeddings/">embeddings article</a> published them in `
+    + `${C.word_meta.dim} dimensions, have ${C.words.duplicate_points} such points, and they `
+    + `come out at ${C.words.intrinsic.toFixed(1)} intrinsic dimensions: `
+    + (C.words.intrinsic > C.reuters.intrinsic
+      ? `higher than the newswires, so "real data is thin" is not one number that holds for `
+        + `everything, it is a measurement per collection.`
+      : `lower than the newswires, on the same axis and the same estimator.`)
+    + `</div>`;
 
   return { render: () => {} };
 }
