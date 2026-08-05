@@ -227,11 +227,35 @@
     <p class="body-text" id="closing-2"></p>
   </section>
 
-  <section>
-    <h1 class="body-header">How This Was Measured</h1>
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
     <p class="body-text" id="ref-note"></p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1603.09320">[1] Efficient and Robust Approximate Nearest Neighbor Search Using Hierarchical Navigable Small World Graphs</a><br />
+      (Malkov, Y. A. &amp; Yashunin, D. A., IEEE TPAMI, 2020; the graph index a database has to wrap)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/2105.09613">[2] FreshDiskANN: A Fast and Accurate Graph-Based ANN Index for Streaming Similarity Search</a><br />
+      (Singh, A. et al., 2021; inserts and deletions, the recall this page measures with tombstones)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://doi.org/10.1145/3543507.3583552">[3] Filtered-DiskANN: Graph Algorithms for Approximate Nearest Neighbor Search with Filters</a><br />
+      (Gollapudi, S. et al., WWW, 2023; what a filter does to a graph, the components this page counts)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1702.08734">[4] Billion-Scale Similarity Search with GPUs</a><br />
+      (Johnson, J., Douze, M. &amp; Jégou, H., IEEE Transactions on Big Data, 2021; FAISS, and the bytes per vector its quantisers spend)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
   </section>
-
-  <br /><br />
 </body>
 </html>

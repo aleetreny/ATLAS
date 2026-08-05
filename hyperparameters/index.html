@@ -254,11 +254,35 @@
     <p class="body-text" id="closing-2"></p>
   </section>
 
-  <section>
-    <h1 class="body-header">How This Was Measured</h1>
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
     <p class="body-text" id="ref-note"></p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://www.jmlr.org/papers/v13/bergstra12a.html">[1] Random Search for Hyper-Parameter Optimization</a><br />
+      (Bergstra, J. &amp; Bengio, Y., JMLR, 2012; why random beats a grid when only a few dials matter)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1206.2944">[2] Practical Bayesian Optimization of Machine Learning Algorithms</a><br />
+      (Snoek, J., Larochelle, H. &amp; Adams, R. P., NeurIPS, 2012; the Gaussian process surrogate this page runs against a blind draw)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1603.06560">[3] Hyperband: A Novel Bandit-Based Approach to Hyperparameter Optimization</a><br />
+      (Li, L. et al., JMLR, 2018; successive halving as the inner loop)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://www.jmlr.org/papers/v11/cawley10a.html">[4] On Over-fitting in Model Selection and Subsequent Selection Bias in Performance Evaluation</a><br />
+      (Cawley, G. C. &amp; Talbot, N. L. C., JMLR, 2010; the winner's curse this page separates from the training-size bias)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
   </section>
-
-  <br /><br />
 </body>
 </html>

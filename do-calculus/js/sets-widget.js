@@ -18,7 +18,7 @@ export function initSetsWidget(data) {
   const E = data.exact;
   const R = data.random;
   const chart = makeChart('#sets-chart', {
-    width: 640, height: 500, margin: { top: 180, right: 26, bottom: 60, left: 150 },
+    width: 640, height: 470, margin: { top: 150, right: 26, bottom: 60, left: 150 },
   });
   const { g, svg, w, h, margin } = chart;
   const readout = document.querySelector('#sets-readout');
@@ -47,7 +47,7 @@ export function initSetsWidget(data) {
   function drawGraph(active) {
     svg.selectAll('g.dag').remove();
     const dag = svg.append('g').attr('class', 'dag')
-      .attr('transform', `translate(${Math.max(10, margin.left + w / 2 - 240)}, 20)`);
+      .attr('transform', `translate(${Math.max(10, margin.left + w / 2 - 240)}, 16)`);
     const defs = dag.append('defs');
     defs.append('marker')
       .attr('id', 'arrow-sets').attr('viewBox', '0 0 10 10')
@@ -87,7 +87,7 @@ export function initSetsWidget(data) {
      * outcome) used to sit on top of this line. Shorter, too, so it no longer
      * runs to the right edge of the canvas. */
     dag.append('text').attr('class', 'chart-note')
-      .attr('x', 240).attr('y', 135).attr('text-anchor', 'middle')
+      .attr('x', 240).attr('y', 126).attr('text-anchor', 'middle')
       .style('font-size', '11.5px')
       .text(`treatment ${E.names[E.x]}, outcome ${E.names[E.y]}, `
         + `filled circles are the adjustment set`);
@@ -100,27 +100,33 @@ export function initSetsWidget(data) {
 
     if (view === 'random') {
       svg.selectAll('g.dag').remove();
+      /* Esta vista no dibuja el grafo, así que el margen superior que el grafo
+       * reserva quedaba vacío y las tres barras se agolpaban abajo. Se suben a
+       * un carril propio que usa también ese hueco. */
+      const lift = 100;
+      const rg = g.append('g').attr('transform', `translate(0, ${-lift})`);
+      const hR = h + lift;
       const bars = [
         ['adjust for everything is valid', R.full_rate, 'var(--primary)'],
         ['some valid set exists', R.any_rate, 'var(--aqua)'],
         ['adjust for nothing is valid', R.empty_rate, 'var(--cosmos)'],
       ];
-      const y = d3.scaleBand().domain(bars.map((b) => b[0])).range([0, h]).padding(0.45);
+      const y = d3.scaleBand().domain(bars.map((b) => b[0])).range([0, hR]).padding(0.45);
       const x = d3.scaleLinear().domain([0, 1]).range([0, w]);
-      drawGrid(g, x, y, w, h);
-      drawAxes(g, x, y, w, h, { xFmt: d3.format('.0%'), yValues: [] });
-      axisLabels(g, w, h, { x: `share of ${R.n.toLocaleString('en-US')} random graphs` });
+      drawGrid(rg, x, y, w, hR);
+      drawAxes(rg, x, y, w, hR, { xFmt: d3.format('.0%'), yValues: [] });
+      axisLabels(rg, w, hR, { x: `share of ${R.n.toLocaleString('en-US')} random graphs` });
       bars.forEach(([label, v, colour]) => {
-        g.append('rect')
+        rg.append('rect')
           .attr('x', 0).attr('y', y(label)).attr('width', x(v)).attr('height', y.bandwidth())
           .attr('fill', colour).attr('fill-opacity', 0.85);
-        g.append('text').attr('class', 'chart-note')
+        rg.append('text').attr('class', 'chart-note')
           .attr('x', 4).attr('y', y(label) - 8).style('font-size', '12px')
           .text(label);
         /* Una barra que llega al borde no tiene sitio a su derecha: la cifra
          * se mete dentro. Con 100,0% se salía 44 unidades del lienzo. */
         const inside = x(v) > w - 62;
-        g.append('text').attr('class', 'chart-note')
+        rg.append('text').attr('class', 'chart-note')
           .attr('x', inside ? x(v) - 8 : x(v) + 8)
           .attr('y', y(label) + y.bandwidth() / 2 + 4)
           .attr('text-anchor', inside ? 'end' : 'start')
@@ -161,9 +167,10 @@ export function initSetsWidget(data) {
       .attr('fill-opacity', (d) => (picked && picked.names.join() === d.names.join() ? 1 : 0.72))
       .style('cursor', 'pointer')
       .on('click', (_, d) => { picked = d; render(); });
-    /* Debajo del pie del grafo, no a su altura: a 375px las dos cajas se
-     * cruzaban. */
-    annotate(g, w - 4, -2, 'dark: satisfies the criterion', { anchor: 'end' })
+    /* Dentro del plot, arriba a la derecha, sobre el hueco que dejan las barras
+     * cortas (las validas, ordenadas primero): fuera del carril del pie del
+     * grafo, que a este margen no da para las dos cosas. */
+    annotate(g, w - 4, 16, 'dark: satisfies the criterion', { anchor: 'end' })
       .style('font-size', '11.5px').attr('fill', 'var(--primary)');
 
     const chosen = picked ?? sorted.find((r) => !r.backdoor && r.names.length === E.names.length - 2)

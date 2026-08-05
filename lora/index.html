@@ -233,11 +233,35 @@
     <p class="body-text" id="closing-2"></p>
   </section>
 
-  <section>
-    <h1 class="body-header">How This Was Measured</h1>
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
     <p class="body-text" id="ref-note"></p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/2106.09685">[1] LoRA: Low-Rank Adaptation of Large Language Models</a><br />
+      (Hu, E. J. et al., ICLR, 2022; the low-rank update whose spectrum this page decomposes)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/2305.14314">[2] QLoRA: Efficient Finetuning of Quantized LLMs</a><br />
+      (Dettmers, T. et al., NeurIPS, 2023; the four-bit weights that make it fit)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/2012.13255">[3] Intrinsic Dimensionality Explains the Effectiveness of Language Model Fine-Tuning</a><br />
+      (Aghajanyan, A., Zettlemoyer, L. &amp; Gupta, S., ACL, 2021; why a low-rank change is enough)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/2210.17323">[4] GPTQ: Accurate Post-Training Quantization for Generative Pre-trained Transformers</a><br />
+      (Frantar, E. et al., ICLR, 2023; one of the four-bit formats this page puts on the real weights)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
   </section>
-
-  <br /><br />
 </body>
 </html>

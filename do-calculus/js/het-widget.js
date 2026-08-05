@@ -40,21 +40,23 @@ export function initHetWidget(data) {
 
   const by = Object.fromEntries(H.rows.map((r) => [r.key, r]));
 
-  /* A row of coloured labels laid out from measured widths and centred as a
-   * group. It replaces a cursor that advanced by getComputedTextLength as each
-   * label was drawn: that measurement comes back short (or zero) before the
-   * heavy web font has loaded, and the labels then piled onto each other. The
-   * layout is repeated once the font is ready so the first paint is corrected. */
-  function layoutLegend(labels, gap = 18) {
-    const place = () => {
-      const widths = labels.map((s) => s.node().getComputedTextLength());
-      if (widths.some((v) => v <= 0)) return;
-      const total = widths.reduce((a, b) => a + b, 0) + gap * (labels.length - 1);
-      let cx = Math.max(0, (w - total) / 2);
-      labels.forEach((s, i) => { s.attr('x', cx).attr('text-anchor', 'start'); cx += widths[i] + gap; });
-    };
-    place();
-    if (document.fonts && document.fonts.status !== 'loaded') document.fonts.ready.then(place);
+  /* A row of coloured labels placed from character count, centred as a group.
+   * It replaces a cursor that advanced by getComputedTextLength as each label
+   * was drawn: that measurement comes back with the fallback font's width
+   * before the heavy web font has loaded (narrower), so the labels overlapped
+   * once the real font painted. The labels are monospace (.chart-annotation at
+   * 12px, measured at 9.2 units per character), so their width is known without
+   * measuring anything and the layout no longer depends on when the font loads. */
+  function layoutLegend(labels, gap = 14) {
+    const CHAR_W = 9.25;
+    const widths = labels.map((s) => (s.text() || '').length * CHAR_W);
+    const sum = widths.reduce((a, b) => a + b, 0);
+    if (labels.length > 1 && sum + gap * (labels.length - 1) > w) {
+      gap = Math.max(6, (w - sum) / (labels.length - 1));
+    }
+    const total = sum + gap * (labels.length - 1);
+    let cx = Math.max(0, (w - total) / 2);
+    labels.forEach((s, i) => { s.attr('x', cx).attr('text-anchor', 'start'); cx += widths[i] + gap; });
   }
 
   function render() {

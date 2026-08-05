@@ -233,11 +233,35 @@
     <p class="body-text" id="closing-2"></p>
   </section>
 
-  <section>
-    <h1 class="body-header">How This Was Measured</h1>
+  <!-- ======================= resources ======================= -->
+  <section id="resources">
+    <h3 class="body-header">References + Open Source</h3>
     <p class="body-text" id="ref-note"></p>
+    <br />
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/1208.3719">[1] Auto-WEKA: Combined Selection and Hyperparameter Optimization of Classification Algorithms</a><br />
+      (Thornton, C. et al., KDD, 2013; the combined choice of pipeline and dials this page enumerates)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://arxiv.org/abs/2007.04074">[2] Auto-Sklearn 2.0: Hands-free AutoML via Meta-Learning</a><br />
+      (Feurer, M. et al., JMLR, 2022; the portfolio and the ensemble built after the search)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://doi.org/10.1145/1015330.1015432">[3] Ensemble Selection from Libraries of Models</a><br />
+      (Caruana, R. et al., ICML, 2004; the greedy selection whose non-monotone step this page shows)
+    </p>
+    <p class="resource-item">
+      <a class="on-end" href="https://doi.org/10.1186/1471-2105-7-91">[4] Bias in Error Estimation when Using Cross-Validation for Model Selection</a><br />
+      (Varma, S. &amp; Simon, R., BMC Bioinformatics, 2006; why the outer loop of nested cross-validation is not optional)
+    </p>
+    <br />
+    <p class="resource-item">
+      Built with <a class="on-end" href="https://d3js.org/">D3.js</a> and
+      <a class="on-end" href="https://katex.org/">KaTeX</a>. No frameworks, no build
+      step. The aesthetic is an homage to
+      <a class="on-end" href="https://mlu-explain.github.io/">MLU-Explain</a> (CC BY-SA 4.0),
+      rebuilt with the open fonts Archivo Black and IBM Plex Mono.
+    </p>
   </section>
-
-  <br /><br />
 </body>
 </html>

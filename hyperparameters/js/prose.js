@@ -269,7 +269,7 @@ export function initProse(data) {
   set('ref-note',
     `Everything on this page comes from `
     + `<span class="mono">src/<wbr>utils/<wbr>generate_<wbr>hyperparameters_<wbr>data.py</span>, seed `
-    + `${M.seed}. The data is ${M.dataset} The surface is ${M.grid} by ${M.grid} values of `
+    + `${M.seed}. The data is ${M.dataset}. The surface is ${M.grid} by ${M.grid} values of `
     + `log2 C and log2 gamma for a radial basis kernel machine on ${n0(M.n_train)} of the `
     + `${n0(M.n_train + M.n_test)} rows, ${M.features} columns and ${M.classes} classes, `
     + `scored by ${M.repeats} repeats `
