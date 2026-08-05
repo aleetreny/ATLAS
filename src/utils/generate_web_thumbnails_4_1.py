@@ -221,10 +221,19 @@ def thumb_attention():
     n = min(len(rel), 48)
     out = head(["el alcance del gradiente de la atencion contra la distancia:",
                 "plano donde una recurrencia ya ha perdido la mitad"])
-    lo = max(1e-4, min(v for v in rel[:n] if v > 0))
+    # La atencion, al reves que una recurrencia, no decae: el alcance ronda uno
+    # y llega a pasar de tres. Un techo fijo en uno tiraba casi toda la curva
+    # fuera de la tarjeta (coordenadas de -1600), asi que el dominio se ajusta a
+    # lo que hay que ensenar y la mitad queda dentro por abajo.
+    pos = [v for v in rel[:n] if v > 0]
+    lo = min(pos)
+    hi = max(pos)
+    y_bot = min(lo, 0.5)
+    y_top = max(hi * 1.1, 1.4)
+    span = math.log10(y_top) - math.log10(y_bot)
+    clamp = lambda v: min(y_top, max(y_bot, v))
     sx = lambda i: m + (W - 2 * m) * i / max(1, n - 1)
-    sy = lambda v: (H - m) - (H - 2 * m) * (math.log10(max(v, lo)) - math.log10(lo)) / (
-        0 - math.log10(lo))
+    sy = lambda v: (H - m) - (H - 2 * m) * (math.log10(clamp(v)) - math.log10(y_bot)) / span
     out.append(f'  <path d="M{m},{round(sy(0.5))} L{W - m},{round(sy(0.5))}" '
                f'stroke="{INK}" stroke-width="1" stroke-dasharray="4 3" opacity="0.4" '
                f'fill="none"/>')

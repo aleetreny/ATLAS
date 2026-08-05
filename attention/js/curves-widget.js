@@ -99,10 +99,17 @@ export function initCurvesWidget(data) {
 
   function drawReach() {
     const R = data.reach;
-    const lo = Math.max(1e-6, Math.min(...R.relative.filter((v) => v > 0)));
+    const pos = R.relative.filter((v) => v > 0);
+    const lo = Math.max(1e-6, Math.min(...pos));
+    const hi = Math.max(...pos);
+    /* The reach is noisy and, unlike a recurrence, never decays: it rides around
+     * one and spikes above three. A fixed top of 1.4 clipped most of the curve
+     * off the canvas, so the domain is fitted to the data it has to show. */
+    const yBot = Math.min(lo, 0.5);
+    const yTop = Math.max(hi * 1.1, 1.4);
     const x = d3.scaleLinear().domain([1, R.distances.length]).range([0, w]);
-    const y = d3.scaleLog().domain([Math.min(lo, 0.5), 1.4]).range([h, 0]);
-    const yv = logTicks(Math.min(lo, 0.5), 1.4);
+    const y = d3.scaleLog().domain([yBot, yTop]).range([h, 0]);
+    const yv = logTicks(yBot, yTop);
     g.append('g').attr('class', 'grid')
       .call((s) => drawGrid(s, x, y, w, h, { xTicks: 6, yValues: yv }));
     const axes = g.append('g');

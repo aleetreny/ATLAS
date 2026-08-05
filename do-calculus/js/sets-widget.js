@@ -18,7 +18,7 @@ export function initSetsWidget(data) {
   const E = data.exact;
   const R = data.random;
   const chart = makeChart('#sets-chart', {
-    width: 640, height: 470, margin: { top: 150, right: 26, bottom: 60, left: 150 },
+    width: 640, height: 500, margin: { top: 180, right: 26, bottom: 60, left: 150 },
   });
   const { g, svg, w, h, margin } = chart;
   const readout = document.querySelector('#sets-readout');
@@ -47,7 +47,7 @@ export function initSetsWidget(data) {
   function drawGraph(active) {
     svg.selectAll('g.dag').remove();
     const dag = svg.append('g').attr('class', 'dag')
-      .attr('transform', `translate(${Math.max(10, margin.left + w / 2 - 240)}, 16)`);
+      .attr('transform', `translate(${Math.max(10, margin.left + w / 2 - 240)}, 20)`);
     const defs = dag.append('defs');
     defs.append('marker')
       .attr('id', 'arrow-sets').attr('viewBox', '0 0 10 10')
@@ -83,11 +83,14 @@ export function initSetsWidget(data) {
         .attr('fill', inSet || isXY ? 'var(--paper)' : 'var(--squidink)')
         .text(name);
     });
+    /* Below the feet of the nodes, not level with them: the lowest node (the
+     * outcome) used to sit on top of this line. Shorter, too, so it no longer
+     * runs to the right edge of the canvas. */
     dag.append('text').attr('class', 'chart-note')
-      .attr('x', 240).attr('y', 118).attr('text-anchor', 'middle')
+      .attr('x', 240).attr('y', 135).attr('text-anchor', 'middle')
       .style('font-size', '11.5px')
       .text(`treatment ${E.names[E.x]}, outcome ${E.names[E.y]}, `
-        + `filled circles are what is being adjusted for`);
+        + `filled circles are the adjustment set`);
   }
 
   function render() {

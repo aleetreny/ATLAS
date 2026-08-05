@@ -40,6 +40,23 @@ export function initHetWidget(data) {
 
   const by = Object.fromEntries(H.rows.map((r) => [r.key, r]));
 
+  /* A row of coloured labels laid out from measured widths and centred as a
+   * group. It replaces a cursor that advanced by getComputedTextLength as each
+   * label was drawn: that measurement comes back short (or zero) before the
+   * heavy web font has loaded, and the labels then piled onto each other. The
+   * layout is repeated once the font is ready so the first paint is corrected. */
+  function layoutLegend(labels, gap = 18) {
+    const place = () => {
+      const widths = labels.map((s) => s.node().getComputedTextLength());
+      if (widths.some((v) => v <= 0)) return;
+      const total = widths.reduce((a, b) => a + b, 0) + gap * (labels.length - 1);
+      let cx = Math.max(0, (w - total) / 2);
+      labels.forEach((s, i) => { s.attr('x', cx).attr('text-anchor', 'start'); cx += widths[i] + gap; });
+    };
+    place();
+    if (document.fonts && document.fonts.status !== 'loaded') document.fonts.ready.then(place);
+  }
+
   function render() {
     views.selectAll('button')
       .attr('class', (d) => (d[0] === view ? 'atlas-btn' : 'atlas-btn ghost'));
@@ -69,12 +86,8 @@ export function initHetWidget(data) {
           .attr('cx', (d) => x(d[0])).attr('cy', (d) => y(d[1])).attr('r', 2.4)
           .attr('fill', colours[k]).attr('fill-opacity', 0.5);
       });
-      let cursor = 0;
-      keys.forEach((k) => {
-        const label = annotate(g, cursor, -14, `${labels[k]}: ${f4(C.mse[k])}`,
-          { anchor: 'start' }).style('font-size', '12px').attr('fill', colours[k]);
-        cursor += label.node().getComputedTextLength() + 22;
-      });
+      layoutLegend(keys.map((k) => annotate(g, 0, -14, `${labels[k]}: ${f4(C.mse[k])}`)
+        .style('font-size', '12px').attr('fill', colours[k])));
       readout.innerHTML =
         `<p>Each dot is one held out person: the true effect for them on the horizontal `
         + `axis, what a method said on the vertical. A perfect method would put every dot on `
@@ -161,12 +174,8 @@ export function initHetWidget(data) {
             .attr('fill', colour);
         });
       });
-      let cursor = 0;
-      series.forEach(([, colour, name]) => {
-        const label = annotate(g, cursor, -14, name, { anchor: 'start' })
-          .style('font-size', '12px').attr('fill', colour);
-        cursor += label.node().getComputedTextLength() + 20;
-      });
+      layoutLegend(series.map(([, colour, name]) => annotate(g, 0, -14, name)
+        .style('font-size', '12px').attr('fill', colour)));
       const first = P[0];
       const last = P[P.length - 1];
       readout.innerHTML =
