@@ -49,7 +49,7 @@ export function initHolesWidget(data) {
   }
 
   function flushLabels() {
-    spread(pending, 13).forEach((d) => {
+    spread(pending, 18).forEach((d) => {
       g.append('text').attr('class', 'chart-note').attr('x', w + 6).attr('y', d.y)
         .style('font-size', '11px').style('fill', d.colour).text(d.label);
     });
