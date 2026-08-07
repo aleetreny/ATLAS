@@ -67,10 +67,10 @@ export function initCurveWidget(data) {
       body.selectAll(`circle.s${i}`).data(rows).join('circle').attr('class', `s${i}`)
         .attr('cx', (r) => x(r.k)).attr('cy', (r) => y(r[k + suffix])).attr('r', 4.5)
         .attr('fill', c).attr('stroke', 'white').attr('stroke-width', 1.3);
-      legend.append('line').attr('x1', 2).attr('x2', 24).attr('y1', -34 + i * 15)
+      legend.append('line').attr('x1', 2).attr('x2', 24).attr('y1', -34 + i * 20)
         .attr('y2', -34 + i * 15).attr('stroke', c).attr('stroke-width', 2.6)
         .attr('stroke-dasharray', k === 'linear' ? '7 4' : null);
-      legend.append('text').attr('x', 30).attr('y', -30 + i * 15)
+      legend.append('text').attr('x', 30).attr('y', -30 + i * 20)
         .style('font-size', '11.5px').style('font-family', 'var(--font-mono)')
         .attr('fill', 'var(--squidink)').text(SERIES[i][1]);
     });
