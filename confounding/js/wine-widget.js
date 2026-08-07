@@ -10,6 +10,7 @@ import { slope } from './statkit.js';
 
 const f3 = (v) => v.toFixed(3);
 const COLOURS = ['var(--primary)', 'var(--cosmos)', 'var(--aqua)'];
+const LEGEND_CHAR_W = 7.6;
 
 export function initWineWidget(data) {
   const host = document.querySelector('#wine-widget');
@@ -103,7 +104,7 @@ export function initWineWidget(data) {
           .attr('x', cursor + 14).attr('y', -14)
           .style('font-size', '12px')
           .text(`${names[k]}: ${f3(B.within[k])}`);
-        cursor += 14 + label.node().getComputedTextLength() + 20;
+        cursor += 14 + label.text().length * LEGEND_CHAR_W + 20;
       });
     }
   }
