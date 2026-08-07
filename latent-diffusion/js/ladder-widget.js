@@ -45,8 +45,8 @@ export function initLadderWidget(data) {
     const y = d3.scaleLog().domain([Math.min(...vals) * 0.5, Math.max(...vals) * 2]).range([h, 0]);
     const decades = [1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1]
       .filter((v) => v >= y.domain()[0] && v <= y.domain()[1]);
-    drawGrid(g, x, y, w, h, { xTicks: 4, yValues: decades });
-    drawAxes(g, x, y, w, h, { xTicks: 4, yValues: decades, yFmt: d3.format('.0e'), xFmt: d3.format('.2s') });
+    drawGrid(g, x, y, w, h, { xTicks: 3, yValues: decades });
+    drawAxes(g, x, y, w, h, { xTicks: 3, yValues: decades, yFmt: d3.format('.0e'), xFmt: d3.format('.2s') });
     axisLabels(g, w, h, { x: 'weights the model needs', y: 'distance from real digits' });
 
     /* the floor, as a band */
