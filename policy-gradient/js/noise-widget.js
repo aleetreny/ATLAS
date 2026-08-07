@@ -71,7 +71,7 @@ export function initNoiseWidget(data) {
         key.append('line').attr('x1', 0).attr('x2', 14).attr('y1', i * 40 + 6)
           .attr('y2', i * 40 + 6).attr('stroke', col).attr('stroke-width', 2.6);
         lines.forEach((t, j) => {
-          key.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', i * 40 + 20 + j * 11)
+          key.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', i * 40 + 20 + j * 16)
             .style('font-size', '10.5px').text(t);
         });
       });
