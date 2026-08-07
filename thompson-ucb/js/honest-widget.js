@@ -49,13 +49,13 @@ export function initHonestWidget(data) {
     key.append('line').attr('x1', 0).attr('x2', 14).attr('y1', 6).attr('y2', 6)
       .attr('stroke', '#8e9aa6').attr('stroke-width', 2).attr('stroke-dasharray', '5 4');
     ['what the', 'inequality', 'allows'].forEach((t, i) => {
-      key.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', 20 + i * 11)
+      key.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', 20 + i * 16)
         .style('font-size', '10px').text(t);
     });
     key.append('line').attr('x1', 0).attr('x2', 14).attr('y1', 66).attr('y2', 66)
       .attr('stroke', 'var(--primary)').attr('stroke-width', 2.6);
     ['what actually', 'happened'].forEach((t, i) => {
-      key.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', 80 + i * 11)
+      key.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', 80 + i * 16)
         .style('font-size', '10px').text(t);
     });
     title.text(`${C.runs.toLocaleString('en-US')} runs, every arm checked at every pull`);
