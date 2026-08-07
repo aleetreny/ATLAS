@@ -36,7 +36,7 @@ export function initGapWidget(data) {
     key.append('line').attr('x1', 0).attr('x2', 14).attr('y1', i * 38 + 6).attr('y2', i * 38 + 6)
       .attr('stroke', col).attr('stroke-width', 2.6);
     lines.forEach((line, j) => {
-      key.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', i * 38 + 20 + j * 11)
+      key.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', i * 38 + 20 + j * 16)
         .style('font-size', '10.5px').text(line);
     });
   });
