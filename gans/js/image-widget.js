@@ -198,7 +198,7 @@ export function initCurveWidget(data) {
   });
   labels.sort((a, b) => a.y - b.y);
   for (let i = 1; i < labels.length; i++) {
-    if (labels[i].y - labels[i - 1].y < 15) labels[i].y = labels[i - 1].y + 15;
+    if (labels[i].y - labels[i - 1].y < 18) labels[i].y = labels[i - 1].y + 18;
   }
   labels.forEach((l) => {
     c.g.append('text').attr('class', 'chart-annotation').attr('x', c.w + 6).attr('y', l.y + 4)
