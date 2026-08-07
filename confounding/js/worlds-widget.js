@@ -115,7 +115,7 @@ export function initWorldsWidget(data) {
       .attr('cx', (d) => x(d[0])).attr('cy', (d) => y(d[1])).attr('r', 3.2)
       .attr('fill', (d) => colour(d[2]))
       .attr('stroke', 'var(--squidink)').attr('stroke-width', 0.3);
-    annotate(g, w - 4, -12, 'shade: the value of Z', { anchor: 'end' })
+    annotate(g, w - 4, 20, 'shade: the value of Z', { anchor: 'end' })
       .style('font-size', '11.5px');
 
     readout.innerHTML =
