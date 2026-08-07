@@ -172,7 +172,7 @@ export function initSpectralWidget(data) {
           colour: 'var(--squidink)',
           shape: 'dot',
           label: comp.count > 1 ? `coloured by connected piece (${comp.count})` : 'one connected piece',
-        }], { x0: 4, y0: -24, gap: 200 });
+        }], { x0: 4, y0: -42, gap: 200 });
       } else {
         drawPoints(dotG, pts, sp.labels, x, y, { r: 3.6 });
         annotate(noteG, 4, -8, `k-means with k = ${k}, run on the eigenvectors, drawn back here`);
