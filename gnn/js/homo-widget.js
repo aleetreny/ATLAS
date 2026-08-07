@@ -36,7 +36,7 @@ export function initHomoWidget(data) {
   });
   const ends = spread(SERIES.map(([key, label, colour]) => ({
     label, colour, y: y(rows[rows.length - 1][key]) + 3.5, yMax: h + 10,
-  })), 13);
+  })), 18);
   ends.forEach((d) => {
     g.append('text').attr('class', 'chart-note').attr('x', w + 6).attr('y', d.y)
       .style('font-size', '11px').style('fill', d.colour).text(d.label);
