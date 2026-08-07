@@ -80,7 +80,7 @@ export function initArmsWidget(data) {
       lines.push(cur.trim());
       lines.forEach((ln, i) => {
         g.append('text').attr('class', 'chart-note')
-          .attr('x', x(d.label) + x.bandwidth() / 2).attr('y', h + 18 + i * 13)
+          .attr('x', x(d.label) + x.bandwidth() / 2).attr('y', h + 18 + i * 18)
           .attr('text-anchor', 'middle').style('font-size', '10.5px').text(ln);
       });
     });
