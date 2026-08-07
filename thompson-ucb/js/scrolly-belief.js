@@ -35,7 +35,7 @@ export function initBeliefScrolly(data) {
   arms.forEach((a, i) => {
     [`machine ${i + 1}`, `truth ${a}`].forEach((line, j) => {
       g.append('text').attr('class', 'chart-note').attr('x', -8)
-        .attr('y', i * rowH + rowH / 2 - 2 + j * 11).attr('text-anchor', 'end')
+        .attr('y', i * rowH + rowH / 2 - 2 + j * 16).attr('text-anchor', 'end')
         .style('font-size', '10.5px').text(line);
     });
   });
