@@ -78,7 +78,7 @@ export function initBoardWidget(data) {
         .attr('text-anchor', 'middle').style('font-size', '10.5px')
         .text(`${(share * 100).toFixed(0)}%`);
       bars.append('text').attr('class', 'chart-note')
-        .attr('x', left + c * cell + (cell - 3) / 2).attr('y', barTop + barH + 26)
+        .attr('x', left + c * cell + (cell - 3) / 2).attr('y', barTop + barH + 32)
         .attr('text-anchor', 'middle').style('font-size', '10px')
         .attr('fill', good ? 'var(--primary)' : '#8e9aa6')
         .text(VERDICT[String(exact[String(c)])] || '');
