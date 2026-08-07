@@ -80,7 +80,7 @@ export function initGainWidget(data) {
         ['the best in the catalogue, unreachable', 'var(--cosmos)']]
       : [['out of the box', 'var(--squidink)'], ['what the search picked', 'var(--primary)']];
     legend.forEach(([t, colour], i) => {
-      layer.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', -42 + i * 15)
+      layer.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', -42 + i * 20)
         .style('font-size', '11px').attr('fill', colour).text(t);
     });
 
