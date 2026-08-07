@@ -63,13 +63,13 @@ export function initBoltzmannWidget(data) {
     key.append('rect').attr('width', 12).attr('height', 12)
       .attr('fill', 'var(--primary)').attr('fill-opacity', 0.55);
     ['a chain run', 'in this page'].forEach((line, i) => {
-      key.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', 26 + i * 11)
+      key.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', 26 + i * 16)
         .style('font-size', '10.5px').text(line);
     });
     key.append('line').attr('x1', 0).attr('x2', 14).attr('y1', 58).attr('y2', 58)
       .attr('stroke', 'var(--anchor)').attr('stroke-width', 2.2);
     ['the formula,', 'exactly'].forEach((line, i) => {
-      key.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', 74 + i * 11)
+      key.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', 74 + i * 16)
         .style('font-size', '10.5px').text(line);
     });
     title.text(`temperature ${T}, ${steps.toLocaleString('en-US')} steps`);
@@ -135,13 +135,13 @@ export function initBoltzmannWidget(data) {
     key.append('line').attr('x1', 0).attr('x2', 14).attr('y1', 6).attr('y2', 6)
       .attr('stroke', 'var(--primary)').attr('stroke-width', 2.6);
     ['measured'].forEach((line, i) => {
-      key.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', 22 + i * 11)
+      key.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', 22 + i * 16)
         .style('font-size', '10.5px').text(line);
     });
     key.append('line').attr('x1', 0).attr('x2', 14).attr('y1', 46).attr('y2', 46)
       .attr('stroke', 'var(--anchor)').attr('stroke-width', 1.8).attr('stroke-dasharray', '5 4');
     ['pure sampling,', 'one over', 'the square root'].forEach((line, i) => {
-      key.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', 62 + i * 11)
+      key.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', 62 + i * 16)
         .style('font-size', '10.5px').text(line);
     });
     title.text('the gap between the bars and the line, as the chain gets longer');
