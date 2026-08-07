@@ -137,9 +137,9 @@ export function initOverlapWidget(data) {
         g.append('circle').attr('cx', x(r.scale)).attr('cy', y(r.max_share * 10)).attr('r', 3.6)
           .attr('fill', 'var(--cosmos)');
       });
-      annotate(g, 4, -20, 'effective sample size, as a fraction of the rows',
+      annotate(g, 4, -24, 'effective sample size, as a fraction of the rows',
         { anchor: 'start' }).style('font-size', '11.5px').attr('fill', 'var(--primary)');
-      annotate(g, 4, -6, 'share of the total weight in one row, times ten',
+      annotate(g, 4, -4, 'share of the total weight in one row, times ten',
         { anchor: 'start' }).style('font-size', '11.5px').attr('fill', 'var(--cosmos)');
       readout.innerHTML =
         `<p>At separability <span class="bold">${f2(row.scale)}</span> the smallest distance `
