@@ -96,12 +96,16 @@ export function initCondWidget(data) {
           .text(ln);
       });
     });
+    /* These annotations use the monospace font with 2px letter spacing.
+     * Measuring them before that font has loaded returns the fallback width and
+     * lets the labels overlap on the first paint, so count the characters instead. */
+    const CHAR_W = 9.25;
     let cursor = 0;
     groups.forEach(([, name], k) => {
-      const label = annotate(g, cursor, -16, name, { anchor: 'start' })
+      annotate(g, cursor, -16, name, { anchor: 'start' })
         .style('font-size', '12px')
         .attr('fill', k === 0 ? 'var(--primary)' : 'var(--cosmos)');
-      cursor += label.node().getComputedTextLength() + 22;
+      cursor += name.length * CHAR_W + 22;
     });
 
     const by = Object.fromEntries(C.rows.map((r) => [r.key, r]));
