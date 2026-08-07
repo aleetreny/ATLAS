@@ -54,7 +54,7 @@ export function initDialsWidget(data) {
           .attr('stroke-dasharray', dash || null);
       }
       lines.forEach((t, j) => {
-        key.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', i * 42 + 20 + j * 11)
+        key.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', i * 42 + 20 + j * 16)
           .style('font-size', '10px').text(t);
       });
     });
