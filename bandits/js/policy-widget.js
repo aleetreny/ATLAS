@@ -70,12 +70,12 @@ export function initPolicyWidget(data) {
       + `${data.meta.runs - P[pick].wrong_arm} of ${data.meta.runs}`);
     key.selectAll('*').remove();
     keys.forEach((k, i) => {
-      key.append('line').attr('x1', 0).attr('x2', 12).attr('y1', i * 30 + 4).attr('y2', i * 30 + 4)
+      key.append('line').attr('x1', 0).attr('x2', 12).attr('y1', i * 42 + 4).attr('y2', i * 42 + 4)
         .attr('stroke', 'var(--primary)').attr('stroke-width', k === pick ? 3 : 1.4)
         .attr('opacity', k === pick ? 1 : 0.4);
       SHORT[k].forEach((line, j) => {
         key.append('text').attr('class', 'chart-note').attr('x', 0)
-          .attr('y', i * 30 + 16 + j * 10).style('font-size', '10px').text(line);
+          .attr('y', i * 42 + 16 + j * 16).style('font-size', '10px').text(line);
       });
     });
 
