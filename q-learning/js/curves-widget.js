@@ -44,10 +44,10 @@ export function initCurvesWidget(data) {
   const key = g.append('g').attr('transform', `translate(${w + 8}, 6)`);
   [['var(--anchor)', ['SARSA while', 'learning']],
     ['var(--primary)', ['Q-learning', 'while learning']]].forEach(([col, lines], i) => {
-    key.append('line').attr('x1', 0).attr('x2', 14).attr('y1', i * 38 + 6).attr('y2', i * 38 + 6)
+    key.append('line').attr('x1', 0).attr('x2', 14).attr('y1', i * 48 + 6).attr('y2', i * 48 + 6)
       .attr('stroke', col).attr('stroke-width', 2);
     lines.forEach((line, j) => {
-      key.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', i * 38 + 20 + j * 11)
+      key.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', i * 48 + 20 + j * 16)
         .style('font-size', '10px').text(line);
     });
   });
