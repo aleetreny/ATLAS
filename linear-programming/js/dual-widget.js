@@ -55,12 +55,12 @@ export function initDualWidget(data) {
   const key = g.append('g').attr('transform', `translate(${w + 10}, 8)`);
   [['var(--primary)', 'solved again', 'at every point'],
     ['var(--anchor)', 'the price', 'extended']].forEach(([col, a, bb], i) => {
-    key.append('line').attr('x1', 0).attr('x2', 16).attr('y1', i * 40 + 6).attr('y2', i * 40 + 6)
+    key.append('line').attr('x1', 0).attr('x2', 16).attr('y1', i * 48 + 6).attr('y2', i * 48 + 6)
       .attr('stroke', col).attr('stroke-width', 2)
       .attr('stroke-dasharray', i === 1 ? '5 4' : null);
-    key.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', i * 40 + 20)
+    key.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', i * 48 + 20)
       .style('font-size', '10.5px').text(a);
-    key.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', i * 40 + 31)
+    key.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', i * 48 + 38)
       .style('font-size', '10.5px').text(bb);
   });
 
