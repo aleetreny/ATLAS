@@ -99,7 +99,7 @@ export function initModelsWidget(data) {
       lines.push(cur.trim());
       lines.forEach((ln, k) => {
         g.append('text').attr('class', 'chart-note')
-          .attr('x', cx).attr('y', h + 20 + k * 15)
+          .attr('x', cx).attr('y', h + 20 + k * 20)
           .attr('text-anchor', 'middle').style('font-size', '11.5px')
           .text(ln);
       });
