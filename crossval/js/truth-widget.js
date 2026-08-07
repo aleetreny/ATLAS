@@ -110,10 +110,10 @@ export function initTruthWidget(data) {
               .attr('stroke-dasharray', dash);
             rows.forEach((r) => layer.append('circle').attr('cx', x(r.k)).attr('cy', y(r[key]))
               .attr('r', 4).attr('fill', colour));
-            layer.append('line').attr('x1', 0).attr('x2', 22).attr('y1', -44 + i * 15 - 4)
-              .attr('y2', -44 + i * 15 - 4).attr('stroke', colour).attr('stroke-width', 2.4)
+            layer.append('line').attr('x1', 0).attr('x2', 22).attr('y1', -44 + i * 20 - 4)
+              .attr('y2', -44 + i * 20 - 4).attr('stroke', colour).attr('stroke-width', 2.4)
               .attr('stroke-dasharray', dash);
-            layer.append('text').attr('class', 'chart-note').attr('x', 28).attr('y', -44 + i * 15)
+            layer.append('text').attr('class', 'chart-note').attr('x', 28).attr('y', -44 + i * 20)
               .style('font-size', '11px').attr('fill', colour).text(name);
           });
       }
