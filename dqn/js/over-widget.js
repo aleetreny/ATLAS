@@ -43,7 +43,7 @@ export function initOverWidget(data) {
     .forEach(([col, lines], i) => {
       key.append('rect').attr('y', i * 40).attr('width', 12).attr('height', 12).attr('fill', col);
       lines.forEach((t, j) => {
-        key.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', i * 40 + 26 + j * 11)
+        key.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', i * 40 + 26 + j * 16)
           .style('font-size', '10.5px').text(t);
       });
     });
