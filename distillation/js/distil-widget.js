@@ -81,8 +81,8 @@ export function initDistilWidget(data) {
         .attr('y1', y(a.mean - a.sd)).attr('y2', y(a.mean + a.sd))
         .attr('stroke', 'var(--squidink)').attr('stroke-width', 1.3);
       layer.append('text').attr('class', 'chart-note')
-        .attr('transform', `translate(${x(n) + x.bandwidth() / 2},${h + 8}) rotate(-60)`)
-        .attr('text-anchor', 'end').style('font-size', '9px').text(SHORT[n] || n);
+        .attr('transform', `translate(${x(n) + x.bandwidth() / 2},${h + 8}) rotate(-75)`)
+        .attr('text-anchor', 'end').style('font-size', '8px').text(SHORT[n] || n);
     });
 
     const hard = D.arms['hard labels'];
