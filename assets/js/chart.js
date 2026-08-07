@@ -83,6 +83,8 @@ export function drawAxes(g, x, y, w, h, { xTicks = 6, yTicks = 6, xFmt = null, y
   gx.attr('transform', `translate(0,${h})`).call(
     d3.axisBottom(x).ticks(xTicks).tickValues(xValues ?? thinTicks(x, xTicks)).tickFormat(xFmt).tickSizeOuter(0)
   );
+  /* Keep the first x tick clear of the y-axis tick at the origin. */
+  gx.selectAll('text').attr('dy', '0.9em');
 
   let gy = g.select('g.axis.y');
   if (gy.empty()) gy = g.append('g').attr('class', 'axis y');
