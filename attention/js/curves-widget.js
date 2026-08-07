@@ -76,7 +76,7 @@ export function initCurvesWidget(data) {
     legend(g, [
       { label: 'divided by the root of the head size', colour: 'var(--primary)', shape: 'line' },
       { label: 'not divided', colour: 'var(--cosmos)', shape: 'line' },
-    ], { x0: 0, y0: -24, gap: 250, size: 10.5, cols: 2 });
+    ], { x0: 0, y0: -24, gap: 300, size: 10.5, cols: 2 });
 
     const last = rows[rows.length - 1];
     const first = rows[0];
