@@ -57,7 +57,7 @@ export function initSeparableWidget(data) {
        three big-kernel curves end within 5px of each other at the right edge,
        so the labels go through spread() before they are placed. */
     const labelRows = spread(
-      [3, 5, 7, 9].map((kk) => ({ kk, y: y(ratio(kk, CH[CH.length - 1])) + 4 })), 13,
+      [3, 5, 7, 9].map((kk) => ({ kk, y: y(ratio(kk, CH[CH.length - 1])) + 4 })), 18,
     );
     curves.selectAll('.klab')
       .data(labelRows, (d) => d.kk)
