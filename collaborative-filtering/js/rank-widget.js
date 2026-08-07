@@ -76,7 +76,7 @@ export function initRankWidget(data) {
          labels are separated by value rather than by a hand written offset */
       const ends = spread(RANK_ROWS.map(([key, label, colour]) => ({
         label, colour, y: y(R[key].hits[ks[ks.length - 1]]) + 3.5, yMax: h + 10,
-      })), 13);
+      })), 18);
       ends.forEach((d) => {
         g.append('text').attr('class', 'chart-note')
           .attr('x', w + 6).attr('y', d.y)
