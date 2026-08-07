@@ -30,6 +30,9 @@ export function initSanityWidget(data) {
   const { g, w, h } = chart;
   const readout = document.querySelector('#sanity-readout');
 
+  const LEGEND_CHAR_W = 7.6;
+  const LEGEND_ROW_H = 18;
+
   const series = [
     ['gradient', 'plain gradient', 'var(--cosmos)'],
     ['grad_input', 'gradient times input', 'var(--smile)'],
@@ -65,12 +68,12 @@ export function initSanityWidget(data) {
         .attr('cx', x(`from ${r.randomised_from}`)).attr('cy', y(r[key])).attr('r', 4)
         .attr('fill', colour);
     });
-    const label = note(g, cursor, -32 + row * 15, name).attr('fill', colour);
-    const width = label.node().getComputedTextLength();
+    const label = note(g, cursor, -32 + row * LEGEND_ROW_H, name).attr('fill', colour);
+    const width = name.length * LEGEND_CHAR_W;
     if (cursor > 0 && cursor + width > w) {
       row += 1;
       cursor = 0;
-      label.attr('x', 0).attr('y', -32 + row * 15);
+      label.attr('x', 0).attr('y', -32 + row * LEGEND_ROW_H);
     }
     cursor += width + 18;
   });
