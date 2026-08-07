@@ -60,7 +60,7 @@ export function initEnsWidget(data) {
         layer.append('path')
           .attr('d', d3.line().x((r) => x(r.k)).y((r) => y(r[key]))(rows))
           .attr('fill', 'none').attr('stroke', colour).attr('stroke-width', 2.2);
-        layer.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', -40 + i * 15)
+        layer.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', -40 + i * 20)
           .style('font-size', '11px').attr('fill', colour).text(label);
       });
 
