@@ -64,7 +64,7 @@ export function initDialWidget(data) {
     .attr('stroke', 'var(--anchor)').attr('stroke-width', 1.6).attr('stroke-dasharray', '5 4');
   key.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', 78)
     .style('font-size', '10.5px').text('equal profit');
-  key.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', 85)
+  key.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', 96)
     .style('font-size', '10.5px').text('line');
 
   const fmt = (v) => (Math.abs(v - Math.round(v)) < 1e-9 ? String(Math.round(v)) : v.toFixed(2));
