@@ -76,6 +76,8 @@ export function initIdentityWidget(data) {
   axisLabels(gBot, w, botH, {
     x: 'smoothing rate', y: 'sum of squares', leftBudget: margin.left, xOffset: 38,
   });
+  /* Keep the lower-panel y label clear of the upper panel's tick labels. */
+  gBot.select('text.axis-label.y').attr('y', -64);
   gBot.append('path').attr('fill', 'none').attr('stroke', 'var(--anchor)')
     .attr('stroke-width', 2)
     .attr('d', d3.line().x((d, i) => xb(grid[i])).y((d) => yb(d))(sse));
