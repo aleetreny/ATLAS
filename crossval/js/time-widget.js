@@ -116,7 +116,7 @@ export function initTimeWidget(data) {
           .attr('fill', 'none').attr('stroke', colour).attr('stroke-width', 2.2);
         H.forEach((r) => layer.append('circle').attr('cx', x(r.horizon)).attr('cy', y(r[key]))
           .attr('r', 4).attr('fill', colour));
-        layer.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', -34 + i * 15)
+        layer.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', -34 + i * 20)
           .style('font-size', '11px').attr('fill', colour).text(name);
       });
     }
