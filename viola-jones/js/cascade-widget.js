@@ -88,7 +88,7 @@ export async function initCascadeWidget(data, base) {
     }
     const x = d3.scalePoint().domain(d3.range(counts.length)).range([0, chart.w]).padding(0.3);
     const y = d3.scaleLog().domain([Math.max(1, d3.min(counts) * 0.7), results.length * 1.2]).range([chart.h, 0]);
-    drawAxes(chart.g, x, y, chart.w, chart.h, { yTicks: 4, yFmt: d3.format('~s') });
+    drawAxes(chart.g, x, y, chart.w, chart.h, { yTicks: 3, yFmt: d3.format('~s') });
     chart.g.append('path').attr('fill', 'none').attr('stroke', 'var(--primary)').attr('stroke-width', 3)
       .attr('d', d3.line().x((v, i) => x(i)).y((v) => y(Math.max(v, 1)))(counts));
     chart.g.selectAll('circle').data(counts).join('circle')
