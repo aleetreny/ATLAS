@@ -35,7 +35,7 @@ export function initRotationWidget(data) {
   const legend = g.append('g').attr('transform', 'translate(0,-10)').attr('opacity', 0);
   [
     { label: 'before rotation', colour: 'var(--stone)', dx: 0 },
-    { label: 'after', colour: 'var(--primary)', dx: 132 },
+    { label: 'after', colour: 'var(--primary)', dx: 160 },
   ].forEach((d) => {
     legend.append('rect').attr('x', d.dx).attr('y', -9).attr('width', 10).attr('height', 10)
       .attr('fill', d.colour).attr('stroke', 'var(--squidink)').attr('stroke-width', 0.8);
