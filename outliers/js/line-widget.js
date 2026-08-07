@@ -185,7 +185,7 @@ export function initLineWidget(data) {
         .attr('stroke', r.colour).attr('stroke-width', 1.2)
         .attr('stroke-dasharray', '3 3').attr('opacity', 0.7);
     });
-    spread(marks, 15).forEach((r) => {
+    spread(marks, 18).forEach((r) => {
       rules.append('line')
         .attr('x1', curveChart.w).attr('x2', curveChart.w + 5)
         .attr('y1', cy(r.v)).attr('y2', r.y - 4)
