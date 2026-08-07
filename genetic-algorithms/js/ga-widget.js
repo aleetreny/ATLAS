@@ -64,11 +64,11 @@ export function initGaWidget(data) {
     ['#8e9aa6', ['the optimum,', `${P.optima.trap_tight}`], 1.4, null, 1],
     ['var(--cosmos)', ['the trap,', `${P.deceptive_attractor}`], 1.4, '5 4', 1]]
     .forEach(([col, lines, sw, dash, op], i) => {
-      key.append('line').attr('x1', 0).attr('x2', 14).attr('y1', i * 32 + 6).attr('y2', i * 32 + 6)
+      key.append('line').attr('x1', 0).attr('x2', 14).attr('y1', i * 42 + 6).attr('y2', i * 42 + 6)
         .attr('stroke', col).attr('stroke-width', sw).attr('stroke-dasharray', dash)
         .attr('opacity', op);
       lines.forEach((line, k) => {
-        key.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', i * 32 + 19 + k * 11)
+        key.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', i * 42 + 19 + k * 16)
           .style('font-size', '10.5px').text(line);
       });
     });
