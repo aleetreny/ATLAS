@@ -88,7 +88,7 @@ export function drawAxes(g, x, y, w, h, { xTicks = 6, yTicks = 6, xFmt = null, y
   /* Numeric endpoints should start at the origin, not extend back into the
    * y-axis tick label at the shared corner. */
   const firstXTick = gx.select('text');
-  if (!firstXTick.empty() && /^[-−]?\\d/.test(firstXTick.text())) {
+  if (!firstXTick.empty() && /^[-−]?\d/.test(firstXTick.text())) {
     firstXTick.attr('text-anchor', 'start');
   }
 
