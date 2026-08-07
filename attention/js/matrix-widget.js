@@ -102,8 +102,8 @@ export function initMatrixWidget(data, model) {
      * pictures is which way round they are. */
     s.words.forEach((word, i) => {
       seriesLabel(g, -8, i * ch + ch / 2 + 3.5, word, { anchor: 'end', size: 10, opacity: 0.85 });
-      const t = seriesLabel(g, j2x(i, cw), h + 8, word, { anchor: 'end', size: 10, opacity: 0.85 });
-      t.attr('transform', `rotate(-60 ${j2x(i, cw)} ${h + 8})`);
+      const t = seriesLabel(g, j2x(i, cw), h + 8, word, { anchor: 'end', size: 8, opacity: 0.85 });
+      t.attr('transform', `rotate(-75 ${j2x(i, cw)} ${h + 8})`);
     });
     seriesLabel(g, -8, -12, 'looking', { anchor: 'end', size: 10, opacity: 0.6 });
     seriesLabel(g, 0, -12, 'looked at', { anchor: 'start', size: 10, opacity: 0.6 });
