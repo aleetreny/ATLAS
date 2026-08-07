@@ -146,7 +146,7 @@ export function initAttWidget(data) {
           .attr('fill-opacity', 0.85);
         const t = note(g, x(px), y(py) - 13, `${r.layer}-${r.head}`,
           { anchor: 'middle', size: 11 });
-        const tw = t.node().getComputedTextLength();
+        const tw = `${r.layer}-${r.head}`.length * 7.6;
         const boxAt = ([dx, dy]) => ({
           x0: x(px) + dx - tw / 2 - 2, x1: x(px) + dx + tw / 2 + 2,
           y0: y(py) + dy - 11, y1: y(py) + dy + 3,
