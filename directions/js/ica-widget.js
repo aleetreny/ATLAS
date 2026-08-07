@@ -200,7 +200,7 @@ export function initIcaWidget(data) {
     .style('font-size', '11px').text('rotation of the whitened microphones');
 
   const peakLabel = curveG.append('text').attr('class', 'chart-annotation')
-    .attr('y', -4).style('font-size', '11px').style('text-transform', 'none')
+    .attr('y', 14).style('font-size', '11px').style('text-transform', 'none')
     .attr('fill', 'var(--anchor)');
 
   function currentPair(world) {
