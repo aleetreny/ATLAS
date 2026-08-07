@@ -112,7 +112,7 @@ export function initDemoWidget(data) {
     [['larger dots: nodes that also live in an upper layer', 'var(--anchor)'],
       ['what the search returned', 'var(--cosmos)'],
       ['the true nearest', 'var(--smile)']].forEach(([txt, colour], i) => {
-      layer.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', -26 + i * 13)
+      layer.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', -26 + i * 18)
         .style('font-size', '10.5px').attr('fill', colour).text(txt);
     });
 
