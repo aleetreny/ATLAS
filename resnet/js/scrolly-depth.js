@@ -75,7 +75,7 @@ export function initScrollyDepth(data) {
 
   drawGrid(g, x, y, w, h, { xTicks: epochs, yTicks: 5 });
   drawAxes(g, x, y, w, h, { xTicks: epochs, yTicks: 5, xFmt: d3.format('d'), yFmt: d3.format('.2f') });
-  axisLabels(g, w, h, { x: 'epoch', y: 'training loss' });
+  axisLabels(g, w, h, { x: 'epoch', y: 'training loss', leftBudget: 90 });
 
   const plot = g.append('g');
   const legend = g.append('g');
