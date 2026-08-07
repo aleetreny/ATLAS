@@ -117,7 +117,7 @@ export function initScrollyDepth(data) {
       /* In the top margin, not inside the plot: at these depths the first
          epoch's loss sits right where a caption at y=4 would land. */
       notes.append('text')
-         .attr('x', 18)
+         .attr('x', 36)
         .attr('y', -14)
         .attr('class', 'annotation')
         .style('font-size', '12px')
