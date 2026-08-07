@@ -74,7 +74,7 @@ export function legend(g, items, { x0 = 0, y0 = -14, gap = 150, size = 10.5,
     .style('fill', 'var(--squidink)');
   const merged = enter.merge(sel);
   const perRow = cols || items.length;
-  merged.attr('transform', (d, i) => `translate(${x0 + (i % perRow) * gap},${y0 + Math.floor(i / perRow) * 17})`);
+  merged.attr('transform', (d, i) => `translate(${x0 + (i % perRow) * gap},${y0 + Math.floor(i / perRow) * 20})`);
   merged.select('path.mark')
     .attr('d', (d) => (d.shape === 'ring'
       ? 'M-5,0 A5,5 0 1,0 5,0 A5,5 0 1,0 -5,0'
