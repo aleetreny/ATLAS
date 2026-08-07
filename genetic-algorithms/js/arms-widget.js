@@ -40,7 +40,7 @@ export function initArmsWidget(data) {
     const mid = Math.ceil(words.length / 2);
     [words.slice(0, mid).join(' '), words.slice(mid).join(' ')].forEach((line, k) => {
       names.append('text').attr('class', 'chart-note')
-        .attr('x', x(arm)).attr('y', h + 18 + k * 12).attr('text-anchor', 'middle')
+        .attr('x', x(arm)).attr('y', h + 18 + k * 16).attr('text-anchor', 'middle')
         .style('font-size', '10.5px').text(line);
     });
   });
