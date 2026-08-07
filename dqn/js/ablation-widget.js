@@ -26,7 +26,7 @@ export function initAblationWidget(data) {
   rows.forEach((d) => {
     d.label.split(', ').forEach((line, j) => {
       g.append('text').attr('class', 'chart-note').attr('x', x(d.label))
-        .attr('y', h + 18 + j * 12).attr('text-anchor', 'middle')
+        .attr('y', h + 18 + j * 16).attr('text-anchor', 'middle')
         .style('font-size', '10.5px').text(line);
     });
   });
