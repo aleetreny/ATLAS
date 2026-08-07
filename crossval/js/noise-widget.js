@@ -58,7 +58,7 @@ export function initNoiseWidget(data) {
 
   [['columns chosen while looking at everything', 'var(--cosmos)'],
     ['columns chosen inside each fold', 'var(--primary)']].forEach(([t, colour], i) => {
-    layer.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', -42 + i * 15)
+    layer.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', -42 + i * 20)
       .style('font-size', '11px').attr('fill', colour).text(t);
   });
 
