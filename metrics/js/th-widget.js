@@ -43,7 +43,7 @@ export function initThresholdWidget(data) {
       .attr('stroke', colour).attr('stroke-width', 1.2).attr('stroke-dasharray', '3 3');
     layer.append('circle').attr('cx', x(best.threshold)).attr('cy', y(best.value)).attr('r', 4)
       .attr('fill', colour);
-    layer.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', -52 + i * 15)
+    layer.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', -52 + i * 20)
       .style('font-size', '11px').attr('fill', colour)
       .text(`${NAME[key]}: best at ${best.threshold.toFixed(3)}`);
   });
