@@ -194,7 +194,7 @@ export function initMixTable(data) {
   });
   ends.sort((a, b) => a.y - b.y);
   for (let i = 1; i < ends.length; i++) {
-    if (ends[i].y - ends[i - 1].y < 14) ends[i].y = ends[i - 1].y + 14;
+    if (ends[i].y - ends[i - 1].y < 18) ends[i].y = ends[i - 1].y + 18;
   }
   ends.forEach((e) => {
     c.g.append('text').attr('class', 'chart-annotation').attr('x', c.w + 6).attr('y', e.y + 4)
