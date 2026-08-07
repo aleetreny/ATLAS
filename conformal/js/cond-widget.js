@@ -91,7 +91,7 @@ export function initCondWidget(data) {
       lines.push(cur.trim());
       lines.forEach((ln, k) => {
         g.append('text').attr('class', 'chart-note')
-          .attr('x', x0(row.key) + x0.bandwidth() / 2).attr('y', h + 20 + k * 15)
+          .attr('x', x0(row.key) + x0.bandwidth() / 2).attr('y', h + 20 + k * 20)
           .attr('text-anchor', 'middle').style('font-size', '11.5px')
           .text(ln);
       });
