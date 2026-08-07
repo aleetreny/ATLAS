@@ -54,8 +54,8 @@ export function initBleuWidget(data) {
           .attr('text-anchor', 'middle').style('font-size', '10.5px')
           .text(r.corpus.toFixed(3));
         layer.append('text').attr('class', 'chart-note')
-          .attr('transform', `translate(${x(r.kind) + x.bandwidth() / 2},${h + 8}) rotate(-40)`)
-          .attr('text-anchor', 'end').style('font-size', '10.5px').text(r.kind);
+           .attr('transform', `translate(${x(r.kind) + x.bandwidth() / 2},${h + 8}) rotate(-55)`)
+          .attr('text-anchor', 'end').style('font-size', '9.5px').text(r.kind);
       });
       layer.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', -34)
         .style('font-size', '11px').attr('fill', 'var(--cosmos)')
