@@ -49,13 +49,13 @@ export function initDriftWidget(data) {
     .style('font-size', '11.5px');
   const key = g.append('g').attr('transform', `translate(${w + 8}, 4)`);
   D.rows.forEach((r, i) => {
-    key.append('line').attr('x1', 0).attr('x2', 12).attr('y1', i * 32 + 4).attr('y2', i * 32 + 4)
+    key.append('line').attr('x1', 0).attr('x2', 12).attr('y1', i * 42 + 4).attr('y2', i * 42 + 4)
       .attr('stroke', 'var(--primary)').attr('stroke-width', 1.6).attr('opacity', 0.5);
     const words = LABEL[r.policy].split(' ');
     [words.slice(0, 2).join(' '), words.slice(2).join(' ')].filter(Boolean)
       .forEach((t, j) => {
         key.append('text').attr('class', 'chart-note').attr('x', 0)
-          .attr('y', i * 32 + 16 + j * 10).style('font-size', '10px').text(t);
+          .attr('y', i * 42 + 16 + j * 16).style('font-size', '10px').text(t);
       });
   });
 
