@@ -76,7 +76,7 @@ export function initBleuWidget(data) {
             .attr('fill', 'none').attr('stroke', colour).attr('stroke-width', 2.2);
           rows.forEach((r) => layer.append('circle').attr('cx', x(r.frac)).attr('cy', y(r[key]))
             .attr('r', 3.8).attr('fill', colour));
-          layer.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', -34 + i * 15)
+          layer.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', -34 + i * 20)
             .style('font-size', '11px').attr('fill', colour).text(name);
         });
       layer.append('line').attr('x1', x(1)).attr('x2', x(1)).attr('y1', 0).attr('y2', h)
