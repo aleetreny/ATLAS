@@ -114,7 +114,7 @@ export function initWindowsWidget(data) {
       .attr('x', (r) => x(r.key) + x.bandwidth() / 2)
       .attr('y', chart.h + 20)
       .attr('text-anchor', 'middle')
-      .attr('font-family', 'IBM Plex Mono, monospace').attr('font-size', 11)
+      .attr('font-family', 'IBM Plex Mono, monospace').attr('font-size', 10)
       .attr('fill', 'var(--squidink)')
       .text((r) => r.label);
     chart.g.selectAll('.xcount').data(rows).join('text')
