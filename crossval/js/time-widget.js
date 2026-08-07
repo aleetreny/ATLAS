@@ -66,8 +66,8 @@ export function initTimeWidget(data) {
           .attr('text-anchor', 'middle').style('font-size', '11.5px')
           .text(r.mae.toFixed(3));
         layer.append('text').attr('class', 'chart-note')
-          .attr('transform', `translate(${x(r.arm) + x.bandwidth() / 2},${h + 8}) rotate(-28)`)
-          .attr('text-anchor', 'end').style('font-size', '10.5px').text(r.arm);
+          .attr('transform', `translate(${x(r.arm) + x.bandwidth() / 2},${h + 8}) rotate(-55)`)
+          .attr('text-anchor', 'end').style('font-size', '9px').text(r.arm);
       });
       layer.append('line').attr('x1', 0).attr('x2', w)
         .attr('y1', y(T.scale)).attr('y2', y(T.scale))
