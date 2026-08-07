@@ -135,7 +135,7 @@ export function initLineWidget(data) {
        happens between three and three and a half, and on a linear axis the
        entire argument lives in the bottom fifth of the panel. The root is
        monotone, so "above the line" still means what it looks like. */
-    const yVals = [0, 1, 2, 3, 4, 6, 9, 13, 18, 25].filter((v) => v <= maxY);
+    const yVals = [0, 1, 2, 4, 6, 9, 13, 18, 25].filter((v) => v <= maxY);
     const cy = d3.scaleSqrt().domain([0, maxY]).range([curveChart.h, 0]);
 
     drawGrid(curveChart.g, cx, cy, curveChart.w, curveChart.h, { xTicks: 5, yValues: yVals });
