@@ -73,13 +73,13 @@ export function initStabilityWidget(data) {
   key.append('rect').attr('width', 12).attr('height', 12).attr('fill', 'var(--cosmos)')
     .attr('fill-opacity', 0.75);
   ['runs that', 'overflowed'].forEach((line, i) => {
-    key.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', 28 + i * 11)
+    key.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', 28 + i * 16)
       .style('font-size', '10.5px').text(line);
   });
   key.append('line').attr('x1', 0).attr('x2', 14).attr('y1', 58).attr('y2', 58)
     .attr('stroke', 'var(--anchor)').attr('stroke-width', 2.4);
   ['the predicted', 'boundary'].forEach((line, i) => {
-    key.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', 74 + i * 11)
+    key.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', 74 + i * 16)
       .style('font-size', '10.5px').text(line);
   });
 
