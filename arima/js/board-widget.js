@@ -20,6 +20,7 @@ export function initBoardWidget(data) {
   drawGrid(g, x, y, w, h, { xValues: [1, 3, 6, 9, 12], yTicks: 5 });
   drawAxes(g, x, y, w, h, { xValues: [1, 3, 6, 9, 12], yTicks: 5 });
   axisLabels(g, w, h, { x: 'horizon, in months', y: 'error, seasonal naive units' });
+  g.select('text.axis-label.y').attr('y', -64);
 
   g.append('line').attr('x1', 0).attr('x2', w).attr('y1', y(1)).attr('y2', y(1))
     .attr('stroke', 'var(--squidink)').attr('stroke-dasharray', '5 4').attr('opacity', 0.6);
