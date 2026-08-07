@@ -76,8 +76,8 @@ export function initCondWidget(data) {
     .attr('text-anchor', 'middle').style('font-size', '11px').style('letter-spacing', '0.3px')
     .text((b) => b.v.toFixed(4));
   c.g.selectAll('.axis.x text')
-    .style('font-size', '10px')
-    .attr('transform', 'rotate(-22)')
+    .style('font-size', '9px')
+    .attr('transform', 'rotate(-42)')
     .attr('text-anchor', 'end')
     .attr('dx', '-4')
     .attr('dy', '6');
