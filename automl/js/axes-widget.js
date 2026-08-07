@@ -64,7 +64,7 @@ export function initAxesWidget(data) {
       /* the level name goes under its bar, rotated, because these are words and
          there are up to fifteen of them across a 640 unit canvas */
       layer.append('text').attr('class', 'chart-note')
-        .attr('transform', `translate(${x(key) + x.bandwidth() / 2},${h + 8}) rotate(-55)`)
+        .attr('transform', `translate(${x(key) + x.bandwidth() / 2},${h + 8}) rotate(-65)`)
         .attr('text-anchor', 'end').style('font-size', '10.5px').text(lv.length > 13 ? `${lv.slice(0, 12)}.` : lv);
     });
 
