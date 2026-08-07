@@ -31,7 +31,7 @@ export function initTradeWidget(data) {
   const decades = [1e-5, 1e-4, 1e-3, 1e-2, 1e-1]
     .filter((v) => v >= y.domain()[0] && v <= y.domain()[1]);
   drawGrid(g, x, y, w, h, { xValues: xTicks, yValues: decades });
-  drawAxes(g, x, y, w, h, { xValues: ks, yValues: decades, yFmt: d3.format('.0e') });
+  drawAxes(g, x, y, w, h, { xValues: xTicks, yValues: decades, yFmt: d3.format('.0e') });
   axisLabels(g, w, h, { x: 'numbers in the bottleneck', y: 'distance from real digits' });
 
   layer.append('rect').attr('x', 0).attr('y', y(data.floor.mmd2_max))
