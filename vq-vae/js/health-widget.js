@@ -64,7 +64,7 @@ export function initHealthWidget(data) {
         const half = Math.ceil(words.length / 2);
         [words.slice(0, half).join(' '), words.slice(half).join(' ')].forEach((line, li) => {
           layer.append('text').attr('class', 'chart-note')
-            .attr('x', x(r.id) + x.bandwidth() / 2).attr('y', h + 18 + li * 13)
+            .attr('x', x(r.id) + x.bandwidth() / 2).attr('y', h + 18 + li * 18)
             .attr('text-anchor', 'middle').style('font-size', '11px').text(line);
         });
       });
