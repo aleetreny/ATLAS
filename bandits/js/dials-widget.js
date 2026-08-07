@@ -107,7 +107,7 @@ export function initDialsWidget(data) {
       .attr('stroke', '#8e9aa6').attr('stroke-width', 2);
     key.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', 150)
       .style('font-size', '10.5px').text('what the');
-    key.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', 161)
+    key.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', 166)
       .style('font-size', '10.5px').text('formula picks');
     title.text('two machines, and how long to try both before choosing');
     sub.text(`${data.etc.horizon.toLocaleString('en-US')} pulls in total, `
