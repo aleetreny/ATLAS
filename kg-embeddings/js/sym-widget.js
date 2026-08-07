@@ -59,7 +59,7 @@ export function initSymWidget(data) {
     /* only the relations at the two ends get a label, or eleven names in a
        narrow panel become one grey smear */
     const labelled = pts.filter((p) => p.sym > 0.5 || p.n > 4000);
-    const placed = spread(labelled.map((p) => ({ p, y: y(p.v) + 3.5, yMax: h })), 13);
+    const placed = spread(labelled.map((p) => ({ p, y: y(p.v) + 3.5, yMax: h })), 18);
     placed.forEach(({ p, y: yy }) => {
       const left = x(p.sym) > w * 0.6;
       g.append('text').attr('class', 'chart-note')
