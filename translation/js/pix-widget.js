@@ -53,8 +53,8 @@ export function initCondWidget(data) {
   const S = data.scores;
   const seed = data.meta.seeds[0];
   const bars = [
-    { k: 'a real render', v: R.hf, colour: 'var(--squidink)' },
-    { k: 'the middle of all its renders', v: C[0].median_hf, colour: 'var(--stone)' },
+    { k: 'real render', v: R.hf, colour: 'var(--squidink)' },
+    { k: 'median render', v: C[0].median_hf, colour: 'var(--stone)' },
   ].concat(data.meta.arms.map((a) => ({
     k: ARM_NAME[a], v: S[`${a}/${seed}`].hf, colour: ARM_COLOUR[a],
   })));
