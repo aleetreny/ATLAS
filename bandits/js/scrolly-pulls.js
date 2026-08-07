@@ -43,7 +43,7 @@ export function initPullScrolly(data) {
       .attr('y', h + 18).attr('text-anchor', 'middle').style('font-size', '10.5px')
       .text(`machine ${i + 1}`);
     g.append('text').attr('class', 'chart-note').attr('x', x(String(i)))
-      .attr('y', h + 30).attr('text-anchor', 'middle').style('font-size', '10.5px')
+      .attr('y', h + 34).attr('text-anchor', 'middle').style('font-size', '10.5px')
       .text(`truth ${arms[i]}`);
   });
 
