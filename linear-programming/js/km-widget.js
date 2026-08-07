@@ -54,13 +54,13 @@ export function initKmWidget(data) {
 
   const key = g.append('g').attr('transform', `translate(${w + 10}, 4)`);
   series.forEach((s, i) => {
-    key.append('line').attr('x1', 0).attr('x2', 16).attr('y1', i * 34 + 6).attr('y2', i * 34 + 6)
+    key.append('line').attr('x1', 0).attr('x2', 16).attr('y1', i * 42 + 6).attr('y2', i * 42 + 6)
       .attr('stroke', s.colour).attr('stroke-width', 2).attr('stroke-dasharray', s.dash);
     const words = s.label.split(' ');
     const half = Math.ceil(words.length / 2);
-    key.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', i * 34 + 20)
+    key.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', i * 42 + 20)
       .style('font-size', '10.5px').text(words.slice(0, half).join(' '));
-    key.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', i * 34 + 31)
+    key.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', i * 42 + 37)
       .style('font-size', '10.5px').text(words.slice(half).join(' '));
   });
   g.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', -28)
