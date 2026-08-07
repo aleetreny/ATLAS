@@ -41,7 +41,7 @@ export function initSizeWidget(data) {
       .attr('cx', (p) => x(p[0])).attr('cy', (p) => y(p[1]))
       .attr('r', 4.5).attr('fill', s.colour).attr('stroke', 'white').attr('stroke-width', 1.4);
     g.append('text').attr('class', 'chart-annotation')
-      .attr('x', x(pts[pts.length - 1][0])).attr('y', y(pts[pts.length - 1][1]) + (s.name === 'Platt' ? 18 : -12))
+      .attr('x', x(pts[pts.length - 1][0])).attr('y', y(pts[pts.length - 1][1]) + (s.name === 'Platt' ? 26 : -18))
       .attr('text-anchor', 'end').style('font-size', '0.56rem').style('text-transform', 'none')
       .attr('fill', s.colour).text(s.name);
   }
