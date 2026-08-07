@@ -79,7 +79,7 @@ export function initRankWidget(data) {
       })), 18);
       ends.forEach((d) => {
         g.append('text').attr('class', 'chart-note')
-          .attr('x', w + 6).attr('y', d.y)
+          .attr('x', w + 18).attr('y', d.y)
           .style('font-size', '11px').style('fill', d.colour)
           .text(d.label);
       });
