@@ -94,13 +94,13 @@ export function initBbWidget(data) {
       ['var(--cosmos)', 'without it', null],
     ];
     items.forEach(([col, text, dash], i) => {
-      key.append('line').attr('x1', 0).attr('x2', 14).attr('y1', i * 32 + 6).attr('y2', i * 32 + 6)
+      key.append('line').attr('x1', 0).attr('x2', 14).attr('y1', i * 44 + 6).attr('y2', i * 44 + 6)
         .attr('stroke', col).attr('stroke-width', 2).attr('stroke-dasharray', dash);
       const words = text.split(' ');
-      key.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', i * 32 + 19)
+      key.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', i * 44 + 19)
         .style('font-size', '10.5px').text(words.slice(0, 2).join(' '));
       if (words.length > 2) {
-        key.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', i * 32 + 29)
+        key.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', i * 44 + 37)
           .style('font-size', '10.5px').text(words.slice(2).join(' '));
       }
     });
