@@ -93,7 +93,7 @@ function drawHeatmap(wine) {
     .data(labels)
     .join('text')
     .attr('class', 'col')
-    .attr('transform', (d, i) => `translate(${i * cell + cell / 2 + 3},-6) rotate(-55)`)
+    .attr('transform', (d, i) => `translate(${i * cell + cell / 2 + 3},-6) rotate(-65)`)
     .attr('text-anchor', 'start')
     .style('font-family', 'var(--font-mono)')
     .style('font-size', '10.5px')
