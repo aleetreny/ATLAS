@@ -182,7 +182,7 @@ export function axisLabels(g, w, h, { x = '', y = '', leftBudget = null, xOffset
  *
  * Measured rather than counted, because a caption's width depends on the font
  * that actually loaded, and "about ninety characters" was wrong by a third. */
-export function wrapLabel(sel, text, maxWidth, { lineHeight = 13 } = {}) {
+export function wrapLabel(sel, text, maxWidth, { lineHeight = 16 } = {}) {
   sel.text(null);
   const x = sel.attr('x') ?? 0;
   const words = String(text).split(/\s+/).filter(Boolean);
@@ -243,7 +243,7 @@ export function annotate(g, x, y, text, { anchor = 'start' } = {}) {
  * Works on any array of objects carrying a `y`, sorted internally, and returns
  * the same objects with `y` adjusted. Direct labelling beats a legend, but only
  * when the labels are actually readable. */
-export function spread(items, gap = 14) {
+export function spread(items, gap = 18) {
   const sorted = [...items].sort((a, b) => a.y - b.y);
   for (let i = 1; i < sorted.length; i++) {
     const need = sorted[i - 1].y + gap - sorted[i].y;
