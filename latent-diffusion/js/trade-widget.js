@@ -23,13 +23,14 @@ export function initTradeWidget(data) {
     .style('font-size', '12px');
 
   const ks = T.map((r) => r.k);
+  const xTicks = ks.filter((_, i) => i === 0 || i === ks.length - 1 || i % 2 === 0);
   const vals = T.flatMap((r) => [Math.abs(r.mmd2), Math.abs(r.ceiling_mmd2)])
     .concat([data.floor.mmd2_max]);
   const x = d3.scaleLog().base(2).domain([ks[0] * 0.75, ks[ks.length - 1] * 1.35]).range([0, w]);
   const y = d3.scaleLog().domain([Math.min(...vals) * 0.5, Math.max(...vals) * 2]).range([h, 0]);
   const decades = [1e-5, 1e-4, 1e-3, 1e-2, 1e-1]
     .filter((v) => v >= y.domain()[0] && v <= y.domain()[1]);
-  drawGrid(g, x, y, w, h, { xValues: ks, yValues: decades });
+  drawGrid(g, x, y, w, h, { xValues: xTicks, yValues: decades });
   drawAxes(g, x, y, w, h, { xValues: ks, yValues: decades, yFmt: d3.format('.0e') });
   axisLabels(g, w, h, { x: 'numbers in the bottleneck', y: 'distance from real digits' });
 
