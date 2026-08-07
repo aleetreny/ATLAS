@@ -54,7 +54,7 @@ export function initCurvesWidget(data) {
   key.append('line').attr('x1', 0).attr('x2', 14).attr('y1', 90).attr('y2', 90)
     .attr('stroke', '#8e9aa6').attr('stroke-width', 2).attr('stroke-dasharray', '5 4');
   ['what its', 'policy is', 'worth after'].forEach((t, i) => {
-    key.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', 104 + i * 11)
+    key.append('text').attr('class', 'chart-note').attr('x', 0).attr('y', 104 + i * 16)
       .style('font-size', '10px').text(t);
   });
 
