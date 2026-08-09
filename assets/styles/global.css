@@ -377,6 +377,13 @@ code {
   line-height: 1.45;
   /* Mono-font readout tables can exceed a phone screen; scroll, not bleed. */
   overflow-x: auto;
+  position: relative;
+  scrollbar-color: var(--primary) var(--paper);
+}
+
+.widget-readout:focus-within {
+  outline: 3px solid var(--primary);
+  outline-offset: 3px;
 }
 
 .widget-readout .slider-label {
@@ -435,6 +442,13 @@ button.atlas-btn.ghost {
 
 button.atlas-btn.ghost:hover {
   outline: 2px solid var(--primary);
+}
+
+button.atlas-btn:focus-visible,
+input[type='range'].atlas-range:focus-visible,
+a:focus-visible {
+  outline: 3px solid var(--smile);
+  outline-offset: 3px;
 }
 
 /* sliders */
@@ -603,6 +617,8 @@ svg text.chart-note:not([stroke]) {
   margin: 2rem auto;
   overflow-x: auto;
   padding: 0 1rem;
+  position: relative;
+  scrollbar-color: var(--primary) var(--paper);
 }
 
 table.atlas-table {
@@ -671,7 +687,22 @@ table.atlas-table td:first-child {
 
 .resource-item a,
 a.on-end {
-  color: var(--primary);
+  color: var(--mist);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 2px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* =========================================================================
@@ -711,23 +742,30 @@ a.on-end {
     width: 100%;
     height: 60vh;
     z-index: var(--z-middle);
+    overflow-x: auto;
+    overflow-y: hidden;
+    align-items: flex-start;
   }
 
-  /* Must stay exactly equal to the chart height above. */
+  /* Mobile keeps the chart above the cards instead of covering it. */
   .steps-container {
-    margin-top: -60vh;
+    margin-top: 0;
     pointer-events: none;
     z-index: var(--z-top);
   }
 
   .step {
-    height: 130vh;
+    height: auto;
+    min-height: 76vh;
+    padding: 1rem 0 2rem;
   }
 
   .step-content {
     width: 88%;
     background: rgba(241, 243, 243, 0.94);
     pointer-events: all;
+    position: relative;
+    top: auto;
   }
 
   .interactive-container {
@@ -752,10 +790,47 @@ a.on-end {
 
   .charts-container {
     top: 3vh;
-    height: 52vh;
+    height: 48vh;
   }
 
   .steps-container {
-    margin-top: -52vh;
+    margin-top: 0;
+  }
+
+  .charts-container svg,
+  .interactive-container svg,
+  .interactive-full svg {
+    min-width: 520px;
+    max-width: none;
+  }
+
+  .interactive-container,
+  .interactive-full,
+  .charts-container {
+    overflow-x: auto;
+  }
+
+  .interactive-container svg text,
+  .interactive-full svg text,
+  .charts-container svg text {
+    paint-order: stroke;
+    stroke: var(--white);
+    stroke-width: 0.4px;
+  }
+
+  .atlas-table-wrap::after,
+  .widget-readout::after {
+    content: 'desliza horizontalmente →';
+    position: sticky;
+    right: 0.35rem;
+    float: right;
+    display: block;
+    width: max-content;
+    margin: 0.35rem 0 0.1rem;
+    padding: 0.15rem 0.35rem;
+    background: var(--squidink);
+    color: var(--white);
+    font-size: 10px;
+    line-height: 1.2;
   }
 }

@@ -122,7 +122,8 @@ export function initDemoWidget(data) {
     readout.innerHTML = `<div class="gen-note">${D.points.length} of the same newswire `
       + `vectors, projected onto two coordinates and indexed there, with `
       + `${D.edges.length} edges at the bottom layer and at most ${D.m} new neighbours per `
-      + `insertion. Every walk starts at node ${D.entry}, the single node of the top layer. `
+      + `insertion. The upper layers contain sampled entry nodes, so a walk starts from the `
+      + `entry node shown in the current path, not necessarily a unique node. `
       + `The layer sizes are ${counts.join(', ')}: each level up keeps a `
       + `geometrically smaller sample, which is what makes the first hop long and the last `
       + `ones short. This query takes ${walk.path.length} `

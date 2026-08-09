@@ -64,6 +64,6 @@ export function initSizeWidget(data) {
         `${sc.isotonic[last].toFixed(4)}: freedom loses small and wins big.`
       : `matches it once the data catches up with its freedom.`
     } The practical rule: with hundreds of calibration points, take the two parameters; ` +
-    `with ten thousand, take the staircase; in between, either repair beats none by an order of ` +
-    `magnitude.</div>`;
+    `with ten thousand, take the staircase; in between, either repair beats none by several ` +
+    `times, with the largest measured gain appearing at the largest sample size.</div>`;
 }

@@ -20,6 +20,7 @@
 export function scrolly(stepSelector, handlers, { band = 45 } = {}) {
   const steps = document.querySelectorAll(stepSelector);
   let current = null;
+  const visible = new Map();
 
   const activate = (index) => {
     if (index === null || index === current || !(index in handlers)) return;
@@ -30,9 +31,18 @@ export function scrolly(stepSelector, handlers, { band = 45 } = {}) {
   const observer = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
-        if (!entry.isIntersecting) return;
-        activate(entry.target.getAttribute('data-index'));
+        const index = entry.target.getAttribute('data-index');
+        if (entry.isIntersecting) visible.set(index, entry.target);
+        else visible.delete(index);
       });
+      if (!visible.size) return;
+      const mid = window.innerHeight / 2;
+      const closest = [...visible.entries()].sort((a, b) => {
+        const da = Math.abs(a[1].getBoundingClientRect().top + a[1].getBoundingClientRect().height / 2 - mid);
+        const db = Math.abs(b[1].getBoundingClientRect().top + b[1].getBoundingClientRect().height / 2 - mid);
+        return da - db;
+      })[0];
+      activate(closest[0]);
     },
     { rootMargin: `-${band}% 0px -${band}% 0px`, threshold: 0 }
   );

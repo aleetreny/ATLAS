@@ -93,7 +93,9 @@ export function initProse(data) {
     + `exhaustive search goes from ${n0(first.brute)} to ${n0(last.brute)}, so the saving `
     + `widens from ${first.ratio.toFixed(1)} times to ${last.ratio.toFixed(1)}. That is `
     + `the ${growth.toFixed(2)} power of the collection size rather than the first power `
-    + `exhaustive search pays. The second view is the one that changes what all of this is `
+    + `exhaustive search pays. At its widest setting the inverted file reaches ${I.ivf[I.ivf.length - 1].recall.toFixed(4)} recall `
+    + `after ${Math.round(I.ivf[I.ivf.length - 1].cost)} distance evaluations, slightly more `
+    + `than exhaustive search: a wider dial is not automatically a better setting. The second view is the one that changes what all of this is `
     + `worth, and it is in the readout.`);
 
   set('demo-intro',
@@ -184,8 +186,9 @@ export function initProse(data) {
     + `${M.classes.length} categories over a vocabulary of ${n0(M.vocab)} words, as `
     + `${M.dims} columns from a singular value `
     + `decomposition of their weighted counts, with ${I.queries} held out as queries and `
-    + `${M.k} neighbours asked for. The graph uses ${M.M} neighbours per node and a `
-    + `construction width of ${M.ef_construction}; the inverted file uses ${M.nlist} cells `
+    + `${M.k} neighbours asked for. The graph is built with M = ${M.M} neighbours per node, `
+    + `and its bottom layer reaches the 2M cap of ${I.degrees.max}; construction uses a width `
+    + `of ${M.ef_construction}. The inverted file uses ${M.nlist} cells `
     + `from k-means; the product quantiser uses eight bit codebooks. Cost is counted inside `
     + `the indexes as distance evaluations and never in seconds, which is the only form that `
     + `means the same thing on another machine. The intrinsic dimension is the two nearest `

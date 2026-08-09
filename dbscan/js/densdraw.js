@@ -15,6 +15,7 @@ export function drawLabelled(g, points, labels, role, x, y, opts = {}) {
   enter.append('line').attr('class', 'x1');
   enter.append('line').attr('class', 'x2');
   const merged = enter.merge(sel);
+  sel.exit().remove();
   merged.attr('transform', (p) => `translate(${x(p[0])},${y(p[1])})`);
   merged.select('circle')
     .attr('r', (p, i) => (labels && labels[i] === -1 ? r * 0.85 : role && role[i] === 'border' ? r * 0.9 : r))

@@ -619,3 +619,17 @@ Y dos clases más que el triaje separó a mano, para el siguiente barrido:
   "cell 18 of 64" no cambian nada porque el estado ya es ese; pulsados tras
   cambiar el estado, los tres funcionan. Antes de tocar un botón "muerto",
   reproducir el estado en el que un lector lo pulsaría (trampa 27).
+
+## Lo que dejó la corrección transversal de 2026-08-09
+
+- Los botones de vista mantienen `aria-pressed` sincronizado con su estado
+  visual (`.ghost`), y los gráficos, tablas, rangos y encabezados reciben una
+  semántica común desde `assets/js/accessibility.js`.
+- Los enlaces sobre el fondo oscuro usan el color de texto claro del sistema,
+  no el color de acento, y los bloques móviles con gráficos, tablas y lecturas
+  anuncian el desplazamiento horizontal cuando hace falta.
+- Un cambio de dataset que redibuja con D3 elimina siempre los nodos que ya no
+  pertenecen al estado nuevo (`selection.exit().remove()`); el texto medido y
+  las etiquetas se derivan del mismo JSON que pinta el gráfico.
+- Las referencias que explican una métrica concreta viven junto a la sección
+  que la usa; los enlaces públicos se verifican antes de cerrar la revisión.

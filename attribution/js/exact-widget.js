@@ -137,7 +137,7 @@ export function initExactWidget(data) {
         + `anything about Shapley values; the ticks come from reading the model's own term `
         + `for that column and centring it on the background. On this bottle the worst `
         + `disagreement is <span class="bold">${worst.toExponential(0)}</span>, and across `
-        + `all ${K.n} bottles it is ${K.worst.toExponential(0)}. This is the check that `
+        + `all ${K.rows.length} shown bottles it is ${K.worst.toExponential(0)}. This is the check that `
         + `matters: an attribution that summed correctly but distributed the credit wrongly `
         + `would pass the waterfall and fail here.</p>`;
     }

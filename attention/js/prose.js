@@ -157,7 +157,7 @@ export function initProse(data, seq) {
     + `the model gets <span class="bold">${pc(A.base)}</span>. The most expensive head to lose is `
     + `<span class="bold">layer ${worst.layer + 1}, head ${worst.head + 1}</span>, costing `
     + `<span class="bold">${pc(worst.drop)}</span>; the cheapest costs `
-    + `<span class="bold">${pc(mildest.drop)}</span>, and `
+    + `<span class="bold">${mildest.drop < 0 ? 'improves' : 'costs'} ${pc(Math.abs(mildest.drop))}</span>, and `
     + `<span class="bold">${word(free)}</span> of the ${A.rows.length} `
     + `${free === 1 ? 'head costs' : 'heads cost'} essentially nothing at all. `
     + `That is the finding the pictures never show: heads are not equal, and on a task this size `
@@ -176,13 +176,18 @@ export function initProse(data, seq) {
   ]);
 
   const half = C.rows.find((r) => r.pairwise_share >= 0.5);
+  const previous = C.rows.length > 1 ? C.rows[C.rows.length - 2] : C.rows[0];
+  const final = C.rows[C.rows.length - 1];
+  const pairwiseGrowth = previous.pairwise ? final.pairwise / previous.pairwise : 1;
+  const totalGrowth = previous.total ? final.total / previous.total : 1;
   set('cost-verdict',
     `The quadratic term is real and it does not dominate where people think. With `
     + `${M.d_model} dimensions the pairwise part only overtakes the projections at a length of `
     + `<span class="bold">${half ? n0(half.length) : 'beyond the range shown'}</span>, which is `
     + `arithmetic rather than measurement: it happens when the length passes twice the model `
     + `dimension. Below that, "attention is quadratic" is true and irrelevant, because the linear `
-    + `part is paying most of the bill. Above it, the bill doubles every time the length does.`);
+    + `part is paying most of the bill. At the largest doubling shown, the pairwise term grows `
+    + `${pairwiseGrowth.toFixed(1)} times and the total bill grows ${totalGrowth.toFixed(1)} times.`);
 
   if (data.copy && seq && seq.copy) {
     const ds = data.copy_distances;
@@ -241,7 +246,7 @@ export function initProse(data, seq) {
     `The damage grows with the head size, so a change that looks safe at 8 dimensions is fatal `
     + `at 512.`);
   set('v-heads',
-    `${pc(worst.drop)} for the most expensive head and ${pc(mildest.drop)} for the cheapest, from `
+    `${pc(worst.drop)} for the most expensive head and ${pc(Math.abs(mildest.drop))} for the cheapest, from `
     + `${A.rows.length} ablations on an unchanged model.`);
   set('v-heads-watch',
     `${word(free)} of ${A.rows.length} cost essentially nothing, so the count is not evidence of `

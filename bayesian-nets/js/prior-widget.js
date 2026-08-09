@@ -69,8 +69,8 @@ export function initPriorWidget(data) {
         + `drawn from it, before any data. At width ${P.scale} a typical function swings `
         + `<span class="bold">${f2(row.amplitude)}</span> in amplitude with a standard `
         + `deviation of ${f2(row.sd)} and a steepest slope around ${f1(row.steep)}. That is the `
-        + `belief the posterior falls back to wherever the data are silent, and the table `
-        + `behind the next button is what happens when it is changed: `
+        + `belief the posterior falls back to wherever the data are silent, and the second `
+        + `view is what happens when that assumption is changed: `
         + `${P.rows.map((r) => `width ${r.scale} swings ${f2(r.amplitude)}`).join(', ')}.</p>`;
       return;
     }

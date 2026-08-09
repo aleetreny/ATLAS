@@ -60,7 +60,8 @@ export function initProse(data) {
     + `the columns, ${M.reducers.length} ways to reduce them, ${M.weights.length} ways to `
     + `weight the classes and ${M.models.length} model settings, which is `
     + `<span class="bold">${n0(M.configs)} pipelines</span>. Each one was fitted `
-    + `${M.folds} times for cross validation and once more on everything, on each of four `
+    + `${M.folds} times for cross validation, then on the ${(1 - M.test_frac) * 100}% `
+    + `training split and the held-out ${M.test_frac * 100}% split, on each of four `
     + `tables: ${names.join(', ')}. Three of them are the tables scikit-learn ships and the `
     + `fourth is ${n0(M.r8_docs)} Reuters newswires turned into ${M.r8_dims} dense columns by `
     + `the pipeline the <a href="../tf-idf/">TF-IDF article</a> measured, which is here `

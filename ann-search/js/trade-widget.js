@@ -118,9 +118,11 @@ export function initTradeWidget(data) {
       + `<tbody>${rows}</tbody></table>`
       + `<div class="gen-note">Exhaustive search over ${I.n.toLocaleString('en-US')} vectors `
       + `costs ${Math.round(I.brute_cost)} distances per query and gets `
-      + `${I.exact_quality.toFixed(3)} of the ten in the right category, which is the ceiling `
-      + `for the second view and is a long way below one: the true nearest neighbours of a `
-      + `newswire are not all from its category, and no index can fix that. That is why the `
+      + `${I.exact_quality.toFixed(3)} of the ten in the right category. That is a measured `
+      + `category proxy, not a ceiling: exhaustive search guarantees recall one, while an index `
+      + `can score slightly higher or lower on category agreement because it returns a different `
+      + `set of neighbours. The true nearest neighbours of a newswire are not all from its `
+      + `category, and no index can fix that. That is why the `
       + `two views have different shapes. Losing ten per cent of the true neighbours does not `
       + `cost ten per cent of the answer, because the neighbours that are easy to find are `
       + `also the ones that agree with the query.</div>`

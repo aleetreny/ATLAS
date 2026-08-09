@@ -17,8 +17,11 @@ export function makeChart(container, { width = 640, height = 460, margin = { top
   const svg = d3
     .select(typeof container === 'string' ? document.querySelector(container) : container)
     .append('svg')
+    .attr('class', 'atlas-chart')
     .attr('viewBox', `0 0 ${width} ${height}`)
-    .attr('preserveAspectRatio', 'xMidYMid meet');
+    .attr('preserveAspectRatio', 'xMidYMid meet')
+    .attr('role', 'img')
+    .attr('aria-label', `${(typeof container === 'string' ? container : '').replace(/^#/, '').replace(/-/g, ' ')} chart`);
   const w = width - margin.left - margin.right;
   const h = height - margin.top - margin.bottom;
   const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);

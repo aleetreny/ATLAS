@@ -78,7 +78,7 @@ export function initProse(data) {
     + `subsets and ${n0(coalitions * M.p / 2)} differences, and nothing about it is `
     + `approximate. The bars below are that sum, and the line across them is the answer key: `
     + `the additive model's own term for each column, centred on the background. The worst `
-    + `disagreement across ${word(K.n)} bottles and ${word(M.p)} columns is `
+    + `disagreement across ${word(K.rows.length)} shown bottles and ${word(M.p)} columns is `
     + `<span class="bold">${K.worst.toExponential(0)}</span>.`);
 
   set('exact-note',

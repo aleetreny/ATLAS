@@ -273,8 +273,8 @@ export function initProse(data) {
     + `${sunBest.mase_mean > 1 ? 'which is still worse than the unit it is divided by' : ''}, and `
     + `exponential smoothing with a damped trend comes <span class="bold">last</span>, at `
     + `${sunEts.mase_mean}, behind even the naive forecast's ${sunNaive.mase_mean}: a method one `
-    + `place off the podium on the first series is four times worse than doing nothing on the `
-    + `second. `
+    + `place off the podium on the first series is ${(sunEts.mase_mean / sunNaive.mase_mean).toFixed(1)} `
+    + `times the naive error on the second. `
     + `${P.helps
       ? `And the seasonal machinery is not simply wrong there either. Sweeping the seasonal `
         + `period from 9 to 13 years, the best is ${P.best_period} at ${P.best} against `

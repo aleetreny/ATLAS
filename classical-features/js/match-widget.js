@@ -179,6 +179,7 @@ export async function initMatchWidget(data, base) {
 
   function verdict() {
     const p = M.panels[state.panel];
+    const d = p[state.desc];
     if (state.desc === 'patch') {
       return p.theta === 0 && p.scale === 1
         ? `Unchanged image, so the naive descriptor is perfect: ${p.patch.n_correct} of ` +
@@ -209,10 +210,12 @@ export async function initMatchWidget(data, base) {
         `perfect, and all three are. If this case were not clean, nothing measured on the rotated ones ` +
         `could be trusted. Now rotate.`;
     }
-    return `${p.sift.n_correct} of ${p.sift.n_matches} SIFT matches survive a ${p.theta}-degree rotation, ` +
-      `a precision of ${p.sift.precision.toFixed(2)}. SIFT measures a dominant orientation at each ` +
-      `keypoint and describes the patch relative to it, so turning the picture turns the description ` +
-      `with it. The green lines are the ones a ground truth confirms; crimson ones are honest mistakes.`;
+    const label = state.desc.toUpperCase();
+    return `${d.n_correct} of ${d.n_matches} ${label} matches survive a ${p.theta}-degree rotation, ` +
+      `a precision of ${d.precision.toFixed(2)}. ${label} measures a local orientation at each ` +
+      `keypoint and describes the patch relative to it, so turning the picture can turn the ` +
+      `description with it. The green lines are the ones a ground truth confirms; crimson ones ` +
+      `are honest mistakes.`;
   }
 
   render();

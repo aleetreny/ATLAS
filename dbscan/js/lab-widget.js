@@ -10,7 +10,7 @@ import { drawLabelled } from './densdraw.js';
 
 const CASES = [
   {
-    key: 'moons', label: 'moons', epsMax: 1.2, eps0: 0.45,
+    key: 'moons', label: 'moons', epsMax: 1.2, eps0: 0.45, minPts0: 5,
     story: (r, a) => (r.nClusters === 2 && a > 0.9
       ? `Two moons, found by chaining: no centre, no shape model, ARI ${a.toFixed(3)}. This is the picture k-means (0.275) and the mixture (0.434) could not draw.`
       : r.nClusters === 1
@@ -18,7 +18,7 @@ const CASES = [
         : `Fragments and noise: the radius is too short for the moons' own thickness, so each moon shatters.`),
   },
   {
-    key: 'rings', label: 'rings', epsMax: 1.6, eps0: 0.65,
+    key: 'rings', label: 'rings', epsMax: 1.6, eps0: 0.65, minPts0: 5,
     story: (r, a) => (r.nClusters === 2 && a > 0.99
       ? `ARI ${a.toFixed(3)}: the two-article curse is lifted. K-means scored -0.003 here, the mixture 0.002, and density gets it exactly right, because each ring is dense inside and empty around, which is all DBSCAN asks.`
       : r.nClusters > 4
@@ -26,14 +26,14 @@ const CASES = [
         : 'Watch for the sweet range: wide enough to chain each ring, narrower than the 2-unit moat between them.'),
   },
   {
-    key: 'blobs_noise', label: 'blobs + impostors', epsMax: 1.6, eps0: 0.8,
+    key: 'blobs_noise', label: 'blobs + impostors', epsMax: 1.6, eps0: 0.8, minPts0: 8,
     story: (r, a, extra) => `${extra.caught} of the 30 uniform impostors are called noise` +
       (r.nClusters === 3
         ? `, with the three blobs intact (ARI ${a.toFixed(3)}). No other model in this module can say "this point belongs to nothing": k-means dealt all 30 impostors into the nearest cluster (ARI 0.832).`
         : `. Tune until exactly three clusters survive: the blobs are std 0.85-1.05, so the radius has to live between a blob's internal spacing and the impostors' isolation.`),
   },
   {
-    key: 'varying', label: 'the trap', epsMax: 1.4, eps0: 0.44,
+    key: 'varying', label: 'the trap', epsMax: 1.4, eps0: 0.44, minPts0: 5,
     story: (r, a) => `ARI ${a.toFixed(3)}. This dataset defeats every single radius, and the next section proves it with a sweep.`,
   },
 ];
@@ -62,6 +62,7 @@ export function initLabWidget(data) {
       state.i = i;
       epsSlider.max = c.epsMax;
       epsSlider.value = c.eps0;
+      mpSlider.value = c.minPts0;
       render();
     });
     btnRow.appendChild(b);

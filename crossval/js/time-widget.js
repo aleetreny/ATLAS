@@ -109,7 +109,7 @@ export function initTimeWidget(data) {
         xValues: H.map((r) => r.horizon), yTicks: 5,
         xFmt: (v) => String(v), yFmt: d3.format('.2f'),
       });
-      axisLabels(g, w, h, { x: 'months ahead the model is asked to predict', y: 'error, parts per million' });
+      axisLabels(g, w, h, { x: '', y: 'error, parts per million' });
       [['random', 'var(--cosmos)', 'split at random'],
         ['forward', 'var(--primary)', 'forward chaining']].forEach(([key, colour, name], i) => {
         layer.append('path').attr('d', d3.line().x((r) => x(r.horizon)).y((r) => y(r[key]))(H))

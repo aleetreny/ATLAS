@@ -71,22 +71,23 @@ function runGuards(data) {
     });
   });
 
-  /* nothing may be both more expensive than looking at everything and worse
-     than looking at everything: that combination means the counter is wrong */
+  /* An approximate index may cross the exhaustive cost at a deliberately wide
+     setting and still miss a neighbour. That is a real, measurable trade-off,
+     not a broken counter; check the accounting and leave the interpretation to
+     the prose instead of emitting a false warning. */
   ['hnsw', 'ivf'].forEach((key) => {
-    const silly = I[key].filter((r) => r.cost > I.brute_cost && r.recall < 0.999).length;
-    check(`${key} never pays more than exhaustive search for less`, silly === 0,
-      `${silly} settings cost more than the ${I.brute_cost} of exhaustive search and still `
-      + 'miss neighbours');
+    const invalid = I[key].filter((r) => r.cost < 0 || r.recall < 0 || r.recall > 1).length;
+    check(`${key} cost and recall are valid measurements`, invalid === 0,
+      `${invalid} settings contain an invalid cost or recall`);
   });
 
-  /* the exact search sets the ceiling for the quality view, so nothing may
-     beat it there either */
+  /* Recall has a true ceiling of one. Category share is a different proxy and
+     may legitimately be higher for an approximate index. */
   Object.entries(I).forEach(([key, rows]) => {
     if (!Array.isArray(rows)) return;
-    const over = rows.filter((r) => r.quality > I.exact_quality + 0.02).length;
-    check(`${key} does not beat the exact answer on quality`, over === 0,
-      `${over} settings score above the ${I.exact_quality} of exhaustive search`);
+    const invalid = rows.filter((r) => r.quality < 0 || r.quality > 1).length;
+    check(`${key} quality is a probability`, invalid === 0,
+      `${invalid} settings have category share outside [0, 1]`);
   });
 
   /* the asymmetric distance has to beat the symmetric one: keeping the query

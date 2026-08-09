@@ -99,7 +99,7 @@ export function initRollWidget(data) {
       body.append('line').attr('x1', 0).attr('x2', w)
         .attr('y1', y(R.isomap)).attr('y2', y(R.isomap))
         .attr('stroke', 'var(--anchor)').attr('stroke-width', 2).attr('stroke-dasharray', '6 4');
-      body.append('text').attr('x', w - 4).attr('y', y(R.isomap) - 8)
+      body.append('text').attr('x', w - 4).attr('y', Math.max(18, y(R.isomap) - 24))
         .attr('text-anchor', 'end').attr('class', 'chart-annotation')
         .style('font-size', '11.5px').style('text-transform', 'none')
         .text(`Isomap on the same points: ${R.isomap}`);

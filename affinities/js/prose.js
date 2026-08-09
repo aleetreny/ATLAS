@@ -363,11 +363,11 @@ export function initProse(data) {
     + `and ${board[board.length - 1].name} were each built to break something, and four of the `
     + `five break k-means specifically.`);
 
-  /* the three that do not take k */
+  /* the methods that do not take k */
   const nok = data.nok;
   const score = data.nok_score;
   set('nok-note',
-    `Three of those ${word(BOARD_KEYS.length)} do not take k as an argument, which makes the column worth `
+    `${word(nok.length)} of those ${word(BOARD_KEYS.length)} do not take k as an argument, which makes the column worth `
     + `reading on its own. Mean shift gets the number of clusters right on ${word(score.shift_k)} of the `
     + `${word(nok.length)} datasets, the eigengap rule on ${word(score.gap_k)}, and affinity propagation `
     + `at its default preference on ${word(score.ap_k)}: it answered `

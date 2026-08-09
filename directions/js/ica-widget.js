@@ -124,7 +124,7 @@ export function initIcaWidget(data) {
       sources, mixed, white, moments: m, curve, peak,
       lo: Math.min(...curve.map((d) => d.v)),
       hi: Math.max(...curve.map((d) => d.v)),
-      fast: fastICA2(white),
+      fast: fastICA2(white, { tol: 1e-9, maxIter: 4000 }),
       shipped: block,
     };
   }

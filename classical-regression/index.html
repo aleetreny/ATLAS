@@ -22,6 +22,7 @@
   <script src="../assets/js/vendor/katex/katex.min.js" defer></script>
   <script src="../assets/js/vendor/katex/auto-render.min.js" defer></script>
   <script type="module" src="./js/main.js"></script>
+  <script type="module" src="../assets/js/accessibility.js"></script>
   <style>
     /* Per-article theme. Everything else inherits from these two.
      * The accent is the site orange, but --secondary has to be darkened by hand:
@@ -115,7 +116,8 @@
       We'll start with a single real question: <i>how does engine power affect fuel
       efficiency?</i> Below is the classic
       <a href="https://archive.ics.uci.edu/dataset/9/auto+mpg">Auto MPG</a> dataset
-      <a href="#resources">[2]</a>, 392 cars from 1970-1982, each a dot: horsepower
+      <a href="#resources">[2]</a>, 392 cars from 1970-1982 after removing six rows with missing
+      horsepower, each a dot: horsepower
       on the x-axis, miles-per-gallon on the y-axis. Scroll on, the chart will keep
       pace with the story.
     </p>
@@ -587,7 +589,7 @@
       Thanks for reading! ATLAS articles pair with runnable notebooks: the
       from-scratch NumPy implementations of everything above
       (<code>ScratchOLS</code>, <code>ScratchPoissonGLM</code>, <code>ScratchPLS</code>)
-      live in the <a href="https://github.com/aleetreny/ATLAS">ATLAS repository</a>,
+      live in the <a href="https://aleetreny.github.io/ATLAS/">ATLAS published site</a>,
       faithful to the code that produced every number in this article.
     </p>
   </section>
@@ -615,7 +617,7 @@
     </p>
     <p class="resource-item">
       <a class="on-end" href="https://archive.ics.uci.edu/dataset/109/wine">[4] Wine Dataset</a><br />
-      (Aeberhard, S. &amp; Forina, M., UCI Machine Learning Repository, 1991)
+      (Aeberhard, S. &amp; Forina, M., UCI Machine Learning Repository, 1992)
     </p>
     <p class="resource-item">
       <a class="on-end" href="https://www.statlearning.com/">[5] An Introduction to Statistical Learning</a><br />
