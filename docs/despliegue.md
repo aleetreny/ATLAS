@@ -1,7 +1,7 @@
 # Publicar y comprobar el despliegue
 
 > Documento de trabajo del repositorio. Las reglas duras y el índice están
-> en [CLAUDE.md](../CLAUDE.md). **Si descubres un fallo nuevo, añádelo aquí
+> en [proyecto.md](proyecto.md). **Si descubres un fallo nuevo, añádelo aquí
 > en la misma sesión.**
 
 
@@ -13,7 +13,7 @@ En el repo ATLAS: tras commitear, **hacer push a origin/main siempre, sin pedir 
 
 ## Varias sesiones a la vez: ramas, números y colores
 
-Una sesión en la nube trabaja en su propia rama (`claude/<tema>-<id>`) y **Pages
+Una sesión en la nube trabaja en su propia rama y **Pages
 sirve `main`**, así que hasta que la rama no entre en main no hay nada
 desplegado. Con más de una sesión abierta eso deja de ser un detalle:
 

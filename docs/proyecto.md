@@ -1,8 +1,8 @@
-# ATLAS: instrucciones para cualquier sesión que trabaje en este repo
+# ATLAS: cómo se trabaja en este repositorio
 
-Este fichero lo lee automáticamente cualquier sesión de Claude Code abierta sobre
-este repositorio, en local o en la nube. **Es la fuente de la verdad del proyecto.**
-No dependas de la memoria de ninguna cuenta: si algo importa, vive aquí o en `docs/`.
+Este fichero es lo primero que se lee al abrir el repo, en local o en la nube.
+**Es la fuente de la verdad del proyecto.** No dependas de notas guardadas fuera
+del repositorio: si algo importa, vive aquí o en el resto de `docs/`.
 
 ## Qué es esto
 
@@ -77,7 +77,7 @@ falta preguntar cada vez):** cuando el artículo esté verificado, **mergea tu
 propia rama a `main` y pushea**, que es lo que lo publica, porque Pages sirve
 `main` desde `/(root)`. El procedimiento exacto, con lo que hay que hacer cuando
 main se ha movido mientras escribías, está en
-[docs/despliegue.md](docs/despliegue.md). En corto:
+[docs/despliegue.md](despliegue.md). En corto:
 
 ```
 git fetch origin main && git merge origin/main   # sobre TU rama, primero
@@ -95,14 +95,14 @@ nunca al revés.
 
 ## Documentación
 
-- **[docs/receta-de-articulo.md](docs/receta-de-articulo.md)**: qué es fijo y qué
+- **[docs/receta-de-articulo.md](receta-de-articulo.md)**: qué es fijo y qué
   cambia en cada artículo, y la lista larga de fallos ya pagados. Léelo entero
   antes de escribir un artículo nuevo.
-- **[docs/verificacion.md](docs/verificacion.md)**: cómo se verifica de verdad en
+- **[docs/verificacion.md](verificacion.md)**: cómo se verifica de verdad en
   el navegador, y las trampas del entorno que producen falsos "todo correcto".
-- **[docs/estado.md](docs/estado.md)**: qué artículos hay, con qué color, qué se
+- **[docs/estado.md](estado.md)**: qué artículos hay, con qué color, qué se
   midió en cada uno y qué viene después.
-- **[docs/despliegue.md](docs/despliegue.md)**: commit, push y comprobación.
+- **[docs/despliegue.md](despliegue.md)**: commit, push y comprobación.
 
 ## Cómo se construye un artículo, en corto
 
@@ -141,4 +141,4 @@ reducciones en coma flotante, así que una precisión se mueve en el quinto
 decimal, y un tiempo de reloj se mueve por completo (4,4 s aquí, 42,8 s en un
 contenedor de 4 núcleos). Por eso los generadores se ejecutan siempre en la
 misma máquina y un tiempo se publica como razón entre brazos, nunca como
-constante. Ver la trampa 14 de [docs/verificacion.md](docs/verificacion.md).
+constante. Ver la trampa 14 de [docs/verificacion.md](verificacion.md).

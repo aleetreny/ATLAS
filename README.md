@@ -44,9 +44,8 @@ To reproduce an article's figures, run its generator (for example `python src/ut
 - `src/utils/`: the generators that measure every published figure, plus the publication guard.
 - `src/models/`: from-scratch NumPy implementations that several generators and articles use as their honest baseline.
 - `datasets/`: the small CSVs a few generators read; everything heavy lives outside the repository.
-- `modules/`: the original notebook playground the site grew out of.
-- `docs/`: working documentation, in Spanish: the article recipe, the verification playbook, the deployment procedure and the project state.
+- `docs/`: working documentation, in Spanish: how the repository is worked on, the article recipe, the verification playbook, the deployment procedure and the project state.
 
 ## Working on this repository
 
-Start with [CLAUDE.md](CLAUDE.md) and the notes in [`docs/`](docs/): the article recipe, the failures already paid for, and how a page is verified in a real browser before it ships. They are the project's own documentation and they are kept up to date as part of the work.
+Start with the notes in [`docs/`](docs/): how the repository is worked on, the article recipe, the failures already paid for, and how a page is verified in a real browser before it ships. They are the project's own documentation and they are kept up to date as part of the work.

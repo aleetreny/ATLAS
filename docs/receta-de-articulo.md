@@ -1,7 +1,7 @@
 # Receta de un artículo y fallos ya pagados
 
 > Documento de trabajo del repositorio. Las reglas duras y el índice están
-> en [CLAUDE.md](../CLAUDE.md). **Si descubres un fallo nuevo, añádelo aquí
+> en [proyecto.md](proyecto.md). **Si descubres un fallo nuevo, añádelo aquí
 > en la misma sesión.**
 
 

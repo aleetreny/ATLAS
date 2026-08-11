@@ -272,7 +272,7 @@ def enlaza_a(carpeta, destino):
 
 
 def sin_rayas():
-    """La regla dura 2 de CLAUDE.md, comprobada donde se lee.
+    """La regla dura 2 de docs/proyecto.md, comprobada donde se lee.
 
     Los dos caracteres se construyen por punto de código y no se escriben aquí,
     para que este fichero no se acuse a sí mismo. Y una línea que habla de la
